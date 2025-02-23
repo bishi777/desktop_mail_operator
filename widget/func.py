@@ -151,11 +151,16 @@ def clear_webdriver_cache():
 #             if attempt == max_retries - 1:
 #                 raise
 def get_multi_driver(profile_path, headless_flag, max_retries=3):
-    
     for attempt in range(max_retries):
       # iPhone14
       user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
-
+      
+      base_dir = os.path.dirname(os.path.abspath(__file__))
+      profile_path = os.path.join(base_dir, profile_path)
+      os.makedirs(profile_path, exist_ok=True)
+      # Windows ではパスの `\` を適切に処理
+      if platform.system() == "Windows":
+          profile_path = profile_path.replace("/", "\\")
       try:
         options = Options()
         if headless_flag:

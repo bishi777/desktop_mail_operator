@@ -37,7 +37,7 @@ def happymail_footprints(headless, foot_cnt):
         happy_user_list.append([h_chara_data['name'], h_chara_data['login_id'], h_chara_data['password']])
    
     for i in range(9999):
-        driver,wait = func.get_driver(headless)
+        driver,wait = func.test_get_driver(headless)
         verification_flug = func.get_user_data()
         if not verification_flug:
             return

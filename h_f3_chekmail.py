@@ -24,14 +24,13 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 
 user_data = func.get_user_data()["happymail"]
-base_path = "./chrome_profiles/h_footprint"
-headless = True
+profile_path = "chrome_profiles/h_footprint"
+headless = False
 drivers = {}
 
 
-
 try:
-  drivers = happymail.start_the_drivers_login(user_data, headless, base_path, True)
+  drivers = happymail.start_the_drivers_login(user_data, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
