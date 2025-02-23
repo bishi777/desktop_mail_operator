@@ -1,0 +1,12 @@
+*.db
+d_m_venv/
+*.pyc
+dist/*
+myenv/
+/tmp/
+build/
+chrome_profiles/
+widget/__pycache__/
+__pycache__/
+.DS_Store
+
