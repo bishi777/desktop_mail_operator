@@ -25,7 +25,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 user_data = func.get_user_data()["happymail"]
 profile_path = "chrome_profiles/h_footprint"
-headless = False
+headless = True
 drivers = {}
 
 
