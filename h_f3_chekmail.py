@@ -67,7 +67,7 @@ try:
             print(f"{name}　新着メールなし")
             continue
           else:
-            happymail_new = happymail.multidrivers_checkmail(driver)
+            happymail_new = happymail.multidrivers_checkmail(drivers[name]["driver"])
             if happymail_new:
               # メール送信
               smtpobj = None
@@ -92,7 +92,6 @@ except KeyboardInterrupt:
   
 except Exception as e:
   # 予期しないエラーが発生した場合
-  print(drivers)
   func.close_all_drivers(drivers)
   print("エラーが発生しました:", e)
   traceback.print_exc()
