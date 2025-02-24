@@ -53,12 +53,18 @@ try:
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
+      
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
-          happymail.mutidriver_make_footprints(name,drivers[name]["driver"], drivers[name]["wait"])
+          happymail.mutidriver_make_footprints(name, driver, wait)
         elif index + 1 == 2:
+          login_id = drivers[name]["login_id"]
+          password = drivers[name]["password"]
+          return_foot_message = drivers[name]["return_foot_message"]
+          fst_message = drivers[name]["fst_message"]
+          conditions_message = drivers[name]["conditions_message"]
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
@@ -67,7 +73,7 @@ try:
             print(f"{name}　新着メールなし")
             continue
           else:
-            happymail_new = happymail.multidrivers_checkmail(drivers[name]["driver"])
+            happymail_new = happymail.multidrivers_checkmail(driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             if happymail_new:
               # メール送信
               smtpobj = None

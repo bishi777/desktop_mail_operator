@@ -227,17 +227,8 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(happymail_driver):
-    driver = happymail_driver["driver"]
-    wait = happymail_driver["wait"]
-    name = happymail_driver["name"]
-    login_id = happymail_driver["login_id"]
-    password = happymail_driver["password"]
-    return_foot_message = happymail_driver["return_foot_message"]
-    fst_message = happymail_driver["fst_message"]
-    conditions_message = happymail_driver["conditions_message"]
+def multidrivers_checkmail(driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
     return_list = []
-
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     if new_message_flug == "新着メールなし":
       return
