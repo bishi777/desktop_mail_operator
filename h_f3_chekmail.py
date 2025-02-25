@@ -78,7 +78,12 @@ try:
             print(f"{name}　新着メールなし")
             continue
           else:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            try:
+              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            except NoSuchWindowException:
+              pass
+            except Exception as e:
+              print(traceback.format_exc())
             if happymail_new:
               title = "新着メッセージ"
               text = ""
