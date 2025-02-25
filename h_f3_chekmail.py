@@ -43,8 +43,10 @@ try:
         nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
-        happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-        time.sleep(2)     
+        try:
+          happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
+          time.sleep(2)
+        
   # 足跡付け、チェックメール　ループ
   while True:
     if drivers == {}:
@@ -58,7 +60,13 @@ try:
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
-          happymail.mutidriver_make_footprints(name, driver, wait)
+          try:
+            happymail.mutidriver_make_footprints(name, driver, wait)
+          except NoSuchWindowException:
+            pass
+          except Exception as e:
+              # print(f"{user_list[0]}:")
+              print(traceback.format_exc())
         elif index + 1 == 2:
           login_id = drivers[name]["login_id"]
           password = drivers[name]["password"]
@@ -73,7 +81,12 @@ try:
             print(f"{name}　新着メールなし")
             continue
           else:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            try:
+              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            except NoSuchWindowException:
+              pass
+            except Exception as e:
+                print(traceback.format_exc())
             if happymail_new:
               title = "新着メッセージ"
               text = ""
