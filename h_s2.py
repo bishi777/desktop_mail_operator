@@ -79,7 +79,7 @@ def start_scheduler(schedule_data, happy_chara_list, headless):
             'cron', 
             hour=int(hour), 
             minute=int(minute), 
-            args=[int(match_args), int(type_args), int(args), happy_chara_list, headless, mail_info, drivers], 
+            args=[int(match_args), int(type_args), int(args), happy_chara_list, mail_info, drivers], 
             max_instances=2, 
             misfire_grace_time=60*60
         )
@@ -89,17 +89,22 @@ def start_scheduler(schedule_data, happy_chara_list, headless):
 
     try:
         scheduler.start()
-    except (KeyboardInterrupt, SystemExit):
-        pass
-    except WebDriverException as e:
-        error_message = str(e)
-        if "unexpectedly exited. Status code was: -9" in error_message:
-            print("Chromedriverが予期せず終了しました。再起動して起動してください。")
-            driver.quit()
+    except KeyboardInterrupt:
+        # Ctrl+C が押された場合
+        print("プログラムが Ctrl+C により中断されました。")
+        func.close_all_drivers(drivers)
+        os._exit(0)
+    except Exception as e:
+        # 予期しないエラーが発生した場合
+        func.close_all_drivers(drivers)
+        print("エラーが発生しました:", e)
+        traceback.print_exc()
     finally:
-        if driver:
-            driver.quit()
-            print("Chromedriver has been closed.")
+        # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
+        # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+        # print(drivers)
+        func.close_all_drivers(drivers)
+        os._exit(0)
 
 def ready_scheduler():
     global user_data  

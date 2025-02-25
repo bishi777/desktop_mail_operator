@@ -199,6 +199,7 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
       # if i["name"] != "つむぎ" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
+    
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
@@ -1442,7 +1443,11 @@ def mutidriver_make_footprints(name, driver,wait):
     print(f'{name}:足跡付け,  {user_name}  {now}')
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
-    
+    warning_pop = catch_warning_screen(driver)
+    if warning_pop:
+      print(f"{name}：警告画面が出ている可能性があります")
+      print(warning_pop)
+      break
     swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
     swiper_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')

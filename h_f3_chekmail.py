@@ -26,7 +26,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 profile_path = "chrome_profiles/h_footprint"
-headless = False
+headless = True
 drivers = {}
 
 try:
@@ -34,11 +34,9 @@ try:
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
-    print(f"{name}のドライバー")
     driver = drivers[name]["driver"]
     wait = drivers[name]["wait"]
     tabs = driver.window_handles
-    print(tabs)
     for index, tab in enumerate(tabs):
       driver.switch_to.window(tab)
       if index + 1 == 1:
@@ -77,17 +75,22 @@ try:
           else:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             if happymail_new:
+              title = "新着メッセージ"
+              text = ""
+              for new_mail in happymail_new:
+                text = text + new_mail + ",\n"
+                if "警告" in text:
+                    title = "メッセージ"
               # メール送信
               smtpobj = None
               mailaddress = user_data['user'][0]['gmail_account']
               gmail_password = user_data['user'][0]['gmail_account_password']
               receiving_address = user_data['user'][0]['user_email']
               if mailaddress and gmail_password and receiving_address:
-                title = "新着メッセージ"
                 mail_info = [
-                  mailaddress, gmail_password, receiving_address
+                  receiving_address, mailaddress, gmail_password, 
                 ]
-                func.send_mail(happymail_new, mail_info, title)
+                func.send_mail(text, mail_info, title)
               else:
                 print("通知メールの送信に必要な情報が不足しています")
                 print(f"{mailaddress}   {gmail_password}  {receiving_address}")

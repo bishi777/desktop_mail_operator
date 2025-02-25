@@ -15,7 +15,7 @@ from datetime import timedelta
 # from sb_p_repost import pcmax_repost
 
 
-def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, headless, mail_info, drivers):
+def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, mail_info, drivers):
   verification_flug = func.get_user_data()
   if not verification_flug:
       return

@@ -186,9 +186,7 @@ def get_multi_driver(profile_path, headless_flag, max_retries=3):
         service = Service(executable_path=ChromeDriverManager().install())
         driver = webdriver.Chrome(options=options, service=service)
         wait = WebDriverWait(driver, 18)
-
         return driver, wait
-
       except (WebDriverException, NoSuchElementException, MaxRetryError, ConnectionError) as e:
         print(f"WebDriverException発生: {e}")
         print(f"再試行します ({attempt + 1}/{max_retries})")
