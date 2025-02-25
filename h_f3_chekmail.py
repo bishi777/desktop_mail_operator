@@ -23,20 +23,22 @@ import shutil
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 
-user_data = func.get_user_data()["happymail"]
+user_data = func.get_user_data()
+happy_info = user_data["happymail"]
 profile_path = "chrome_profiles/h_footprint"
-headless = True
+headless = False
 drivers = {}
 
-
 try:
-  drivers = happymail.start_the_drivers_login(user_data, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(happy_info, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
+    print(f"{name}のドライバー")
     driver = drivers[name]["driver"]
     wait = drivers[name]["wait"]
     tabs = driver.window_handles
+    print(tabs)
     for index, tab in enumerate(tabs):
       driver.switch_to.window(tab)
       if index + 1 == 1:
@@ -56,7 +58,7 @@ try:
       
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
-        print(f"現在のタブ: {index + 1},")
+        # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
           happymail.mutidriver_make_footprints(name, driver, wait)
         elif index + 1 == 2:
@@ -73,7 +75,7 @@ try:
             print(f"{name}　新着メールなし")
             continue
           else:
-            happymail_new = happymail.multidrivers_checkmail(driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             if happymail_new:
               # メール送信
               smtpobj = None
@@ -92,10 +94,8 @@ try:
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
-  print(drivers)
-  time.sleep(7)
   func.close_all_drivers(drivers)
-  
+  os._exit(0)
 except Exception as e:
   # 予期しないエラーが発生した場合
   func.close_all_drivers(drivers)
@@ -103,7 +103,7 @@ except Exception as e:
   traceback.print_exc()
 finally:
   # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
-  print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-  print(drivers)
+  # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+  # print(drivers)
   func.close_all_drivers(drivers)
   os._exit(0)

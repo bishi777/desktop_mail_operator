@@ -149,7 +149,6 @@ def catch_warning_screen(driver):
   re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
   if len(re_login_button_elem):
     if "ログインへ" in re_login_button_elem[0].text:
-      print("777777777766666666")
       re_login_button = re_login_button_elem[0].find_elements(By.TAG_NAME, value="a")
       re_login_button[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -192,15 +191,18 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
   drivers = {}
   try:
     # driver起動,ログイン
+    # mohu = 0
     for i in happymail_list:
-      # if i["name"] != "めあり" and i["name"] != "きりこ":
+      # mohu += 1
+      # if mohu > 4:
+      #   continue
+      # if i["name"] != "つむぎ" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
       driver,wait = func.get_multi_driver(profile_path, headless)
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
       login(i["name"], i["login_id"], i["password"], driver, wait)
       warning = catch_warning_screen(driver)
       if warning:
@@ -214,6 +216,7 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
         driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
     time.sleep(1)
     return drivers
   except KeyboardInterrupt:
@@ -227,7 +230,7 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
     return_list = []
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     if new_message_flug == "新着メールなし":
