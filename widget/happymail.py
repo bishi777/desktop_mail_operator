@@ -194,8 +194,8 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
       # mohu += 1
       # if mohu > 4:
       #   continue
-      if i["name"] != "はづき" :
-        continue
+      # if i["name"] != "はづき" :
+      #   continue
       # https://happymail.co.jp/sp/app/html/profile_list.php?UID=172573151367bea23f87a0f1.65339533.s111.151&view=0
       # https://happymail.co.jp/sp/app/html/profile_list.php
       profile_path = os.path.join(base_path, i["name"])
