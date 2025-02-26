@@ -30,7 +30,7 @@ root.title("スケジューラ設定")
 
 driver = None  # グローバルにドライバを定義
 
-def start_scheduler(schedule_data, happy_chara_list, headless):
+def start_scheduler(schedule_data, drivers):
     if not user_data:
         return
     global driver
@@ -61,16 +61,6 @@ def start_scheduler(schedule_data, happy_chara_list, headless):
         print(f"HTTP error occurred: {http_err}")
     except Exception as err:
         print(f"Other error occurred: {err}")
-    
-    # driver起動,ログイン
-    try:
-        drivers = happymail.start_the_drivers_login(user_data["happymail"], headless, base_path, False)
-    except Exception as e:
-        # 予期しないエラーが発生した場合
-        print(drivers)
-        func.close_all_drivers(drivers)
-        print("エラーが発生しました:", e)
-        traceback.print_exc()
 
     for data in schedule_data:
         hour, minute, match_args, type_args, args = data
@@ -79,7 +69,7 @@ def start_scheduler(schedule_data, happy_chara_list, headless):
             'cron', 
             hour=int(hour), 
             minute=int(minute), 
-            args=[int(match_args), int(type_args), int(args), happy_chara_list, mail_info, drivers], 
+            args=[int(match_args), int(type_args), int(args),  mail_info, drivers], 
             max_instances=2, 
             misfire_grace_time=60*60
         )
@@ -129,7 +119,17 @@ def ready_scheduler():
 
     root.withdraw()  # 実行ボタンを押した時にウィンドウを非表示にする
     root.update()  # Tkinterのイベントループを更新
-    start_scheduler(schedule_data, sorted_happymail, headless)
+    # driver起動,ログイン
+    try:
+        drivers = happymail.start_the_drivers_login(user_data["happymail"], headless, base_path, False)
+    except Exception as e:
+        # 予期しないエラーが発生した場合
+        print(drivers)
+        func.close_all_drivers(drivers)
+        print("エラーが発生しました:", e)
+        traceback.print_exc()
+
+    start_scheduler(schedule_data, drivers)
 
 def add_form(user_info_list):
     global form_count

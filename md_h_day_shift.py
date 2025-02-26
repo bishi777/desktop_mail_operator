@@ -15,7 +15,7 @@ from datetime import timedelta
 # from sb_p_repost import pcmax_repost
 
 
-def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, mail_info, drivers):
+def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
   verification_flug = func.get_user_data()
   if not verification_flug:
       return
@@ -34,19 +34,19 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, mail_
       # print(f"待機中~~ {elapsed_time} ")
     return return_func
   
-  wait_cnt = 7200 / len(happy_chara_list)
+  wait_cnt = 7200 / len(drivers)
 
   start_one_rap_time = time.time() 
   return_cnt_list = []
 
-  for happy_chara in happy_chara_list:
-    name = happy_chara['name']
-    driver = drivers[name]["driver"]
-    wait = drivers[name]["wait"]
-    fst_message = drivers[name]["fst_message"]
-    return_foot_message = drivers[name]["return_foot_message"]
-    mail_img = drivers[name]["mail_img"]
+  for happy_chara in drivers:
     try:
+      name = drivers['name']
+      driver = drivers["driver"]
+      wait = drivers["wait"]
+      fst_message = drivers["fst_message"]
+      return_foot_message = drivers["return_foot_message"]
+      mail_img = drivers["mail_img"]
       return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
           return_cnt_list.append(f"{happy_chara['name']}: {return_func}")
@@ -56,7 +56,10 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, mail_
       print(f"エラー{happy_chara[0]}")
       print(traceback.format_exc())
       func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
-    
+    except KeyError:
+      print(f"⚠️'{name}'のブラウザが見つかりませんでした。処理をスキップします。")
+      
+
      
   elapsed_time = time.time() - start_one_rap_time  
   elapsed_timedelta = timedelta(seconds=elapsed_time)
