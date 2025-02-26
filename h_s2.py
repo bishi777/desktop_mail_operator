@@ -101,8 +101,8 @@ def start_scheduler(schedule_data, happy_chara_list, headless):
         traceback.print_exc()
     finally:
         # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
-        # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-        # print(drivers)
+        print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+        print(drivers)
         func.close_all_drivers(drivers)
         os._exit(0)
 

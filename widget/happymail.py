@@ -1436,7 +1436,10 @@ def mutidriver_make_footprints(name, driver,wait):
       user_name = "取得に失敗しました"
     mail_button = driver.find_elements(By.CLASS_NAME, value="ds_profile_target_btn")
     if not len(mail_button):
+      print(user_name)
       print("メールをするボタンが見つかりません")
+      current_url = driver.current_url
+      print(f"現在のURL: {current_url}")
       return
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
