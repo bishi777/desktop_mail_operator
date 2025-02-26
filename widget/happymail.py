@@ -946,7 +946,6 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       catch_warning_screen(driver)
       # fst_messageを入力
       text_area = driver.find_element(By.ID, value="text-message")
-      # text_area.send_keys(fst_message)
       script = "arguments[0].value = arguments[1];"
       driver.execute_script(script, text_area, fst_message)
       # 送信
@@ -1101,9 +1100,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       catch_warning_screen(driver)
       # fst_messageを入力
       text_area = driver.find_element(By.ID, value="text-message")
-      text_area.send_keys(fst_message)
-      # script = "arguments[0].value = arguments[1];"
-      # driver.execute_script(script, text_area, fst_message)
+      script = "arguments[0].value = arguments[1];"
+      driver.execute_script(script, text_area, fst_message)
       # 送信
       send_mail = driver.find_element(By.ID, value="submitButton")
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
