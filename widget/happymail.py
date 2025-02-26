@@ -196,6 +196,8 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
       #   continue
       # if i["name"] != "アスカ" :
       #   continue
+      # https://happymail.co.jp/sp/app/html/profile_list.php?UID=172573151367bea23f87a0f1.65339533.s111.151&view=0
+      # https://happymail.co.jp/sp/app/html/profile_list.php
       profile_path = os.path.join(base_path, i["name"])
     
       if os.path.exists(profile_path):
@@ -1428,6 +1430,9 @@ def mutidriver_make_footprints(name, driver,wait):
   catch_warning_screen(driver)
   num = random.randint(3, 6)
   for i in range(num):
+    if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
+      print(9999999999)
+      set_mutidriver_make_footprints(driver,wait)
     # ユーザ名を取得
     user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
     if user_name:
