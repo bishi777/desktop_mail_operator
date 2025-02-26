@@ -41,12 +41,12 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
 
   for happy_chara in drivers:
     try:
-      name = drivers['name']
-      driver = drivers["driver"]
-      wait = drivers["wait"]
-      fst_message = drivers["fst_message"]
-      return_foot_message = drivers["return_foot_message"]
-      mail_img = drivers["mail_img"]
+      name = happy_chara['name']
+      driver = happy_chara["driver"]
+      wait = happy_chara["wait"]
+      fst_message = happy_chara["fst_message"]
+      return_foot_message = happy_chara["return_foot_message"]
+      mail_img = happy_chara["mail_img"]
       return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
           return_cnt_list.append(f"{happy_chara['name']}: {return_func}")
