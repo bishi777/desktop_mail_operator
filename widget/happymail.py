@@ -1435,7 +1435,7 @@ def mutidriver_make_footprints(name, driver,wait):
     if not len(mail_button):
       print("メールをするボタンが見つかりません")
       return
-    mail_button[0].click()
+    driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     driver.back()
@@ -1452,26 +1452,8 @@ def mutidriver_make_footprints(name, driver,wait):
     swiper_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
+    catch_warning_screen(driver)
   
-  
-  
-
-  
-  
-    
-    # back = driver.find_elements(By.CLASS_NAME, value="ds_prev_arrow")
-    # driver.execute_script("arguments[0].click();", back[0])
-    # # back[0].click()
-    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    # time.sleep(1.5)
-    # # たまに変なページに遷移するのでurl確認
-    # current_url = driver.current_url
-    # # 特定の文字列で始まっているか確認
-    # if not current_url.startswith("https://happymail.co.jp/sp/app/html/profile_list.php"):
-    #     # print("URLは指定した文字列で始まっていません。")
-    #     driver.get("https://happymail.co.jp/sp/app/html/profile_list.php")
-    #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #     time.sleep(wait_time)
 
 def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count):
   wait_time = random.uniform(2, 5)
