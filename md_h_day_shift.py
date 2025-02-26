@@ -40,8 +40,6 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt, happy_chara_list, mail_
   return_cnt_list = []
 
   for happy_chara in happy_chara_list:
-    if happy_chara['name'] != "めあり" and happy_chara['name'] != "きりこ":
-      continue
     name = happy_chara['name']
     driver = drivers[name]["driver"]
     wait = drivers[name]["wait"]
