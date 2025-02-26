@@ -114,8 +114,7 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
             """, result["code"])
           except Exception as e:
               print(f"❌ reCAPTCHA の解決に失敗: {e}")
-    
-    return f"ログインに成功しました"
+    return False
   except Exception as e:  
     print(f"ログインに失敗しました")
     print(traceback.format_exc())
@@ -183,7 +182,6 @@ def catch_warning_screen(driver):
   some_erorr = driver.find_elements(By.CLASS_NAME, value="ds_main_header_text")
   if len(some_erorr):
     if 'ログインできません' in some_erorr[0].text:
-      print("ログインできませんでした")
       return "ログインできませんでした"
   return False
 
@@ -196,7 +194,7 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "つむぎ" :
+      # if i["name"] != "アスカ" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
     
@@ -204,7 +202,12 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
       driver,wait = func.get_multi_driver(profile_path, headless)
-      login(i["name"], i["login_id"], i["password"], driver, wait)
+
+      login_flug = login(i["name"], i["login_id"], i["password"], driver, wait)
+      if login_flug:
+        print(f"{i['name']} {login}")
+        driver.quit()
+        continue
       warning = catch_warning_screen(driver)
       if warning:
         print(f"{i['name']} {warning}")
