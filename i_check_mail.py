@@ -4,7 +4,6 @@ import time
 def ikukuru_check_mail(ikukuru_data, gmail_account, gmail_account_password, recieve_mailaddress, headless):
   while True:
     for i in ikukuru_data:
-      # if i["name"] == "アスカ":
         
         driver, wait = func.get_driver(headless)
         ikukuru.login(driver, wait, i["login_mail_address"], i["password"])
