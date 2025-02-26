@@ -39,20 +39,19 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
   start_one_rap_time = time.time() 
   return_cnt_list = []
   try:
-    for happy_chara in drivers:
-      name = happy_chara['name']
-      driver = happy_chara["driver"]
-      wait = happy_chara["wait"]
-      fst_message = happy_chara["fst_message"]
-      return_foot_message = happy_chara["return_foot_message"]
-      mail_img = happy_chara["mail_img"]
+    for name, data in drivers.items():
+      driver = drivers[name]["driver"]
+      wait = drivers[name]["wait"]
+      fst_message = drivers[name]["fst_message"]
+      return_foot_message = drivers[name]["return_foot_message"]
+      mail_img = drivers[name]["mail_img"]
       return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
-          return_cnt_list.append(f"{happy_chara['name']}: {return_func}")
+          return_cnt_list.append(f"{name}: {return_func}")
       elif isinstance(return_func, list):
-          return_cnt_list.append(f"{happy_chara['name']}: {return_func}")
+          return_cnt_list.append(f"{name}: {return_func}")
   except Exception as e:
-    print(f"エラー{happy_chara[0]}")
+    print(f"エラー{name}")
     print(traceback.format_exc())
     func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
   except KeyError:
@@ -80,7 +79,10 @@ if __name__ == '__main__':
     return_foot_cnt = 18
   elif len(sys.argv) >= 2:
     return_foot_cnt = int(sys.argv[1])
-  happy_chara_list = func.get_user_data()["happymail"]
-  headless = True
-  drivers = {}
-  md_h_all_do(return_foot_cnt, happy_chara_list, headless, drivers)
+  user_data =   func.get_user_data()
+  happy_chara_list = user_data["happymail"]
+  mail_info = [1, 2, 3]
+  headless = False
+  base_path = "./chrome_profiles/h_scheduler"
+  drivers = happymail.start_the_drivers_login(user_data["happymail"], headless, base_path, False)
+  md_h_all_do(0, 0, return_foot_cnt,  mail_info, drivers)
