@@ -92,7 +92,7 @@ def start_scheduler(schedule_data, drivers):
     finally:
         # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
         print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-        print(drivers)
+        # print(drivers)
         func.close_all_drivers(drivers)
         os._exit(0)
 
