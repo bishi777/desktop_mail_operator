@@ -1419,6 +1419,11 @@ def set_mutidriver_make_footprints(driver,wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+  if not len(user_list):
+    time.sleep(4)
+    print(88888888888)
+    print(driver.current_url)
+    user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
   driver.execute_script("arguments[0].click();", user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
