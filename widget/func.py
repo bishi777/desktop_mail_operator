@@ -215,7 +215,6 @@ def get_multi_driver(profile_path, headless_flag, max_retries=3):
 def close_all_drivers(drivers_dict):
   for name, data in list(drivers_dict.items()):
     try:
-      print(data["driver"])
       data["driver"].quit()
       # print(f"{name} のブラウザを正常に閉じました")
       pid = data["driver"].service.process.pid
