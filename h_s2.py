@@ -20,6 +20,15 @@ global user_data
 user_data = func.get_user_data()
 base_path = "./chrome_profiles/h_scheduler"
 drivers = {}
+mailaddress = user_data['user'][0]['gmail_account']
+gmail_password = user_data['user'][0]['gmail_account_password']
+receiving_address = user_data['user'][0]['user_email']
+mail_info = None
+if mailaddress and gmail_password and receiving_address:
+  mail_info = [
+    receiving_address, mailaddress, gmail_password, 
+  ]
+
 # フォームを追加するためのカウンタ
 form_count = 0
 max_forms = 6
@@ -121,7 +130,7 @@ def ready_scheduler():
     root.update()  # Tkinterのイベントループを更新
     # driver起動,ログイン
     try:
-        drivers = happymail.start_the_drivers_login(user_data["happymail"], headless, base_path, False)
+        drivers = happymail.start_the_drivers_login(mail_info, user_data["happymail"], headless, base_path, False)
     except Exception as e:
         # 予期しないエラーが発生した場合
         print(drivers)
