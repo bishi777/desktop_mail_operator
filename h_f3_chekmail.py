@@ -37,6 +37,9 @@ try:
     driver = drivers[name]["driver"]
     wait = drivers[name]["wait"]
     tabs = driver.window_handles
+    login_id = drivers[name]["login_id"]
+    password = drivers[name]["password"]
+
     for index, tab in enumerate(tabs):
       driver.switch_to.window(tab)
       if index + 1 == 1:
@@ -59,7 +62,7 @@ try:
         # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
           try:
-            happymail.mutidriver_make_footprints(name, driver, wait)
+            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
             pass
           except Exception as e:
