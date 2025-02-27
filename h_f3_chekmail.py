@@ -28,9 +28,17 @@ happy_info = user_data["happymail"]
 profile_path = "chrome_profiles/h_footprint"
 headless = True
 drivers = {}
+mailaddress = user_data['user'][0]['gmail_account']
+gmail_password = user_data['user'][0]['gmail_account_password']
+receiving_address = user_data['user'][0]['user_email']
+mail_info = None
+if mailaddress and gmail_password and receiving_address:
+  mail_info = [
+    receiving_address, mailaddress, gmail_password, 
+  ]
 
 try:
-  drivers = happymail.start_the_drivers_login(happy_info, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(mail_info, happy_info, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
@@ -39,7 +47,6 @@ try:
     tabs = driver.window_handles
     login_id = drivers[name]["login_id"]
     password = drivers[name]["password"]
-
     for index, tab in enumerate(tabs):
       driver.switch_to.window(tab)
       if index + 1 == 1:
@@ -96,13 +103,7 @@ try:
                     title = "メッセージ"
               # メール送信
               smtpobj = None
-              mailaddress = user_data['user'][0]['gmail_account']
-              gmail_password = user_data['user'][0]['gmail_account_password']
-              receiving_address = user_data['user'][0]['user_email']
-              if mailaddress and gmail_password and receiving_address:
-                mail_info = [
-                  receiving_address, mailaddress, gmail_password, 
-                ]
+              if mail_info:
                 func.send_mail(text, mail_info, title)
               else:
                 print("通知メールの送信に必要な情報が不足しています")

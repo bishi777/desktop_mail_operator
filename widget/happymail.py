@@ -185,7 +185,7 @@ def catch_warning_screen(driver):
       return "ログインできませんでした"
   return False
 
-def start_the_drivers_login(happymail_list, headless, base_path, tab):
+def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab):
   drivers = {}
   try:
     # driver起動,ログイン
@@ -199,20 +199,36 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
       # https://happymail.co.jp/sp/app/html/profile_list.php?UID=172573151367bea23f87a0f1.65339533.s111.151&view=0
       # https://happymail.co.jp/sp/app/html/profile_list.php
       profile_path = os.path.join(base_path, i["name"])
-    
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
       driver,wait = func.get_multi_driver(profile_path, headless)
-
       login_flug = login(i["name"], i["login_id"], i["password"], driver, wait)
       if login_flug:
-        print(f"{i['name']} {login}")
+        print(f"{i['name']} {login_flug}")
+        if mail_info:
+          title = "メッセージ"
+          text = f"ハッピーメール {i['name']}:{i["login_id"]}:{i["password"]}:  {login_flug}"
+          # メール送信
+          if mail_info:
+            func.send_mail(text, mail_info, title)
+          else:
+            print("通知メールの送信に必要な情報が不足しています")
+            print(f"{mail_info}")
         driver.quit()
         continue
       warning = catch_warning_screen(driver)
       if warning:
         print(f"{i['name']} {warning}")
+        if mail_info:
+          title = "メッセージ"
+          text = f"ハッピーメール {i['name']}:{i["login_id"]}:{i["password"]}:  {login_flug}"
+          # メール送信
+          if mail_info:
+            func.send_mail(text, mail_info, title)
+          else:
+            print("通知メールの送信に必要な情報が不足しています")
+            print(f"{mail_info}")
         driver.quit()
         continue
       else:
@@ -227,7 +243,7 @@ def start_the_drivers_login(happymail_list, headless, base_path, tab):
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
-    print("ログイン中にプログラムが Ctrl+C により中断されました。")
+    print("ログイン中にプログラムが Ctrl+C により中断qされました。")
     func.close_all_drivers(drivers)
   except Exception as e:
     # 予期しないエラーが発生した場合
