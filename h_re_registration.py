@@ -34,7 +34,7 @@ def happymail_re_registration(headless, selected_name):
         if chara_datas['name'] == selected_name:
             chara_data = chara_datas
     
-    driver, wait = func.get_driver(headless)
+    driver, wait = func.test_get_driver(False, headless)
     if len(driver.window_handles) == 0:  # ウィンドウが閉じられたか確認
         print("ブラウザウィンドウが閉じられました。プロセスを終了します。")
         driver.quit()

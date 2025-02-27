@@ -1199,6 +1199,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
+      
     # タイプ返し
     type_counted = 0
     try:
@@ -1207,9 +1208,13 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     except Exception as e:  
       print("タイプ返しエラー")
       print(traceback.format_exc())
+      
+    finally:
+      print(777)
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(wait_time)      
+      time.sleep(wait_time)
+          
     # print(f"メッセージ送信数　{return_cnt} {matching_counted} {type_counted}")
     # 足跡返し
     try:
@@ -1469,17 +1474,15 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if login_flug:
           print(f"{i['name']} {login}")
           break
-      warning = catch_warning_screen(driver)
-      if warning:
-        print(f"{i['name']} {warning}")
-        break
-      else:
+        warning = catch_warning_screen(driver)
+        if warning:
+          print(f"{i['name']} {warning}")
+          break
         print(f"{i['name']}のログインに成功しました")
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
-
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
@@ -2017,153 +2020,31 @@ def check_new_mail(happy_info, driver, wait):
   else:
     return None
   
-# def re_registration(name, driver):
-  
-#   func.get_user_data()
-#       login_id = row[2]
-#       login_pass = row[3]
-     
-     
-#   if not login_id:
-#     return
-
-#   driver.delete_all_cookies()
-#   wait = WebDriverWait(driver, 15)  
-#   driver.get("https://happymail.jp/login/")
-#   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#   # wait_time = random.uniform(2, 5)
-#   time.sleep(2)
-#   id_form = driver.find_element(By.ID, value="TelNo")
-#   id_form.send_keys(login_id)
-#   pass_form = driver.find_element(By.ID, value="TelPass")
-#   pass_form.send_keys(login_pass)
-#   time.sleep(1)
-#   send_form = driver.find_element(By.ID, value="login_btn")
-#   send_form.click()
-#   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#   time.sleep(2)
-
-#   # 警告画面が出たらスキップ
-#   warning = driver.find_elements(By.CLASS_NAME, value="ds_main_header_text")
-#   if warning:
-#      print("警告画面が出ました")
-#      return
-#   # マイページをクリック
-#   nav_list = driver.find_element(By.ID, value='ds_nav')
-#   mypage = nav_list.find_element(By.LINK_TEXT, "マイページ")
-#   mypage.click()
-#   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#   time.sleep(2)
-#   # プロフィールをクリック
-#   common_list = driver.find_element(By.CLASS_NAME, "ds_common_table")
-#   common_table = common_list.find_elements(By.CLASS_NAME, "ds_mypage_text")
-#   for common_table_elem in common_table:
-#      if "プロフィール" in common_table_elem.text:
-#         mylist = common_table_elem
-#   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", mylist)
-#   time.sleep(2)
-#   mylist.click()
-#   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#   time.sleep(2)
-  
-#   # 名前
-#   links = driver.find_elements(By.CLASS_NAME, value="input__form__input__block")
-#   name_link = links[5].click()
-#   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#   time.sleep(2)
-#   name_textarea = driver.find_elements(By.CLASS_NAME, value="text_content")
-#   name_textarea_value = name_textarea[0].get_attribute("value")
-#   if name == name_textarea_value:
-#     driver.back()
-#     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#     time.sleep(2)
-#   else:
-#     name_textarea[0].clear()
-#     name_textarea[0].send_keys(name)
-#     save_button = driver.find_elements(By.ID, value="save")
-#     save_button[0].click()
-#     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#     time.sleep(2)
-#     save_confirmation = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
-#     save_confirmation[0].click()
-#     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-#     time.sleep(20)
-#   # 年齢
-#   age_select = driver.find_elements(By.ID, value="age")
-#   select = Select(age_select[0])
-#   select.select_by_visible_text(age)
-#   time.sleep(1)
-
 def re_registration(chara_data, driver, wait):
-  driver.delete_all_cookies()
-  try:
-    driver.get("https://happymail.jp/login/")
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  except TimeoutException:
-    print("Timeout reached, retrying...")
-    driver.refresh()  # ページをリフレッシュして再試行
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    
-  wait_time = random.uniform(2, 3)
-  time.sleep(wait_time)
-  id_form = driver.find_element(By.ID, value="TelNo")
-  id_form.send_keys(chara_data["login_id"])
-  pass_form = driver.find_element(By.ID, value="TelPass")
-  pass_form.send_keys(chara_data["password"])
-  time.sleep(wait_time)
-  send_form = driver.find_element(By.ID, value="login_btn")
-  try:
-    send_form.click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-  except TimeoutException:
-    print("Timeout reached, retrying...")
-    driver.refresh()  # ページをリフレッシュして再試行
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  remodal = driver.find_elements(By.CLASS_NAME,value="remodal-close")
-  if len(remodal):
-     remodal[0].click()
-     time.sleep(2)
-  warning = driver.find_elements(By.CLASS_NAME, value="information__dialog")
-  if len(warning):
-     print(f"{chara_data['name']},{chara_data['login_id']}:{chara_data['password']} ハッピーメールに警告画面が出ている可能性があります")
-  name_elem = ""
-  try:
-    name_elem = driver.find_element(By.CLASS_NAME, "ds_user_display_name")
-  except NoSuchElementException:
-      time.sleep(7)
-      name_elem = driver.find_elements(By.CLASS_NAME, "ds_user_display_name")
-      if len(name_elem):
-        name_elem = name_elem[0]
-      pass
-  if not name_elem:
-     print(f"{chara_data['name']},{chara_data['login_id']}:{chara_data['password']} ハッピーメールに警告画面が出ている可能性があります")
-  # 画像チェック
-  top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
-  if len(top_img_element):
-     top_img = top_img_element[0].get_attribute("style")
-     if "noimage" in top_img:
-        print(f"{chara_data['name']}のトップ画の設定がNoImageです")
-  # マイページをクリック
-  nav_list = driver.find_elements(By.ID, value='ds_nav')
-  if not len(nav_list):
-      print(f"{chara_data['name']}: 警告画面が出ている可能性があります。")
-      return
-  mypage = nav_list[0].find_element(By.LINK_TEXT, "マイページ")
-  mypage.click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(wait_time)
+  login_flug = login(chara_data['name'], chara_data['login_id'], chara_data['password'], driver, wait)
+  if login_flug:
+    print(f"{i['name']} {login}")
+    return 
+  warning = catch_warning_screen(driver)
+  if warning:
+    print(f"{i['name']} {warning}")
+    return
+  print(f"{i['name']}のログインに成功しました")
+  nav_flug = nav_item_click("マイページ", driver, wait)
+  if not nav_flug:
+    print("nav_listが見つかりません")
+    return
   # プロフィールをクリック 
   profile = driver.find_element(By.CLASS_NAME, value="icon-ico_profile ")
   driver.execute_script("arguments[0].click();", profile)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(wait_time)
+  time.sleep(1.5)
   # name 
   name_form = driver.find_elements(By.ID, value="nickname_frame")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", name_form[0])
   name_form[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(wait_time)
+  time.sleep(1.5)
   # text_content
   name_text_area = driver.find_elements(By.CLASS_NAME, value="text_content")
   if name_text_area[0].get_attribute("value") != chara_data["name"]:
@@ -2184,7 +2065,7 @@ def re_registration(chara_data, driver, wait):
   else:
     driver.back()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(wait_time)
+    time.sleep(1.5)
   # 年齢
   if chara_data["age"]:
     age_text_area = driver.find_elements(By.ID, value="age")    

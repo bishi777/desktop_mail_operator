@@ -232,10 +232,11 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3):
     # os_name = platform.system()
     # print(tmp_dir)
     # tmpフォルダ内に一意のキャッシュディレクトリを作成
-    temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  # 一意のディレクトリを生成（PIDベース）
-    os.environ["WDM_CACHE"] = temp_dir
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)  # キャッシュディレクトリが存在しない場合は作成
+    if tmp_dir:
+      temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  # 一意のディレクトリを生成（PIDベース）
+      os.environ["WDM_CACHE"] = temp_dir
+      if not os.path.exists(temp_dir):
+          os.makedirs(temp_dir)  # キャッシュディレクトリが存在しない場合は作成
     # print(f"WDM_CACHE is set to: {os.environ['WDM_CACHE']}")
     for attempt in range(max_retries):
       try:
