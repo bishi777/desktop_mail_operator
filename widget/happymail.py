@@ -208,7 +208,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
         print(f"{i['name']} {login_flug}")
         if mail_info:
           title = "メッセージ"
-          text = f"ハッピーメール {i['name']}:{i["login_id"]}:{i["password"]}:  {login_flug}"
+          text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {login_flug}"
           # メール送信
           if mail_info:
             func.send_mail(text, mail_info, title)
@@ -222,7 +222,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
         print(f"{i['name']} {warning}")
         if mail_info:
           title = "メッセージ"
-          text = f"ハッピーメール {i['name']}:{i["login_id"]}:{i["password"]}:  {login_flug}"
+          text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {login_flug}"
           # メール送信
           if mail_info:
             func.send_mail(text, mail_info, title)
