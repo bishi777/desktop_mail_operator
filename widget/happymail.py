@@ -1072,6 +1072,20 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     time.sleep(1)
+    # プロフィールをチェック
+    prof_text = driver.find_elements(By.ID, value="first_m_profile_introduce")
+    if len(prof_text):
+      if prof_text[0].text == "プロフィール情報の取得に失敗しました":
+          user_icon_type += 1
+      # 自己紹介文に業者、通報が含まれているかチェック
+      else:
+        contains_violations = prof_text[0]
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", contains_violations)
+        self_introduction_text = contains_violations.text.replace(" ", "").replace("\n", "")
+        if '通報' in self_introduction_text or '業者' in self_introduction_text:
+          print(f'自己紹介文に危険なワードが含まれていました {user_name}')
+          send_status = False
+          user_icon_type += 1 
     # print(f"ユーザーカウント{user_icon}")
     if duplication_user:
       name_field = type_users[user_icon_type+1].find_element(By.CLASS_NAME, value="ds_like_list_name")
@@ -1084,15 +1098,15 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       message_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
-    type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
-    while len(type_confirm) == 0:
-      print(3333)
-      time.sleep(1.5)
-      type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
-    time.sleep(1)
-    type_confirm[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(wait_time)
+    # type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
+    # while len(type_confirm) == 0:
+    #   print(3333)
+    #   time.sleep(1.5)
+    #   type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
+    # time.sleep(1)
+    # type_confirm[0].click()
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    # time.sleep(wait_time)
     # プロフ画面の下のメッセージを送信をクリック
     send_mail = driver.find_elements(By.CLASS_NAME, value="ds_profile_target_btn")
     if "履歴あり" in send_mail[0].text:
@@ -1101,20 +1115,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       send_mail[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
-      # プロフィールをチェック
-      prof_text = driver.find_elements(By.ID, value="first_m_profile_introduce")
-      if len(prof_text):
-        if prof_text[0].text == "プロフィール情報の取得に失敗しました":
-            user_icon_type += 1
-        # 自己紹介文に業者、通報が含まれているかチェック
-        else:
-          contains_violations = prof_text[0]
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", contains_violations)
-          self_introduction_text = contains_violations.text.replace(" ", "").replace("\n", "")
-          if '通報' in self_introduction_text or '業者' in self_introduction_text:
-            print(f'自己紹介文に危険なワードが含まれていました {user_name}')
-            send_status = False
-            user_icon_type += 1 
+      
     # メールするをクリック
     if send_status:
       catch_warning_screen(driver)
@@ -1195,32 +1196,32 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     else:
       image_path = ""
       image_filename = None 
-    # マッチング返し
-    matching_counted = 0
-    try:
-      matching_counted = return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt)
-      print(f"マッチング返し総数 {matching_counted}")
-    except Exception as e:  
-      print("マッチング返しエラー")
-      # print(traceback.format_exc())
-      driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(wait_time)
+    # # マッチング返し
+    # matching_counted = 0
+    # try:
+    #   matching_counted = return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt)
+    #   print(f"マッチング返し総数 {matching_counted}")
+    # except Exception as e:  
+    #   print("マッチング返しエラー")
+    #   # print(traceback.format_exc())
+    #   driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(wait_time)
       
-    # タイプ返し
-    type_counted = 0
-    try:
-      type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
-      print(f"タイプ返し総数 {type_counted}")
-    except Exception as e:  
-      print("タイプ返しエラー")
-      print(traceback.format_exc())
+    # # タイプ返し
+    # type_counted = 0
+    # try:
+    #   type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
+    #   print(f"タイプ返し総数 {type_counted}")
+    # except Exception as e:  
+    #   print("タイプ返しエラー")
+    #   print(traceback.format_exc())
       
-    finally:
-      print(777)
-      driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(wait_time)
+    # finally:
+    #   print(777)
+    #   driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(wait_time)
           
     # print(f"メッセージ送信数　{return_cnt} {matching_counted} {type_counted}")
     # 足跡返し
