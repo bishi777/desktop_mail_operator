@@ -2504,6 +2504,8 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
       return send_count
     # if mail_history == 7:
     #   break
+    print(777)
+    print(i)
     driver.get(i)
     ng_pop = driver.find_elements(By.ID, value="ng_dialog")
     if len(ng_pop):
@@ -3034,8 +3036,8 @@ def returnfoot_fst_one_rap(sorted_pcmax, headless, send_limit, one_four_flug, ma
       print("~~キャラリスト数~~~~~")
       print(len(sorted_pcmax))
       for pcmax_chara in sorted_pcmax:
-        # if pcmax_chara['name'] != "ハル":
-        #   continue
+        if pcmax_chara['name'] == "ゆっこ":
+          continue
         func.change_tor_ip()
         try:
           return_func = timer(wait_cnt, [lambda: returnfoot_fst(pcmax_chara, driver, wait, send_limit)])

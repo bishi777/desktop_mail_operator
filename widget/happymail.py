@@ -1029,6 +1029,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     type_users_wait_cnt = 0
     while len(type_users) == 0:
+        print(555)
         time.sleep(2)
         type_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
         type_users_wait_cnt += 1
@@ -1038,6 +1039,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
     while len(mail_icon):
+      print(4444)
       # print(f'送信履歴あり {user_name} ~ skip ~')
       mail_icon_cnt += 1
       user_icon_type += 1
@@ -1084,6 +1086,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     time.sleep(wait_time)
     type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
     while len(type_confirm) == 0:
+      print(3333)
       time.sleep(1.5)
       type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
     time.sleep(1)

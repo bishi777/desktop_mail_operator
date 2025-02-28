@@ -13,7 +13,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from selenium.webdriver.support.ui import WebDriverWait
 import traceback
 from widget import happymail, func
-import s_check_mail_hp2
+import s_check_mail_hpj
 import sqlite3
 from selenium.webdriver.chrome.service import Service
 from datetime import timedelta
@@ -38,7 +38,7 @@ def check_mail_hpj(headless):
     if user_data == 2:
         print("ユーザーデータを登録してください。")
         return
-    s_check_mail_hp2.check_mail(user_data, headless)
+    s_check_mail_hpj.check_mail(user_data, headless)
         
 def run_script():
     headless = check_var.get()
