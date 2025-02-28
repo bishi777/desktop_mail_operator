@@ -42,7 +42,7 @@ def nav_item_click(nav_name, driver, wait):
     new_message = parent_elem.find_elements(By.CLASS_NAME, value="ds_red_circle")
     if not len(new_message):
       return "新着メールなし"
-  choice_nav[0].click()
+  driver.execute_script("arguments[0].click();", choice_nav[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   return True
