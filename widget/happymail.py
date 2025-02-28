@@ -1022,6 +1022,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
   while return_type_counted < type_cnt:
+    print(66666)
+    print(f"{return_type_counted} : {type_cnt}")
     send_status = True
     type_list = driver.find_element(By.ID , value="list_myself")
     type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
@@ -1109,8 +1111,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
           if '通報' in self_introduction_text or '業者' in self_introduction_text:
             print(f'自己紹介文に危険なワードが含まれていました {user_name}')
             send_status = False
-            user_icon_type += 1
-    
+            user_icon_type += 1 
     # メールするをクリック
     if send_status:
       catch_warning_screen(driver)
@@ -1143,6 +1144,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
           driver.execute_script("arguments[0].click();", submit)
           while img_conform.is_displayed():
             time.sleep(2)
+            print(55555555)
             modal_content = driver.find_element(By.CLASS_NAME, value="modal-content")
             if len(modal_content):
               break # modal-content お相手が年齢確認されていない為
@@ -1156,6 +1158,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
+      print(555555)
+      print(driver.current_url)
     else:
       user_name_list.append(user_name) 
       driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
@@ -2027,9 +2031,9 @@ def re_registration(chara_data, driver, wait):
     return 
   warning = catch_warning_screen(driver)
   if warning:
-    print(f"{i['name']} {warning}")
+    print(f"{chara_data['name']} {warning}")
     return
-  print(f"{i['name']}のログインに成功しました")
+  print(f"{chara_data['name']}のログインに成功しました")
   nav_flug = nav_item_click("マイページ", driver, wait)
   if not nav_flug:
     print("nav_listが見つかりません")
@@ -2038,7 +2042,7 @@ def re_registration(chara_data, driver, wait):
   profile = driver.find_element(By.CLASS_NAME, value="icon-ico_profile ")
   driver.execute_script("arguments[0].click();", profile)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(1.5)
+  time.sleep(6)
   # name 
   name_form = driver.find_elements(By.ID, value="nickname_frame")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", name_form[0])
