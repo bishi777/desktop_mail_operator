@@ -1454,13 +1454,11 @@ def set_mutidriver_make_footprints(driver,wait):
   user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
   if not len(user_list):
     time.sleep(4)
-    print(88888888888)
-    print(driver.current_url)
     user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
   driver.execute_script("arguments[0].click();", user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(2)
+  time.sleep(1.5)
   
 def mutidriver_make_footprints(name,login_id, password, driver,wait):
   wait_time = random.uniform(1.5, 3)
@@ -1495,6 +1493,23 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
+      elif "https://happymail.co.jp/sp/app/html/mbmenu.php" in driver.current_url:
+        warning = catch_warning_screen(driver)
+        print(777)
+        if warning:
+          print(f"{i['name']} {warning}")
+          break
+        nav_flug = nav_item_click("プロフ検索", driver, wait)
+        if not nav_flug:
+          break
+        set_mutidriver_make_footprints(driver,wait)
+      # ユーザ名を取得
+      user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+      if user_name:
+        user_name = user_name[0].text
+      else:
+        user_name = "取得に失敗しました"
+      mail_button = driver.find_elements(By.CLASS_NAME, value="ds_profile_target_btn")
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
