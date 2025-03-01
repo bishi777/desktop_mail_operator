@@ -2504,8 +2504,6 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
       return send_count
     # if mail_history == 7:
     #   break
-    print(777)
-    print(i)
     driver.get(i)
     ng_pop = driver.find_elements(By.ID, value="ng_dialog")
     if len(ng_pop):
@@ -2630,13 +2628,12 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
   # ////////////fst////////////////////////////
   # send_count = 0# DEBUG
   returnfoot_cnt = send_count
-  
   if send_count <= send_limit:
     re_login(driver, wait)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     #プロフ検索をクリック
-    nav_item_click("プロフ検索", driver, wait)
+    nav_item_click(name, "プロフ検索", driver, wait)
     # 検索条件を設定
     
     search_elem = driver.find_elements(By.ID, value="search1")
@@ -3036,7 +3033,7 @@ def returnfoot_fst_one_rap(sorted_pcmax, headless, send_limit, one_four_flug, ma
       print("~~キャラリスト数~~~~~")
       print(len(sorted_pcmax))
       for pcmax_chara in sorted_pcmax:
-        if pcmax_chara['name'] == "ゆっこ":
+        if pcmax_chara['name'] != "ハル":
           continue
         func.change_tor_ip()
         try:
