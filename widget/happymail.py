@@ -1497,7 +1497,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         warning = catch_warning_screen(driver)
         print(777)
         if warning:
-          print(f"{i['name']} {warning}")
+          print(f"{name} ：{warning}")
           break
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
