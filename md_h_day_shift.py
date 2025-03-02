@@ -56,12 +56,12 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
     func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
   except KeyError:
     print(f"⚠️'{name}'のブラウザが見つかりませんでした。処理をスキップします。")
-  finally:
-    # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
-    print('finaly----------------------------')
-    print(drivers)
-    func.close_all_drivers(drivers)
-    os._exit(0)
+  # finally:
+  #   # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
+  #   print('finaly----------------------------')
+  #   print(drivers)
+  #   func.close_all_drivers(drivers)
+  #   os._exit(0)
 
   elapsed_time = time.time() - start_one_rap_time  
   elapsed_timedelta = timedelta(seconds=elapsed_time)
