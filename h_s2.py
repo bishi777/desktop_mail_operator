@@ -84,7 +84,7 @@ def start_scheduler(schedule_data, drivers):
         )
         print(f"スケジュール設定: {hour}時{minute}分, マッチング返し{match_args}件, タイプ返し{type_args}件, 足跡返し件数{args}件")
 
-    print("Ctrl+{0} を押すと終了します。".format('Break' if os.name == 'nt' else 'C'))
+    # print("Ctrl+{0} を押すと終了します。".format('Break' if os.name == 'nt' else 'C'))
 
     try:
         scheduler.start()
@@ -98,12 +98,12 @@ def start_scheduler(schedule_data, drivers):
         func.close_all_drivers(drivers)
         print("エラーが発生しました:", e)
         traceback.print_exc()
-    finally:
-        # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
-        print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-        # print(drivers)
-        func.close_all_drivers(drivers)
-        os._exit(0)
+    # finally:
+    #     # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
+    #     print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+    #     # print(drivers)
+    #     func.close_all_drivers(drivers)
+    #     os._exit(0)
 
 def ready_scheduler():
     global user_data  
