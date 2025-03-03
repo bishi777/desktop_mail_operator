@@ -1525,6 +1525,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print(warning_pop)
       break
     swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
+    if not len(swiper_button):
+      break
     swiper_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)

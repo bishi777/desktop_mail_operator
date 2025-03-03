@@ -53,8 +53,6 @@ def check_mail(user_data, headless):
   try:
     while True:
         send_flug = True
-        start_time = time.time() 
-        current_datetime = datetime.utcfromtimestamp(int(start_time))
         # ハッピーメール
         # print(f'~~~~~~~~~~~~ハピメ:新着メールチェック開始~~~~~~~~~~~~')
         # driver = None
@@ -189,7 +187,7 @@ def check_mail(user_data, headless):
                             # print(new_mail_list)
                             for new_mail in new_mail_list:
                                 text = text + new_mail + ",\n"
-                                if "警告" in text or "番号" in text:
+                                if "警告" in text or "番号" in text or "制限" in text:
                                     subject = "メッセージ"
                     try:
                         smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
@@ -237,7 +235,8 @@ def check_mail(user_data, headless):
                 #         pcmax_return_foot_count_dic[r_f_user] = pcmax_return_foot_count_dic[r_f_user] + return_foot_cnt
                 #         # print(return_foot_count_dic[r_f_user])
         wait_if_near_midnight()
-        # driver.refresh()
+        if driver is not None:
+            driver.quit()
             # jmail
             # try:
             #     driver, wait = get_driver(debug)

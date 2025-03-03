@@ -111,8 +111,8 @@ def login(name, login_id, login_pass, driver, wait):
   suspend = driver.find_elements(By.CLASS_NAME, value="suspend-title")
   if len(suspend):
     print(f"{name}pcmax利用制限中です")
-    return False
-  return True
+    return f"{name}pcmax利用制限中です"
+  return ""
   
 def nav_item_click(name, nav_item, driver, wait):
   nav_list = driver.find_elements(By.ID, value='sp-floating')
@@ -667,7 +667,8 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
   login_pass = chara_data["password"]
   wait_time = random.uniform(3, 6)
   login_flug = login(name, login_id, login_pass, driver, wait)
-  if not login_flug:
+  if login_flug:
+    print(login_flug)
     return
   warning_flug = catch_warning_pop(name, driver, wait)
   if warning_flug:
@@ -898,8 +899,10 @@ def check_new_mail(pcmax_info, driver, wait):
     print(f"{name}のpcmaxキャラ情報を取得できませんでした")
     return 1, 0
   login_flug = login(name, login_id, login_pass, driver, wait)
-  if not login_flug:
-    return 1, 0
+  
+  if "制限" in login_flug:
+    return_list.append(login_flug)
+    return return_list, 0
   warning_flug = catch_warning_pop(name, driver, wait)
   if warning_flug:
     warning_text = f"PCMAX {login_id}:{login_pass} {warning_flug}"
@@ -914,7 +917,6 @@ def check_new_mail(pcmax_info, driver, wait):
       print(f"{name}のトップ画像がNOIMAGEになっている可能性があります。")
   # 新着があるかチェック
   nav_flug = nav_item_click(name,"メッセージ", driver, wait)
-  print(nav_flug == "new_message")
   if nav_flug == "new_message":
       print('新着があります')
       # 未読だけを表示
@@ -2416,11 +2418,15 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
   fst_message = sorted_pcmax["fst_mail"]
   mail_img = sorted_pcmax["mail_img"]
   login_flug = login(name, login_id, login_pass, driver, wait)
-  if not login_flug:
+  if login_flug:
+    print(login_flug)
     return
   wait_time = random.uniform(3, 4)
   re_login(driver, wait)
   time.sleep(2)
+  warning_flug = catch_warning_pop(name, driver, wait)
+  if warning_flug:
+    return
   # 新着があるかチェック
   nav_flug = nav_item_click(name, "メッセージ", driver, wait)
   have_new_massage_users = []
@@ -2520,7 +2526,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
       # いいねする
       with_like = driver.find_elements(By.CLASS_NAME, value="type1")
       if len(with_like):
-        with_like[0].click()
+        driver.execute_script("arguments[0].click();", with_like[0])
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
       time.sleep(2)
@@ -2542,7 +2548,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
         if refusal_elem:
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", refusal_elem)
           time.sleep(1)
-          refusal_elem.click()
+          driver.execute_script("arguments[0].click();", refusal_elem)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           refusal_registration = driver.find_elements(By.CLASS_NAME, value="del")
@@ -2570,14 +2576,14 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
     with_like = driver.find_elements(By.CLASS_NAME, value="type1")
     if len(with_like):
       time.sleep(1)
-      with_like[0].click()
+      driver.execute_script("arguments[0].click();", with_like[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
     # メッセージをクリック
 
     message = driver.find_elements(By.ID, value="message1")
     if len(message):
-      message[0].click()
+      driver.execute_script("arguments[0].click();", message[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
     else:
@@ -2615,6 +2621,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
     #   print(f"{name}pcmax 足跡返し マジ送信:{maji_soushin} {send_count }件送信") 
     # else:
     send = driver.find_element(By.ID, value="send_n")
+    
     send.click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
@@ -2622,12 +2629,13 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
     mail_history = 0
     now = datetime.now().strftime('%m-%d %H:%M:%S')
     # print(f"{name}pcmax 足跡返し マジ送信:{maji_soushin} {send_count }件送信")
-    print(f"{name}pcmax 足跡返し  {send_count }件送信  {now}")
+    print(f"{name}pcmax 足跡返し {send_count }件送信  {now}")
 
   
   # ////////////fst////////////////////////////
   # send_count = 0# DEBUG
   returnfoot_cnt = send_count
+  fst_count = 0
   if send_count <= send_limit:
     re_login(driver, wait)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -2975,10 +2983,11 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
         time.sleep(wait_time)
         send_count += 1
         now = datetime.now().strftime('%m-%d %H:%M:%S')
+        fst_count += 1
         print(str(name) + ": pcmax、fst_mail マジ送信 " + str(maji_soushin) + " ~" + str(send_count) + "~ " + str(user_age) + " " + str(area_of_activity) + " " + str(user_name) + str(now))
         if send_count > send_limit:
           print("送信上限に達しました")
-          return returnfoot_cnt
+          return returnfoot_cnt, fst_count
         
       
     try:
@@ -3037,8 +3046,8 @@ def returnfoot_fst_one_rap(sorted_pcmax, headless, send_limit, one_four_flug, ma
         #   continue
         func.change_tor_ip()
         try:
-          return_func = timer(wait_cnt, [lambda: returnfoot_fst(pcmax_chara, driver, wait, send_limit)])
-          send_cnt_list.append(f"{pcmax_chara['name']}: {return_func}")
+          returnfoot_cnt, fst_cnt = timer(wait_cnt, [lambda: returnfoot_fst(pcmax_chara, driver, wait, send_limit)])
+          send_cnt_list.append(f"{pcmax_chara['name']}: 足跡返し{returnfoot_cnt}件,fst{fst_cnt}件")
         except Exception as e:
           print(f"エラー{pcmax_chara['name']}")
           print(traceback.format_exc())

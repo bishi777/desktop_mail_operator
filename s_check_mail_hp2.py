@@ -212,6 +212,7 @@ def check_mail(user_data, headless):
               #         pcmax_return_foot_count_dic[r_f_user] = pcmax_return_foot_count_dic[r_f_user] + return_foot_cnt
               #         # print(return_foot_count_dic[r_f_user])
       wait_if_near_midnight()
+      driver.quit()
       # driver.refresh()
           # jmail
           # try:
