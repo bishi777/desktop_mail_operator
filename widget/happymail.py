@@ -1463,7 +1463,7 @@ def set_mutidriver_make_footprints(driver,wait):
 def mutidriver_make_footprints(name,login_id, password, driver,wait):
   wait_time = random.uniform(1.5, 3)
   catch_warning_screen(driver)
-  num = random.randint(3, 6)
+  num = random.randint(5,11)
   for i in range(num):
     if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
       set_mutidriver_make_footprints(driver,wait)
