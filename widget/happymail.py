@@ -254,7 +254,6 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
   
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
     return_list = []
-    check_top_image(name, driver, wait)
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     if new_message_flug == "新着メールなし":
       return

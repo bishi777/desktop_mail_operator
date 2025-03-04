@@ -75,19 +75,17 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         elif index + 1 == 2:
-          login_id = drivers[name]["login_id"]
-          password = drivers[name]["password"]
-          return_foot_message = drivers[name]["return_foot_message"]
-          fst_message = drivers[name]["fst_message"]
-          conditions_message = drivers[name]["conditions_message"]
-          driver.refresh()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
+          happymail.check_top_image(name, driver, wait)
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
           if new_message_flug == "新着メールなし":
             print(f"{name}　新着メールなし")
             continue
           else:
+            login_id = drivers[name]["login_id"]
+            password = drivers[name]["password"]
+            return_foot_message = drivers[name]["return_foot_message"]
+            fst_message = drivers[name]["fst_message"]
+            conditions_message = drivers[name]["conditions_message"]
             try:
               happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             except NoSuchWindowException:
