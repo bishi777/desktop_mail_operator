@@ -1479,7 +1479,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print("メールをするボタンが見つかりません")
       current_url = driver.current_url
       print(f"現在のURL: {current_url}")
-      if "https://happymail.jp/login/" in driver.current_url and "https://happymail.co.jp/" in driver.current_url:
+      if "https://happymail.jp/login/" in driver.current_url or "https://happymail.co.jp/" in driver.current_url:
         login_flug = login(name, login_id, password, driver, wait,)
         if login_flug:
           print(f"{i['name']} {login}")
