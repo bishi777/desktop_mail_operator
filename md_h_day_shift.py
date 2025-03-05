@@ -48,12 +48,12 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
       post_title = drivers[name]["post_title"]
       post_contents = drivers[name]["post_contents"]
       # repost
-      try:
-        repost_flug = happymail.re_post(name, driver, wait, post_title, post_contents)
-      except Exception as e:
-        print(f"ハッピーメール掲示板エラー{name}")
-        print(traceback.format_exc())
-        func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
+      # try:
+      #   repost_flug = happymail.re_post(name, driver, wait, post_title, post_contents)
+      # except Exception as e:
+      #   print(f"ハッピーメール掲示板エラー{name}")
+      #   print(traceback.format_exc())
+      #   func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
       return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
           return_cnt_list.append(f"{name}: {return_func}")
