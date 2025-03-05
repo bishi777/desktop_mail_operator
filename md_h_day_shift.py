@@ -45,8 +45,8 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
       fst_message = drivers[name]["fst_message"]
       return_foot_message = drivers[name]["return_foot_message"]
       mail_img = drivers[name]["mail_img"]
-      post_title = drivers[name]["post_title"]
-      post_contents = drivers[name]["post_contents"]
+      # post_title = drivers[name]["post_title"]
+      # post_contents = drivers[name]["post_contents"]
       # repost
       # try:
       #   repost_flug = happymail.re_post(name, driver, wait, post_title, post_contents)
