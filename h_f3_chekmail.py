@@ -26,7 +26,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 profile_path = "chrome_profiles/h_footprint"
-headless = True
+headless = False
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']

@@ -90,6 +90,7 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
           url=login_url,
           invisible=1)
       except Exception as e:
+        print(777)
         sys.exit(e)
       else:
         # print('solved: ' + str(result))
