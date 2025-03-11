@@ -1483,13 +1483,13 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       if "https://happymail.jp/login/" in driver.current_url or "https://happymail.co.jp/" in driver.current_url:
         login_flug = login(name, login_id, password, driver, wait,)
         if login_flug:
-          print(f"{i['name']} {login}")
+          print(f"{name} {login}")
           break
         warning = catch_warning_screen(driver)
         if warning:
-          print(f"{i['name']} {warning}")
+          print(f"{name} {warning}")
           break
-        print(f"{i['name']}のログインに成功しました")
+        print(f"{name}のログインに成功しました")
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
