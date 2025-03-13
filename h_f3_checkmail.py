@@ -30,6 +30,8 @@ happy_info = user_data["happymail"]
 n = len(happy_info)  # dataはリスト
 half = n // 2
 first_half = happy_info[:half]  # 前半
+for i in first_half:
+  print(i["name"])
 profile_path = "chrome_profiles/h_footprint"
 headless = False
 drivers = {}
@@ -43,7 +45,7 @@ if mailaddress and gmail_password and receiving_address:
   ]
 
 try:
-  drivers = happymail.start_the_drivers_login(mail_info, happy_info, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
