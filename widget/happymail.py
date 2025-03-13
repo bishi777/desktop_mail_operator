@@ -58,9 +58,15 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     wait_time = random.uniform(1.5, 4)
     time.sleep(1.5)
+    if "https://happymail.jp/" == driver.current_url:
+      # ds_gree_botton
+      print(999)
+      ds_gree_botton = driver.find_elements(By.CLASS_NAME, value="ds_gree_botton")
+      ds_gree_botton[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
 
     re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
-   
     if len(re_login_button_elem):
       if "ログインへ" in re_login_button_elem[0].text:
         re_login_button = re_login_button_elem.find_elements(By.TAG_NAME, value="a")
@@ -90,7 +96,6 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
           url=login_url,
           invisible=1)
       except Exception as e:
-        print(777)
         sys.exit(e)
       else:
         # print('solved: ' + str(result))

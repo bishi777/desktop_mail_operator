@@ -1,16 +1,6 @@
 import time
 from widget import happymail, func, pcmax
 from DrissionPage import ChromiumPage
-
-user_data = func.get_user_data()["pcmax"][4]
-# driver,wait = func.test_get_driver(None, False)
-# wait = WebDriverWait(driver, 18)
-wait_time = 1.5
-name = user_data["name"]
-login_id = user_data["login_id"]
-login_pass = user_data["password"]
-
-# print(user_data)
 import time
 import random
 from DrissionPage import ChromiumPage
@@ -19,11 +9,26 @@ import os
 import time
 from DrissionPage import ChromiumOptions, ChromiumPage
 from DrissionPage.errors import BrowserConnectError
-
+from selenium.webdriver.support.ui import WebDriverWait
 from DrissionPage import ChromiumOptions, ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError
 import os
 import time
+
+user_data = func.get_user_data()
+
+# driver,wait = func.test_get_driver(None, False)
+wait_time = 1.5
+pcmax_data = user_data["pcmax"][4]
+happy_data = user_data["happymail"][4]
+name = pcmax_data["name"]
+login_id = pcmax_data["login_id"]
+login_pass = pcmax_data["password"]
+
+h_name = happy_data["name"]
+h_login_id = happy_data["login_id"]
+h_login_pass = happy_data["password"]
+
 
 def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
     """DrissionPage を使って ChromiumPage をセットアップする関数"""
@@ -74,7 +79,7 @@ def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
             if attempt == max_retries - 1:
                 raise
 
-def login(name, login_id, login_pass, page: ChromiumPage):
+def pcmax_login(name, login_id, login_pass, page: ChromiumPage):
     try:
         # 🔹 ページの接続が切れていないかチェック
         if not page.driver:
@@ -108,6 +113,9 @@ def login(name, login_id, login_pass, page: ChromiumPage):
         print(f"❌ ログイン中にエラーが発生: {e}")
         return "ログインエラー"
 
-driver = test_get_DrissionPage()
-func.change_tor_ip()
-login(name, login_id, login_pass, driver)
+
+# func.change_tor_ip()
+profile_path = '/Users/yamamotokenta/Library/Application Support/Google/Chrome/Profile 74'
+driver, wait = func.test_get_driver(None, False, 3, profile_path)
+# time.sleep(100)
+happymail.login(name, h_login_id, h_login_pass, driver, wait)

@@ -29,8 +29,8 @@ happy_info = user_data["happymail"]
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
 half = n // 2
-first_half = happy_info[:half]  # 前半
-profile_path = "chrome_profiles/h_footprint"
+second_half = happy_info[half:]  # 後半
+profile_path = "chrome_profiles/h_footprint2"
 headless = False
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']

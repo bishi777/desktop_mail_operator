@@ -105,51 +105,6 @@ def clear_webdriver_cache():
             except Exception as e:
                 print(f"Error clearing cache {cache_dir}: {e}")
 
-# def get_driver(headless_flag, max_retries=3):
-#     os_name = platform.system()
-#     for attempt in range(max_retries):
-#         try:
-#           # ランダムなポートを割り当てる
-#           port = random.randint(5000, 9000)
-#           options = Options()
-#           if headless_flag:
-#             options.add_argument('--headless')
-#             options.add_argument("--disable-gpu") 
-#           options.add_argument("--disable-gpu")  # GPUアクセラレーションを無効化
-#           options.add_argument("--disable-software-rasterizer")  # ソフトウェアラスタライズを無効化
-#           options.add_argument("--disable-dev-shm-usage")  # 共有メモリの使用を無効化（仮想環境で役立つ）
-#           options.add_argument("--incognito")
-#           options.add_argument('--enable-unsafe-swiftshader')
-#           options.add_argument('--log-level=3')  # これでエラーログが抑制されます
-#           options.add_argument('--disable-web-security')
-#           options.add_argument('--disable-extensions')
-#           options.add_argument("--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1")
-#           options.add_argument("--no-sandbox")
-#           options.add_argument("--window-size=456,912")
-#           options.add_experimental_option("detach", True)
-#           options.add_argument("--disable-cache")
-#           options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
-
-#           # キャッシュディレクトリを変更
-#           # custom_cache_dir = os.path.join(os.getcwd(), "driver_cache")
-#           # cache_manager = DriverCacheManager(custom_cache_dir)
-#           if os_name == "Darwin":
-#             service = Service(executable_path=ChromeDriverManager(cache_manager=DriverCacheManager(valid_range=0)).install())
-#           elif os_name == "Windows":
-#             service = Service(executable_path=ChromeDriverManager(cache_manager=DriverCacheManager(valid_range=0)).install())
-#           service.command_line_args().append(f"--port={port}")
-#           driver = webdriver.Chrome(options=options, service=service)
-#           wait = WebDriverWait(driver, 18)
-
-#           return driver, wait
-
-#         except (WebDriverException, NoSuchElementException, MaxRetryError) as e:
-#             print(f"WebDriverException発生: {e}")
-#             print(f"再試行します ({attempt + 1}/{max_retries})")
-#             clear_webdriver_cache()
-#             time.sleep(5)
-#             if attempt == max_retries - 1:
-#                 raise
 def get_multi_driver(profile_path, headless_flag, max_retries=3):
   for attempt in range(max_retries):
     # iPhone14
@@ -228,9 +183,10 @@ def close_all_drivers(drivers_dict):
       print(f"{name} のブラウザを閉じる際にエラーが発生: {e}")
   drivers_dict.clear() 
 
-def test_get_driver(tmp_dir, headless_flag, max_retries=3):
+def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
     # os_name = platform.system()
     # print(tmp_dir)
+    
     # tmpフォルダ内に一意のキャッシュディレクトリを作成
     if tmp_dir:
       temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  # 一意のディレクトリを生成（PIDベース）
@@ -243,10 +199,15 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3):
         options = Options()
         if headless_flag:
           options.add_argument('--headless')
+        if profile_path:
+          print(777)
+          options.add_argument(f"--user-data-dir={profile_path}")
+          options.add_argument("--profile-directory=Profile 74")
+        else:
+          options.add_argument("--incognito")
         options.add_argument("--disable-gpu") 
         options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-dev-shm-usage")  # 共有メモリの使用を無効化（仮想環境で役立つ）
-        options.add_argument("--incognito")
         options.add_argument('--enable-unsafe-swiftshader')
         options.add_argument('--log-level=3')  # これでエラーログが抑制されます
         options.add_argument('--disable-web-security')
