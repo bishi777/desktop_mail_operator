@@ -23,7 +23,8 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 import shutil
 from selenium.common.exceptions import NoSuchElementException
-
+from DrissionPage import ChromiumPage
+from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 
 
 
@@ -114,6 +115,52 @@ def login(name, login_id, login_pass, driver, wait):
     return f"{name}pcmax利用制限中です"
   return ""
   
+def drission_page_login(name, login_id, login_pass, chromium):
+    chromium.set.cookies.clear()
+    tab = chromium.latest_tab  # アクティブなタブを取得
+    # クッキーを削除
+    
+
+    # ログインページへアクセス
+    chromium.get("https://pcmax.jp/pcm/file.php?f=login_form")
+    chromium.wait.load_complete()  # 🔹 ページのロードが完了するまで待機
+
+    wait_time = random.uniform(2, 5)
+    time.sleep(wait_time)
+
+    # IDとパスワードを入力
+    chromium.ele("#login_id").input(login_id)
+    chromium.ele("#login_pw").input(login_pass)
+
+    time.sleep(1)
+
+    # ログインボタンをクリック
+    send_form = chromium.ele('@name=login')
+    try:
+        send_form.click()
+        chromium.wait.load_complete()  # 🔹 ページのロード完了を待機
+        time.sleep(1)
+    except Exception as e:
+        print(f"エラー発生: {e}")
+        print("🔄 ページをリロードして再試行します...")
+        chromium.refresh()
+        chromium.wait.load_complete()
+        time.sleep(2)
+
+        # 再度IDとパスワードを入力
+        chromium.ele("#login_id").input(login_id)
+        chromium.ele("#login_pw").input(login_pass)
+        time.sleep(1)
+        chromium.ele('@name=login').click()
+
+    # 利用制限チェック
+    if chromium.eles('.suspend-title'):
+        print(f"{name} pcmax利用制限中です")
+        return f"{name} pcmax利用制限中です"
+
+    print("✅ ログイン成功")
+    return ""
+
 def nav_item_click(name, nav_item, driver, wait):
   nav_list = driver.find_elements(By.ID, value='sp-floating')
   if not len(nav_list):

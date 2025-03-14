@@ -82,7 +82,7 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         elif index + 1 == 2:
-          happymail.check_top_image(name, driver, wait)
+          top_image_check = happymail.check_top_image(name, driver, wait)            
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
           if new_message_flug == "新着メールなし":
             print(f"{name}　新着メールなし")
@@ -99,12 +99,17 @@ try:
               pass
             except Exception as e:
               print(traceback.format_exc())
+            if top_image_check:
+              if happymail_new:
+                happymail_new.append(top_image_check)
+              else:
+                happymail_new = [top_image_check]
             if happymail_new:
               title = "新着メッセージ"
               text = ""
               for new_mail in happymail_new:
                 text = text + new_mail + ",\n"
-                if "警告" in text:
+                if "警告" in text and "NoImage" in text:
                     title = "メッセージ"
               # メール送信
               smtpobj = None

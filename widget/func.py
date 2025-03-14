@@ -33,6 +33,9 @@ from stem import Signal
 from stem.control import Controller
 import psutil
 import signal
+from DrissionPage import ChromiumOptions
+from DrissionPage import Chromium
+from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 
 def get_the_temporary_folder(temp_dir):
   # スクリプトのディレクトリを基準にディレクトリを作成
@@ -44,17 +47,7 @@ def get_the_temporary_folder(temp_dir):
   dir = os.path.join(tmp_dir, temp_dir)  # h_footprintフォルダのパスを作成
   if not os.path.exists(dir):
     os.makedirs(dir)
-  # デバック用ファイル作成
-  # for i in range(1, 13):  # 3つのテストファイルを作成
-  #       file_path = os.path.join(dir, f"test_file_{i}.txt")
-  #       if not os.path.exists(file_path):
-  #           with open(file_path, "w") as f:
-  #               f.write(f"This is test file {i}.")
-  #           print(f"Created: {file_path}")
   entries = os.listdir(dir)  # ディレクトリ内のエントリを取得
-  # print(entries)
-  # print(len(entries))  # エントリの数を
-  # time.sleep(10)
   if len(entries) >= 10:
     print("キャッシュが複数存在するため、クリアします。起動中のマクロは再起動してください。。。")
     for entry in entries:
@@ -74,13 +67,10 @@ def get_the_temporary_folder(temp_dir):
 
 def clear_webdriver_cache():
     os_name = platform.system()
-    
     # スクリプトの実行ディレクトリを取得
     script_dir = os.path.dirname(os.path.abspath(__file__))
-
     # 削除するキャッシュディレクトリ
     cache_dirs = []
-
     # macOS の場合
     if os_name == "Darwin":
         cache_dirs = [
@@ -186,7 +176,6 @@ def close_all_drivers(drivers_dict):
 def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
     # os_name = platform.system()
     # print(tmp_dir)
-    
     # tmpフォルダ内に一意のキャッシュディレクトリを作成
     if tmp_dir:
       temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  # 一意のディレクトリを生成（PIDベース）
@@ -200,7 +189,6 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
         if headless_flag:
           options.add_argument('--headless')
         if profile_path:
-          print(777)
           options.add_argument(f"--user-data-dir={profile_path}")
           options.add_argument("--profile-directory=Profile 74")
         else:
@@ -218,13 +206,10 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
         options.add_experimental_option("detach", True)
         options.add_argument("--disable-cache")
         options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
-        
         service = Service(executable_path=ChromeDriverManager().install())
         driver = webdriver.Chrome(options=options, service=service)
         wait = WebDriverWait(driver, 18)
-
         return driver, wait
-
       except (WebDriverException, NoSuchElementException, MaxRetryError, ConnectionError) as e:
         print(f"WebDriverException発生: {e}")
         print(f"再試行します ({attempt + 1}/{max_retries})")
@@ -239,7 +224,6 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
         time.sleep(180)
         if attempt == max_retries - 1:
             raise
-
 
 def timer(fnc, seconds, h_cnt, p_cnt):  
   start_time = time.time() 
@@ -947,3 +931,47 @@ def resolve_reCAPTCHA(login_url, site_key):
       print("❌ reCAPTCHA の解決に失敗しました")
       exit()
       return False
+
+def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
+  if tmp_dir:
+    temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  
+    os.environ["WDM_CACHE"] = temp_dir
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+  for attempt in range(max_retries):
+    try:
+      options = ChromiumOptions()
+      if headless_flag:
+          options.headless(True)
+      options.set_argument("--disable-gpu")
+      # options.set_argument("--disable-software-rasterizer")
+      # options.set_argument("--disable-dev-shm-usage")
+      # options.set_argument("--incognito")
+      # options.set_argument("--enable-unsafe-swiftshader")
+      options.set_argument("--log-level=3")
+      # options.set_argument("--disable-web-security")
+      # options.set_argument("--disable-extensions")
+      # options.set_argument("--no-sandbox")
+      # options.set_argument("--window-size=456,912")
+      # options.set_argument("--disable-cache")
+      # options.set_argument("--disable-blink-features=AutomationControlled")
+      # options.set_argument("--disable-background-timer-throttling")  # 🔹 追加
+      # options.set_argument("--disable-renderer-backgrounding")  # 🔹 追加
+      # options.set_argument("--disable-backgrounding-occluded-windows")  # 🔹 追加
+
+      chromium = Chromium(options)
+      
+      return chromium
+
+    except BrowserConnectError as e:
+      print(f"BrowserConnectError発生: {e}")
+      print(f"再試行します ({attempt + 1}/{max_retries})")
+      time.sleep(5)
+      if attempt == max_retries - 1:
+          raise
+    except ConnectionError as e:
+      print(f"⚠️ ネットワークエラーが発生しました: {e}")
+      print("3分後に再接続します...")
+      time.sleep(180)
+      if attempt == max_retries - 1:
+          raise
