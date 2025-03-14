@@ -25,6 +25,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
+headless = True
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
@@ -33,7 +34,6 @@ second_half = happy_info[half:]  # 後半
 for i in second_half:
   print(i["name"])
 profile_path = "chrome_profiles/h_footprint2"
-headless = False
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
