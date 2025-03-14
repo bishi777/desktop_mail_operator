@@ -25,14 +25,12 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = True
+headless = False
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
 half = n // 2
 second_half = happy_info[half:]  # 後半
-for i in second_half:
-  print(i["name"])
 profile_path = "chrome_profiles/h_footprint2"
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
@@ -43,7 +41,6 @@ if mailaddress and gmail_password and receiving_address:
   mail_info = [
     receiving_address, mailaddress, gmail_password, 
   ]
-
 try:
   drivers = happymail.start_the_drivers_login(mail_info, second_half, headless, profile_path, True)
   # タブを切り替えて操作
@@ -82,9 +79,9 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         elif index + 1 == 2:
-          happymail.check_top_image(name, driver, wait)
+          top_image_check = happymail.check_top_image(name, driver, wait)           
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-          if new_message_flug == "新着メールなし":
+          if new_message_flug == "新着メールなし" and top_image_check is False:
             print(f"{name}　新着メールなし")
             continue
           else:
@@ -99,12 +96,17 @@ try:
               pass
             except Exception as e:
               print(traceback.format_exc())
+            if top_image_check:
+              if happymail_new:
+                happymail_new.append(top_image_check)
+              else:
+                happymail_new = [top_image_check] 
             if happymail_new:
               title = "新着メッセージ"
               text = ""
               for new_mail in happymail_new:
                 text = text + new_mail + ",\n"
-                if "警告" in text:
+                if "警告" in text and "NoImage" in text:
                     title = "メッセージ"
               # メール送信
               smtpobj = None

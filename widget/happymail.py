@@ -200,8 +200,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "はづき" :
-      #   continue
+      if i["name"] != "りな" :
+        continue
       # https://happymail.co.jp/sp/app/html/profile_list.php?UID=172573151367bea23f87a0f1.65339533.s111.151&view=0
       # https://happymail.co.jp/sp/app/html/profile_list.php
       profile_path = os.path.join(base_path, i["name"])
@@ -1822,6 +1822,7 @@ def check_new_mail(happy_info, driver, wait):
      top_img = top_img_element[0].get_attribute("style")
      if "noimage" in top_img:
         print(f"ハッピーメール、{name}のトップ画の設定がNoImageです")
+        print(777)
         return_list.append(f"ハッピーメール、{name}のトップ画の設定がNoImageです")
   new_message_flug = nav_item_click("メッセージ", driver, wait)
   if not new_message_flug:
@@ -2052,6 +2053,8 @@ def check_new_mail(happy_info, driver, wait):
         time.sleep(2)
         new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")
   if len(return_list):
+    print(666)
+    print(return_list)
     return return_list
   else:
     return None

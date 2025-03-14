@@ -30,10 +30,7 @@ happy_info = user_data["happymail"]
 n = len(happy_info)  # dataはリスト
 half = n // 2
 first_half = happy_info[:half]  # 前半
-for i in first_half:
-  print(i["name"])
-profile_path = "chrome_profiles/h_footprint"
-headless = False
+profile_path = "chrome_profiles/h_footprint2"
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
@@ -43,9 +40,8 @@ if mailaddress and gmail_password and receiving_address:
   mail_info = [
     receiving_address, mailaddress, gmail_password, 
   ]
-
 try:
-  drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(mail_info, second_half, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
@@ -82,9 +78,9 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         elif index + 1 == 2:
-          top_image_check = happymail.check_top_image(name, driver, wait)            
+          top_image_check = happymail.check_top_image(name, driver, wait)           
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-          if new_message_flug == "新着メールなし":
+          if new_message_flug == "新着メールなし" and top_image_check is False:
             print(f"{name}　新着メールなし")
             continue
           else:
@@ -103,13 +99,13 @@ try:
               if happymail_new:
                 happymail_new.append(top_image_check)
               else:
-                happymail_new = [top_image_check]
+                happymail_new = [top_image_check] 
             if happymail_new:
               title = "新着メッセージ"
               text = ""
               for new_mail in happymail_new:
                 text = text + new_mail + ",\n"
-                if "警告" in text and "NoImage" in text:
+                if "警告" in text and "NoImage":
                     title = "メッセージ"
               # メール送信
               smtpobj = None
