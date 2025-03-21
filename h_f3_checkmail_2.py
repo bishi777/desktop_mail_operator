@@ -25,7 +25,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = False
+headless = True
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
@@ -72,12 +72,13 @@ try:
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
-          try:
-            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
-          except NoSuchWindowException:
-            pass
-          except Exception as e:
-            print(traceback.format_exc())
+          print("mohu")
+          # try:
+          #   happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+          # except NoSuchWindowException:
+          #   pass
+          # except Exception as e:
+          #   print(traceback.format_exc())
         elif index + 1 == 2:
           top_image_check = happymail.check_top_image(name, driver, wait)           
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
@@ -106,7 +107,7 @@ try:
               text = ""
               for new_mail in happymail_new:
                 text = text + new_mail + ",\n"
-                if "警告" in text and "NoImage" in text:
+                if "警告" in text or "NoImage" in text:
                     title = "メッセージ"
               # メール送信
               smtpobj = None
