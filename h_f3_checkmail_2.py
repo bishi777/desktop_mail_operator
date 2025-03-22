@@ -72,7 +72,6 @@ try:
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
-          print("mohu")
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
