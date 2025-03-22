@@ -61,6 +61,7 @@ try:
         time.sleep(2)     
   # 足跡付け、チェックメール　ループ
   while True:
+    happymail_new_list = []
     if drivers == {}:
       break
     for name, data in drivers.items():
@@ -97,14 +98,13 @@ try:
             except Exception as e:
               print(traceback.format_exc())
             if top_image_check:
-              if happymail_new:
-                happymail_new.append(top_image_check)
-              else:
-                happymail_new = [top_image_check] 
+              happymail_new_list.append(top_image_check)
+              
             if happymail_new:
+              happymail_new_list.extend(happymail_new)
               title = "新着メッセージ"
               text = ""
-              for new_mail in happymail_new:
+              for new_mail in happymail_new_list:
                 text = text + new_mail + ",\n"
                 if "警告" in text or "NoImage" in text:
                     title = "メッセージ"
