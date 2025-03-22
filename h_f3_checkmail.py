@@ -68,7 +68,6 @@ try:
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
-      
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
@@ -99,15 +98,15 @@ try:
               print(traceback.format_exc())
             if top_image_check:
               happymail_new_list.append(top_image_check)
-              
             if happymail_new:
               happymail_new_list.extend(happymail_new)
+            if happymail_new_list:
               title = "新着メッセージ"
               text = ""
               for new_mail in happymail_new_list:
                 text = text + new_mail + ",\n"
                 if "警告" in text or "NoImage" in text:
-                    title = "メッセージ"
+                  title = "メッセージ"
               # メール送信
               smtpobj = None
               if mail_info:
