@@ -18,7 +18,7 @@ from datetime import timedelta
 def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
   verification_flug = func.get_user_data()
   if not verification_flug:
-      return
+    return
   def timer(sec, functions):
     start_time = time.time() 
     for func in functions:
@@ -35,7 +35,6 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
     return return_func
   
   wait_cnt = 7200 / len(drivers)
-
   start_one_rap_time = time.time() 
   return_cnt_list = []
   try:
@@ -45,20 +44,22 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
       fst_message = drivers[name]["fst_message"]
       return_foot_message = drivers[name]["return_foot_message"]
       mail_img = drivers[name]["mail_img"]
-      # post_title = drivers[name]["post_title"]
-      # post_contents = drivers[name]["post_contents"]
+      post_title = drivers[name]["post_title"]
+      post_contents = drivers[name]["post_contents"]
       # repost
-      # try:
-      #   repost_flug = happymail.re_post(name, driver, wait, post_title, post_contents)
-      # except Exception as e:
-      #   print(f"ハッピーメール掲示板エラー{name}")
-      #   print(traceback.format_exc())
-      #   func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
+      try:
+        repost_flug = happymail.re_post(name, driver, wait, post_title, post_contents)
+      except Exception as e:
+        print(f"ハッピーメール掲示板エラー{name}")
+        print(traceback.format_exc())
+        func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
       return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
           return_cnt_list.append(f"{name}: {return_func}")
       elif isinstance(return_func, list):
           return_cnt_list.append(f"{name}: {return_func}")
+      if repost_flug:
+        return_cnt_list.append(repost_flug)
   except Exception as e:
     print(f"エラー{name}")
     print(traceback.format_exc())
@@ -89,9 +90,16 @@ if __name__ == '__main__':
   elif len(sys.argv) >= 2:
     return_foot_cnt = int(sys.argv[1])
   user_data =   func.get_user_data()
+  mailaddress = user_data['user'][0]['gmail_account']
+  gmail_password = user_data['user'][0]['gmail_account_password']
+  receiving_address = user_data['user'][0]['user_email']
+  mail_info = None
+  if mailaddress and gmail_password and receiving_address:
+    mail_info = [
+      receiving_address, mailaddress, gmail_password, 
+    ]
   happy_chara_list = user_data["happymail"]
-  mail_info = [1, 2, 3]
   headless = False
   base_path = "./chrome_profiles/h_scheduler"
-  drivers = happymail.start_the_drivers_login(user_data["happymail"], headless, base_path, False)
+  drivers = happymail.start_the_drivers_login(mail_info, user_data["happymail"], headless, base_path, False)
   md_h_all_do(0, 0, return_foot_cnt,  mail_info, drivers)

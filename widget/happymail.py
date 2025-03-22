@@ -151,6 +151,13 @@ def catch_warning_screen(driver):
   remodal = driver.find_elements(By.CLASS_NAME, value="remodal-image")
   remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
 
+  ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
+  if len(ds_t_center):
+    if "警告" in ds_t_center[0].text:
+      ds_round_btn = driver.find_elements(By.CLASS_NAME, value="ds_round_btn")
+      ds_round_btn[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
   re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
   if len(re_login_button_elem):
     if "ログインへ" in re_login_button_elem[0].text:
@@ -196,11 +203,12 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
   try:
     # driver起動,ログイン
     # mohu = 0
+    
     for i in happymail_list:
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "りな" :
+      # if i["name"] != "きりこ" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
@@ -242,7 +250,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
         driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
     time.sleep(1)
     return drivers
   except KeyboardInterrupt:
@@ -540,11 +548,15 @@ def re_post(name,  driver, wait, title, post_text):
       road_cnt += 1
       if road_cnt == 7:
           break
+    
+    if len(genre) == 1:
+      print(f"{name} 掲示板投稿がありません")
+      repost_flug_list.append(f"{name} 掲示板投稿がありません")
+      return repost_flug_list
     genre = genre[1].text
-    # print("<<<再投稿する掲示板のジャンル取得>>>")
-    # print(genre)
+    print("<<<再投稿する掲示板のジャンル取得>>>")
+    print(genre)
     # 1日に書き込めるのは五回まで
-  
       # for i, kanto in enumerate(area_list):
       #   # 掲示板重複を削除する
       #   driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -692,6 +704,8 @@ def re_post(name,  driver, wait, title, post_text):
     repost_cnt = 0
     not_be_repost_areas = []
     blue_round_buttons = driver.find_elements(By.CLASS_NAME, "ds_round_btn_blue2")
+    if not len(blue_round_buttons):
+      print(f"{name}掲示板投稿から２時間経過していない可能性があります")
     while len(blue_round_buttons):
       blue_round_button = blue_round_buttons[0]
       # 再掲載できなかった場合はスキップ
@@ -1099,13 +1113,9 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
-    print(777)
-    print(len(type_confirm))
-    print("-------------")
     type_confirm_wait_cnt = 0
     while len(type_confirm) == 0:
       type_confirm_wait_cnt += 1
-      print(3333)
       time.sleep(3)
       type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
       if type_confirm_wait_cnt == 2:
@@ -1156,7 +1166,6 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
           driver.execute_script("arguments[0].click();", submit)
           while img_conform.is_displayed():
             time.sleep(2)
-            print(55555555)
             modal_content = driver.find_element(By.CLASS_NAME, value="modal-content")
             if len(modal_content):
               break # modal-content お相手が年齢確認されていない為
@@ -1170,7 +1179,6 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
-      print(555555)
       print(driver.current_url)
     else:
       user_name_list.append(user_name) 
@@ -1226,7 +1234,6 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       print(traceback.format_exc())
       
     finally:
-      print(777)
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
