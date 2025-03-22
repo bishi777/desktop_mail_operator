@@ -73,12 +73,12 @@ try:
         # print(f"現在のタブ: {index + 1},")
         if index + 1 == 1:
           print("mohu")
-          # try:
-          #   happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
-          # except NoSuchWindowException:
-          #   pass
-          # except Exception as e:
-          #   print(traceback.format_exc())
+          try:
+            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+          except NoSuchWindowException:
+            pass
+          except Exception as e:
+            print(traceback.format_exc())
         elif index + 1 == 2:
           top_image_check = happymail.check_top_image(name, driver, wait)           
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
