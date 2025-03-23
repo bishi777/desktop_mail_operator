@@ -1463,9 +1463,18 @@ def set_mutidriver_make_footprints(driver,wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
-  if not len(user_list):
+  reload_cnt = 0
+  while not len(user_list):
     time.sleep(4)
     user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+    reload_cnt += 1
+    driver.refresh()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    if reload_cnt == 2:
+      break
+  if not len(user_list):
+    print(f"足跡リストにユーザーがいません")
+    return
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
   driver.execute_script("arguments[0].click();", user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
