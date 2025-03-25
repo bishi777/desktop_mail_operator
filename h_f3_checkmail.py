@@ -21,6 +21,7 @@ from selenium.common.exceptions import NoSuchWindowException
 import signal
 import shutil
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from urllib3.exceptions import ReadTimeoutError
 
 
 user_data = func.get_user_data()
@@ -61,10 +62,10 @@ try:
         time.sleep(2)     
   # 足跡付け、チェックメール　ループ
   while True:
-    happymail_new_list = []
     if drivers == {}:
       break
     for name, data in drivers.items():
+      happymail_new_list = []
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
@@ -75,7 +76,12 @@ try:
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
+            print(f"NoSuchWindowExceptionエラーが出ました, {e}")
             pass
+          except ReadTimeoutError as e:
+            print("🔴 ページの読み込みがタイムアウトしました:", e)
+            driver.refresh()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
         elif index + 1 == 2:
@@ -94,6 +100,10 @@ try:
               happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             except NoSuchWindowException:
               pass
+            except ReadTimeoutError as e:
+              print("🔴 ページの読み込みがタイムアウトしました:", e)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             except Exception as e:
               print(traceback.format_exc())
             if top_image_check:
