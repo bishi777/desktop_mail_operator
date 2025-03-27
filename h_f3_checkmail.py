@@ -26,7 +26,7 @@ from urllib3.exceptions import ReadTimeoutError
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = True
+headless = False
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト

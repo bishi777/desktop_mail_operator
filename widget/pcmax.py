@@ -118,9 +118,6 @@ def login(name, login_id, login_pass, driver, wait):
 def drission_page_login(name, login_id, login_pass, chromium):
     chromium.set.cookies.clear()
     tab = chromium.latest_tab  # アクティブなタブを取得
-    # クッキーを削除
-    
-
     # ログインページへアクセス
     chromium.get("https://pcmax.jp/pcm/file.php?f=login_form")
     chromium.wait.load_complete()  # 🔹 ページのロードが完了するまで待機

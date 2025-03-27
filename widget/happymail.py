@@ -1493,7 +1493,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       user_name = user_name[0].text
     else:
       user_name = "取得に失敗しました"
-    mail_button = driver.find_elements(By.CLASS_NAME, value="ds_profile_target_btn")
+    mail_button = driver.find_elements(By.ID, value="btn-mail")
     if not len(mail_button):
       print(f"{name}")
       print("メールをするボタンが見つかりません")
@@ -1523,7 +1523,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
-      
       # ユーザ名を取得
       user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
       if user_name:
@@ -1531,10 +1530,13 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       else:
         user_name = "取得に失敗しました"
       mail_button = driver.find_elements(By.CLASS_NAME, value="ds_profile_target_btn")
+    mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
     now = datetime.now().strftime('%m-%d %H:%M:%S')
     print(f'{name}:足跡付け,  {user_name}  {now}')
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1625,7 +1627,6 @@ def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count
     type_flag = False
     # 実行確率
     probability = 0.01
-    
     execution_probability = probability
     if random.random() < execution_probability:
       type_button = driver.find_element(By.ID, value="btn-type")
