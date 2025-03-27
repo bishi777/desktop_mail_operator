@@ -60,7 +60,6 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
     time.sleep(1.5)
     if "https://happymail.jp/" == driver.current_url:
       # ds_gree_botton
-      print(999)
       ds_gree_botton = driver.find_elements(By.CLASS_NAME, value="ds_gree_botton")
       ds_gree_botton[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1119,8 +1118,6 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   return return_type_counted
       
 def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message):
-    print(999)
-    print(type_cnt)
     wait_time = random.uniform(1.5, 3.5)
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1482,7 +1479,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
     if not len(swiper_button):
       break
-    swiper_button[0].click()
+    driver.execute_script("arguments[0].click();", swiper_button[0])
+    # swiper_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     catch_warning_screen(driver)

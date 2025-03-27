@@ -26,12 +26,19 @@ from selenium.common.exceptions import NoSuchElementException
 from DrissionPage import ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 
-
-def login(name, login_id, login_pass, page):
-  page.set.cookies.clear()
-  tab = page.latest_tab  # アクティブなタブを取得
+# log_dialog
+def catch_warning_pop(name, tab):
+  warning = None
+  if tab.eles('.log_dialog'):
+    tab.ele('.log_cancel').click()
+  if tab.eles('.suspend-title'):
+    print(f"{name} pcmax利用制限中です")
+    warning = f"{name} pcmax利用制限中です"
+  
+  return warning
+def login(name, login_id, login_pass, tab):
   # ログインページへアクセス
-  tab.get("https://pcmax.jp/pcm/file.php?f=login_form")
+  tab.get("https://pcmax.jp/pcm/file.php?f=login_form", interval=5,timeout=120)
   wait_time = random.uniform(1.5, 3)
   time.sleep(wait_time)
   # IDとパスワードを入力
@@ -55,9 +62,10 @@ def login(name, login_id, login_pass, page):
     time.sleep(1)
     tab.ele('@name=login').click()
   # 利用制限チェック
-  if tab.eles('.suspend-title'):
-    print(f"{name} pcmax利用制限中です")
-    return f"{name} pcmax利用制限中です"
+  warning = catch_warning_pop(name, tab)
+  if warning:
+    print(warning)
+    print("通知メール実装してね")
   print("✅ ログイン成功")
   return ""
 

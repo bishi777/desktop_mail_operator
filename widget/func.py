@@ -933,7 +933,7 @@ def resolve_reCAPTCHA(login_url, site_key):
       exit()
       return False
 
-def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
+def test_get_DrissionChromium(tmp_dir=None, headless_flag=False, max_retries=3):
   if tmp_dir:
     temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  
     os.environ["WDM_CACHE"] = temp_dir
@@ -960,10 +960,10 @@ def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
       # options.set_argument("--disable-renderer-backgrounding")  # 🔹 追加
       # options.set_argument("--disable-backgrounding-occluded-windows")  # 🔹 追加
 
-      page = ChromiumPage()
+      chromium = Chromium()
 
       
-      return page
+      return chromium
 
     except BrowserConnectError as e:
       print(f"BrowserConnectError発生: {e}")

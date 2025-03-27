@@ -5,7 +5,7 @@ import random
 import os
 import time
 from selenium.webdriver.common.by import By
-
+from DrissionPage.common import Settings
 import os
 import time
 from DrissionPage import Chromium
@@ -14,32 +14,43 @@ from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, Elem
 user_data = func.get_user_data()
 
 wait_time = 1.5
-pcmax_data = user_data["pcmax"][4]
-happy_data = user_data["happymail"][4]
-name = pcmax_data["name"]
-login_id = pcmax_data["login_id"]
-login_pass = pcmax_data["password"]
-print(f"{login_id}  {login_pass}  {name}")
+pcmax_data = user_data["pcmax"]
+happy_data = user_data["happymail"]
+pcmax_datas = pcmax_data[3:4]
 
-h_name = happy_data["name"]
-h_login_id = happy_data["login_id"]
-h_login_pass = happy_data["password"]
+
+
 
 func.change_tor_ip()
+chromium = func.test_get_DrissionChromium(None, False, max_retries=3)
+chromium.set.cookies.clear()
+first_tab = True
+for index, i in enumerate(pcmax_datas):
+  print(777777)
+  print(index)
+  name = i["name"]
+  login_id = i["login_id"]
+  login_pass = i["password"]
+  print(f"{login_id}  {login_pass}  {name}")
+  if index == 0:
+    tab1 = chromium.latest_tab  # アクティブなタブを取得
+  else:
+    tab1 = chromium.new_tab(new_context=True)
+  
+  pcmax_drissionPage.login(name, login_id, login_pass, tab1)
+  tab2 = chromium.new_tab("https://pcmax.jp")
+  # print(888)
+  # print(chromium.tabs_count)
+  # print(chromium.get_tabs())
+  # pcmax_drissionPage.get_header_menu(tab1, "プロフ検索")
 
-page = func.test_get_DrissionPage(None, False, max_retries=3)
 
-pcmax_drissionPage.login(name, login_id, login_pass, page)
-print(888)
-print(page.tab)
 
-tab2 = page.new_tab("https://pcmax.jp")
-print(page.tab)
-pcmax_drissionPage.get_header_menu(page, "プロフ検索")
-for i in range(2):
-  profile_link_btns = page.ele(".profile_link_btn")
-  print(777)
-  print(len(profile_link_btns))
-  for profile_link_btn in profile_link_btns:
-    profile_link_btn.click()
-    break
+print(chromium.get_tabs())
+# for i in range(2):
+#   profile_link_btns = tab1.ele(".profile_link_btn")
+#   print(777)
+#   print(len(profile_link_btns))
+#   for profile_link_btn in profile_link_btns:
+#     profile_link_btn.click()
+#     break
