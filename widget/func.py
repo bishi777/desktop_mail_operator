@@ -34,7 +34,8 @@ from stem.control import Controller
 import psutil
 import signal
 from DrissionPage import ChromiumOptions
-from DrissionPage import Chromium
+from DrissionPage import Chromium, ChromiumPage
+
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 
 def get_the_temporary_folder(temp_dir):
@@ -959,9 +960,10 @@ def test_get_DrissionPage(tmp_dir=None, headless_flag=False, max_retries=3):
       # options.set_argument("--disable-renderer-backgrounding")  # 🔹 追加
       # options.set_argument("--disable-backgrounding-occluded-windows")  # 🔹 追加
 
-      chromium = Chromium(options)
+      page = ChromiumPage()
+
       
-      return chromium
+      return page
 
     except BrowserConnectError as e:
       print(f"BrowserConnectError発生: {e}")
