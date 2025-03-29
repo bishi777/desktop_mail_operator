@@ -130,10 +130,10 @@ def check_top_image(name, driver, wait):
   # ds_mypage_name
   name_ele = driver.find_elements(By.CLASS_NAME, value="ds_mypage_name")
   print(777)
-  print(name_ele.text)
-  if name != name_ele.text:
-    print(f"{name}のブラウザが{name_ele.text}になっています")
-    return f"{name}のブラウザが{name_ele.text}になっています"
+  print(name_ele[0].text)
+  if name != name_ele[0].text:
+    print(f"{name}のブラウザが{name_ele[0].text}になっています")
+    return f"{name}のブラウザが{name_ele[0].text}になっています"
   # 画像チェック　
   nav_item_click("マイページ", driver, wait)
   top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
