@@ -126,16 +126,16 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
     return f"ログインに失敗しました"
 
 def check_top_image(name, driver, wait):
+  nav_item_click("マイページ", driver, wait)
   # 名前チェック
-  # ds_mypage_name
   name_ele = driver.find_elements(By.CLASS_NAME, value="ds_mypage_name")
   print(777)
   print(name_ele[0].text)
   if name != name_ele[0].text:
     print(f"{name}のブラウザが{name_ele[0].text}になっています")
     return f"{name}のブラウザが{name_ele[0].text}になっています"
+  
   # 画像チェック　
-  nav_item_click("マイページ", driver, wait)
   top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
   if len(top_img_element):
     top_img = top_img_element[0].get_attribute("style")
