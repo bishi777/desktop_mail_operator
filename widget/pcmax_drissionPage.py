@@ -55,7 +55,6 @@ def login(name, login_id, login_pass, tab):
     print("🔄 ページをリロードして再試行します...")
     tab.refresh()
     time.sleep(2)
-
     # 再度IDとパスワードを入力
     tab.ele("#login_id").input(login_id)
     tab.ele("#login_pw").input(login_pass)

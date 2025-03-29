@@ -72,7 +72,7 @@ try:
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
-        if index + 1 == 1:
+        if index  == 0:
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
@@ -84,7 +84,7 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
-        elif index + 1 == 2:
+        elif index == 1:
           top_image_check = happymail.check_top_image(name, driver, wait)  
           new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
           if new_message_flug == "新着メールなし" and top_image_check is False:

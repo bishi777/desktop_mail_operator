@@ -126,18 +126,24 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
     return f"ログインに失敗しました"
 
 def check_top_image(name, driver, wait):
+  # 名前チェック
+  # ds_mypage_name
+  name_ele = driver.find_elements(By.CLASS_NAME, value="ds_mypage_name")
+  print(777)
+  print(name_ele.text)
+  if name != name_ele.text:
+    print(f"{name}のブラウザが{name_ele.text}になっています")
+    return f"{name}のブラウザが{name_ele.text}になっています"
   # 画像チェック　
-    nav_item_click("マイページ", driver, wait)
-    top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
-    if len(top_img_element):
-      top_img = top_img_element[0].get_attribute("style")
-      if "noimage" in top_img:
-        print(f"{name}のトップ画の設定がNoImageです")
-        return f"ハッピーメール{name}のトップ画の設定がNoImageです"
-      else:
-        return False
-    else:
-      return f"ハッピーメール{name}のTOP画像が見つかりません"
+  nav_item_click("マイページ", driver, wait)
+  top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
+  if len(top_img_element):
+    top_img = top_img_element[0].get_attribute("style")
+    if "noimage" in top_img:
+      print(f"{name}のトップ画の設定がNoImageです")
+      return f"ハッピーメール{name}のトップ画の設定がNoImageです"
+  return False
+    
     
 # 警告画面
 def catch_warning_screen(driver):
@@ -351,18 +357,18 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               conditions_message_clean = func.normalize_text(conditions_message)
               
               # 変換後のデバッグ表示
-              # print("---------------------------------------")
-              # print(f"変換後のsend_text: {repr(send_text_clean)}")
-              # print("---------------------------------------")
-              # print(f"変換後のfst_message: {repr(fst_message_clean)}")
-              # print("---------------------------------------")
-              # print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のsend_text: {repr(send_text_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のfst_message: {repr(fst_message_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
               
-              # print("---------------------------------------")
-              # print(fst_message_clean == send_text_clean)
-              # print("---------------------------------------")
-              # print(return_foot_message_clean == send_text_clean)
-              # print("---------------------------------------")
+              print("---------------------------------------")
+              print(fst_message_clean == send_text_clean)
+              print("---------------------------------------")
+              print(return_foot_message_clean == send_text_clean)
+              print("---------------------------------------")
               # print("募集メッセージ" in send_text)
               if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
                 if conditions_message:
