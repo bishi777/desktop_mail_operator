@@ -66,6 +66,8 @@ try:
       break
     for name, data in drivers.items():
       happymail_new_list = []
+      top_image_check = None
+      happymail_new = None
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
