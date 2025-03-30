@@ -64,7 +64,6 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
       ds_gree_botton[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
-
     re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
     if len(re_login_button_elem):
       if "ログインへ" in re_login_button_elem[0].text:
@@ -72,7 +71,6 @@ def login(name, happymail_id, happymail_pass, driver, wait,):
         re_login_button[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1.5)
-
     id_form = driver.find_element(By.ID, value="TelNo") 
     id_form.send_keys(happymail_id)
     pass_form = driver.find_element(By.ID, value="TelPass")
@@ -147,7 +145,6 @@ def check_top_image(name, driver, wait):
       return f"ハッピーメール{name}のトップ画の設定がNoImageです"
   return False
     
-    
 # 警告画面
 def catch_warning_screen(driver):
   wait = WebDriverWait(driver, 15)
@@ -174,7 +171,6 @@ def catch_warning_screen(driver):
       re_login_button[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
-      
   if len(dialog):
     if "この登録は利用できません" in dialog[0].text:
       return "この登録は利用できません"
@@ -215,12 +211,11 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
   try:
     # driver起動,ログイン
     # mohu = 0
-    
     for i in happymail_list:
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "きりこ" :
+      # if i["name"] != "あやか" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
@@ -246,7 +241,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
         print(f"{i['name']} {warning}")
         if mail_info:
           title = "メッセージ"
-          text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {login_flug}"
+          text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {warning}"
           # メール送信
           if mail_info:
             func.send_mail(text, mail_info, title)
@@ -1410,15 +1405,16 @@ def set_mutidriver_make_footprints(driver,wait):
   reload_cnt = 0
   while not len(user_list):
     time.sleep(4)
-    user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     reload_cnt += 1
     driver.refresh()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     if reload_cnt == 2:
       break
+    user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
   if not len(user_list):
     print(f"足跡リストにユーザーがいません")
     return
+  
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
   driver.execute_script("arguments[0].click();", user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1429,7 +1425,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} {warning}")
-    
+
   num = random.randint(5,11)
   for i in range(num):
     if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
