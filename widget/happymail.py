@@ -130,11 +130,14 @@ def check_top_image(name, driver, wait):
   # 名前チェック
   name_ele = driver.find_elements(By.CLASS_NAME, value="ds_mypage_name")
   print(777)
-  print(name_ele[0].text)
-  if name != name_ele[0].text:
-    print(f"{name}のブラウザが{name_ele[0].text}になっています")
-    return f"{name}のブラウザが{name_ele[0].text}になっています"
-  
+  if len(name_ele):
+    print(name_ele[0].text)
+    if name != name_ele[0].text:
+      print(f"{name}のブラウザが{name_ele[0].text}になっています")
+      return f"{name}のブラウザが{name_ele[0].text}になっています"
+  else:
+    print(f"{name}の名前チェックでds_mypage_name要素が見つかりません")
+    print(driver.current_url)
   # 画像チェック　
   top_img_element = driver.find_elements(By.CLASS_NAME, value="ds_mypage_user_image")
   if len(top_img_element):
@@ -1446,6 +1449,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
           print(f"{name} {warning}")
           break
         print(f"{name}のログインに成功しました")
+        print(driver.current_url)
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
@@ -1459,6 +1463,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
+        print(7777777)
+        print(driver.current_url)
       # ユーザ名を取得
       user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
       if user_name:
@@ -1491,7 +1497,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     time.sleep(1)
     catch_warning_screen(driver)
   
-
 def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count):
   wait_time = random.uniform(2, 5)
   login(name, happymail_id, happymail_pass, driver, wait)
