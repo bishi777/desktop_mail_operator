@@ -87,12 +87,17 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         elif index == 1:
-          top_image_check = happymail.check_top_image(name, driver, wait)  
-          new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-          if new_message_flug == "新着メールなし" and top_image_check is False:
-            print(f"{name}　新着メールなし")
-            continue
+          warning = happymail.catch_warning_screen(driver)
+          if warning:
+            happymail_new_list.append(warning)
           else:
+            top_image_check = happymail.check_top_image(name, driver, wait)  
+            if "ブラウザ" in top_image_check:
+              break
+            new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
+            if new_message_flug == "新着メールなし" and top_image_check is False:
+              print(f"{name}　新着メールなし")
+              continue  
             login_id = drivers[name]["login_id"]
             password = drivers[name]["password"]
             return_foot_message = drivers[name]["return_foot_message"]
@@ -108,24 +113,24 @@ try:
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             except Exception as e:
               print(traceback.format_exc())
-            if top_image_check:
-              happymail_new_list.append(top_image_check)
-            if happymail_new:
-              happymail_new_list.extend(happymail_new)
-            if happymail_new_list:
-              title = "新着メッセージ"
-              text = ""
-              for new_mail in happymail_new_list:
-                text = text + new_mail + ",\n"
-                if "警告" in text or "NoImage" in text:
-                  title = "メッセージ"
-              # メール送信
-              smtpobj = None
-              if mail_info:
-                func.send_mail(text, mail_info, title)
-              else:
-                print("通知メールの送信に必要な情報が不足しています")
-                print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+          if top_image_check:
+            happymail_new_list.append(top_image_check)
+          if happymail_new:
+            happymail_new_list.extend(happymail_new)
+          if happymail_new_list:
+            title = "新着メッセージ"
+            text = ""
+            for new_mail in happymail_new_list:
+              text = text + new_mail + ",\n"
+              if "警告" in text or "NoImage" in text or "利用" in text :
+                title = "メッセージ"
+            # メール送信
+            smtpobj = None
+            if mail_info:
+              func.send_mail(text, mail_info, title)
+            else:
+              print("通知メールの送信に必要な情報が不足しています")
+              print(f"{mailaddress}   {gmail_password}  {receiving_address}")
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")

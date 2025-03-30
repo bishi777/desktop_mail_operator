@@ -933,47 +933,33 @@ def resolve_reCAPTCHA(login_url, site_key):
       exit()
       return False
 
-def test_get_DrissionChromium(tmp_dir=None, headless_flag=False, max_retries=3):
-  if tmp_dir:
-    temp_dir = os.path.join(tmp_dir, f"temp_cache_{os.getpid()}")  
-    os.environ["WDM_CACHE"] = temp_dir
-    if not os.path.exists(temp_dir):
-        os.makedirs(temp_dir)
-  for attempt in range(max_retries):
-    try:
-      options = ChromiumOptions()
-      if headless_flag:
-          options.headless(True)
-      options.set_argument("--disable-gpu")
-      # options.set_argument("--disable-software-rasterizer")
-      # options.set_argument("--disable-dev-shm-usage")
-      # options.set_argument("--incognito")
-      # options.set_argument("--enable-unsafe-swiftshader")
-      options.set_argument("--log-level=3")
-      # options.set_argument("--disable-web-security")
-      # options.set_argument("--disable-extensions")
-      # options.set_argument("--no-sandbox")
-      # options.set_argument("--window-size=456,912")
-      # options.set_argument("--disable-cache")
-      # options.set_argument("--disable-blink-features=AutomationControlled")
-      # options.set_argument("--disable-background-timer-throttling")  # 🔹 追加
-      # options.set_argument("--disable-renderer-backgrounding")  # 🔹 追加
-      # options.set_argument("--disable-backgrounding-occluded-windows")  # 🔹 追加
+def test_get_DrissionChromium(profile_dir=None, headless_flag=False, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            port = random.randint(9100, 9200)  # 🔸 各ブラウザにランダムなポートを指定
+            options = ChromiumOptions()
+            if headless_flag:
+                options.headless(True)
+            options.set_argument("--disable-gpu")
+            options.set_argument("--log-level=3")
 
-      chromium = Chromium()
+            # 🔽 ここが重要：ユーザープロファイルのディレクトリを指定！
+            if profile_dir:
+                options.set_paths(local_port=port, user_data_path=profile_dir)
 
-      
-      return chromium
+            chromium = Chromium(options)
 
-    except BrowserConnectError as e:
-      print(f"BrowserConnectError発生: {e}")
-      print(f"再試行します ({attempt + 1}/{max_retries})")
-      time.sleep(5)
-      if attempt == max_retries - 1:
-          raise
-    except ConnectionError as e:
-      print(f"⚠️ ネットワークエラーが発生しました: {e}")
-      print("3分後に再接続します...")
-      time.sleep(180)
-      if attempt == max_retries - 1:
-          raise
+            return chromium
+
+        except BrowserConnectError as e:
+            print(f"BrowserConnectError発生: {e}")
+            print(f"再試行します ({attempt + 1}/{max_retries})")
+            time.sleep(5)
+            if attempt == max_retries - 1:
+                raise
+        except ConnectionError as e:
+            print(f"⚠️ ネットワークエラーが発生しました: {e}")
+            print("3分後に再接続します...")
+            time.sleep(180)
+            if attempt == max_retries - 1:
+                raise
