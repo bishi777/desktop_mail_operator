@@ -26,13 +26,13 @@ from urllib3.exceptions import ReadTimeoutError
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = True
+headless = False
 
 # リストを2つに分割する
-n = len(happy_info)  # dataはリスト
+n = len(happy_info)  
 half = n // 2
-second_half = happy_info[half:]  # 後半
-profile_path = "chrome_profiles/h_footprint2"
+first_half = happy_info[half:]  # 後半
+profile_path = "chrome_profiles/h_footprint"
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
@@ -43,7 +43,7 @@ if mailaddress and gmail_password and receiving_address:
     receiving_address, mailaddress, gmail_password, 
   ]
 try:
-  drivers = happymail.start_the_drivers_login(mail_info, second_half, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
   # タブを切り替えて操作
   # tab1で足跡付け, tab2でチェックメールSET
   for name, data in drivers.items():
@@ -65,14 +65,16 @@ try:
     if drivers == {}:
       break
     for name, data in drivers.items():
+      happymail_new_list = []
+      top_image_check = None
+      happymail_new = None
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
-      
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
-        if index + 1 == 1:
+        if index  == 0:
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
@@ -84,13 +86,23 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
-        elif index + 1 == 2:
-          top_image_check = happymail.check_top_image(name, driver, wait)           
-          new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-          if new_message_flug == "新着メールなし" and top_image_check is False:
-            print(f"{name}　新着メールなし")
-            continue
+        elif index == 1:
+          top_image_check = happymail.check_top_image(name, driver, wait)  
+          if top_image_check:
+            if "ブラウザ" in top_image_check:
+              break
+          warning = happymail.catch_warning_screen(driver)
+          if warning:
+            happymail_new_list.append(warning)
           else:
+            top_image_check = happymail.check_top_image(name, driver, wait)  
+            if top_image_check:
+              if "ブラウザ" in top_image_check:
+                break
+            new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
+            if new_message_flug == "新着メールなし" and top_image_check is False:
+              print(f"{name}　新着メールなし")
+              continue  
             login_id = drivers[name]["login_id"]
             password = drivers[name]["password"]
             return_foot_message = drivers[name]["return_foot_message"]
@@ -106,25 +118,24 @@ try:
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             except Exception as e:
               print(traceback.format_exc())
-            if top_image_check:
-              if happymail_new:
-                happymail_new.append(top_image_check)
-              else:
-                happymail_new = [top_image_check] 
-            if happymail_new:
-              title = "新着メッセージ"
-              text = ""
-              for new_mail in happymail_new:
-                text = text + new_mail + ",\n"
-                if "警告" in text or "NoImage" in text:
-                    title = "メッセージ"
-              # メール送信
-              smtpobj = None
-              if mail_info:
-                func.send_mail(text, mail_info, title)
-              else:
-                print("通知メールの送信に必要な情報が不足しています")
-                print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+          if top_image_check:
+            happymail_new_list.append(top_image_check)
+          if happymail_new:
+            happymail_new_list.extend(happymail_new)
+          if happymail_new_list:
+            title = "新着メッセージ"
+            text = ""
+            for new_mail in happymail_new_list:
+              text = text + new_mail + ",\n"
+              if "警告" in text or "NoImage" in text or "利用" in text :
+                title = "メッセージ"
+            # メール送信
+            smtpobj = None
+            if mail_info:
+              func.send_mail(text, mail_info, title)
+            else:
+              print("通知メールの送信に必要な情報が不足しています")
+              print(f"{mailaddress}   {gmail_password}  {receiving_address}")
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
