@@ -34,8 +34,23 @@ def catch_warning_pop(name, tab):
   if tab.eles('.suspend-title'):
     print(f"{name} pcmax利用制限中です")
     warning = f"{name} pcmax利用制限中です"
-  
+  # dialog1
+  if tab.eles('#dialog1'):
+    print("dialog1")
+  # ng_dialog
+  if tab.eles('#ng_dialog'):
+    check1 = tab.ele('#check1')
+    if check1:
+      if not check1.states.is_checked:
+        check1.click()
+    ng_dialog_btn = tab.eles('.ng_dialog_btn')
+    if ng_dialog_btn:
+      ng_dialog_btn.click()
+    
+
+
   return warning
+
 def login(name, login_id, login_pass, tab):
   # ログインページへアクセス
   tab.get("https://pcmax.jp/pcm/file.php?f=login_form", interval=5,timeout=120)
@@ -73,5 +88,95 @@ def get_header_menu(page, menu):
   for link in links:
     if link.text == menu:
       link.click()
-      # search1
-      page.ele("#search1").click()
+      # # search1
+      # page.ele("#search1").click()
+
+def set_fst_mail(name, chromium, tab):
+  get_header_menu(tab, "プロフ検索")
+  # 地域選択
+  area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
+  tokyo_checkbox = tab.ele('#22') 
+  if not tokyo_checkbox.states.is_checked:
+    tokyo_checkbox.click()
+  time.sleep(1)
+  # 年齢
+  oldest_age_select_box = tab.ele('#makerItem')  # idでセレクトを取得
+  oldest_age_select_box.select('31歳')  
+
+  # ~検索から外す項目~
+  # 不倫・浮気
+  checkbox = tab.ele('#10120') 
+  if not checkbox.states.is_checked:
+    checkbox.click()
+  time.sleep(1)
+  # アブノーマル
+  checkbox = tab.ele('#10160') 
+  if not checkbox.states.is_checked:
+    checkbox.click()
+  time.sleep(1)
+  # 同性愛
+  checkbox = tab.ele('#10190') 
+  if not checkbox.states.is_checked:
+    checkbox.click()
+  time.sleep(1)
+  # 写真・動画撮影
+  checkbox = tab.ele('#10200') 
+  if not checkbox.states.is_checked:
+    checkbox.click()
+  time.sleep(1)
+  search = tab.ele('#image_button')
+  search.click()
+
+  # ユーザーリスト結果表示
+  elements = tab.eles('.text_left') 
+  for i in elements:
+    children = i.children()
+    print('----------------------------------')
+    for child in children:
+      # print(child.tag, child.text)
+      # print(child.attr('href'))
+      user_tab = chromium.new_tab(child.attr('href'))
+      catch_warning_pop(name, tab)
+      pr_area = user_tab.ele('.pr_area')
+      if not pr_area:
+        print('正常に開けません スキップします')
+        user_tab.close()
+        continue
+      content_menu = user_tab.ele('#content_menu')
+      children = content_menu.children()
+      for child in children:
+        print(child.tag, child.text)
+        if child.text == "お断りリストに追加":
+          okotowari = child
+        if "200文字まで入力できます" in child.text:
+          memo_ele = child
+      # 自己PRチェック
+      ng_words = ["業者", "通報",]
+      for ng_word in ng_words:
+        if ng_word in pr_area.text:
+          print('自己紹介文に危険なワードが含まれていました')
+          # お断りリストに追加する 
+          okotowari.click()
+          okotowari_add_button = user_tab.ele('#image_button2')
+          okotowari_add_button.click()
+          print("tabを閉じます")
+          time.sleep(5)
+          user_tab.close()    
+      # メモを確認
+      # memo_edit
+      print(memo_ele)
+      if memo_ele:
+        print(888777)
+        children = memo_ele.children()
+        for child in children:
+          print(child.tag, child.text)
+          if "200文字まで入力できます" in child.text:
+            print(666)
+            memo_text = child
+          if "メモ編集" in child.text:
+            memo_edit = child
+        
+
+      return
+
+       
