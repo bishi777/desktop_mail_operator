@@ -193,8 +193,9 @@ def set_fst_mail(name, chromium, tab, fst_message):
           if maji_soushin:
             m = user_tab.ele('#maji_btn')
             print(m)
-            user_tab.ele('#maji_btn').click()
-            # user_tab.ele('#dialog_ok').click()
+            # majiBtn
+            user_tab.ele('#majiBtn').click()
+            user_tab.ele('#link_OK').click()
           else:
             user_tab.ele('#send3').click()
         
