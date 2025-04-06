@@ -1454,6 +1454,10 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
           break
         print(f"{name}のログインに成功しました")
         print(driver.current_url)
+        top_image_check = check_top_image(name, driver, wait) 
+        if top_image_check:
+          print(666)
+          print(top_image_check)
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
@@ -1467,8 +1471,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
-        print(7777777)
-        print(driver.current_url)
+      print(7777777)
+      print(driver.current_url)
       # ユーザ名を取得
       user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
       if user_name:
@@ -1476,6 +1480,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       else:
         user_name = "取得に失敗しました"
       mail_button = driver.find_elements(By.CLASS_NAME, value="btn-mail")
+      print(user_name)
+      print(len(mail_button))
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')

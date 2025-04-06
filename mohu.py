@@ -18,7 +18,7 @@ wait_time = 1.5
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
 pcmax_datas = pcmax_data[2:3]
-chromiums = {}  # ← 複数のChromiumをここに格納する
+arrangement_list = [] 
 PROFILE_BASE = "./profiles"
 os.makedirs(PROFILE_BASE, exist_ok=True)
 headress = False
@@ -26,10 +26,12 @@ func.change_tor_ip()
 
 # chromium.set.cookies.clear()
 for index, i in enumerate(pcmax_datas):
+  dict = {}
   name = i["name"]
   login_id = i["login_id"]
   login_pass = i["password"]
-  print(f"{login_id}  {login_pass}  {name}")
+  fst_message = i["fst_mail"]
+  # print(f"{login_id}  {login_pass}  {name}")
   # プロファイルごとの保存先
   user_profile_dir = os.path.join(PROFILE_BASE, name)
   os.makedirs(user_profile_dir, exist_ok=True)
@@ -38,15 +40,17 @@ for index, i in enumerate(pcmax_datas):
   tab1 = chromium.latest_tab  # アクティブなタブを取得
   pcmax_drissionPage.login(name, login_id, login_pass, tab1)
   tab2 = chromium.new_tab("https://pcmax.jp")
-  chromiums[name] = chromium
+  dict["name"] = name
+  dict["fst_message"] = fst_message
+  dict["chromium"] = chromium
+  arrangement_list.append(dict)
 
-for name, c in chromiums.items():
+for c in arrangement_list:
   try:
-    # print(f"browser_id: {c.latest_tab.browser}, tabs: {[t.tab_id for t in c.get_tabs()]}")
-    tab1 = c.get_tabs()[1]
-    pcmax_drissionPage.set_fst_mail(name, c, tab1)
+    tab1 = c["chromium"].get_tabs()[1]
+    pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"])
     time.sleep(1.5)
-    tab2 = c.get_tabs()[0]
+    tab2 = c["chromium"].get_tabs()[0]
     pcmax_drissionPage.get_header_menu(tab2, "マイメニュー")
   except Exception as e:
     print(f"❌ ブラウザ  の操作でエラー: {e}")

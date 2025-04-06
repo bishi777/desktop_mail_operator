@@ -91,7 +91,7 @@ def get_header_menu(page, menu):
       # # search1
       # page.ele("#search1").click()
 
-def set_fst_mail(name, chromium, tab):
+def set_fst_mail(name, chromium, tab, fst_message):
   get_header_menu(tab, "プロフ検索")
   # 地域選択
   area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
@@ -142,6 +142,14 @@ def set_fst_mail(name, chromium, tab):
         print('正常に開けません スキップします')
         user_tab.close()
         continue
+      # マイルチェック　side_point_pcm_data
+      miles = user_tab.eles('.side_point_pcm_data')[0].text
+      pattern = r'\d+'
+      match = re.findall(pattern, miles.replace("M", ""))
+      if int(match[0]) > 1:
+        maji_soushin = True
+      else:
+        maji_soushin = False      
       content_menu = user_tab.ele('#content_menu')
       children = content_menu.children()
       for child in children:
@@ -163,18 +171,38 @@ def set_fst_mail(name, chromium, tab):
           time.sleep(5)
           user_tab.close()    
       # メモを確認
-      # memo_edit
-      print(memo_ele)
       if memo_ele:
-        print(888777)
         children = memo_ele.children()
         for child in children:
-          print(child.tag, child.text)
-          if "200文字まで入力できます" in child.text:
-            print(666)
-            memo_text = child
-          if "メモ編集" in child.text:
+          # print(child.tag, child.text, child.attrs.get('class', ''))
+          if 'memo_edit' in child.attrs.get('class', ''):
             memo_edit = child
+          if 'memo_open' in child.attrs.get('class', ''):
+            memo_edit_button = child
+        if "もふ" in memo_edit.text:
+          user_tab.close()
+        # fst_message送信
+        else:
+          print("〜〜〜〜fst_message送信〜〜〜〜")
+          print(maji_soushin)
+          memo_edit_button.click()
+          memo_text_area = user_tab.ele('#memotxt')
+          memo_text_area.input("もふ")
+          user_tab.ele('#memo_send').click()
+          user_tab.ele('#mdc').input(fst_message)
+          if maji_soushin:
+            m = user_tab.ele('#maji_btn')
+            print(m)
+            user_tab.ele('#maji_btn').click()
+            # user_tab.ele('#dialog_ok').click()
+          else:
+            user_tab.ele('#send3').click()
+        
+
+
+          
+
+
         
 
       return
