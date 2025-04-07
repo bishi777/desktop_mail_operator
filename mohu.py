@@ -17,7 +17,7 @@ user_data = func.get_user_data()
 wait_time = 1.5
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
-pcmax_datas = pcmax_data[2:3]
+pcmax_datas = pcmax_data[3:4]
 arrangement_list = [] 
 PROFILE_BASE = "./profiles"
 os.makedirs(PROFILE_BASE, exist_ok=True)
@@ -44,7 +44,6 @@ for index, i in enumerate(pcmax_datas):
   dict["fst_message"] = fst_message
   dict["chromium"] = chromium
   arrangement_list.append(dict)
-
 for c in arrangement_list:
   try:
     tab1 = c["chromium"].get_tabs()[1]

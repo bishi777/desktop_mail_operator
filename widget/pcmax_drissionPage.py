@@ -26,29 +26,28 @@ from selenium.common.exceptions import NoSuchElementException
 from DrissionPage import ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 
-# log_dialog
 def catch_warning_pop(name, tab):
   warning = None
-  if tab.eles('.log_dialog'):
+  if tab.eles('.log_dialog', timeout=0.5):
     tab.ele('.log_cancel').click()
-  if tab.eles('.suspend-title'):
+  if tab.eles('.suspend-title', timeout=0.5):
     print(f"{name} pcmax利用制限中です")
     warning = f"{name} pcmax利用制限中です"
-  # dialog1
-  if tab.eles('#dialog1'):
+  if tab.eles('#dialog1', timeout=0.5):
     print("dialog1")
-  # ng_dialog
-  if tab.eles('#ng_dialog'):
+    tab.ele('#this_month').click()
+    time.sleep(1)
+    if tab.eles('#close1', timeout=0.5):
+      tab.ele('#close1').click()
+  if tab.eles('#ng_dialog', timeout=0.5):
     check1 = tab.ele('#check1')
     if check1:
       if not check1.states.is_checked:
         check1.click()
-    ng_dialog_btn = tab.eles('.ng_dialog_btn')
+    ng_dialog_btn = tab.eles('.ng_dialog_btn', timeout=0.5)
     if ng_dialog_btn:
       ng_dialog_btn.click()
     
-
-
   return warning
 
 def login(name, login_id, login_pass, tab):
@@ -80,7 +79,7 @@ def login(name, login_id, login_pass, tab):
   if warning:
     print(warning)
     print("通知メール実装してね")
-  print("✅ ログイン成功")
+  print(f"{name}✅ ログイン成功")
   return ""
 
 def get_header_menu(page, menu):
@@ -92,7 +91,9 @@ def get_header_menu(page, menu):
       # page.ele("#search1").click()
 
 def set_fst_mail(name, chromium, tab, fst_message):
+  random_wait = random.uniform(2, 4)
   get_header_menu(tab, "プロフ検索")
+  ng_words = ["業者", "通報",]
   # 地域選択
   area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
   tokyo_checkbox = tab.ele('#22') 
@@ -100,112 +101,160 @@ def set_fst_mail(name, chromium, tab, fst_message):
     tokyo_checkbox.click()
   time.sleep(1)
   # 年齢
-  oldest_age_select_box = tab.ele('#makerItem')  # idでセレクトを取得
+  if tab.ele('#makerItem', timeout=0.1):
+    oldest_age_select_box = tab.ele('#makerItem')
+  else:
+    oldest_age_select_box = tab.ele('#to_age')
   oldest_age_select_box.select('31歳')  
-
   # ~検索から外す項目~
   # 不倫・浮気
-  checkbox = tab.ele('#10120') 
+  if tab.ele('#10120', timeout=0.1):
+    checkbox = tab.ele('#10120') 
+  else:
+    checkbox = tab.ele('#except12') 
   if not checkbox.states.is_checked:
     checkbox.click()
   time.sleep(1)
-  # アブノーマル
-  checkbox = tab.ele('#10160') 
+  # アブノーマル 
+  if tab.ele('#10160', timeout=0.1):
+    checkbox = tab.ele('#10160')
+  else:
+    checkbox = tab.ele('#except16')
   if not checkbox.states.is_checked:
     checkbox.click()
   time.sleep(1)
   # 同性愛
-  checkbox = tab.ele('#10190') 
+  if tab.ele('#10190', timeout=0.1):
+    checkbox = tab.ele('#10190')
+  else:
+    checkbox = tab.ele('#except19')
   if not checkbox.states.is_checked:
     checkbox.click()
   time.sleep(1)
   # 写真・動画撮影
-  checkbox = tab.ele('#10200') 
+  if tab.ele('#10200', timeout=0.1):
+    checkbox = tab.ele('#10200')
+  else:
+    checkbox = tab.ele('#except20')
   if not checkbox.states.is_checked:
     checkbox.click()
   time.sleep(1)
-  search = tab.ele('#image_button')
+  # 検索ボタンを押す
+  if tab.ele('#image_button', timeout=0.1):
+    search = tab.ele('#image_button')
+  else:
+    search = tab.ele('#search1')
   search.click()
-
-  # ユーザーリスト結果表示
+  # ユーザーリスト結果表示その１
   elements = tab.eles('.text_left') 
-  for i in elements:
-    children = i.children()
-    print('----------------------------------')
-    for child in children:
-      # print(child.tag, child.text)
-      # print(child.attr('href'))
-      user_tab = chromium.new_tab(child.attr('href'))
-      catch_warning_pop(name, tab)
-      pr_area = user_tab.ele('.pr_area')
-      if not pr_area:
-        print('正常に開けません スキップします')
-        user_tab.close()
-        continue
-      # マイルチェック　side_point_pcm_data
-      miles = user_tab.eles('.side_point_pcm_data')[0].text
-      pattern = r'\d+'
-      match = re.findall(pattern, miles.replace("M", ""))
-      if int(match[0]) > 1:
-        maji_soushin = True
-      else:
-        maji_soushin = False      
-      content_menu = user_tab.ele('#content_menu')
-      children = content_menu.children()
+  if elements:
+    send_cnt = 0
+    for i in elements:
+      children = i.children()
+      # print('----------------------------------')
       for child in children:
-        print(child.tag, child.text)
-        if child.text == "お断りリストに追加":
-          okotowari = child
-        if "200文字まで入力できます" in child.text:
-          memo_ele = child
-      # 自己PRチェック
-      ng_words = ["業者", "通報",]
-      for ng_word in ng_words:
-        if ng_word in pr_area.text:
-          print('自己紹介文に危険なワードが含まれていました')
-          # お断りリストに追加する 
-          okotowari.click()
-          okotowari_add_button = user_tab.ele('#image_button2')
-          okotowari_add_button.click()
-          print("tabを閉じます")
-          time.sleep(5)
-          user_tab.close()    
-      # メモを確認
-      if memo_ele:
-        children = memo_ele.children()
+        # print(child.tag, child.text)
+        # print(child.attr('href'))
+        user_tab = chromium.new_tab(child.attr('href'))
+        catch_warning_pop(name, tab)
+        pr_area = user_tab.ele('.pr_area')
+        if not pr_area:
+          print('正常に開けません スキップします')
+          user_tab.close()
+          continue
+        # マイルチェック　side_point_pcm_data
+        # miles = user_tab.eles('.side_point_pcm_data')[0].text
+        # pattern = r'\d+'
+        # match = re.findall(pattern, miles.replace("M", ""))
+        # if int(match[0]) > 1:
+        #   maji_soushin = True
+        # else:
+        #   maji_soushin = False      
+        # メニューを取得
+        content_menu = user_tab.ele('#content_menu')
+        children = content_menu.children()
         for child in children:
           # print(child.tag, child.text, child.attrs.get('class', ''))
-          if 'memo_edit' in child.attrs.get('class', ''):
-            memo_edit = child
-          if 'memo_open' in child.attrs.get('class', ''):
-            memo_edit_button = child
+          if child.text == "お断りリストに追加":
+            okotowari = child
+            # 自己PRチェック
+            for ng_word in ng_words:
+              if ng_word in pr_area.text:
+                print('自己紹介文に危険なワードが含まれていました')
+                # お断りリストに追加する 
+                okotowari.click()
+                okotowari_add_button = user_tab.ele('#image_button2')
+                okotowari_add_button.click()
+                time.sleep(5)
+                user_tab.close()
+          if 'memo_form' in child.attrs.get('id', ''):
+            memo_children = child.children()
+            for memo_child in memo_children:
+              if 'memo_edit' in memo_child.attrs.get('class', ''): 
+                memo_edit = memo_child
+              if 'memo_open' in memo_child.attrs.get('class', ''):
+                memo_edit_button = memo_child
         if "もふ" in memo_edit.text:
           user_tab.close()
         # fst_message送信
         else:
-          print("〜〜〜〜fst_message送信〜〜〜〜")
-          print(maji_soushin)
           memo_edit_button.click()
           memo_text_area = user_tab.ele('#memotxt')
           memo_text_area.input("もふ")
           user_tab.ele('#memo_send').click()
           user_tab.ele('#mdc').input(fst_message)
-          if maji_soushin:
-            m = user_tab.ele('#maji_btn')
-            print(m)
-            # majiBtn
-            user_tab.ele('#majiBtn').click()
-            user_tab.ele('#link_OK').click()
-          else:
-            user_tab.ele('#send3').click()
-        
+          time.sleep(1)
+          # if maji_soushin:
+          #   print(user_tab.ele('#maji_btn'))
+          #   user_tab.ele('#maji_btn').click()
+          #   time.sleep(4.5)
+          #   user_tab.ele('#dialog_ok').click()
+          # else:
+          user_tab.ele('#send3').click()
+          send_cnt += 1
+          time.sleep(7)
+          user_tab.close()
+          time.sleep(random_wait)
+          print(f"{name} fst_message {send_cnt}件")
+          if send_cnt == 2:
+            return
+  # ユーザーリスト結果表示その２
+  else:
+    print(777)
+    print(tab.states.ready_state)
+    
+    elements = tab.ele('.user_info') 
+    print(elements)
+    # content_inner
+    elements = tab.ele('.content_inner') 
+    print(666)
+    print(elements)
+    elements = tab.ele('.name') 
+    print(555)
+    print(elements)
+    print(elements.text)
+    elements.click()
+    print(tab.states.ready_state)
+    return
+    children = elements.children()
+    for eeeee in children:
+      print(eeeee.tag, eeeee.attrs.get('class', ''))
+      if 'profile_card' in eeeee.attrs.get('class', ''): 
+        for eeee in eeeee.children():
+          if 'profile_detail' in eeee.attrs.get('class', ''):
+            for eee in eeee.children():
+              if 'right-clm-out' in eee.attrs.get('class', ''): 
+                for ee in eee.children():
+                  if 'right-clm-out' in ee.attrs.get('class', ''): 
+                    for e in ee.children():
+                      print(555)
+                      print(e.tag)
+                      if 'a' in e.tag:
+                        e.click()
+                    
+            memo_edit_button = memo_child
+    # elements[0].click()
+  
 
-
-          
-
-
-        
-
-      return
 
        

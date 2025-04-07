@@ -1425,7 +1425,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} {warning}")
-
+  print("足跡付け前のurl確認")
+  print(driver.current_url)
   num = random.randint(5,11)
   for i in range(num):
     if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
@@ -1437,7 +1438,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     else:
       user_name = "取得に失敗しました"
     mail_button = driver.find_elements(By.ID, value="btn-mail")
-    if not len(mail_button):
+    while not len(mail_button):
       print(f"{name}")
       print("メールをするボタンが見つかりません")
       current_url = driver.current_url
@@ -1482,6 +1483,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       mail_button = driver.find_elements(By.CLASS_NAME, value="btn-mail")
       print(user_name)
       print(len(mail_button))
+      time.sleep(2)
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     driver.execute_script("arguments[0].click();", mail_button[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
