@@ -70,6 +70,8 @@ try:
       happymail_new = None
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
+      login_id = drivers[name]["login_id"]
+      password = drivers[name]["password"]
       tabs = driver.window_handles
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
