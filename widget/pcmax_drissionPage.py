@@ -90,10 +90,8 @@ def get_header_menu(page, menu):
       # # search1
       # page.ele("#search1").click()
 
-def set_fst_mail(name, chromium, tab, fst_message):
-  random_wait = random.uniform(2, 4)
+def profile_search(tab):
   get_header_menu(tab, "プロフ検索")
-  ng_words = ["業者", "通報",]
   # 地域選択
   area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
   tokyo_checkbox = tab.ele('#22') 
@@ -145,6 +143,11 @@ def set_fst_mail(name, chromium, tab, fst_message):
   else:
     search = tab.ele('#search1')
   search.click()
+
+def set_fst_mail(name, chromium, tab, fst_message):
+  random_wait = random.uniform(2, 4)
+  ng_words = ["業者", "通報",]
+  profile_search(tab)
   # ユーザーリスト結果表示その１
   elements = tab.eles('.text_left') 
   if elements:
@@ -220,40 +223,29 @@ def set_fst_mail(name, chromium, tab, fst_message):
             return
   # ユーザーリスト結果表示その２
   else:
-    print(777)
-    print(tab.states.ready_state)
+    elements = tab.eles('.name') 
+    print(len(elements))
+    print(elements[0].text)
+    elements[0].click()
+    # じこPRチェック
+    pr_area = tab.ele('.pr_area')
+    if not pr_area:
+      print('正常に開けません スキップします')
+      tab.back()
+    for ng_word in ng_words:
+      if ng_word in pr_area.text:
+        print('自己紹介文に危険なワードが含まれていました')
+        # お断りリストに追加する 
+        okotowari = tab.ele(".btn discline")
+        okotowari.click()
+        okotowari_add_button = tab.ele('#image_button2')
+        okotowari_add_button.click()
+        time.sleep(5)
+        profile_search(tab)
+    # メモ確認
+    memo_edit = tab.ele('.side_memo memo_edit')
+    print(memo_edit.text)
     
-    elements = tab.ele('.user_info') 
-    print(elements)
-    # content_inner
-    elements = tab.ele('.content_inner') 
-    print(666)
-    print(elements)
-    elements = tab.ele('.name') 
-    print(555)
-    print(elements)
-    print(elements.text)
-    elements.click()
-    print(tab.states.ready_state)
-    return
-    children = elements.children()
-    for eeeee in children:
-      print(eeeee.tag, eeeee.attrs.get('class', ''))
-      if 'profile_card' in eeeee.attrs.get('class', ''): 
-        for eeee in eeeee.children():
-          if 'profile_detail' in eeee.attrs.get('class', ''):
-            for eee in eeee.children():
-              if 'right-clm-out' in eee.attrs.get('class', ''): 
-                for ee in eee.children():
-                  if 'right-clm-out' in ee.attrs.get('class', ''): 
-                    for e in ee.children():
-                      print(555)
-                      print(e.tag)
-                      if 'a' in e.tag:
-                        e.click()
-                    
-            memo_edit_button = memo_child
-    # elements[0].click()
   
 
 
