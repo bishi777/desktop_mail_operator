@@ -1459,6 +1459,9 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
+        print("スクショします")
+        filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
+        driver.save_screenshot(filename)
       elif "https://happymail.co.jp/sp/app/html/mbmenu.php" in driver.current_url:
         warning = catch_warning_screen(driver)
         if warning:
@@ -1468,9 +1471,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
-      print("スクショします")
-      filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
-      driver.save_screenshot(filename)
+      
       print(7777777)
       print(driver.current_url)
       # ユーザ名を取得

@@ -13,7 +13,6 @@ from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, Elem
 import traceback
 
 user_data = func.get_user_data()
-
 wait_time = 1.5
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
@@ -45,12 +44,16 @@ for index, i in enumerate(pcmax_datas):
   dict["chromium"] = chromium
   arrangement_list.append(dict)
 for c in arrangement_list:
+  send_cnt = 0
   try:
     tab1 = c["chromium"].get_tabs()[1]
-    pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"])
+    pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
     time.sleep(1.5)
+    print(9999)
+    
     tab2 = c["chromium"].get_tabs()[0]
-    pcmax_drissionPage.get_header_menu(tab2, "マイメニュー")
+    print(tab2.url)
+    pcmax_drissionPage.get_header_menu(tab2, "メッセージ")
   except Exception as e:
     print(f"❌ ブラウザ  の操作でエラー: {e}")
     traceback.print_exc() 
