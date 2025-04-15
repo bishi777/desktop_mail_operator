@@ -73,6 +73,8 @@ try:
       login_id = drivers[name]["login_id"]
       password = drivers[name]["password"]
       tabs = driver.window_handles
+      print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
+
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
