@@ -153,9 +153,17 @@ def catch_warning_screen(driver):
   dialog2 = driver.find_elements(By.ID, value="_information_dialog")
   dialog3 = driver.find_elements(By.ID, value="information__dialog")
   # b2_dialog_title
-  remodal = driver.find_elements(By.CLASS_NAME, value="remodal-image")
+  remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")
   remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
-
+  # remodal 
+  remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
+  if len(remodal):
+    # remodal-cancel
+    remodal_cancel = driver.find_elements(By.CLASS_NAME, value="remodal-cancel")
+    if len(remodal_cancel):
+      remodal_cancel.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
   if len(ds_t_center):
     if "警告" in ds_t_center[0].text:
@@ -177,7 +185,7 @@ def catch_warning_screen(driver):
     if "この登録は利用できません" in dialog3[0].text:
       return "この登録は利用できません"
   warinig_cnt =0
-  while len(warning) or len(anno) or len(dialog) or len(dialog2) or len(dialog3) or len(remodal) or len(remodal_wrapper):
+  while len(warning) or len(anno) or len(dialog) or len(dialog2) or len(dialog3) or len(remodal_image) or len(remodal_wrapper):
     driver.refresh()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
@@ -1428,6 +1436,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   print(driver.current_url)
   num = random.randint(5,11)
   for i in range(num):
+    catch_warning_screen(driver)
     if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
       set_mutidriver_make_footprints(driver,wait)
     # ユーザ名を取得
