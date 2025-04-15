@@ -92,6 +92,7 @@ try:
           top_image_check = happymail.check_top_image(name, driver, wait)  
           if top_image_check:
             if "ブラウザ" in top_image_check:
+              print("11111111111111111111111111111111")
               happymail_new_list.append(top_image_check)
           warning = happymail.catch_warning_screen(driver)
           if warning:

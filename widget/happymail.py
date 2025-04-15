@@ -127,7 +127,6 @@ def check_top_image(name, driver, wait):
   nav_item_click("マイページ", driver, wait)
   # 名前チェック
   name_ele = driver.find_elements(By.CLASS_NAME, value="ds_mypage_name")
-  print(777)
   if len(name_ele):
     print(name_ele[0].text)
     if name != name_ele[0].text:
@@ -1456,10 +1455,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
           break
         print(f"{name}のログインに成功しました")
         print(driver.current_url)
-        top_image_check = check_top_image(name, driver, wait) 
-        if top_image_check:
-          print(666)
-          print(top_image_check)
         nav_flug = nav_item_click("プロフ検索", driver, wait)
         if not nav_flug:
           break
