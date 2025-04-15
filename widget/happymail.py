@@ -1443,9 +1443,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print("メールをするボタンが見つかりません")
       current_url = driver.current_url
       print(f"現在のURL: {current_url}")
-      print("スクショします")
-      filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
-      driver.save_screenshot(filename)
+      
       if "https://happymail.jp/login/" in driver.current_url or "https://happymail.co.jp/" in driver.current_url:
         print(f"{name} {login_id} {password}  でログインします")
         login_flug = login(name, login_id, password, driver, wait,)
@@ -1475,6 +1473,9 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         if not nav_flug:
           break
         set_mutidriver_make_footprints(driver,wait)
+      print("スクショします")
+      filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
+      driver.save_screenshot(filename)
       print(7777777)
       print(driver.current_url)
       # ユーザ名を取得
