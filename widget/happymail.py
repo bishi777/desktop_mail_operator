@@ -159,9 +159,11 @@ def catch_warning_screen(driver):
   remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
   if len(remodal):
     print(77777)
-    remodal_cancel = driver.find_elements(By.CLASS_NAME, value="remodal-cancel")
-    if len(remodal_cancel):
-      remodal_cancel.click()
+    modal_cancel = driver.find_elements(By.CLASS_NAME, value="modal-cancel")
+    print(len(modal_cancel))
+    if len(modal_cancel):
+      print(6666)
+      modal_cancel.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(4)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")

@@ -47,13 +47,10 @@ for c in arrangement_list:
   send_cnt = 0
   try:
     tab1 = c["chromium"].get_tabs()[1]
-    pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
+    # pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
     time.sleep(1.5)
-    print(9999)
-    
     tab2 = c["chromium"].get_tabs()[0]
-    print(tab2.url)
-    pcmax_drissionPage.get_header_menu(tab2, "メッセージ")
+    pcmax_drissionPage.check_mail(tab2)
   except Exception as e:
     print(f"❌ ブラウザ  の操作でエラー: {e}")
     traceback.print_exc() 

@@ -91,10 +91,14 @@ def get_header_menu(page, menu):
   else:
     links = page.ele("#header_box").eles('tag:a')
   for link in links:
-    print(link.text)
     if menu in link.text:
+      if "メッセージ" == menu:
+        new_message_badge = link.eles(".header_pcm_badge")
+        if not len(new_message_badge):
+          print(f"新着メールなし")
+          return False
       link.click()
-      
+      return True
 
 def profile_search(tab):
   get_header_menu(tab, "プロフ検索")
@@ -253,7 +257,6 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         profile_search(tab)
       # fst_message送信
       else:
-        # memo_open
         tab.ele('.side_btn memo_open').click()
         tab.ele('#memotxt').input("もふ")
         tab.ele('#memo_send').click()
@@ -265,6 +268,15 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         catch_warning_pop(name, tab)
         profile_search(tab)
        
+def check_mail(tab):
+  print(999)
+  new_message_flug = get_header_menu(tab, "メッセージ")
+  if new_message_flug == False:
+    return 
+  tab.ele(".not_yet").ele("tag:a").click()
+  user_div_list = tab.eles(".list-picture-box")
+  print(len(user_div_list))
+  print(user_div_list)
 
 
 
