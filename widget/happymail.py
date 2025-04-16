@@ -163,7 +163,7 @@ def catch_warning_screen(driver):
     if len(remodal_cancel):
       remodal_cancel.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
+      time.sleep(4)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
   if len(ds_t_center):
     if "警告" in ds_t_center[0].text:
