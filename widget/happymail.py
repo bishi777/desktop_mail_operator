@@ -158,7 +158,7 @@ def catch_warning_screen(driver):
   # remodal 
   remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
   if len(remodal):
-    # remodal-cancel
+    print(77777)
     remodal_cancel = driver.find_elements(By.CLASS_NAME, value="remodal-cancel")
     if len(remodal_cancel):
       remodal_cancel.click()
