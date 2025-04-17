@@ -163,7 +163,9 @@ def catch_warning_screen(driver):
       print(6666)
       modal_cancel[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(4)
+      print("ボタンを押して10秒待機します")
+      time.sleep(10)
+      print("待機しました")
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
   if len(ds_t_center):
     if "警告" in ds_t_center[0].text:
