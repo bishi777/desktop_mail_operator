@@ -166,6 +166,10 @@ def catch_warning_screen(driver):
       print("ボタンを押して10秒待機します")
       time.sleep(10)
       print("待機しました")
+      swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
+      if len(swiper_button):
+        driver.execute_script("arguments[0].click();", swiper_button[0])
+        time.sleep(3)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
   if len(ds_t_center):
     if "警告" in ds_t_center[0].text:
@@ -1515,7 +1519,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     if not len(swiper_button):
       break
     driver.execute_script("arguments[0].click();", swiper_button[0])
-    # swiper_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     catch_warning_screen(driver)
