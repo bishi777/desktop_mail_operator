@@ -38,6 +38,9 @@ def catch_warning_pop(name, tab):
     tab.ele('#this_month').click()
     time.sleep(1)
     if tab.eles('#close1', timeout=0.5):
+      print(77777777)
+      time.sleep(10000)
+      # tab.run_js('arguments[0].click();', ele)
       tab.ele('#close1').click()
   if tab.eles('#ng_dialog', timeout=0.5):
     check1 = tab.ele('#check1')
@@ -268,16 +271,131 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         catch_warning_pop(name, tab)
         profile_search(tab)
        
-def check_mail(tab):
+def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password):
+  tab.ele("#header_logo").click()
+  return_list = []
   print(999)
   new_message_flug = get_header_menu(tab, "メッセージ")
   if new_message_flug == False:
     return 
   tab.ele(".not_yet").ele("tag:a").click()
-  user_div_list = tab.eles(".list-picture-box")
-  print(len(user_div_list))
-  print(user_div_list)
+  user_div_list = tab.eles(".mail_area clearfix")
+  # 未読一覧のurl https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0
+  while len(user_div_list):
+    print(user_div_list[0].ele("tag:a"))   
+    user_div_list[0].ele("tag:a").click()
+    tab.ele(".btn2").click()
+    sent_by_me = tab.eles(".fukidasi right right_balloon")
+    # 受信メッセージにメールアドレスが含まれているか
+    received_mail_elem = tab.eles(".message-body fukidasi left left_balloon")
+    if len(received_mail_elem):
+      received_mail = received_mail_elem[-1].text
+    else:
+      received_mail = ""       
+    # ＠を@に変換する
+    print(received_mail)
+    if "＠" in received_mail:
+      received_mail = received_mail.replace("＠", "@")
+    if "あっとまーく" in received_mail:
+      received_mail = received_mail.replace("あっとまーく", "@")
+    if "アットマーク" in received_mail:
+      received_mail = received_mail.replace("アットマーク", "@")
 
+    # メールアドレスを抽出する正規表現
+    email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+    # email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
+    email_list = re.findall(email_pattern, received_mail)
+    if email_list:
+      print("メールアドレスが含まれています")
+      # icloudの場合
+      if "icloud.com" in received_mail:
+        print("icloud.comが含まれています")
+        icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？"
+        icloud_text = icloud_text + "\n" + gmail_address
+        text_area = tab.eles("#mdc")
+        text_area.input(icloud_text)
+        time.sleep(4)
+        tab.ele("#send_n").click()
+        # 連続防止で失敗
+        waiting = tab.eles(".banned-word")
+        if len(waiting):
+          print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+          time.sleep(6)
+          tab.ele("#send_n").click()   
+        # tab.ele("#back2").click()  
+        catch_warning_pop(name, tab)
+        tab.back()   
+        tab.back()
+      else:
+        user_name = tab.eles(".user_name")[0].text
+        for user_address in email_list:
+          site = "pcmax"
+          try:
+            func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
+            print("アドレス内1stメールを送信しました")
+          except Exception:
+            print(f"{name} アドレス内1stメールの送信に失敗しました")
+        tab.back() 
+        time.sleep(1) 
+        # 見ちゃいや登録
+        tab.ele(".icon no_look").parent().click()
+        tab.ele("#image_button2").click()
+    # メッセージ送信一件もなし
+    elif len(sent_by_me) == 0:
+      text_area = tab.ele("#mdc").input(fst_message)
+      tab.ele("#send_n").click()
+      # 連続防止で失敗
+      waiting = tab.eles(".banned-word")
+      if len(waiting):
+        print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+        time.sleep(6)
+        tab.ele("#send_n").click()  
+      catch_warning_pop(name, tab)
+    # メッセージ送信一件以上
+    elif len(sent_by_me) <= 1:
+      sent_by_me_list = []
+      if len(sent_by_me):
+        for sent_list in sent_by_me:
+          sent_by_me_list.append(sent_list)
+      for send_my_text in sent_by_me_list:
+        # second_mailを既に送っているか
+        if func.normalize_text(second_message) == func.normalize_text(send_my_text.text):
+          print('やり取り中')
+          user_name = tab.eles(".user_name")[0].text
+          received_mail_elem = tab.eles(".left_balloon")
+          received_mail = received_mail_elem[-1].text
+          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
+          site = "pcmax"
+          try:
+            func.send_conditional(user_name, user_address, mailserver_address, mailserver_password, return_message, site)
+            print("通知メールを送信しました")
+          except Exception:
+            print(f"{name} 通知メールの送信に失敗しました")   
+          return_list.append(return_message)
+          no_history_second_mail = False
+          # 見ちゃいや登録
+          tab.ele(".icon no_look").parent().click()
+          time.sleep(1)
+          tab.ele("#image_button2").click()
+          
+      # secondメッセージを入力
+      if no_history_second_mail:
+        tab.eles("#mdc").input(second_message)
+        time.sleep(6)
+        tab.ele(By.ID, value="send_n").click()
+        # 連続防止で失敗
+        waiting = tab.eles(".banned-word")
+        if len(waiting):
+          print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+          time.sleep(6)
+          tab.ele(By.ID, value="send_n").click()
+        catch_warning_pop(name, tab)  
+    
+    # 未読ユーザー一覧に戻る
+    tab.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
+    user_div_list = tab.eles(".mail_area clearfix")
+
+ 
 
 
     

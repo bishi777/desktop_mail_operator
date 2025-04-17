@@ -14,9 +14,12 @@ import traceback
 
 user_data = func.get_user_data()
 wait_time = 1.5
+mailserver_address = user_data['user'][0]['gmail_account']
+mailserver_password = user_data['user'][0]['gmail_account_password']
+receiving_address = user_data['user'][0]['user_email']
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
-pcmax_datas = pcmax_data[3:4]
+pcmax_datas = pcmax_data[6:7]
 arrangement_list = [] 
 PROFILE_BASE = "./profiles"
 os.makedirs(PROFILE_BASE, exist_ok=True)
@@ -29,7 +32,7 @@ for index, i in enumerate(pcmax_datas):
   name = i["name"]
   login_id = i["login_id"]
   login_pass = i["password"]
-  fst_message = i["fst_mail"]
+  
   # print(f"{login_id}  {login_pass}  {name}")
   # プロファイルごとの保存先
   user_profile_dir = os.path.join(PROFILE_BASE, name)
@@ -39,8 +42,14 @@ for index, i in enumerate(pcmax_datas):
   tab1 = chromium.latest_tab  # アクティブなタブを取得
   pcmax_drissionPage.login(name, login_id, login_pass, tab1)
   tab2 = chromium.new_tab("https://pcmax.jp")
+  dict["login_id"] = login_id
+  dict["login_pass"] = login_pass
   dict["name"] = name
-  dict["fst_message"] = fst_message
+  dict["gmail_address"] = i["mail_address"]
+  dict["gmail_password"] = i["gmail_password"]
+  dict["fst_message"] = i["fst_mail"]
+  dict["second_message"] = i["second_message"]
+  dict["condition_message"] = i["condition_message"]
   dict["chromium"] = chromium
   arrangement_list.append(dict)
 for c in arrangement_list:
@@ -50,7 +59,7 @@ for c in arrangement_list:
     # pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
     time.sleep(1.5)
     tab2 = c["chromium"].get_tabs()[0]
-    pcmax_drissionPage.check_mail(tab2)
+    pcmax_drissionPage.check_mail(c["name"], tab2, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
   except Exception as e:
     print(f"❌ ブラウザ  の操作でエラー: {e}")
     traceback.print_exc() 

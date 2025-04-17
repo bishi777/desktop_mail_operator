@@ -152,10 +152,8 @@ def catch_warning_screen(driver):
   dialog = driver.find_elements(By.ID, value="_information_dialog")
   dialog2 = driver.find_elements(By.ID, value="_information_dialog")
   dialog3 = driver.find_elements(By.ID, value="information__dialog")
-  # b2_dialog_title
   remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")
   remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
-  # remodal 
   remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
   if len(remodal):
     print(77777)
@@ -163,7 +161,7 @@ def catch_warning_screen(driver):
     print(len(modal_cancel))
     if len(modal_cancel):
       print(6666)
-      modal_cancel.click()
+      modal_cancel[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(4)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")

@@ -1197,7 +1197,6 @@ def check_new_mail(pcmax_info, driver, wait):
                 return_list.append(return_message)
 
           elif func.normalize_text(second_message) == func.normalize_text(sent_by_me[-1].text):
-            # 受信メールにアドレスがあるか
             print('やり取り中')
             print(sent_by_me[-1].text)
             name_elem = driver.find_elements(By.CLASS_NAME, value="content_header_center")
