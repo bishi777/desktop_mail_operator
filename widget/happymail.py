@@ -1450,22 +1450,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   num = random.randint(5,11)
   for i in range(num):
     catch_warning_screen(driver)
-    if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
-      set_mutidriver_make_footprints(driver,wait)
-    # ユーザ名を取得
-    user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
-    if user_name:
-      user_name = user_name[0].text
-    else:
-      user_name = "取得に失敗しました"
-    mail_button = driver.find_elements(By.ID, value="btn-mail")
-    while not len(mail_button):
-      print(f"{name}")
-      print("メールをするボタンが見つかりません")
-      current_url = driver.current_url
-      print(f"現在のURL: {current_url}")
-      
-      if "https://happymail.jp/login/" in driver.current_url or "https://happymail.co.jp/" in driver.current_url:
+    # https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1
+    if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
+      driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
+      if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
+        set_mutidriver_make_footprints(driver,wait)
+      if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
         print(f"{name} {login_id} {password}  でログインします")
         login_flug = login(name, login_id, password, driver, wait,)
         if login_flug:
@@ -1484,18 +1474,22 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         print("スクショします")
         filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
         driver.save_screenshot(filename)
-      elif "https://happymail.co.jp/sp/app/html/mbmenu.php" in driver.current_url:
-        warning = catch_warning_screen(driver)
-        if warning:
-          print(f"{name} ：{warning}")
-          break
-        nav_flug = nav_item_click("プロフ検索", driver, wait)
-        if not nav_flug:
-          break
-        set_mutidriver_make_footprints(driver,wait)
+    # ユーザ名を取得
+    user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+    if user_name:
+      user_name = user_name[0].text
+    else:
+      user_name = "取得に失敗しました"
+    mail_button = driver.find_elements(By.ID, value="btn-mail")
+    if not len(mail_button):
+      print(f"{name}")
+      print("メールをするボタンが見つかりません")
+      current_url = driver.current_url
+      print(f"現在のURL: {current_url}")
       
       print(7777777)
       print(driver.current_url)
+      time.sleep(7)
       # ユーザ名を取得
       user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
       if user_name:
@@ -1507,28 +1501,30 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print(len(mail_button))
       time.sleep(2)
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
-    driver.execute_script("arguments[0].click();", mail_button[0])
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1.5)
-    driver.back()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    now = datetime.now().strftime('%m-%d %H:%M:%S')
-    print(f'{name}:足跡付け,  {user_name}  {now}')
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(wait_time)
-    warning_pop = catch_warning_screen(driver)
-    if warning_pop:
-      print(f"{name}：警告画面が出ている可能性があります")
-      print(warning_pop)
-      break
-    swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
-    if not len(swiper_button):
-      break
-    driver.execute_script("arguments[0].click();", swiper_button[0])
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    catch_warning_screen(driver)
+    if len(mail_button):
+    
+      driver.execute_script("arguments[0].click();", mail_button[0])
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
+      driver.back()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      now = datetime.now().strftime('%m-%d %H:%M:%S')
+      print(f'{name}:足跡付け,  {user_name}  {now}')
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
+      warning_pop = catch_warning_screen(driver)
+      if warning_pop:
+        print(f"{name}：警告画面が出ている可能性があります")
+        print(warning_pop)
+        break
+      swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
+      if not len(swiper_button):
+        break
+      driver.execute_script("arguments[0].click();", swiper_button[0])
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      catch_warning_screen(driver)
   
 def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count):
   wait_time = random.uniform(2, 5)
