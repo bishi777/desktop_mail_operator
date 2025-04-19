@@ -19,7 +19,7 @@ mailserver_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
-pcmax_datas = pcmax_data[:1]
+pcmax_datas = pcmax_data[4:8]
 arrangement_list = [] 
 PROFILE_BASE = "./profiles"
 os.makedirs(PROFILE_BASE, exist_ok=True)
@@ -38,7 +38,6 @@ for index, i in enumerate(pcmax_datas):
   user_profile_dir = os.path.join(PROFILE_BASE, name)
   os.makedirs(user_profile_dir, exist_ok=True)
   # 🔽 Chromiumを別インスタンスとして起動
-  print(777)
   chromium = func.test_get_DrissionChromium(user_profile_dir, headress, max_retries=3)
   tab1 = chromium.latest_tab  # アクティブなタブを取得
   login_flug = pcmax_drissionPage.login(name, login_id, login_pass, tab1)
@@ -60,12 +59,18 @@ if arrangement_list != []:
   
   while True:
     for c in arrangement_list:
+      # print(777)
+      # print(c["chromium"])
       send_cnt = 2
       try:
         tab1 = c["chromium"].get_tabs()[1]
+        # print(666)
+        # print(tab1)
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
         time.sleep(1.5)
         tab2 = c["chromium"].get_tabs()[0]
+        # print(555)
+        # print(tab2)
         pcmax_drissionPage.check_mail(c["name"], tab2, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
       except Exception as e:
         print(f"❌ ブラウザ  の操作でエラー: {e}")

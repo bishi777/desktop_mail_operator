@@ -49,7 +49,12 @@ def catch_warning_pop(name, tab):
     ng_dialog_btn = tab.eles('.ng_dialog_btn', timeout=0.5)
     if ng_dialog_btn:
       ng_dialog_btn[0].click()
-    
+  
+  kiyaku_btn = tab.eles('.kiyaku-btn', timeout=0.5)
+  if kiyaku_btn:
+    kiyaku_btn[0].click()
+    tab.get("https://pcmax.jp/pcm/member.php")
+
   return warning
 
 def login(name, login_id, login_pass, tab):
@@ -161,76 +166,72 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
   random_wait = random.uniform(2, 4)
   ng_words = ["業者", "通報",]
   profile_search(tab)
-  for sended_cnt in range(1, send_cnt + 1):
-    # ユーザーリスト結果表示その１
+  for sent_cnt in range(send_cnt):
+    catch_warning_pop(name, tab)
     elements = tab.eles('.text_left') 
+    # ユーザーリスト結果表示その１
     if elements:
-      for i in elements:
-        children = i.children()
-        # print('----------------------------------')
-        for child in children:
-          # print(child.tag, child.text)
-          # print(child.attr('href'))
-          user_tab = chromium.new_tab(child.attr('href'))
-          catch_warning_pop(name, tab)
-          pr_area = user_tab.ele('.pr_area')
-          if not pr_area:
-            print('正常に開けません スキップします')
-            user_tab.close()
-            continue
-          # マイルチェック　side_point_pcm_data
-          # miles = user_tab.eles('.side_point_pcm_data')[0].text
-          # pattern = r'\d+'
-          # match = re.findall(pattern, miles.replace("M", ""))
-          # if int(match[0]) > 1:
-          #   maji_soushin = True
-          # else:
-          #   maji_soushin = False      
-          # メニューを取得
-          content_menu = user_tab.ele('#content_menu')
-          children = content_menu.children()
-          for child in children:
-            # print(child.tag, child.text, child.attrs.get('class', ''))
-            if child.text == "お断りリストに追加":
-              okotowari = child
-              # 自己PRチェック
-              for ng_word in ng_words:
-                if ng_word in pr_area.text:
-                  print('自己紹介文に危険なワードが含まれていました')
-                  # お断りリストに追加する 
-                  okotowari.click()
-                  okotowari_add_button = user_tab.ele('#image_button2')
-                  okotowari_add_button.click()
-                  time.sleep(5)
-                  user_tab.close()
-            if 'memo_form' in child.attrs.get('id', ''):
-              memo_children = child.children()
-              for memo_child in memo_children:
-                if 'memo_edit' in memo_child.attrs.get('class', ''): 
-                  memo_edit = memo_child
-                if 'memo_open' in memo_child.attrs.get('class', ''):
-                  memo_edit_button = memo_child
-          if "もふ" in memo_edit.text:
-            user_tab.close()
-          # fst_message送信
-          else:
-            memo_edit_button.click()
-            memo_text_area = user_tab.ele('#memotxt')
-            memo_text_area.input("もふ")
-            user_tab.ele('#memo_send').click()
-            user_tab.ele('#mdc').input(fst_message)
-            time.sleep(1)
-            # if maji_soushin:
-            #   print(user_tab.ele('#maji_btn'))
-            #   user_tab.ele('#maji_btn').click()
-            #   time.sleep(4.5)
-            #   user_tab.ele('#dialog_ok').click()
-            # else:
-            user_tab.ele('#send3').click()
-            time.sleep(7)
-            user_tab.close()
-            time.sleep(random_wait)
-            print(f"{name} fst_message {sended_cnt}件 送信")
+      link = elements[sent_cnt].ele("tag:a")
+      user_tab = chromium.new_tab(link.attr('href'))
+      catch_warning_pop(name, tab)
+      pr_area = user_tab.ele('.pr_area')
+      if not pr_area:
+        print('正常に開けません スキップします')
+        user_tab.close()
+        continue
+      # マイルチェック　side_point_pcm_data
+      # miles = user_tab.eles('.side_point_pcm_data')[0].text
+      # pattern = r'\d+'
+      # match = re.findall(pattern, miles.replace("M", ""))
+      # if int(match[0]) > 1:
+      #   maji_soushin = True
+      # else:
+      #   maji_soushin = False      
+      # メニューを取得
+      content_menu = user_tab.ele('#content_menu')
+      children = content_menu.children()
+      for child in children:
+        # print(child.tag, child.text, child.attrs.get('class', ''))
+        if child.text == "お断りリストに追加":
+          okotowari = child
+          # 自己PRチェック
+          for ng_word in ng_words:
+            if ng_word in pr_area.text:
+              print('自己紹介文に危険なワードが含まれていました')
+              # お断りリストに追加する 
+              okotowari.click()
+              okotowari_add_button = user_tab.ele('#image_button2')
+              okotowari_add_button.click()
+              time.sleep(5)
+              user_tab.close()
+        if 'memo_form' in child.attrs.get('id', ''):
+          memo_children = child.children()
+          for memo_child in memo_children:
+            if 'memo_edit' in memo_child.attrs.get('class', ''): 
+              memo_edit = memo_child
+            if 'memo_open' in memo_child.attrs.get('class', ''):
+              memo_edit_button = memo_child
+      if "もふ" in memo_edit.text:
+        user_tab.close()
+      # fst_message送信
+      else:
+        memo_edit_button.click()
+        memo_text_area = user_tab.ele('#memotxt')
+        memo_text_area.input("もふ")
+        user_tab.ele('#memo_send').click()
+        user_tab.ele('#mdc').input(fst_message)
+        time.sleep(1)
+        # if maji_soushin:
+        #   print(user_tab.ele('#maji_btn'))
+        #   user_tab.ele('#maji_btn').click()
+        #   time.sleep(4.5)
+        #   user_tab.ele('#dialog_ok').click()
+        # else:
+        user_tab.ele('#send3').click()
+        time.sleep(7)
+        user_tab.close()
+        time.sleep(random_wait)
+        print(f"{name} fst_message {sent_cnt+ 1}件 送信")
            
     # ユーザーリスト結果表示その２
     else:
@@ -268,12 +269,13 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         time.sleep(1)
         tab.ele('#send3').click()
         time.sleep(random_wait)
-        print(f"{name} fst_message {sended_cnt}件　送信")
+        print(f"{name} fst_message {sent_cnt + 1}件　送信")
         catch_warning_pop(name, tab)
         profile_search(tab)
        
 def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password):
   tab.ele("#header_logo").click()
+  catch_warning_pop(name, tab)
   return_list = []
   new_message_flug = get_header_menu(tab, "メッセージ")
   if new_message_flug == False:
