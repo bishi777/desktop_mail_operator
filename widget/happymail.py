@@ -1450,35 +1450,33 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   num = random.randint(5,11)
   for i in range(num):
     catch_warning_screen(driver)
-    # https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1
     if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
       driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
       if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
-        set_mutidriver_make_footprints(driver,wait)
-      if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
-        print(f"{name} {login_id} {password}  でログインします")
-        login_flug = login(name, login_id, password, driver, wait,)
-        if login_flug:
-          print(f"{name} {login}")
-          break
-        warning = catch_warning_screen(driver)
-        if warning:
-          print(f"{name} {warning}")
-          break
-        print(f"{name}のログインに成功しました")
-        print(driver.current_url)
-        nav_flug = nav_item_click("プロフ検索", driver, wait)
-        if not nav_flug:
-          break
-        set_mutidriver_make_footprints(driver,wait)
-        print("スクショします")
-        filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
-        driver.save_screenshot(filename)
+        set_mutidriver_make_footprints(driver,wait)    
     # ユーザ名を取得
     user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
     if user_name:
       user_name = user_name[0].text
     else:
+      print(f"{name} {login_id} {password}  でログインします")
+      login_flug = login(name, login_id, password, driver, wait,)
+      if login_flug:
+        print(f"{name} {login}")
+        break
+      warning = catch_warning_screen(driver)
+      if warning:
+        print(f"{name} {warning}")
+        break
+      print(f"{name}のログインに成功しました")
+      print(driver.current_url)
+      nav_flug = nav_item_click("プロフ検索", driver, wait)
+      if not nav_flug:
+        break
+      set_mutidriver_make_footprints(driver,wait)
+      print("スクショします")
+      filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
+      driver.save_screenshot(filename)
       user_name = "取得に失敗しました"
     mail_button = driver.find_elements(By.ID, value="btn-mail")
     if not len(mail_button):

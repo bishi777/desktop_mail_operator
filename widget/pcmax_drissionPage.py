@@ -31,17 +31,16 @@ def catch_warning_pop(name, tab):
   if tab.eles('.log_dialog', timeout=0.5):
     tab.ele('.log_cancel').click()
   if tab.eles('.suspend-title', timeout=0.5):
-    print(f"{name} pcmax利用制限中です")
-    warning = f"{name} pcmax利用制限中です"
+    warning = f"{name} pcmax利用制限がかかっている可能性があります"
   if tab.eles('#dialog1', timeout=0.5):
     print("dialog1")
     tab.ele('#this_month').click()
     time.sleep(1)
     if tab.eles('#close1', timeout=0.5):
       print(77777777)
-      time.sleep(10000)
-      # tab.run_js('arguments[0].click();', ele)
-      tab.ele('#close1').click()
+      
+      ele = tab.ele('#close1').click()
+      tab.run_js('arguments[0].click();', ele)
   if tab.eles('#ng_dialog', timeout=0.5):
     check1 = tab.ele('#check1')
     if check1:
@@ -49,7 +48,7 @@ def catch_warning_pop(name, tab):
         check1.click()
     ng_dialog_btn = tab.eles('.ng_dialog_btn', timeout=0.5)
     if ng_dialog_btn:
-      ng_dialog_btn.click()
+      ng_dialog_btn[0].click()
     
   return warning
 
@@ -81,12 +80,13 @@ def login(name, login_id, login_pass, tab):
   warning = catch_warning_pop(name, tab)
   if warning:
     print(warning)
-    print("通知メール実装してね")
+    print("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@")
   if tab.url == "https://pcmax.jp/pcm/member.php":
     print(f"{name}✅ ログイン成功")
+    return True
   else:
     print(f"{name} ログイン失敗")
-  return ""
+    return False
 
 def get_header_menu(page, menu):
   if "メッセージ" == menu:
@@ -238,6 +238,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
       # print(len(elements))
       # print(elements[0].text)
       elements[0].click()
+      catch_warning_pop(name, tab)
       # じこPRチェック
       pr_area = tab.ele('.pr_area')
       if not pr_area:
@@ -274,7 +275,6 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
 def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password):
   tab.ele("#header_logo").click()
   return_list = []
-  print(999)
   new_message_flug = get_header_menu(tab, "メッセージ")
   if new_message_flug == False:
     return 
@@ -282,7 +282,7 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
   user_div_list = tab.eles(".mail_area clearfix")
   # 未読一覧のurl https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0
   while len(user_div_list):
-    print(user_div_list[0].ele("tag:a"))   
+    # print(user_div_list[0].ele("tag:a"))   
     user_div_list[0].ele("tag:a").click()
     tab.ele(".btn2").click()
     sent_by_me = tab.eles(".fukidasi right right_balloon")
@@ -293,7 +293,7 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
     else:
       received_mail = ""       
     # ＠を@に変換する
-    print(received_mail)
+    # print(received_mail)
     if "＠" in received_mail:
       received_mail = received_mail.replace("＠", "@")
     if "あっとまーく" in received_mail:
@@ -305,8 +305,9 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
     email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
     # email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b'
     email_list = re.findall(email_pattern, received_mail)
+    user_name = tab.ele(".title").ele("tag:a").text
     if email_list:
-      print("メールアドレスが含まれています")
+      # print("メールアドレスが含まれています")
       # icloudの場合
       if "icloud.com" in received_mail:
         print("icloud.comが含まれています")
@@ -319,15 +320,14 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
         # 連続防止で失敗
         waiting = tab.eles(".banned-word")
         if len(waiting):
-          print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+          # print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
           time.sleep(6)
           tab.ele("#send_n").click()   
         # tab.ele("#back2").click()  
         catch_warning_pop(name, tab)
         tab.back()   
         tab.back()
-      else:
-        user_name = tab.eles(".user_name")[0].text
+      else: 
         for user_address in email_list:
           site = "pcmax"
           try:
@@ -342,17 +342,24 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
         tab.ele("#image_button2").click()
     # メッセージ送信一件もなし
     elif len(sent_by_me) == 0:
+      if len(tab.eles(".bluebtn_no")):
+        if "送信はできません" in tab.eles(".bluebtn_no").text:
+          print("ユーザーが退会している可能性があります")
       text_area = tab.ele("#mdc").input(fst_message)
       tab.ele("#send_n").click()
       # 連続防止で失敗
       waiting = tab.eles(".banned-word")
       if len(waiting):
-        print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+        # print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
         time.sleep(6)
         tab.ele("#send_n").click()  
       catch_warning_pop(name, tab)
     # メッセージ送信一件以上
     elif len(sent_by_me) <= 1:
+      if len(tab.eles(".bluebtn_no")):
+        if "送信はできません" in tab.eles(".bluebtn_no").text:
+          print("ユーザーが退会している可能性があります")
+      no_history_second_mail = False
       sent_by_me_list = []
       if len(sent_by_me):
         for sent_list in sent_by_me:
@@ -372,23 +379,23 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
           except Exception:
             print(f"{name} 通知メールの送信に失敗しました")   
           return_list.append(return_message)
-          no_history_second_mail = False
+          no_history_second_mail = True
           # 見ちゃいや登録
           tab.ele(".icon no_look").parent().click()
           time.sleep(1)
           tab.ele("#image_button2").click()
           
       # secondメッセージを入力
-      if no_history_second_mail:
-        tab.eles("#mdc").input(second_message)
+      if not no_history_second_mail:
+        tab.ele("#mdc").input(second_message)
         time.sleep(6)
-        tab.ele(By.ID, value="send_n").click()
+        tab.ele("#send_n").click()
         # 連続防止で失敗
         waiting = tab.eles(".banned-word")
         if len(waiting):
-          print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
+          # print("<<<<<<<<<<<<<<<<<<<連続防止で失敗>>>>>>>>>>>>>>>>>>>>")
           time.sleep(6)
-          tab.ele(By.ID, value="send_n").click()
+          tab.ele("#send_n").click()
         catch_warning_pop(name, tab)  
     
     # 未読ユーザー一覧に戻る
