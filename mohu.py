@@ -56,7 +56,6 @@ for index, i in enumerate(pcmax_datas):
   arrangement_list.append(dict)
 
 if arrangement_list != []:
-  
   while True:
     for c in arrangement_list:
       # print(777)

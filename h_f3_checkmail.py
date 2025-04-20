@@ -100,12 +100,14 @@ try:
               happymail_new_list.append(top_image_check)
           warning = happymail.catch_warning_screen(driver)
           if warning:
-            happymail_new_list.append(warning)
+            print(f"{name} {warning}")
+            # happymail_new_list.append(f"{name} {warning}")
           else:
             top_image_check = happymail.check_top_image(name, driver, wait)  
             if top_image_check:
               if "ブラウザ" in top_image_check:
-                happymail_new_list.append(top_image_check)
+                print(top_image_check)
+                # happymail_new_list.append(top_image_check)
             new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
             if new_message_flug == "新着メールなし" and top_image_check is False:
               print(f"{name}　新着メールなし")
