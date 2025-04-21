@@ -1445,6 +1445,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} {warning}")
+    
   print("足跡付け前のurl確認")
   print(driver.current_url)
   num = random.randint(5,11)
