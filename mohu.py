@@ -42,6 +42,9 @@ for index, i in enumerate(pcmax_datas):
   tab1 = chromium.latest_tab  # アクティブなタブを取得
   print(777)
   print(tab1.run_js('return navigator.userAgent'))
+  print(tab1.run_js('return navigator.platform'))     # "MacIntel" or "Win32"
+  print(tab1.run_js('return navigator.webdriver'))    # Trueならbotとバレてる
+
   login_flug = pcmax_drissionPage.login(name, login_id, login_pass, tab1)
   if not login_flug:
     continue
