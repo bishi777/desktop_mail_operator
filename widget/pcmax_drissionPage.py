@@ -61,6 +61,7 @@ def login(name, login_id, login_pass, tab):
   # ログインページへアクセス
   tab.get("https://pcmax.jp/pcm/file.php?f=login_form", interval=5,timeout=120)
   wait_time = random.uniform(1.5, 3)
+  time.sleep(5)
   mohu = tab.eles(".cb-i")
   print(mohu)
   print(len(mohu))
