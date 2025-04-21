@@ -942,13 +942,6 @@ def test_get_DrissionChromium(profile_dir=None, headless_flag=False, max_retries
                 options.headless(True)
             options.set_argument("--disable-gpu")
             options.set_argument("--log-level=3")
-
-            
-            options.set_user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-            options.set_argument('--platform=MacIntel')
-            options.set_argument('--disable-blink-features=AutomationControlled')  # webdriver削除
-
-
             # 🔽 ここが重要：ユーザープロファイルのディレクトリを指定！
             if profile_dir:
                 options.set_paths(local_port=port, user_data_path=profile_dir)
