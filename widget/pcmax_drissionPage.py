@@ -337,6 +337,8 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
             print("アドレス内1stメールを送信しました")
           except Exception:
             print(f"{name} アドレス内1stメールの送信に失敗しました")
+            print(f"user_address:{user_address}  gmail_address:{gmail_address} gmail_password:{gmail_password}")
+            print(condition_message)
         tab.back() 
         time.sleep(1) 
         # 見ちゃいや登録
