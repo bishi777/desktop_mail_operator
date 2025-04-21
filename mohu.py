@@ -40,6 +40,8 @@ for index, i in enumerate(pcmax_datas):
   # 🔽 Chromiumを別インスタンスとして起動
   chromium = func.test_get_DrissionChromium(user_profile_dir, headress, max_retries=3)
   tab1 = chromium.latest_tab  # アクティブなタブを取得
+  print(777)
+  print(tab1.run_js('return navigator.userAgent'))
   login_flug = pcmax_drissionPage.login(name, login_id, login_pass, tab1)
   if not login_flug:
     continue
