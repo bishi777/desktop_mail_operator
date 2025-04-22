@@ -124,14 +124,11 @@ def profile_search(tab):
       tab.ele("#22").click()
       time.sleep(1)
   # ランダムに2つ選ぶ
-  random_areas = dict(random.sample(area_id_dict.items(), 2))
+  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
   for area, area_id in random_areas.items():
-    print(f"{area} の ID は {area_id}")
     if not tab.ele(f"#{area_id}").states.is_checked:
       tab.ele(f"#{area_id}").click()
     time.sleep(1)
-  
-
   # 年齢
   if tab.ele('#makerItem', timeout=0.1):
     oldest_age_select_box = tab.ele('#makerItem')
