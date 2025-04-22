@@ -934,31 +934,29 @@ def resolve_reCAPTCHA(login_url, site_key):
       return False
 
 def test_get_DrissionChromium(profile_dir=None, headless_flag=False, max_retries=3):
-    for attempt in range(max_retries):
-        try:
-            port = random.randint(9100, 9200)  # 🔸 各ブラウザにランダムなポートを指定
-            options = ChromiumOptions()
-            if headless_flag:
-                options.headless(True)
-            options.set_argument("--disable-gpu")
-            options.set_argument("--log-level=3")
-            # 🔽 ここが重要：ユーザープロファイルのディレクトリを指定！
-            if profile_dir:
-                options.set_paths(local_port=port, user_data_path=profile_dir)
+  for attempt in range(max_retries):
+    try:
+      port = random.randint(9100, 9200)  # 🔸 各ブラウザにランダムなポートを指定
+      options = ChromiumOptions()
+      if headless_flag:
+          options.headless(True)
+      options.set_argument("--disable-gpu")
+      options.set_argument("--log-level=3")
+      # 🔽 ここが重要：ユーザープロファイルのディレクトリを指定！
+      if profile_dir:
+          options.set_paths(local_port=port, user_data_path=profile_dir)
+      chromium = Chromium(options)
+      return chromium
 
-            chromium = Chromium(options)
-
-            return chromium
-
-        except BrowserConnectError as e:
-            print(f"BrowserConnectError発生: {e}")
-            print(f"再試行します ({attempt + 1}/{max_retries})")
-            time.sleep(5)
-            if attempt == max_retries - 1:
-                raise
-        except ConnectionError as e:
-            print(f"⚠️ ネットワークエラーが発生しました: {e}")
-            print("3分後に再接続します...")
-            time.sleep(180)
-            if attempt == max_retries - 1:
-                raise
+    except BrowserConnectError as e:
+      print(f"BrowserConnectError発生: {e}")
+      print(f"再試行します ({attempt + 1}/{max_retries})")
+      time.sleep(5)
+      if attempt == max_retries - 1:
+        raise
+    except ConnectionError as e:
+      print(f"⚠️ ネットワークエラーが発生しました: {e}")
+      print("3分後に再接続します...")
+      time.sleep(180)
+      if attempt == max_retries - 1:
+        raise

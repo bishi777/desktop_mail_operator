@@ -63,16 +63,12 @@ for index, i in enumerate(pcmax_datas):
 if arrangement_list != []:
   while True:
     for c in arrangement_list:
-      # print(777)
-      # print(c["chromium"])
       send_cnt = 2
       try:
         tab1 = c["chromium"].get_tabs()[0]
-        # print(666)
-        # print(tab1)
-        
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
-        time.sleep(1.5)        
+        time.sleep(1.5)   
+        print("新着メールチャック開始")     
         pcmax_drissionPage.check_mail(c["name"], tab1, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
         print(555)
         tab1.get("https://pcmax.jp/pcm/member.php")
