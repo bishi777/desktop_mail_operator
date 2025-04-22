@@ -111,11 +111,27 @@ def get_header_menu(page, menu):
 def profile_search(tab):
   get_header_menu(tab, "プロフ検索")
   # 地域選択
-  area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
-  tokyo_checkbox = tab.ele('#22') 
-  if not tokyo_checkbox.states.is_checked:
-    tokyo_checkbox.click()
-  time.sleep(1)
+  area_id_dict = {
+    # "新潟県":13, "山梨県":17,  "長野県":18, "茨城県":19, "埼玉県":24, 
+    # "東京都":22, 
+    "静岡県":27, 
+    "栃木県":20, 
+    "群馬県":21, 
+    "神奈川県":23, 
+    "千葉県":25
+    }
+  if not tab.ele("#22").states.is_checked:
+      tab.ele("#22").click()
+      time.sleep(1)
+  # ランダムに2つ選ぶ
+  random_areas = dict(random.sample(area_id_dict.items(), 2))
+  for area, area_id in random_areas.items():
+    print(f"{area} の ID は {area_id}")
+    if not tab.ele(f"#{area_id}").states.is_checked:
+      tab.ele(f"#{area_id}").click()
+    time.sleep(1)
+  
+
   # 年齢
   if tab.ele('#makerItem', timeout=0.1):
     oldest_age_select_box = tab.ele('#makerItem')
@@ -168,20 +184,31 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
   profile_search(tab)
   user_index = 0
   sent_cnt = 0
+  
   while sent_cnt <= send_cnt:
     catch_warning_pop(name, tab)
     elements = tab.eles('.list')   
-    print(len(elements))
     # ユーザーリスト結果表示その１
     if elements:
-      list_photo = tab.eles('.list_photo')
-      user_imgs = list_photo[user_index].eles("tag:img")
-      for i in user_imgs:
-        # https://pcmax.jp/image/icon/16pix/emoji_206.png
-        if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in i.attr('src'):
-          print("送信すみ")
-          user_index += 1
-          continue
+      print("ユーザーリスト結果表示その１")
+      list_photo = tab.eles('.list_photo')[user_index]
+      print(len(tab.eles('.list_photo')))
+      user_imgs = list_photo.eles("tag:img")
+      send_flug = False
+      while send_flug == False:
+        send_flug = True
+        for i in user_imgs:
+          if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in i.attr('src'):
+            user_index += 1
+            print(user_index)
+            list_photo = tab.eles('.list_photo')[user_index]
+            user_imgs = list_photo.eles("tag:img")
+            send_flug = False
+            if user_index % 15 == 0:
+              print(777777)
+              
+              tab.scroll.to_bottom()
+              time.sleep(5)
       link_elements = tab.eles('.text_left') 
       link = link_elements[user_index].ele("tag:a")
       user_tab = chromium.new_tab(link.attr('href'))
@@ -242,6 +269,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         break       
     # ユーザーリスト結果表示その２
     else:
+      print("# ユーザーリスト結果表示その２")
       elements = tab.eles('.name') 
       # print(len(elements))
       # print(elements[0].text)
