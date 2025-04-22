@@ -19,7 +19,7 @@ mailserver_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 pcmax_data = user_data["pcmax"]
 happy_data = user_data["happymail"]
-pcmax_datas = pcmax_data[:4]
+pcmax_datas = pcmax_data[:8]
 arrangement_list = [] 
 PROFILE_BASE = "./profiles"
 os.makedirs(PROFILE_BASE, exist_ok=True)
@@ -40,10 +40,6 @@ for index, i in enumerate(pcmax_datas):
   # 🔽 Chromiumを別インスタンスとして起動
   chromium = func.test_get_DrissionChromium(user_profile_dir, headress, max_retries=3)
   tab1 = chromium.latest_tab  # アクティブなタブを取得
-  print(777)
-  print(tab1.run_js('return navigator.userAgent'))
-  print(tab1.run_js('return navigator.platform'))     # "MacIntel" or "Win32"
-  print(tab1.run_js('return navigator.webdriver'))    # Trueならbotとバレてる
 
   login_flug = pcmax_drissionPage.login(name, login_id, login_pass, tab1)
   if not login_flug:
@@ -68,9 +64,8 @@ if arrangement_list != []:
         tab1 = c["chromium"].get_tabs()[0]
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
         time.sleep(1.5)   
-        print("新着メールチャック開始")     
+        print("新着メールチェック開始")     
         pcmax_drissionPage.check_mail(c["name"], tab1, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
-        print(555)
         tab1.get("https://pcmax.jp/pcm/member.php")
       except Exception as e:
         print(f"❌ ブラウザ  の操作でエラー: {e}")

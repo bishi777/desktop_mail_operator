@@ -169,10 +169,6 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
   user_index = 0
   sent_cnt = 0
   while sent_cnt <= send_cnt:
-    print(sent_cnt)
-    print(111111)
-    print(send_cnt)
-    print(sent_cnt <= send_cnt)
     catch_warning_pop(name, tab)
     elements = tab.eles('.list')   
     print(len(elements))
@@ -243,9 +239,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
       time.sleep(random_wait)
       if user_index == 40:
         print("ユーザーリスト20件確認しました")
-        break
-
-           
+        break       
     # ユーザーリスト結果表示その２
     else:
       elements = tab.eles('.name') 
@@ -286,13 +280,11 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         tab.ele('#send3').click()
         time.sleep(random_wait)
         sent_cnt += 1
-        print(f"{name} fst_message {sent_cnt}件　送信")
+        now = datetime.now().strftime('%m-%d %H:%M:%S')
+        print(f"{name} fst_message {sent_cnt}件　送信  {now}")
         user_index += 1
-        
         catch_warning_pop(name, tab)
         profile_search(tab)
-      
-    print("1ループ")
        
 def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password):
   tab.ele("#header_logo").click()
