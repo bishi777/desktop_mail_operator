@@ -204,9 +204,10 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
             print(777)
             print(user_index)
             print(len(tab.eles('.list_photo')))
-            if user_index > len(tab.eles('.list_photo')) -2:
+            if user_index > len(tab.eles('.list_photo')) -4:
+              print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
               send_flug = False
-              break
+              return
             if user_index % 15 == 0:
               tab.scroll.to_bottom()
               time.sleep(4)
