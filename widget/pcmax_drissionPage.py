@@ -122,7 +122,6 @@ def profile_search(tab):
     }
   # チェックが入っていないか確認してリセット
   area_check_elements = tab.ele(".bbs_table-radio").eles("tag:input")
-  print(len(area_check_elements))
   for i in area_check_elements:
     if i.states.is_checked:
       i.click()
@@ -141,7 +140,7 @@ def profile_search(tab):
     oldest_age_select_box = tab.ele('#makerItem')
   else:
     oldest_age_select_box = tab.ele('#to_age')
-  oldest_age_select_box.select('31歳')  
+  oldest_age_select_box.select('40歳')  
   # ~検索から外す項目~
   # 不倫・浮気
   if tab.ele('#10120', timeout=0.1):
@@ -271,7 +270,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
       user_tab.close()
       time.sleep(random_wait)
       
-    # ユーザーリスト結果表示その２
+    # ユーザーリスト結果表示その２(制限なし)
     else:
       print("# ユーザーリスト結果表示その２")
       elements = tab.eles('.name') 
