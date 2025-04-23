@@ -121,9 +121,12 @@ def profile_search(tab):
     "千葉県":25
     }
   # チェックが入っていないか確認してリセット
-  area_check_element = tab.ele(".bbs_table-radio").ele("tag:input")
-  print(len(area_check_element))
-  time.sleep(1000)
+  area_check_elements = tab.ele(".bbs_table-radio").eles("tag:input")
+  print(len(area_check_elements))
+  for i in area_check_elements:
+    if i.states.is_checked:
+      i.click()
+      time.sleep(0.5)
   if not tab.ele("#22").states.is_checked:
       tab.ele("#22").click()
       time.sleep(1)
@@ -201,14 +204,10 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         for i in user_imgs:
           if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in i.attr('src'):
             user_index += 1
-            # print(user_index)
             list_photo = tab.eles('.list_photo')[user_index]
             user_imgs = list_photo.eles("tag:img")
             send_flug = False
-            print(777)
-            print(user_index)
-            print(len(tab.eles('.list_photo')))
-            if user_index > len(tab.eles('.list_photo')) -4:
+            if user_index > len(tab.eles('.list_photo')) - 2:
               print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
               send_flug = False
               return
