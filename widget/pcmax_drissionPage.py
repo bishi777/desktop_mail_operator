@@ -120,6 +120,10 @@ def profile_search(tab):
     "神奈川県":23, 
     "千葉県":25
     }
+  # チェックが入っていないか確認してリセット
+  area_check_element = tab.ele(".bbs_table-radio").ele("tag:input")
+  print(len(area_check_element))
+  time.sleep(1000)
   if not tab.ele("#22").states.is_checked:
       tab.ele("#22").click()
       time.sleep(1)
