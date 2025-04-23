@@ -189,7 +189,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
     if elements:
       print("ユーザーリスト結果表示その１")
       list_photo = tab.eles('.list_photo')[user_index]
-      print(len(tab.eles('.list_photo')))
+      # print(len(tab.eles('.list_photo')))
       user_imgs = list_photo.eles("tag:img")
       send_flug = False
       while send_flug == False:
@@ -197,7 +197,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         for i in user_imgs:
           if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in i.attr('src'):
             user_index += 1
-            print(user_index)
+            # print(user_index)
             list_photo = tab.eles('.list_photo')[user_index]
             user_imgs = list_photo.eles("tag:img")
             send_flug = False
