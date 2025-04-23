@@ -201,6 +201,9 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
             list_photo = tab.eles('.list_photo')[user_index]
             user_imgs = list_photo.eles("tag:img")
             send_flug = False
+            print(777)
+            print(user_index)
+            print(len(tab.eles('.list_photo')))
             if user_index > len(tab.eles('.list_photo')) -2:
               send_flug = False
               break
