@@ -22,6 +22,7 @@ import signal
 import shutil
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from urllib3.exceptions import ReadTimeoutError
+from datetime import datetime
 
 
 user_data = func.get_user_data()
@@ -61,12 +62,14 @@ try:
         if not nav_flug:
           break
         happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-        time.sleep(2)     
+        time.sleep(2)  
   # 足跡付け、チェックメール　ループ
+  loop_cnt = 0
   while True:
     if drivers == {}:
       break
     for name, data in drivers.items():
+      loop_cnt += 1
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -75,12 +78,22 @@ try:
       login_id = drivers[name]["login_id"]
       password = drivers[name]["password"]
       tabs = driver.window_handles
-      print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
-
+      # print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
       for index, tab in enumerate(tabs):
+        print(777)
+        print(loop_cnt)
         driver.switch_to.window(tab) 
-        # print(f"現在のタブ: {index + 1},")
         if index  == 0:
+          if loop_cnt % 10 == 0:
+            print(7777777777777777777777)
+            driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
+            if not nav_flug:
+              break
+            happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
+            time.sleep(2)  
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
@@ -145,6 +158,8 @@ try:
             else:
               print("通知メールの送信に必要な情報が不足しています")
               print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+      
+        
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")

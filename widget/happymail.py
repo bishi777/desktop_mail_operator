@@ -161,16 +161,14 @@ def catch_warning_screen(driver):
   remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
   remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
   if len(remodal):
-    print(77777)
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="modal-cancel")
     print(len(modal_cancel))
     if len(modal_cancel):
-      print(6666)
       modal_cancel[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      print("ボタンを押して10秒待機します")
+      # print("ボタンを押して10秒待機します")
       time.sleep(10)
-      print("待機しました")
+      # print("待機しました")
       swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
       if len(swiper_button):
         driver.execute_script("arguments[0].click();", swiper_button[0])
@@ -233,8 +231,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "あやか" :
-      #   continue
+      if i["name"] != "きりこ" :
+        continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
@@ -1445,7 +1443,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} {warning}")
-    
   print("足跡付け前のurl確認")
   print(driver.current_url)
   num = random.randint(5,11)
@@ -1484,10 +1481,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print(f"{name}")
       print("メールをするボタンが見つかりません")
       current_url = driver.current_url
-      print(f"現在のURL: {current_url}")
-      
-      print(7777777)
-      print(driver.current_url)
+      # print(f"現在のURL: {current_url}")
+      # print(driver.current_url)
       time.sleep(7)
       # ユーザ名を取得
       user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
@@ -1501,7 +1496,45 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       time.sleep(2)
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     if len(mail_button):
-    
+      # タイプ実装
+      like_age_list = [
+        "18~19歳", "20代前半", "20代半ば", "20代後半",
+      ]
+      like_height_list = [
+        "〜149", "150〜154", "155〜159", "160〜164","165〜169"
+      ]
+      like_etc_list = [
+        "実家暮らし", "100〜300万円", "かわいい系", 
+      ]
+      print(like_height_list)
+      active_profiles = driver.find_element(By.CLASS_NAME, value="swiper-slide-active")
+      user_profiles = active_profiles.find_elements(By.CLASS_NAME, value="ds_profile_select_choice")
+      age_like = False
+      height_like = False
+      etc_like = False
+      type_flug = False
+      for i in user_profiles:
+        text = i.text.strip()
+        print(text)
+        if text in like_age_list:
+          print("✅ 年齢一致しました！ →", text)
+          age_like = True
+        if text in like_height_list:
+          print("✅ 身長一致しました！ →", text)
+          height_like = True
+        if text in like_etc_list:
+          print("✅ その他一致しました！ →", text)
+          etc_like = True
+      if age_like:
+        if height_like or etc_like:
+          type_flug = True
+      if type_flug:
+        type_button = driver.find_element(By.CLASS_NAME, value="btn-type").find_element(By.TAG_NAME, "a")
+        driver.execute_script("arguments[0].click();", type_button)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(3)
+      print("~~~~~~~~~~~~~~~~~~~~")
+
       driver.execute_script("arguments[0].click();", mail_button[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)

@@ -30,9 +30,11 @@ func.change_tor_ip()
 for index, i in enumerate(pcmax_datas):
   dict = {}
   name = i["name"]
+  if "ゆっこ"  != name:
+    continue
   login_id = i["login_id"]
   login_pass = i["password"]
-  
+  print(f"{login_id}   {login_pass}")
   # print(f"{login_id}  {login_pass}  {name}")
   # プロファイルごとの保存先
   user_profile_dir = os.path.join(PROFILE_BASE, name)
