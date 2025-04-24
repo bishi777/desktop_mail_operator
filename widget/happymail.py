@@ -1875,7 +1875,7 @@ def check_new_mail(happy_info, driver, wait):
              for_minutes_passed = False
         if for_minutes_passed:
         # if True:
-          print("4分以上経過しているメッセージあり")          
+          # print("4分以上経過しているメッセージあり")          
           new_mail[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
@@ -1949,9 +1949,9 @@ def check_new_mail(happy_info, driver, wait):
                 reload_cnt = 0
                 send_text_clean = func.normalize_text(send_msg_elem[-1].text)
                 while send_text_clean != conditions_message_clean:
-                  print(send_text_clean)
-                  print("~~~~~~~~~~~~~~~~~~~~~")
-                  print(conditions_message_clean)
+                  # print(send_text_clean)
+                  # print("~~~~~~~~~~~~~~~~~~~~~")
+                  # print(conditions_message_clean)
                   driver.refresh()
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(5)
