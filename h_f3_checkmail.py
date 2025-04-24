@@ -69,7 +69,7 @@ try:
     if drivers == {}:
       break
     for name, data in drivers.items():
-      loop_cnt += 1
+      
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -158,7 +158,7 @@ try:
             else:
               print("通知メールの送信に必要な情報が不足しています")
               print(f"{mailaddress}   {gmail_password}  {receiving_address}")
-      
+    loop_cnt += 1
         
 except KeyboardInterrupt:
   # Ctrl+C が押された場合

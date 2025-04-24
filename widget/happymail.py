@@ -231,8 +231,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      if i["name"] != "きりこ" :
-        continue
+      # if i["name"] != "きりこ" :
+      #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
