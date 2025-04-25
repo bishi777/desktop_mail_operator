@@ -64,7 +64,7 @@ try:
         happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
         time.sleep(2)  
   # 足跡付け、チェックメール　ループ
-  loop_cnt = 0
+  loop_cnt = 1
   while True:
     if drivers == {}:
       break
@@ -85,7 +85,6 @@ try:
         driver.switch_to.window(tab) 
         if index  == 0:
           if loop_cnt % 10 == 0:
-            print(7777777777777777777777)
             driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1.5)

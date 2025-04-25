@@ -1476,6 +1476,51 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
       driver.save_screenshot(filename)
       user_name = "取得に失敗しました"
+    # タイプ実装
+    like_age_list = [
+      "18~19歳", "20代前半", "20代半ば", "20代後半",
+    ]
+    like_height_list = [
+      "〜149", "150〜154", "155〜159", "160〜164","165〜169"
+      "170～174", "160～164", "165~169",
+    ]
+    like_etc_list = [
+      "実家暮らし", "100〜300万円", "かわいい系", 
+    ]
+    active_profiles = driver.find_element(By.CLASS_NAME, value="swiper-slide-active")
+    user_profiles = active_profiles.find_elements(By.CLASS_NAME, value="ds_profile_select_choice")
+    age_like = False
+    height_like = False
+    etc_like = False
+    type_flug = False
+    for i in user_profiles:
+      text = i.text.strip()
+      if text in like_age_list:
+        # print("✅ 年齢一致しました！ →", text)
+        age_like = True
+      if text in like_height_list:
+        # print("✅ 身長一致しました！ →", text)
+        height_like = True
+      if text in like_etc_list:
+        # print("✅ その他一致しました！ →", text)
+        etc_like = True
+    if age_like:
+      if height_like or etc_like:
+        print("✅ タイプ一致しました！")
+        type_flug = True
+    if type_flug:
+      type_button = driver.find_elements(By.ID, value="btn-type")
+      type_loop_cnt = 0
+      while not len(type_button):
+        time.sleep(4)
+        type_button = driver.find_elements(By.CLASS_NAME, value="btn-type")
+        type_loop_cnt += 1
+        if type_loop_cnt == 4:
+          break
+      if len(type_button):
+        driver.execute_script("arguments[0].click();", type_button[0])
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(4)
     mail_button = driver.find_elements(By.ID, value="btn-mail")
     if not len(mail_button):
       print(f"{name}")
@@ -1496,45 +1541,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       time.sleep(2)
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     if len(mail_button):
-      # タイプ実装
-      like_age_list = [
-        "18~19歳", "20代前半", "20代半ば", "20代後半",
-      ]
-      like_height_list = [
-        "〜149", "150〜154", "155〜159", "160〜164","165〜169"
-      ]
-      like_etc_list = [
-        "実家暮らし", "100〜300万円", "かわいい系", 
-      ]
-      print(like_height_list)
-      active_profiles = driver.find_element(By.CLASS_NAME, value="swiper-slide-active")
-      user_profiles = active_profiles.find_elements(By.CLASS_NAME, value="ds_profile_select_choice")
-      age_like = False
-      height_like = False
-      etc_like = False
-      type_flug = False
-      for i in user_profiles:
-        text = i.text.strip()
-        print(text)
-        if text in like_age_list:
-          print("✅ 年齢一致しました！ →", text)
-          age_like = True
-        if text in like_height_list:
-          print("✅ 身長一致しました！ →", text)
-          height_like = True
-        if text in like_etc_list:
-          print("✅ その他一致しました！ →", text)
-          etc_like = True
-      if age_like:
-        if height_like or etc_like:
-          type_flug = True
-      if type_flug:
-        type_button = driver.find_element(By.CLASS_NAME, value="btn-type").find_element(By.TAG_NAME, "a")
-        driver.execute_script("arguments[0].click();", type_button)
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(3)
-      print("~~~~~~~~~~~~~~~~~~~~")
-
       driver.execute_script("arguments[0].click();", mail_button[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
