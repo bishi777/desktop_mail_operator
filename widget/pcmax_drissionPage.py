@@ -264,7 +264,8 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
       user_tab.ele('#send3').click()
       user_index += 1
       sent_cnt += 1
-      print(f"{name} fst_message {sent_cnt}件 送信")
+      now = datetime.now().strftime('%m-%d %H:%M:%S')
+      print(f"{name} fst_message {sent_cnt}件 送信 {now}")
       time.sleep(6)
       user_tab.close()
       time.sleep(random_wait)

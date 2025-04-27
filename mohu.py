@@ -83,14 +83,14 @@ if arrangement_list != []:
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
         time.sleep(1.5)   
       except Exception as e:
-        print(f"❌ fst_mail  の操作でエラー: {e}")
+        print(f"{c["name"]}❌ fst_mail  の操作でエラー: {e}")
         traceback.print_exc()  
       try:
         print("新着メールチェック開始")     
         pcmax_drissionPage.check_mail(c["name"], tab1, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
         tab1.get("https://pcmax.jp/pcm/member.php")
       except Exception as e:
-        print(f"❌ メールチェック  の操作でエラー: {e}")
+        print(f"{c["name"]}❌ メールチェック  の操作でエラー: {e}")
         traceback.print_exc() 
     elapsed_time = time.time() - start_time  # 経過時間を計算する   
     while elapsed_time < 600:
