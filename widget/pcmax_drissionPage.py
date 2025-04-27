@@ -188,8 +188,6 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
   user_index = 0
   sent_cnt = 0
   while sent_cnt < send_cnt:
-    print(777)
-    print(f"{send_cnt} : {sent_cnt}")
     catch_warning_pop(name, tab)
     elements = tab.eles('.list')   
     # ユーザーリスト結果表示その１

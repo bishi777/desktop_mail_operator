@@ -78,8 +78,7 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
   elapsed_time_formatted = str(elapsed_timedelta)
   print(f"<<<<<<<<<<<<<サイト回し一周タイム： {elapsed_time_formatted}>>>>>>>>>>>>>>>>>>")
   return_cnt_list.append(f"サイト回し一周タイム： {elapsed_time_formatted}")
-  print(7777)
-  print(return_cnt_list)
+ 
   # リストをフラットにする関数
   def flatten(lst):
     for item in lst:

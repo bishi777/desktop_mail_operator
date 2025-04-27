@@ -80,8 +80,6 @@ try:
       tabs = driver.window_handles
       # print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
       for index, tab in enumerate(tabs):
-        print(777)
-        print(loop_cnt)
         driver.switch_to.window(tab) 
         if index  == 0:
           if loop_cnt % 10 == 0:

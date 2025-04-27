@@ -1493,7 +1493,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     height_like = False
     etc_like = False
     type_flug = False
-    type_age, type_height, etc_type = None
+    type_age, type_height, etc_type = "", "", ""
     for i in user_profiles:
       text = i.text.strip()
       if text in like_age_list:
