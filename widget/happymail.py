@@ -333,7 +333,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               for_minutes_passed = False
           if for_minutes_passed:
           # if True:
-            print("4分以上経過しているメッセージあり")          
+            # print("4分以上経過しているメッセージあり")          
             new_mail[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
@@ -377,18 +377,18 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               conditions_message_clean = func.normalize_text(conditions_message)
               
               # 変換後のデバッグ表示
-              print("---------------------------------------")
-              print(f"変換後のsend_text: {repr(send_text_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のfst_message: {repr(fst_message_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のsend_text: {repr(send_text_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のfst_message: {repr(fst_message_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
               
-              print("---------------------------------------")
-              print(fst_message_clean == send_text_clean)
-              print("---------------------------------------")
-              print(return_foot_message_clean == send_text_clean)
-              print("---------------------------------------")
+              # print("---------------------------------------")
+              # print(fst_message_clean == send_text_clean)
+              # print("---------------------------------------")
+              # print(return_foot_message_clean == send_text_clean)
+              # print("---------------------------------------")
               # print("募集メッセージ" in send_text)
               if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
                 if conditions_message:
@@ -1442,7 +1442,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   wait_time = random.uniform(1.5, 3)
   warning = catch_warning_screen(driver)
   if warning:
-    print(f"{name} {warning}")
+    print(f"{name} :{warning}")
   print("足跡付け前のurl確認")
   print(driver.current_url)
   num = random.randint(5,11)
@@ -1460,11 +1460,11 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       print(f"{name} {login_id} {password}  でログインします")
       login_flug = login(name, login_id, password, driver, wait,)
       if login_flug:
-        print(f"{name} {login}")
+        print(f"{name} ::{login_flug}")
         break
       warning = catch_warning_screen(driver)
       if warning:
-        print(f"{name} {warning}")
+        print(f"{name} :::{warning}")
         break
       print(f"{name}のログインに成功しました")
       print(driver.current_url)
@@ -1493,20 +1493,24 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     height_like = False
     etc_like = False
     type_flug = False
+    type_age, type_height, etc_type = None
     for i in user_profiles:
       text = i.text.strip()
       if text in like_age_list:
         # print("✅ 年齢一致しました！ →", text)
+        type_age = text
         age_like = True
       if text in like_height_list:
         # print("✅ 身長一致しました！ →", text)
+        type_height = text
         height_like = True
       if text in like_etc_list:
         # print("✅ その他一致しました！ →", text)
+        etc_type = text
         etc_like = True
     if age_like:
       if height_like or etc_like:
-        print("✅ タイプ一致しました！")
+        print("✅ タイプ一致しました！{user_name} {} {}")
         type_flug = True
     if type_flug:
       type_button = driver.find_elements(By.ID, value="btn-type")
