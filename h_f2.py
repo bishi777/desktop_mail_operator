@@ -84,7 +84,6 @@ def happymail_footprints(headless, foot_cnt, selected_users):
           if user_list[1] is None or user_list[1] == "":
               print(f"{user_list[0]}:ログインIDが正しくありません")
               continue
-          
           try:      
             happymail.make_footprints(user_list[0], user_list[1], user_list[2], driver, wait, foot_cnt)
           except NoSuchWindowException:

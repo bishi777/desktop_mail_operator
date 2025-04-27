@@ -26,12 +26,27 @@ os.makedirs(PROFILE_BASE, exist_ok=True)
 headress = False
 func.change_tor_ip()
 
+def timer(sec, functions):
+  start_time = time.time() 
+  for func in functions:
+    try:
+      return_func = func()
+      
+    except Exception as e:
+      print(e)
+      return_func = 0
+  elapsed_time = time.time() - start_time  # 経過時間を計算する
+  while elapsed_time < sec:
+    time.sleep(5)
+    elapsed_time = time.time() - start_time  # 経過時間を計算する
+    # print(f"待機中~~ {elapsed_time} ")
+  return return_func
 # chromium.set.cookies.clear()
 for index, i in enumerate(pcmax_datas):
   dict = {}
   name = i["name"]
-  if "ゆっこ"  != name:
-    continue
+  # if "ゆっこ"  != name:
+  #   continue
   login_id = i["login_id"]
   login_pass = i["password"]
   print(f"{login_id}   {login_pass}")
@@ -60,15 +75,26 @@ for index, i in enumerate(pcmax_datas):
 
 if arrangement_list != []:
   while True:
+    start_time = time.time() 
     for c in arrangement_list:
       send_cnt = 2
       try:
         tab1 = c["chromium"].get_tabs()[0]
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
         time.sleep(1.5)   
+      except Exception as e:
+        print(f"❌ fst_mail  の操作でエラー: {e}")
+        traceback.print_exc()  
+      try:
         print("新着メールチェック開始")     
         pcmax_drissionPage.check_mail(c["name"], tab1, c["login_id"], c["login_pass"], c["gmail_address"], c["gmail_password"], c["fst_message"], c["second_message"], c["condition_message"], mailserver_address, mailserver_password)
         tab1.get("https://pcmax.jp/pcm/member.php")
       except Exception as e:
-        print(f"❌ ブラウザ  の操作でエラー: {e}")
+        print(f"❌ メールチェック  の操作でエラー: {e}")
         traceback.print_exc() 
+    elapsed_time = time.time() - start_time  # 経過時間を計算する   
+    while elapsed_time < 600:
+      time.sleep(10)
+      elapsed_time = time.time() - start_time  # 経過時間を計算する
+      # print(f"待機中~~ {elapsed_time} ")
+      

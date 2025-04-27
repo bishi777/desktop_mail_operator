@@ -187,8 +187,9 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
   profile_search(tab)
   user_index = 0
   sent_cnt = 0
-  
-  while sent_cnt <= send_cnt:
+  while sent_cnt < send_cnt:
+    print(777)
+    print(f"{send_cnt} : {sent_cnt}")
     catch_warning_pop(name, tab)
     elements = tab.eles('.list')   
     # ユーザーリスト結果表示その１
@@ -274,8 +275,8 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
     else:
       print("# ユーザーリスト結果表示その２")
       elements = tab.eles('.name') 
-      # print(len(elements))
-      # print(elements[0].text)
+      print(len(elements))
+      print(elements[0].text)
       elements[user_index].click()
       catch_warning_pop(name, tab)
       # じこPRチェック
@@ -284,6 +285,8 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         print('正常に開けません スキップします')
         tab.back()
         user_index += 1
+        continue
+      ng_word_flug = False
       for ng_word in ng_words:
         if ng_word in pr_area.text:
           print('自己紹介文に危険なワードが含まれていました')
@@ -292,9 +295,12 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
           okotowari.click()
           okotowari_add_button = tab.ele('#image_button2')
           okotowari_add_button.click()
-          time.sleep(5)
+          time.sleep(2)
           user_index += 1
           profile_search(tab)
+          ng_word_flug = True
+      if ng_word_flug:
+        continue
       # メモ確認
       memo_edit = tab.ele('.side_memo memo_edit')
       if "もふ" in memo_edit.text:
@@ -309,7 +315,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         tab.ele('#mail_com').input(fst_message)
         time.sleep(1)
         tab.ele('#send3').click()
-        time.sleep(random_wait)
+        time.sleep(1)
         sent_cnt += 1
         now = datetime.now().strftime('%m-%d %H:%M:%S')
         print(f"{name} fst_message {sent_cnt}件　送信  {now}")
@@ -323,6 +329,7 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
   return_list = []
   new_message_flug = get_header_menu(tab, "メッセージ")
   if new_message_flug == False:
+    print(f"新着メールなし")
     return 
   tab.ele(".not_yet").ele("tag:a").click()
   user_div_list = tab.eles(".mail_area clearfix")
@@ -431,12 +438,11 @@ def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, f
           # 見ちゃいや登録
           tab.ele(".icon no_look").parent().click()
           time.sleep(1)
-          tab.ele("#image_button2").click()
-          
+          tab.ele("#image_button2").click() 
       # secondメッセージを入力
       if not no_history_second_mail:
         tab.ele("#mdc").input(second_message)
-        time.sleep(6)
+        time.sleep(2)
         tab.ele("#send_n").click()
         # 連続防止で失敗
         waiting = tab.eles(".banned-word")
