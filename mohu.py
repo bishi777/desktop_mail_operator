@@ -83,7 +83,7 @@ if arrangement_list != []:
         pcmax_drissionPage.set_fst_mail(c["name"], c["chromium"], tab1, c["fst_message"], send_cnt)
         time.sleep(1.5)   
       except Exception as e:
-        print(f"{c["name"]}❌ fst_mail  の操作でエラー: {e}")
+        print(f"{c['name']}❌ fst_mail  の操作でエラー: {e}")
         traceback.print_exc()  
       try:
         print("新着メールチェック開始")     
