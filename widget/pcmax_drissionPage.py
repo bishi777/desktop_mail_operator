@@ -34,8 +34,9 @@ def catch_warning_pop(name, tab):
     warning = f"{name} pcmax利用制限がかかっている可能性があります"
   if tab.eles('#dialog1', timeout=0.5):
     print("dialog1")
-    tab.ele('#this_month').click()
-    time.sleep(1)
+    if len(tab.eles('#this_month')):
+      tab.ele('#this_month').click()
+      time.sleep(1)
     if tab.eles('#close1', timeout=0.5):
       print(77777777)
       
