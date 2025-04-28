@@ -324,6 +324,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         profile_search(tab)
        
 def check_mail(name, tab, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password):
+  catch_warning_pop(name, tab)
   tab.ele("#header_logo").click()
   catch_warning_pop(name, tab)
   return_list = []
