@@ -1509,10 +1509,11 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         etc_type = text
         etc_like = True
     if age_like:
-      if height_like or etc_like:
+      if height_like:
+        if etc_like:
         # age_like,type_height,etc_typeがそれぞれFalseじゃなければprintで表示する
-        print(f"✅ タイプ一致しました！{user_name} {age_like} {type_height} {etc_type}")
-        type_flug = True
+          print(f"✅ タイプ一致しました！{user_name} {type_age} {type_height} {etc_type}")
+          type_flug = True
     if type_flug:
       type_button = driver.find_elements(By.ID, value="btn-type")
       type_loop_cnt = 0
