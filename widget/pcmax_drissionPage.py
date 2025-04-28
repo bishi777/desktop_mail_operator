@@ -182,6 +182,7 @@ def profile_search(tab):
   search.click()
 
 def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
+  catch_warning_pop(name, tab)
   random_wait = random.uniform(2, 4)
   ng_words = ["業者", "通報",]
   profile_search(tab)

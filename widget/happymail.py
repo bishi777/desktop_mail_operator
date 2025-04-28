@@ -1508,8 +1508,11 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         # print("✅ その他一致しました！ →", text)
         etc_type = text
         etc_like = True
-    if age_like and type_height and etc_type:
-      print(f"✅ タイプ一致しました！{user_name} {age_like} {type_height} {etc_type}")
+    if age_like:
+      if height_like or etc_like:
+        # age_like,type_height,etc_typeがそれぞれFalseじゃなければprintで表示する
+        print(f"✅ タイプ一致しました！{user_name} {age_like} {type_height} {etc_type}")
+        type_flug = True
     if type_flug:
       type_button = driver.find_elements(By.ID, value="btn-type")
       type_loop_cnt = 0
@@ -2528,8 +2531,8 @@ def re_registration(chara_data, driver, wait):
   time.sleep(2)
 
 
-
-
+  
+     
 
 
 
