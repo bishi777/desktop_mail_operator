@@ -45,8 +45,8 @@ def timer(sec, functions):
 for index, i in enumerate(pcmax_datas):
   dict = {}
   name = i["name"]
-  # if "ゆっこ"  != name:
-  #   continue
+  if "アスカ" != name or "ゆっこ"!= name:
+    continue
   login_id = i["login_id"]
   login_pass = i["password"]
   print(f"{login_id}   {login_pass}")
