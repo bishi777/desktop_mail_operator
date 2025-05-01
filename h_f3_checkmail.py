@@ -69,7 +69,6 @@ try:
     if drivers == {}:
       break
     for name, data in drivers.items():
-      
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -83,14 +82,21 @@ try:
         driver.switch_to.window(tab) 
         if index  == 0:
           if loop_cnt % 10 == 0:
-            driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5)
-            nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
-            if not nav_flug:
-              break
-            happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-            time.sleep(2)  
+            try:
+              driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1.5)
+              nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
+              if not nav_flug:
+                break
+              happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
+              time.sleep(2)  
+            except NoSuchWindowException:
+                print(f"set_mutidriver_make_footprintsの操作でエラーが出ました, {e}")
+                print("スクショします")
+                filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
+                driver.save_screenshot(filename)
+                pass
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:

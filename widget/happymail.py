@@ -31,7 +31,82 @@ from selenium.webdriver.common.action_chains import ActionChains
 from twocaptcha import TwoCaptcha
 import shutil
 
+# 警告画面
+def catch_warning_screen(driver):
+  wait = WebDriverWait(driver, 15)
+  anno = driver.find_elements(By.CLASS_NAME, value="anno")
+  warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
+  dialog = driver.find_elements(By.ID, value="_information_dialog")
+  dialog2 = driver.find_elements(By.ID, value="_information_dialog")
+  dialog3 = driver.find_elements(By.ID, value="information__dialog")
+  remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")
+  remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
+  remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
+  if len(remodal):
+    modal_cancel = driver.find_elements(By.CLASS_NAME, value="modal-cancel")
+    print(len(modal_cancel))
+    if len(modal_cancel):
+      modal_cancel[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      # print("ボタンを押して10秒待機します")
+      time.sleep(10)
+      # print("待機しました")
+      swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
+      if len(swiper_button):
+        driver.execute_script("arguments[0].click();", swiper_button[0])
+        time.sleep(3)
+  ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
+  if len(ds_t_center):
+    if "警告" in ds_t_center[0].text:
+      ds_round_btn = driver.find_elements(By.CLASS_NAME, value="ds_round_btn")
+      ds_round_btn[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
+  re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
+  if len(re_login_button_elem):
+    if "ログインへ" in re_login_button_elem[0].text:
+      re_login_button = re_login_button_elem[0].find_elements(By.TAG_NAME, value="a")
+      re_login_button[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
+  if len(dialog):
+    if "この登録は利用できません" in dialog[0].text:
+      return "この登録は利用できません"
+  if len(dialog3):
+    if "この登録は利用できません" in dialog3[0].text:
+      return "この登録は利用できません"
+  warinig_cnt =0
+  while len(warning) or len(anno) or len(dialog) or len(dialog2) or len(dialog3) or len(remodal_image) or len(remodal_wrapper):
+    driver.refresh()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
+    anno = driver.find_elements(By.CLASS_NAME, value="anno")
+    dialog = driver.find_elements(By.ID, value="_information_dialog")
+    dialog2 = driver.find_elements(By.ID, value="information__dialog")
+    remodal = driver.find_elements(By.CLASS_NAME, value="remodal-image")
+    remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
+    warinig_cnt += 1
+    if warinig_cnt > 2:
+       return "警告画面が出ている可能性があります"
+  acceptance = driver.find_elements(By.CLASS_NAME, value="ds_round_btn")
+  if len(acceptance):
+    # print(acceptance[0].text)
+    if acceptance[0].text == "承諾":
+      acceptance[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print("警告画面に承諾しました。一度ログアウトします")
+  # ds_main_header_text
+  some_erorr = driver.find_elements(By.CLASS_NAME, value="ds_main_header_text")
+  if len(some_erorr):
+    if 'ログインできません' in some_erorr[0].text:
+      return "ログインできませんでした"
+  return False
+
+
 def nav_item_click(nav_name, driver, wait):
+  catch_warning_screen(driver)
   nav_list = driver.find_elements(By.ID, value='ds_nav')
   if not len(nav_list):
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
@@ -149,78 +224,6 @@ def check_top_image(name, driver, wait):
       return f"ハッピーメール{name}のトップ画の設定がNoImageです"
   return False
     
-# 警告画面
-def catch_warning_screen(driver):
-  wait = WebDriverWait(driver, 15)
-  anno = driver.find_elements(By.CLASS_NAME, value="anno")
-  warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
-  dialog = driver.find_elements(By.ID, value="_information_dialog")
-  dialog2 = driver.find_elements(By.ID, value="_information_dialog")
-  dialog3 = driver.find_elements(By.ID, value="information__dialog")
-  remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")
-  remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
-  remodal = driver.find_elements(By.CLASS_NAME, value="remodal")
-  if len(remodal):
-    modal_cancel = driver.find_elements(By.CLASS_NAME, value="modal-cancel")
-    print(len(modal_cancel))
-    if len(modal_cancel):
-      modal_cancel[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      # print("ボタンを押して10秒待機します")
-      time.sleep(10)
-      # print("待機しました")
-      swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
-      if len(swiper_button):
-        driver.execute_script("arguments[0].click();", swiper_button[0])
-        time.sleep(3)
-  ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
-  if len(ds_t_center):
-    if "警告" in ds_t_center[0].text:
-      ds_round_btn = driver.find_elements(By.CLASS_NAME, value="ds_round_btn")
-      ds_round_btn[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
-  re_login_button_elem = driver.find_elements(By.CLASS_NAME, value="ds_pt5p")
-  if len(re_login_button_elem):
-    if "ログインへ" in re_login_button_elem[0].text:
-      re_login_button = re_login_button_elem[0].find_elements(By.TAG_NAME, value="a")
-      re_login_button[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
-  if len(dialog):
-    if "この登録は利用できません" in dialog[0].text:
-      return "この登録は利用できません"
-  if len(dialog3):
-    if "この登録は利用できません" in dialog3[0].text:
-      return "この登録は利用できません"
-  warinig_cnt =0
-  while len(warning) or len(anno) or len(dialog) or len(dialog2) or len(dialog3) or len(remodal_image) or len(remodal_wrapper):
-    driver.refresh()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
-    anno = driver.find_elements(By.CLASS_NAME, value="anno")
-    dialog = driver.find_elements(By.ID, value="_information_dialog")
-    dialog2 = driver.find_elements(By.ID, value="information__dialog")
-    remodal = driver.find_elements(By.CLASS_NAME, value="remodal-image")
-    remodal_wrapper = driver.find_elements(By.CLASS_NAME, value="remodal-wrapper")
-    warinig_cnt += 1
-    if warinig_cnt > 2:
-       return "警告画面が出ている可能性があります"
-  acceptance = driver.find_elements(By.CLASS_NAME, value="ds_round_btn")
-  if len(acceptance):
-    # print(acceptance[0].text)
-    if acceptance[0].text == "承諾":
-      acceptance[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)
-      print("警告画面に承諾しました。一度ログアウトします")
-  # ds_main_header_text
-  some_erorr = driver.find_elements(By.CLASS_NAME, value="ds_main_header_text")
-  if len(some_erorr):
-    if 'ログインできません' in some_erorr[0].text:
-      return "ログインできませんでした"
-  return False
 
 def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab):
   drivers = {}

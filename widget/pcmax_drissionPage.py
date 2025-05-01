@@ -63,6 +63,10 @@ def login(name, login_id, login_pass, tab):
   tab.get("https://pcmax.jp/pcm/file.php?f=login_form", interval=5,timeout=120)
   wait_time = random.uniform(1.5, 3)
   time.sleep(wait_time)
+  # login
+  tab.ele("#qOTkU1").ele("tag:input").click()
+  time.sleep(wait_time)
+
   # IDとパスワードを入力
   tab.ele("#login_id").input(login_id)
   tab.ele("#login_pw").input(login_pass)
