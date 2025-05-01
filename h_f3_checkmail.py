@@ -27,7 +27,7 @@ from datetime import datetime
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = False
+headless = True
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
@@ -86,6 +86,7 @@ try:
               driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
+              
               nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
               if not nav_flug:
                 break
