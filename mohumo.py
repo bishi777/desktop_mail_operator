@@ -5,13 +5,23 @@ import json
 import os
 import re
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
 print(777)
 
-CAPSOLVER_API_KEY = "CAP-A573701194640135BB2B4882C0232543CDB1C0FB382EDF4837073387DF88F8BB"
-SITE_KEY = "0x4AAAAAAA9cytHyIhjNheCO"
+load_dotenv()
+
+CAPSOLVER_API_KEY = os.environ.get("CAPSOLVER_API_KEY", "")
+SITE_KEY = os.environ.get("SITE_KEY", "")
 TARGET_URL = "https://pcmax.jp/pcm/file.php?f=login_form"
 CAPSOLVER_API_URL = "https://api.capsolver.com"
 COOKIE_FILE = "cf_clearance.txt"
+
+if not CAPSOLVER_API_KEY or not SITE_KEY:
+    print("Warning: CAPSOLVER_API_KEY or SITE_KEY environment variables are not set.")
+    print("Please set these variables in your environment or .env file.")
+    print("Example .env file content:")
+    print("CAPSOLVER_API_KEY=your_api_key_here")
+    print("SITE_KEY=your_site_key_here")
 
 def solve_turnstile_token():
     """
