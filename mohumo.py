@@ -1,11 +1,7 @@
 import cloudscraper
 import time
-import undetected_chromedriver as uc
 import requests
 import json
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
 import os
 print(777)
 
@@ -62,7 +58,7 @@ def solve_turnstile_token():
 
 def inject_token_and_submit(token):
     """
-    Use undetected_chromedriver to inject the token into the Turnstile field and submit the form.
+    Use cloudscraper to inject the token and submit the form.
     
     Args:
         token (str): The Turnstile token to inject.
@@ -70,67 +66,58 @@ def inject_token_and_submit(token):
     Returns:
         bool: True if successful, False otherwise.
     """
-    print("Launching browser with undetected_chromedriver...")
-    driver = uc.Chrome()
+    print("Creating cloudscraper session...")
+    scraper = cloudscraper.create_scraper()
     
     try:
-        print(f"Navigating to {TARGET_URL}")
-        driver.get(TARGET_URL)
+        print(f"Accessing {TARGET_URL}")
+        response = scraper.get(TARGET_URL)
         
-        WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.TAG_NAME, "form"))
-        )
+        if response.status_code != 200:
+            print(f"Failed to access the page. Status code: {response.status_code}")
+            return False
         
-        inject_script = """
-        (function() {
-            // Create the textarea if it doesn't exist
-            let textarea = document.querySelector('textarea[name="cf-turnstile-response"]');
-            if (!textarea) {
-                textarea = document.createElement('textarea');
-                textarea.setAttribute('name', 'cf-turnstile-response');
-                document.querySelector('form').appendChild(textarea);
-            }
-            
-            // Focus the element
-            textarea.focus();
-            
-            // Set the value
-            textarea.value = arguments[0];
-            
-            // Dispatch events
-            textarea.dispatchEvent(new Event('input', { bubbles: true }));
-            textarea.dispatchEvent(new Event('change', { bubbles: true }));
-            textarea.blur();
-            
-            // Submit the form
-            document.querySelector('form').submit();
-            
-            return true;
-        })();
-        """
+        print("Successfully accessed the page. Submitting form with token...")
         
-        result = driver.execute_script(inject_script, token)
-        print(f"Token injection and form submission: {'Successful' if result else 'Failed'}")
+        form_data = {
+            'cf-turnstile-response': token
+        }
         
-        time.sleep(5)
+        # Submit the form
+        response = scraper.post(TARGET_URL, data=form_data)
         
-        cf_cookie = next((cookie for cookie in driver.get_cookies() if cookie['name'] == 'cf_clearance'), None)
+        if response.status_code != 200:
+            print(f"Form submission failed. Status code: {response.status_code}")
+            return False
+        
+        print("Form submitted successfully.")
+        
+        cf_cookie = next((cookie for name, cookie in scraper.cookies.items() if name == 'cf_clearance'), None)
         
         if cf_cookie:
             print(f"Successfully obtained cf_clearance cookie")
             with open(COOKIE_FILE, 'w') as f:
-                f.write(cf_cookie['value'])
+                f.write(cf_cookie)
             print(f"Saved cf_clearance cookie to {COOKIE_FILE}")
             return True
         else:
             print("Failed to obtain cf_clearance cookie")
+            
+            print("Available cookies:")
+            for name, value in scraper.cookies.items():
+                print(f"  {name}: {value}")
+                
+                if not cf_cookie and name.startswith('cf_'):
+                    with open(COOKIE_FILE, 'w') as f:
+                        f.write(value)
+                    print(f"Saved {name} cookie to {COOKIE_FILE} as fallback")
+                    return True
+            
             return False
             
     except Exception as e:
         print(f"Error during token injection and submission: {str(e)}")
         return False
-    finally:
-        driver.quit()
 
 def main():
     token = solve_turnstile_token()
