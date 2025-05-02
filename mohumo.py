@@ -1,5 +1,6 @@
 import cloudscraper
 import time
+print(777)
 scraper = cloudscraper.create_scraper()  # Cloudflareを回避するためのスクレイパーを作成
 url = "https://pcmax.jp/pcm/file.php?f=login_form"
 
