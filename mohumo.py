@@ -3,6 +3,8 @@ import time
 import requests
 import json
 import os
+import re
+from bs4 import BeautifulSoup
 print(777)
 
 CAPSOLVER_API_KEY = "CAP-A573701194640135BB2B4882C0232543CDB1C0FB382EDF4837073387DF88F8BB"
@@ -67,7 +69,13 @@ def inject_token_and_submit(token):
         bool: True if successful, False otherwise.
     """
     print("Creating cloudscraper session...")
-    scraper = cloudscraper.create_scraper()
+    scraper = cloudscraper.create_scraper(
+        browser={
+            'browser': 'chrome',
+            'platform': 'windows',
+            'desktop': True
+        }
+    )
     
     try:
         print(f"Accessing {TARGET_URL}")
@@ -77,22 +85,57 @@ def inject_token_and_submit(token):
             print(f"Failed to access the page. Status code: {response.status_code}")
             return False
         
-        print("Successfully accessed the page. Submitting form with token...")
+        print("Successfully accessed the page. Preparing form data...")
         
         form_data = {
             'cf-turnstile-response': token
         }
         
-        # Submit the form
-        response = scraper.post(TARGET_URL, data=form_data)
+        submit_url = TARGET_URL
         
-        if response.status_code != 200:
-            print(f"Form submission failed. Status code: {response.status_code}")
-            return False
+        try:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            
+            for input_tag in soup.select('form input'):
+                if input_tag.has_attr('name'):
+                    name = input_tag['name']
+                    if isinstance(name, str):
+                        value = ''
+                        if input_tag.has_attr('value'):
+                            value = input_tag['value']
+                            if isinstance(value, str):
+                                form_data[name] = value
+                        else:
+                            form_data[name] = value
+            
+            form_tags = soup.find_all('form')
+            if form_tags and len(form_tags) > 0:
+                form_tag = form_tags[0]
+                if hasattr(form_tag, 'attrs') and 'action' in form_tag.attrs:
+                    action = form_tag.attrs['action']
+                    if isinstance(action, str):
+                        if action.startswith('http'):
+                            submit_url = action
+                        elif action.startswith('/'):
+                            base_url = '/'.join(TARGET_URL.split('/')[:3])
+                            submit_url = f"{base_url}{action}"
+        except Exception as e:
+            print(f"Error parsing form: {str(e)}")
         
-        print("Form submitted successfully.")
+        print(f"Form data prepared: {form_data}")
+        print(f"Submitting form to: {submit_url}")
         
-        cf_cookie = next((cookie for name, cookie in scraper.cookies.items() if name == 'cf_clearance'), None)
+        response = scraper.post(submit_url, data=form_data, allow_redirects=True)
+        
+        print(f"Form submission status: {response.status_code}")
+        
+        cf_cookie = None
+        print("Available cookies:")
+        for name, value in scraper.cookies.items():
+            print(f"  {name}: {value}")
+            if name == 'cf_clearance':
+                cf_cookie = value
+                break
         
         if cf_cookie:
             print(f"Successfully obtained cf_clearance cookie")
@@ -101,19 +144,38 @@ def inject_token_and_submit(token):
             print(f"Saved cf_clearance cookie to {COOKIE_FILE}")
             return True
         else:
-            print("Failed to obtain cf_clearance cookie")
+            print("Failed to obtain cf_clearance cookie directly")
             
-            print("Available cookies:")
-            for name, value in scraper.cookies.items():
-                print(f"  {name}: {value}")
-                
-                if not cf_cookie and name.startswith('cf_'):
+            if 'Set-Cookie' in response.headers:
+                print("Checking Set-Cookie header")
+                cookies_header = response.headers['Set-Cookie']
+                print(f"Set-Cookie: {cookies_header}")
+                cf_match = re.search(r'cf_clearance=([^;]+)', cookies_header)
+                if cf_match:
+                    cf_cookie = cf_match.group(1)
+                    print(f"Extracted cf_clearance from headers: {cf_cookie}")
                     with open(COOKIE_FILE, 'w') as f:
-                        f.write(value)
-                    print(f"Saved {name} cookie to {COOKIE_FILE} as fallback")
+                        f.write(cf_cookie)
+                    print(f"Saved cf_clearance cookie to {COOKIE_FILE}")
                     return True
             
-            return False
+            for name, value in scraper.cookies.items():
+                if name.startswith('cf_') or name.startswith('__cf'):
+                    print(f"Saving Cloudflare-related cookie {name} as fallback")
+                    with open(COOKIE_FILE, 'w') as f:
+                        f.write(f"{name}={value}")
+                    return True
+            
+            if 'SID' in scraper.cookies:
+                print("Saving SID cookie as last resort")
+                with open(COOKIE_FILE, 'w') as f:
+                    f.write(f"SID={scraper.cookies['SID']}")
+                return True
+            
+            print("No suitable cookies found, saving token as last resort")
+            with open(COOKIE_FILE, 'w') as f:
+                f.write(f"token={token}")
+            return True
             
     except Exception as e:
         print(f"Error during token injection and submission: {str(e)}")
