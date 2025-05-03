@@ -10,3 +10,6 @@ widget/__pycache__/
 __pycache__/
 .DS_Store
 profiles/
+debug_chromedrivers.sh
+debug_chromedrivers.ps1
+settings.py

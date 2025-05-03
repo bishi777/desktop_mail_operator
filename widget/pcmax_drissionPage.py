@@ -229,14 +229,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         user_index += 1
         user_tab.close()
         continue
-      # マイルチェック　side_point_pcm_data
-      # miles = user_tab.eles('.side_point_pcm_data')[0].text
-      # pattern = r'\d+'
-      # match = re.findall(pattern, miles.replace("M", ""))
-      # if int(match[0]) > 1:
-      #   maji_soushin = True
-      # else:
-      #   maji_soushin = False      
+     
       # メニューを取得
       content_menu = user_tab.ele('#content_menu')
       children = content_menu.children()
@@ -261,12 +254,7 @@ def set_fst_mail(name, chromium, tab, fst_message, send_cnt):
         continue         
       user_tab.ele('#mdc').input(fst_message)
       time.sleep(1)
-      # if maji_soushin:
-      #   print(user_tab.ele('#maji_btn'))
-      #   user_tab.ele('#maji_btn').click()
-      #   time.sleep(4.5)
-      #   user_tab.ele('#dialog_ok').click()
-      # else:
+     
       user_tab.ele('#send3').click()
       user_index += 1
       sent_cnt += 1
