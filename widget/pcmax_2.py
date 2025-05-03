@@ -371,7 +371,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
       sent_cnt += 1   
-      print(f"{name} fst_message マジ送信{maji_soushin}  {sent_cnt}件　送信  {now}")
+      print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{sent_user}  {sent_cnt}件送信  {now}")
       user_index += 1
       catch_warning_pop(name, driver)
       sent_user_list.append(sent_user)
