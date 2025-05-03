@@ -53,13 +53,13 @@ for p in profiles:
     except Exception as e:
       print(f"{name}❌ メールチェック  の操作でエラー: {e}")
       traceback.print_exc() 
-    # try:
-    #     print("fst_mail送信開始")
-    #     pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
-    #     time.sleep(1.5)   
-    # except Exception as e:
-    #   print(f"{name}❌ fst_mail  の操作でエラー: {e}")
-    #   traceback.print_exc()  
+    try:
+        print("fst_mail送信開始")
+        pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
+        time.sleep(1.5)   
+    except Exception as e:
+      print(f"{name}❌ fst_mail  の操作でエラー: {e}")
+      traceback.print_exc()  
 
   
 
