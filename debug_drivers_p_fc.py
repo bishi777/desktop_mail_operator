@@ -32,6 +32,7 @@ while True:
       "profile_reference.php",
       "profile_rest_list.php",
       "profile_list.php"
+      "profile_detail.php",
     ]
     if any(part in driver.current_url for part in skip_urls):
       print(777)
