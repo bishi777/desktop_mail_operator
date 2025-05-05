@@ -45,7 +45,7 @@ while True:
         fst_message = i["fst_mail"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
-        send_cnt = 2
+        send_cnt = 1
         try:
           print("新着メールチェック開始")     
           pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password)
