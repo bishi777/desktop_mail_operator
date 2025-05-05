@@ -31,7 +31,8 @@ while True:
     if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
    
-    if "https://pcmax.jp/mobile/profile_reference.php" in driver.current_url and ": https://pcmax.jp/mobile/profile_rest_list.php" in driver.current_url:
+    if "https://pcmax.jp/mobile/profile_reference.php" in driver.current_url and "https://pcmax.jp/mobile/profile_rest_list.php" in driver.current_url:
+      print(777)
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
