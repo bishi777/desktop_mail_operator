@@ -28,8 +28,12 @@ while True:
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     print(f"  📄 タブ{idx+1}: {driver.current_url}")
-    if ("https://pcmax.jp/mobile/profile_reference.php" in driver.current_url or
-    "https://pcmax.jp/mobile/profile_rest_list.php" in driver.current_url):
+    skip_urls = [
+      "profile_reference.php",
+      "profile_rest_list.php",
+      "profile_list.php"
+    ]
+    if any(part in driver.current_url for part in skip_urls):
       print(777)
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
