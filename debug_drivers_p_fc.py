@@ -28,13 +28,12 @@ while True:
     print(f"  📄 タブ{idx+1}: {driver.current_url}")
     if driver.current_url != "https://pcmax.jp/pcm/member.php" and  driver.current_url != "https://pcmax.jp/pcm/index.php":
       continue
+    pcmax_2.catch_warning_pop(driver)
     name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
     print(name_on_pcmax)
     for index, i in enumerate(pcmax_datas):
       login_id = ""
-      print(i['name'])
       if name_on_pcmax == i['name']:
-        print(f"~~~{name_on_pcmax}")
         name = i["name"]
         # if  "りこ" != name:
         #   print(name)
