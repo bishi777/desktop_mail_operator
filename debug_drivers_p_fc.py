@@ -58,7 +58,7 @@ while True:
         fst_message = i["fst_mail"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
-        send_cnt = 2
+        send_cnt = 3
         try:
           print("新着メールチェック開始")     
           pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password)
@@ -79,7 +79,7 @@ while True:
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1.5)
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
-  while elapsed_time < 600:
+  while elapsed_time < 720:
     time.sleep(30)
     elapsed_time = time.time() - start_time  # 経過時間を計算する
     print(f"待機中~~ {elapsed_time} ")
