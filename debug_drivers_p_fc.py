@@ -33,8 +33,7 @@ while True:
       print(777)
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
-      continue
+      time.sleep(1.5)  
     if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
       continue
     name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
