@@ -6,7 +6,6 @@ from selenium.webdriver.common.by import By
 import os
 from selenium.webdriver.support.select import Select
 import random
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import traceback
 import sys

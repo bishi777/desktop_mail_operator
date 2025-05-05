@@ -8,6 +8,7 @@ import random
 import os
 import time
 import traceback
+from selenium.webdriver.support.ui import WebDriverWait
 
 user_data = func.get_user_data()
 wait_time = 1.5
@@ -19,6 +20,7 @@ pcmax_datas = user_data["pcmax"]
 options = Options()
 options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[0]['port']}")
 driver = webdriver.Chrome(options=options)
+wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 print(f"タブ数: {len(handles)}")
 while True:
@@ -49,7 +51,9 @@ while True:
         try:
           print("新着メールチェック開始")     
           pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password)
-          driver.get("https://pcmax.jp/pcm/member.php")
+          driver.get("https://pcmax.jp/pcm/index.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc() 
@@ -59,7 +63,10 @@ while True:
           time.sleep(1.5)   
         except Exception as e:
           print(f"{name}❌ fst_mail  の操作でエラー: {e}")
-          traceback.print_exc()     
+          traceback.print_exc()   
+        driver.get("https://pcmax.jp/pcm/index.php")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 600:
     time.sleep(30)
