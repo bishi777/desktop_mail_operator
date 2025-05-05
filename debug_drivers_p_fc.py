@@ -28,15 +28,14 @@ while True:
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     print(f"  📄 タブ{idx+1}: {driver.current_url}")
-    if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
-        continue
-   
     if ("https://pcmax.jp/mobile/profile_reference.php" in driver.current_url or
     "https://pcmax.jp/mobile/profile_rest_list.php" in driver.current_url):
       print(777)
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
+      continue
+    if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
       continue
     name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
     print(name_on_pcmax)
