@@ -174,7 +174,7 @@ def profile_search(driver):
 def set_fst_mail(name, driver, fst_message, send_cnt):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
-  random_wait = random.uniform(3, 5)
+  random_wait = random.uniform(4, 6)
   ng_words = ["業者", "通報"]
   profile_search(driver)
   user_index = 0
