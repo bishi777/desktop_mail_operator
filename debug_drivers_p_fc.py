@@ -31,6 +31,9 @@ while True:
     if driver.current_url != "https://pcmax.jp/pcm/member.php" and  driver.current_url != "https://pcmax.jp/pcm/index.php":
       continue
     if "https://pcmax.jp/mobile/profile_reference.php" in driver.current_url:
+      driver.get("https://pcmax.jp/pcm/index.php")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
       continue
     name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
     print(name_on_pcmax)
