@@ -44,7 +44,7 @@ while True:
         time.sleep(1.5)  
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
-      
+      pcmax_2.catch_warning_popup(driver)
       login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
       if len(login_form):
         print(99999999)
