@@ -55,7 +55,7 @@ while True:
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
-      print(f"~~~{name_on_pcmax.text}~~~")
+      print(f"~~~{name_on_pcmax[0].text}~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
         if name_on_pcmax.text == i['name']:
