@@ -27,13 +27,14 @@ from datetime import datetime
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
-headless = True
+headless = False
 
 # リストを2つに分割する
 n = len(happy_info)  # dataはリスト
 half = n // 2
 # first_half = happy_info[:half]  # 前半
-first_half = happy_info
+first_half = happy_info[:1]  # 一個
+# first_half = happy_info
 
 profile_path = "chrome_profiles/h_footprint"
 drivers = {}
@@ -65,6 +66,10 @@ try:
         time.sleep(2)  
   # 足跡付け、チェックメール　ループ
   loop_cnt = 1
+  sent_cnt = 0
+  daily_limit = 111
+  last_sent_date = datetime.now().date()
+   
   while True:
     if drivers == {}:
       break
@@ -77,16 +82,23 @@ try:
       login_id = drivers[name]["login_id"]
       password = drivers[name]["password"]
       tabs = driver.window_handles
+      
       # print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         if index  == 0:
+          # asiatoduke
+          login_id = drivers[name]["login_id"]
+          password = drivers[name]["password"]
+          return_foot_message = drivers[name]["return_foot_message"]
+          fst_message = drivers[name]["fst_message"]
+          conditions_message = drivers[name]["conditions_message"]
+          mail_img = drivers[name]["mail_img"]
           if loop_cnt % 10 == 0:
             try:
               driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
-              
               nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
               if not nav_flug:
                 break
@@ -125,6 +137,35 @@ try:
               if "ブラウザ" in top_image_check:
                 print(top_image_check)
                 # happymail_new_list.append(top_image_check)
+            try:
+              now = datetime.now()
+              today = now.date()
+              # 日付が変わっていたらカウントをリセット
+              if today != last_sent_date:
+                  print(f"✅ 日付が変わったので {name} のカウントをリセットします（{last_sent_date} → {today}）")
+                  sent_cnt = 0
+                  last_sent_date = today
+
+              if 6 <= now.hour < 22:
+                if sent_cnt >= daily_limit:
+                  print(f"🔴 {name} : 足跡返しの上限 {daily_limit} に達しています。スキップします。")
+                else:
+                  rolling_flug = True
+                  happymail_cnt = happymail.return_footpoint(
+                      name, driver, wait, return_foot_message, 5, 5, 10, mail_img, fst_message, rolling_flug
+                  )
+                  send_cnt = happymail_cnt[0] + happymail_cnt[2]
+                  sent_cnt += send_cnt
+              else:
+                print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
+            except NoSuchWindowException:
+              pass
+            except ReadTimeoutError as e:
+              print("🔴 ページの読み込みがタイムアウトしました:", e)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            except Exception as e:
+              print(traceback.format_exc())
             new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
             if new_message_flug == "新着メールなし" and top_image_check is False:
               print(f"{name}　新着メールなし")
@@ -134,6 +175,8 @@ try:
             return_foot_message = drivers[name]["return_foot_message"]
             fst_message = drivers[name]["fst_message"]
             conditions_message = drivers[name]["conditions_message"]
+            mail_img = drivers[name]["mail_img"]
+           
             try:
               happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
             except NoSuchWindowException:

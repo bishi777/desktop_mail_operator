@@ -976,21 +976,26 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
     # マッチングユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", matching_users[user_icon])
     time.sleep(1)
+    # svg_icon_next_arrow
+    svg_icon_next_arrow = matching_users[user_icon].find_element(By.CLASS_NAME, value="svg_icon_next_arrow")
+    driver.execute_script("arguments[0].click();", svg_icon_next_arrow)
+
     # print(f"ユーザーカウント{user_icon}")
-    if duplication_user:
-      name_field = matching_users[user_icon+1].find_element(By.CLASS_NAME, value="ds_like_list_name")
-      user_name = name_field.text
-      user_name_list.append(user_name) 
-      message_button = matching_users[user_icon+1].find_elements(By.CLASS_NAME, value="message_button")
-      message_button[0].click()
-    else:
-      message_button = matching_users[user_icon].find_elements(By.CLASS_NAME, value="message_button")
-      message_button[0].click()
+    # if duplication_user:
+    #   name_field = matching_users[user_icon+1].find_element(By.CLASS_NAME, value="ds_like_list_name")
+    #   user_name = name_field.text
+    #   user_name_list.append(user_name) 
+    #   message_button = matching_users[user_icon+1].find_elements(By.CLASS_NAME, value="message_button")
+    #   message_button[0].click()
+    # else:
+    #   message_button = matching_users[user_icon].find_elements(By.CLASS_NAME, value="message_button")
+    #   message_button[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
-    # プロフィールをチェック
-    prof_text = driver.find_elements(By.ID, value="first_m_profile_introduce")
+    # プロフィールをチェック translate_body
+    prof_text = driver.find_elements(By.CLASS_NAME, value="translate_body")
+    # prof_text = driver.find_elements(By.ID, value="first_m_profile_introduce")
     if len(prof_text):
       if prof_text[0].text == "プロフィール情報の取得に失敗しました":
           user_icon += 1
@@ -1003,6 +1008,18 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           print(f'自己紹介文に危険なワードが含まれていました {user_name}')
           send_status = False
           user_icon += 1
+          icon_other_div = driver.find_element(By.ID, value="btn-other")
+          other_icon = icon_other_div.find_element(By.TAG_NAME, value="img")
+          driver.execute_script("arguments[0].click();", other_icon)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          driver.find_elements(By.CLASS_NAME, value="footer_menu-list-item")[3].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          regist_mushi = driver.find_element(By.CLASS_NAME, value="input__form__action__button__pink")
+          driver.execute_script("arguments[0].click();", regist_mushi)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
     # メールするをクリック
     if send_status:
       catch_warning_screen(driver)
@@ -1146,7 +1163,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       
   return return_type_counted
       
-def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message):
+def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, rolling_flug):
     wait_time = random.uniform(1.5, 3.5)
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1185,11 +1202,10 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       print(f"マッチング返し総数 {matching_counted}")
     except Exception as e:  
       print("マッチング返しエラー")
-      # print(traceback.format_exc())
+      print(traceback.format_exc())
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
-      
     finally:
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1234,6 +1250,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         user_name = name_field.text
         mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
         send_skip_cnt = 0
+        time.sleep(2)
         while len(mail_icon) or user_name in user_name_list:
           if len(mail_icon):
             # print("***")
@@ -1292,6 +1309,18 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           self_introduction_text = contains_violations.text.replace(" ", "").replace("\n", "")
           if '通報' in self_introduction_text or '業者' in self_introduction_text:
               print(f'自己紹介文に危険なワードが含まれていました {user_name}')
+              icon_other_div = driver.find_element(By.ID, value="btn-other")
+              other_icon = icon_other_div.find_element(By.TAG_NAME, value="img")
+              driver.execute_script("arguments[0].click();", other_icon)
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              driver.find_elements(By.CLASS_NAME, value="footer_menu-list-item")[3].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              regist_mushi = driver.find_element(By.CLASS_NAME, value="input__form__action__button__pink")
+              driver.execute_script("arguments[0].click();", regist_mushi)
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
               user_name_list.append(user_name)
               send_status = False
         # メッセージ履歴があるかチェック
@@ -1435,14 +1464,13 @@ def set_mutidriver_make_footprints(driver,wait):
   if not len(user_list):
     print(f"足跡リストにユーザーがいません")
     return
-  
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
   driver.execute_script("arguments[0].click();", user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
   
 def mutidriver_make_footprints(name,login_id, password, driver,wait):
-  wait_time = random.uniform(1.5, 3)
+  wait_time = random.uniform(0.7, 2)
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} :{warning}")
@@ -1548,7 +1576,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       mail_button = driver.find_elements(By.CLASS_NAME, value="btn-mail")
       print(user_name)
       print(len(mail_button))
-      time.sleep(2)
+      time.sleep(1.5)
     mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
     if len(mail_button):
       driver.execute_script("arguments[0].click();", mail_button[0])
@@ -2535,6 +2563,29 @@ def re_registration(chara_data, driver, wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
 
+def return_foot_message_roll(name, driver, wait, login_id, password, return_foot_message, return_foot_img):
+  warning_pop = catch_warning_screen(driver)
+  daily_limit = 111
+
+  if return_foot_img:
+    # 画像データを取得してBase64にエンコード
+    image_response = requests.get(return_foot_img)
+    image_base64 = base64.b64encode(image_response.content).decode('utf-8')
+    # ローカルに一時的に画像ファイルとして保存
+    image_filename = f"{name}_image.png"
+    with open(image_filename, 'wb') as f:
+        f.write(base64.b64decode(image_base64))
+    # 画像の保存パスを取得
+    image_path = os.path.abspath(image_filename)
+  else:
+    image_path = ""
+    image_filename = None 
+  nav_item_click("マイページ", driver, wait)
+  # 足あとをクリック
+  return_footpoint = driver.find_element(By.CLASS_NAME, value="icon-ico_footprint")
+  driver.execute_script("arguments[0].click();", return_footpoint)
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
 
   
      

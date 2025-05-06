@@ -45,7 +45,7 @@ while True:
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
       
-      name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
+      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       if not len(name_on_pcmax):
         pcmax_2.catch_warning_pop(driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
@@ -55,10 +55,10 @@ while True:
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
-      print(f"~~~{name_on_pcmax}~~~")
+      print(f"~~~{name_on_pcmax.text}~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
-        if name_on_pcmax == i['name']:
+        if name_on_pcmax.text == i['name']:
           name = i["name"]
           # if  "りこ" != name:
           #   print(name)
