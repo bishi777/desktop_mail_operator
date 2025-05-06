@@ -33,7 +33,7 @@ headless = False
 n = len(happy_info)  # dataはリスト
 half = n // 2
 # first_half = happy_info[:half]  # 前半
-# first_half = happy_info[:1]  # 一個
+# first_half = happy_info[6:8]  
 first_half = happy_info
 
 profile_path = "chrome_profiles/h_footprint"
@@ -42,6 +42,8 @@ mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 mail_info = None
+send_messages_list = []
+
 if mailaddress and gmail_password and receiving_address:
   mail_info = [
     receiving_address, mailaddress, gmail_password, 
@@ -64,12 +66,12 @@ try:
           break
         happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
         time.sleep(2)  
+    send_messages_list.append({"名前": name, "マッチング総数": 0, "足跡返し総数": 0, "合計": 0})
   # 足跡付け、チェックメール　ループ
   loop_cnt = 1
   sent_cnt = 0
   daily_limit = 111
   last_sent_date = datetime.now().date()
-   
   while True:
     if drivers == {}:
       break
@@ -82,7 +84,7 @@ try:
       login_id = drivers[name]["login_id"]
       password = drivers[name]["password"]
       tabs = driver.window_handles
-      
+      print(f"-------------- {name} ---------------")
       # print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
@@ -129,13 +131,13 @@ try:
           warning = happymail.catch_warning_screen(driver)
           if warning:
             print(f"{name} {warning}")
-            # happymail_new_list.append(f"{name} {warning}")
+            happymail_new_list.append(f"{name} {warning}")
           else:
             top_image_check = happymail.check_top_image(name, driver, wait)  
             if top_image_check:
               if "ブラウザ" in top_image_check:
                 print(top_image_check)
-                # happymail_new_list.append(top_image_check)
+                happymail_new_list.append(top_image_check)
             try:
               now = datetime.now()
               today = now.date()
@@ -144,17 +146,30 @@ try:
                   print(f"✅ 日付が変わったので {name} のカウントをリセットします（{last_sent_date} → {today}）")
                   sent_cnt = 0
                   last_sent_date = today
-
               if 6 <= now.hour < 22:
                 if sent_cnt >= daily_limit:
                   print(f"🔴 {name} : 足跡返しの上限 {daily_limit} に達しています。スキップします。")
                 else:
-                  rolling_flug = True
-                  happymail_cnt = happymail.return_footpoint(
-                      name, driver, wait, return_foot_message, 5, 5, 10, mail_img, fst_message, rolling_flug
-                  )
-                  send_cnt = happymail_cnt[0] + happymail_cnt[2]
-                  sent_cnt += send_cnt
+                  try:
+                    happymail_cnt = happymail.return_footpoint(
+                        name, driver, wait, return_foot_message, 5, 5, 5, mail_img, fst_message
+                    )
+                    total_cnt = happymail_cnt[0] + happymail_cnt[2]
+                    for i in send_messages_list:
+                      if i["名前"] == name:
+                        i["マッチング総数"] += happymail_cnt[0]
+                        i["足跡返し総数"] += happymail_cnt[2]
+                        i["合計"] += total_cnt
+                    print(f"足跡返し{happymail_cnt[2]} 件")
+                  except NoSuchWindowException:
+                    print(f"NoSuchWindowExceptionエラーが出ました, {e}")
+                    pass
+                  except ReadTimeoutError as e:
+                    print("🔴 ページの読み込みがタイムアウトしました:", e)
+                    driver.refresh()
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  except Exception as e:
+                    print(traceback.format_exc())
               else:
                 print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
             except NoSuchWindowException:
@@ -165,27 +180,27 @@ try:
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             except Exception as e:
               print(traceback.format_exc())
+            print(f"{name} 新着メールチェック...")
             new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
             if new_message_flug == "新着メールなし" and top_image_check is False:
               print(f"{name}　新着メールなし")
-              continue  
-            login_id = drivers[name]["login_id"]
-            password = drivers[name]["password"]
-            return_foot_message = drivers[name]["return_foot_message"]
-            fst_message = drivers[name]["fst_message"]
-            conditions_message = drivers[name]["conditions_message"]
-            mail_img = drivers[name]["mail_img"]
-           
-            try:
-              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-            except NoSuchWindowException:
-              pass
-            except ReadTimeoutError as e:
-              print("🔴 ページの読み込みがタイムアウトしました:", e)
-              driver.refresh()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            except Exception as e:
-              print(traceback.format_exc())
+            else:  
+              login_id = drivers[name]["login_id"]
+              password = drivers[name]["password"]
+              return_foot_message = drivers[name]["return_foot_message"]
+              fst_message = drivers[name]["fst_message"]
+              conditions_message = drivers[name]["conditions_message"]
+              mail_img = drivers[name]["mail_img"]
+              try:
+                happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+              except NoSuchWindowException:
+                pass
+              except ReadTimeoutError as e:
+                print("🔴 ページの読み込みがタイムアウトしました:", e)
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              except Exception as e:
+                print(traceback.format_exc())
           if top_image_check:
             happymail_new_list.append(top_image_check)
           if happymail_new:
@@ -204,6 +219,8 @@ try:
             else:
               print("通知メールの送信に必要な情報が不足しています")
               print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+    print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+    print(send_messages_list)
     loop_cnt += 1
         
 except KeyboardInterrupt:

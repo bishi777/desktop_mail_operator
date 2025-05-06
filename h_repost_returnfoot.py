@@ -46,8 +46,7 @@ def sb_h_repost_returnfoot(happy_chara, matching_cnt, type_cnt, return_foot_cnt,
     func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
   time.sleep(2)
   try:
-    rolling_flug = False
-    return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, rolling_flug)
+    return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message)
   except Exception as e:
     print(f"足跡返しエラー{name}")
     print(traceback.format_exc())

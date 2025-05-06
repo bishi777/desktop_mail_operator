@@ -37,7 +37,6 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
   wait_cnt = 7200 / len(drivers)
   start_one_rap_time = time.time() 
   return_cnt_list = []
-  rollong_flug = False
   try:
     for name, data in drivers.items():
       driver = drivers[name]["driver"]
@@ -54,7 +53,7 @@ def md_h_all_do(matching_cnt, type_cnt, return_foot_cnt,  mail_info, drivers):
         print(f"ハッピーメール掲示板エラー{name}")
         print(traceback.format_exc())
         func.send_error(f"ハッピーメール掲示板エラー{name}", traceback.format_exc())
-      return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message, rollong_flug)])
+      return_func = timer(wait_cnt, [lambda: happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, mail_img, fst_message)])
       if isinstance(return_func, str):
           return_cnt_list.append(f"{name}: {return_func}")
       elif isinstance(return_func, list):
