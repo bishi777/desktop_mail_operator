@@ -33,8 +33,8 @@ headless = False
 n = len(happy_info)  # dataはリスト
 half = n // 2
 # first_half = happy_info[:half]  # 前半
-first_half = happy_info[:1]  # 一個
-# first_half = happy_info
+# first_half = happy_info[:1]  # 一個
+first_half = happy_info
 
 profile_path = "chrome_profiles/h_footprint"
 drivers = {}
@@ -87,7 +87,6 @@ try:
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         if index  == 0:
-          # asiatoduke
           login_id = drivers[name]["login_id"]
           password = drivers[name]["password"]
           return_foot_message = drivers[name]["return_foot_message"]
