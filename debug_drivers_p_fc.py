@@ -44,6 +44,14 @@ while True:
         time.sleep(1.5)  
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
+      
+      login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+      if len(login_form):
+        print(99999999)
+        login = login_form.find_elements(By.TAG_NAME, 'a')
+        login[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
       name_on_pcmax = driver.find_element(By.CLASS_NAME, 'mydata_name').text
       print(f"~~~{name_on_pcmax}~~~")
       for index, i in enumerate(pcmax_datas):
@@ -62,6 +70,7 @@ while True:
           second_message = i["second_message"]
           condition_message = i["condition_message"]
           send_cnt = 3
+          
           try:
             print("新着メールチェック開始")     
             pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password)
@@ -71,6 +80,7 @@ while True:
           except Exception as e:
             print(f"{name}❌ メールチェック  の操作でエラー: {e}")
             traceback.print_exc() 
+         
           try:
             print("fst_mail送信開始")
             pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)

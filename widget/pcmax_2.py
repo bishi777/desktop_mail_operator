@@ -209,7 +209,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       link_elements = driver.find_elements(By.CLASS_NAME, 'text_left')
       link = link_elements[user_index].find_element(By.TAG_NAME, 'a')
       href = link.get_attribute('href')
-      # 新しいタブを開いて https://example.com に移動
       driver.execute_script(f"window.open('{href}', '_blank');")
       # タブを切り替え
       driver.switch_to.window(driver.window_handles[-1])
