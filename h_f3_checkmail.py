@@ -33,7 +33,7 @@ headless = False
 n = len(happy_info)  # dataはリスト
 half = n // 2
 # first_half = happy_info[:half]  # 前半
-# first_half = happy_info[6:8]  
+# first_half = happy_info[:1]  
 first_half = happy_info
 
 profile_path = "chrome_profiles/h_footprint"
@@ -50,29 +50,15 @@ if mailaddress and gmail_password and receiving_address:
   ]
 try:
   drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
-  # タブを切り替えて操作
-  # tab1で足跡付け, tab2でチェックメールSET
-  for name, data in drivers.items():
-    driver = drivers[name]["driver"]
-    wait = drivers[name]["wait"]
-    tabs = driver.window_handles
-    login_id = drivers[name]["login_id"]
-    password = drivers[name]["password"]
-    for index, tab in enumerate(tabs):
-      driver.switch_to.window(tab)
-      if index + 1 == 1:
-        nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
-        if not nav_flug:
-          break
-        happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-        time.sleep(2)  
+  for name, data in drivers.items(): 
     send_messages_list.append({"名前": name, "マッチング総数": 0, "足跡返し総数": 0, "合計": 0})
-  # 足跡付け、チェックメール　ループ
-  loop_cnt = 1
+  loop_cnt = 0
   sent_cnt = 0
   daily_limit = 111
   last_sent_date = datetime.now().date()
+  # 足跡付け、チェックメール　ループ
   while True:
+    start_loop_time = time.time()
     if drivers == {}:
       break
     for name, data in drivers.items():
@@ -220,6 +206,9 @@ try:
               print("通知メールの送信に必要な情報が不足しています")
               print(f"{mailaddress}   {gmail_password}  {receiving_address}")
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    minutes, seconds = divmod(int(elapsed_time), 60)
+    print(f"タイム: {minutes}分{seconds}秒")
     print(send_messages_list)
     loop_cnt += 1
         

@@ -1478,12 +1478,14 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
 
 def set_mutidriver_make_footprints(driver,wait):
   # 並びの表示を設定
-  sort_order = driver.find_elements(By.ID, value="kind_select")
-  select = Select(sort_order[0])
-  select.select_by_visible_text("プロフ一覧")
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(1)
-  user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+  # sort_order = driver.find_elements(By.ID, value="kind_select")
+  # select = Select(sort_order[0])
+  # select.select_by_visible_text("プロフ一覧")
+  # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  # time.sleep(1)
+  # user_list = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+
+  user_list = driver.find_elements(By.CLASS_NAME, value="profile_list_big_item")
   reload_cnt = 0
   while not len(user_list):
     time.sleep(4)
