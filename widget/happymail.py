@@ -1504,7 +1504,7 @@ def set_mutidriver_make_footprints(driver,wait):
   time.sleep(1.5)
   
 def mutidriver_make_footprints(name,login_id, password, driver,wait):
-  wait_time = random.uniform(0.7, 2)
+  wait_time = random.uniform(0.25, 0.75)
   warning = catch_warning_screen(driver)
   if warning:
     print(f"{name} :{warning}")
@@ -1513,17 +1513,20 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   mail_icon_cnt = 0
   user_icon = 0
   num = random.randint(6,12)
+  nav_flug = nav_item_click("プロフ検索", driver, wait)
+  if not nav_flug:
+    return
   for i in range(num):
     catch_warning_screen(driver)
-    nav_flug = nav_item_click("プロフ検索", driver, wait)
-    if not nav_flug:
-      break
     # 並びの表示を設定
-    sort_order = driver.find_elements(By.ID, value="kind_select")
-    select = Select(sort_order[0])
-    select.select_by_visible_text("プロフ一覧")
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.7)
+    active_tab = driver.find_element(By.CLASS_NAME, value="active")
+    children = active_tab.find_elements(By.XPATH, "./*")
+    all_have_class = all("ds_user_post_link_item_r" in child.get_attribute("class") for child in children)
+    if not all_have_class:
+      sort_order = driver.find_elements(By.ID, value="kind_select")
+      select = Select(sort_order[0])
+      select.select_by_visible_text("プロフ一覧")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     login_users_wait_cnt = 0
     login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     while len(login_users) == 0:
@@ -1532,14 +1535,11 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       login_users_wait_cnt += 1
       if login_users_wait_cnt == 3:
         return
-    print(777)
-    print(user_icon)
-    time.sleep(100)
-    name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
+    name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
     while len(mail_icon):
-      # print(f'送信履歴あり {user_name}　~ skip ~')
+      print(f'送信履歴あり {user_name}　~ skip ~')
       mail_icon_cnt += 1
       user_icon += 1
       # # メールアイコンが5つ続いたら終了
@@ -1551,21 +1551,29 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
         time.sleep(wait_time)
         print("送信履歴のあるユーザーが5回続きました")
         return 
-      name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
+      name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
     candidate_footprint = login_users[user_icon]
     while "ds_ribbon" in candidate_footprint.get_attribute("class"):
-      print("✅ クラス属性 'ds_ribbon' を持っています")
+      # print(f"✅ {user_name} 確認済み")
       user_icon += 1
       if len(login_users) <= user_icon:
         print("ユーザーが見つかりません")
         return
-      candidate_footprint = login_users[user_icon]  
+      candidate_footprint = login_users[user_icon]
+      name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
+      user_name = name_field.text
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_footprint)
     candidate_footprint.find_element(By.TAG_NAME, "a").click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(100.5)
-
+    time.sleep(wait_time)
+    catch_warning_screen(driver)
+    now = datetime.now().strftime('%m-%d %H:%M:%S')
+    print(f'{name}:足跡付け,  {user_name}  {now}')
+    driver.find_element(By.CLASS_NAME, value="ds_link_back").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(wait_time)
 
 
     # if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:

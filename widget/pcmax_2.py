@@ -280,10 +280,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
 
     # ユーザーリスト結果表示その２
     else:
-      print("# ユーザーリスト結果表示その２")
+      # print("# ユーザーリスト結果表示その２")
       elements = driver.find_elements(By.CLASS_NAME, 'name')
-      print(len(elements))
-      print(elements[0].text)
+      # print(len(elements))
+      # print(elements[0].text)
       sent_user = elements[0].text
       while sent_user in sent_user_list:
         # print(f"{sent_user}はすでに送信済みです")
