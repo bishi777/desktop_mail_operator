@@ -52,7 +52,7 @@ while True:
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
         if len(login_form):
           print(99999999)
-          login = login_form.find_elements(By.TAG_NAME, 'a')
+          login = login_form[0].find_elements(By.TAG_NAME, 'a')
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
