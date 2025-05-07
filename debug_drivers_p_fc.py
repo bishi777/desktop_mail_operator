@@ -45,8 +45,7 @@ while True:
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      print(9999)
-      print(name_on_pcmax)
+      
       if not len(name_on_pcmax):
         pcmax_2.catch_warning_pop("", driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
@@ -55,7 +54,9 @@ while True:
           login = login_form[0].find_elements(By.TAG_NAME, 'a')
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
+          time.sleep(2.5)
+          login_button = driver.find_element(By.NAME, "login")
+          login_button.click()
       print(f"~~~{name_on_pcmax[0].text}~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
