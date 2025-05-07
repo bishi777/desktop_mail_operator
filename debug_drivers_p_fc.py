@@ -46,6 +46,8 @@ while True:
         continue
       
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      print(9999)
+      print(name_on_pcmax)
       if not len(name_on_pcmax):
         pcmax_2.catch_warning_pop(driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
