@@ -57,10 +57,11 @@ while True:
           time.sleep(2.5)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
-      print(f"~~~{name_on_pcmax[0].text}~~~")
+      name_on_pcmax = name_on_pcmax[0].text
+      print(f"~~~{name_on_pcmax}~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
-        if name_on_pcmax[0].text == i['name']:
+        if name_on_pcmax == i['name']:
           name = i["name"]
           # if  "りこ" != name:
           #   print(name)
@@ -82,8 +83,7 @@ while True:
             time.sleep(1.5)
           except Exception as e:
             print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-            traceback.print_exc() 
-         
+            traceback.print_exc()  
           try:
             print("fst_mail送信開始")
             pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
