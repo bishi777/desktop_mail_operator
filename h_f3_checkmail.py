@@ -33,8 +33,8 @@ headless = False
 n = len(happy_info)  # dataはリスト
 half = n // 2
 # first_half = happy_info[:half]  # 前半
-# first_half = happy_info[:1]  
-first_half = happy_info
+first_half = happy_info[:1]  
+# first_half = happy_info
 
 profile_path = "chrome_profiles/h_footprint"
 drivers = {}
@@ -81,22 +81,6 @@ try:
           fst_message = drivers[name]["fst_message"]
           conditions_message = drivers[name]["conditions_message"]
           mail_img = drivers[name]["mail_img"]
-          if loop_cnt % 10 == 0:
-            try:
-              driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1.5)
-              nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
-              if not nav_flug:
-                break
-              happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-              time.sleep(2)  
-            except NoSuchWindowException:
-                print(f"set_mutidriver_make_footprintsの操作でエラーが出ました, {e}")
-                print("スクショします")
-                filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
-                driver.save_screenshot(filename)
-                pass
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:

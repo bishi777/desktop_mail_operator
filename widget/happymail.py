@@ -1510,131 +1510,186 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     print(f"{name} :{warning}")
   # print("足跡付け前のurl確認")
   # print(driver.current_url)
+  mail_icon_cnt = 0
+  user_icon = 0
   num = random.randint(6,12)
   for i in range(num):
     catch_warning_screen(driver)
-    if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
-      driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
-      if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
-        set_mutidriver_make_footprints(driver,wait)    
-    # ユーザ名を取得
-    user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
-    if user_name:
-      user_name = user_name[0].text
-    else:
-      print(f"{name} {login_id} {password}  でログインします")
-      login_flug = login(name, login_id, password, driver, wait,)
-      if login_flug:
-        print(f"{name} ::{login_flug}")
-        break
-      warning = catch_warning_screen(driver)
-      if warning:
-        print(f"{name} :::{warning}")
-        break
-      print(f"{name}のログインに成功しました")
-      print(driver.current_url)
-      nav_flug = nav_item_click("プロフ検索", driver, wait)
-      if not nav_flug:
-        break
-      set_mutidriver_make_footprints(driver,wait)
-      print("スクショします")
-      filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
-      driver.save_screenshot(filename)
-      user_name = "取得に失敗しました"
-    # タイプ実装
-    like_age_list = [
-      "18~19歳", "20代前半", "20代半ば", "20代後半",
-    ]
-    like_height_list = [
-      "〜149", "150〜154", "155〜159", "160〜164","165〜169"
-      "170～174", "160～164", "165~169",
-    ]
-    like_etc_list = [
-      "実家暮らし", "100〜300万円", "かわいい系", 
-    ]
-    active_profiles = driver.find_elements(By.CLASS_NAME, value="swiper-slide-active")
-    if len(active_profiles):
-      user_profiles = active_profiles[0].find_elements(By.CLASS_NAME, value="ds_profile_select_choice")
-      age_like = False
-      height_like = False
-      etc_like = False
-      type_flug = False
-      type_age, type_height, etc_type = "", "", ""
-      for i in user_profiles:
-        text = i.text.strip()
-        if text in like_age_list:
-          # print("✅ 年齢一致しました！ →", text)
-          type_age = text
-          age_like = True
-        if text in like_height_list:
-          # print("✅ 身長一致しました！ →", text)
-          type_height = text
-          height_like = True
-        if text in like_etc_list:
-          # print("✅ その他一致しました！ →", text)
-          etc_type = text
-          etc_like = True
-      if age_like:
-        if height_like:
-          if etc_like:
-          # age_like,type_height,etc_typeがそれぞれFalseじゃなければprintで表示する
-            print(f"✅ タイプ一致しました！{user_name} {type_age} {type_height} {etc_type}")
-            type_flug = True
-      if type_flug:
-        type_button = driver.find_elements(By.ID, value="btn-type")
-        type_loop_cnt = 0
-        while not len(type_button):
-          time.sleep(4)
-          type_button = driver.find_elements(By.CLASS_NAME, value="btn-type")
-          type_loop_cnt += 1
-          if type_loop_cnt == 4:
-            break
-        if len(type_button):
-          driver.execute_script("arguments[0].click();", type_button[0])
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(4)
-    mail_button = driver.find_elements(By.ID, value="btn-mail")
-    if not len(mail_button):
-      print(f"{name}")
-      print("メールをするボタンが見つかりません")
-      current_url = driver.current_url
-      # print(f"現在のURL: {current_url}")
-      # print(driver.current_url)
-      time.sleep(7)
-      # ユーザ名を取得
-      user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
-      if user_name:
-        user_name = user_name[0].text
-      else:
-        user_name = "取得に失敗しました"
-      mail_button = driver.find_elements(By.CLASS_NAME, value="btn-mail")
-      print(user_name)
-      print(len(mail_button))
-      time.sleep(1.5)
-    mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
-    if len(mail_button):
-      driver.execute_script("arguments[0].click();", mail_button[0])
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
-      driver.back()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    nav_flug = nav_item_click("プロフ検索", driver, wait)
+    if not nav_flug:
+      break
+    # 並びの表示を設定
+    sort_order = driver.find_elements(By.ID, value="kind_select")
+    select = Select(sort_order[0])
+    select.select_by_visible_text("プロフ一覧")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.7)
+    login_users_wait_cnt = 0
+    login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+    while len(login_users) == 0:
       time.sleep(1)
-      now = datetime.now().strftime('%m-%d %H:%M:%S')
-      print(f'{name}:足跡付け,  {user_name}  {now}')
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(wait_time)
-      warning_pop = catch_warning_screen(driver)
-      if warning_pop:
-        print(f"{name}：警告画面が出ている可能性があります")
-        print(warning_pop)
-        break
-      swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
-      if not len(swiper_button):
-        break
-      driver.execute_script("arguments[0].click();", swiper_button[0])
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      catch_warning_screen(driver)
+      login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+      login_users_wait_cnt += 1
+      if login_users_wait_cnt == 3:
+        return
+    print(777)
+    print(user_icon)
+    time.sleep(100)
+    name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
+    user_name = name_field.text
+    mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
+    while len(mail_icon):
+      # print(f'送信履歴あり {user_name}　~ skip ~')
+      mail_icon_cnt += 1
+      user_icon += 1
+      # # メールアイコンが5つ続いたら終了
+      if mail_icon_cnt == 5:
+        ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
+        top_link = ds_logo.find_element(By.TAG_NAME, value="a")
+        top_link.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(wait_time)
+        print("送信履歴のあるユーザーが5回続きました")
+        return 
+      name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
+      user_name = name_field.text
+      mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
+    candidate_footprint = login_users[user_icon]
+    while "ds_ribbon" in candidate_footprint.get_attribute("class"):
+      print("✅ クラス属性 'ds_ribbon' を持っています")
+      user_icon += 1
+      if len(login_users) <= user_icon:
+        print("ユーザーが見つかりません")
+        return
+      candidate_footprint = login_users[user_icon]  
+    candidate_footprint.find_element(By.TAG_NAME, "a").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(100.5)
+
+
+
+    # if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
+    #   driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
+    #   if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
+    #     set_mutidriver_make_footprints(driver,wait)    
+    # # ユーザ名を取得
+    # user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+    # if user_name:
+    #   user_name = user_name[0].text
+    # else:
+    #   print(f"{name} {login_id} {password}  でログインします")
+    #   login_flug = login(name, login_id, password, driver, wait,)
+    #   if login_flug:
+    #     print(f"{name} ::{login_flug}")
+    #     break
+    #   warning = catch_warning_screen(driver)
+    #   if warning:
+    #     print(f"{name} :::{warning}")
+    #     break
+    #   print(f"{name}のログインに成功しました")
+    #   print(driver.current_url)
+    #   nav_flug = nav_item_click("プロフ検索", driver, wait)
+    #   if not nav_flug:
+    #     break
+    #   set_mutidriver_make_footprints(driver,wait)
+    #   print("スクショします")
+    #   filename = f'screenshot_{time.strftime("%Y%m%d_%H%M%S")}.png'
+    #   driver.save_screenshot(filename)
+    #   user_name = "取得に失敗しました"
+    # # タイプ実装
+    # like_age_list = [
+    #   "18~19歳", "20代前半", "20代半ば", "20代後半",
+    # ]
+    # like_height_list = [
+    #   "〜149", "150〜154", "155〜159", "160〜164","165〜169"
+    #   "170～174", "160～164", "165~169",
+    # ]
+    # like_etc_list = [
+    #   "実家暮らし", "100〜300万円", "かわいい系", 
+    # ]
+    # active_profiles = driver.find_elements(By.CLASS_NAME, value="swiper-slide-active")
+    # if len(active_profiles):
+    #   user_profiles = active_profiles[0].find_elements(By.CLASS_NAME, value="ds_profile_select_choice")
+    #   age_like = False
+    #   height_like = False
+    #   etc_like = False
+    #   type_flug = False
+    #   type_age, type_height, etc_type = "", "", ""
+    #   for i in user_profiles:
+    #     text = i.text.strip()
+    #     if text in like_age_list:
+    #       # print("✅ 年齢一致しました！ →", text)
+    #       type_age = text
+    #       age_like = True
+    #     if text in like_height_list:
+    #       # print("✅ 身長一致しました！ →", text)
+    #       type_height = text
+    #       height_like = True
+    #     if text in like_etc_list:
+    #       # print("✅ その他一致しました！ →", text)
+    #       etc_type = text
+    #       etc_like = True
+    #   if age_like:
+    #     if height_like:
+    #       if etc_like:
+    #       # age_like,type_height,etc_typeがそれぞれFalseじゃなければprintで表示する
+    #         print(f"✅ タイプ一致しました！{user_name} {type_age} {type_height} {etc_type}")
+    #         type_flug = True
+    #   if type_flug:
+    #     type_button = driver.find_elements(By.ID, value="btn-type")
+    #     type_loop_cnt = 0
+    #     while not len(type_button):
+    #       time.sleep(4)
+    #       type_button = driver.find_elements(By.CLASS_NAME, value="btn-type")
+    #       type_loop_cnt += 1
+    #       if type_loop_cnt == 4:
+    #         break
+    #     if len(type_button):
+    #       driver.execute_script("arguments[0].click();", type_button[0])
+    #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #       time.sleep(4)
+    # mail_button = driver.find_elements(By.ID, value="btn-mail")
+    # if not len(mail_button):
+    #   print(f"{name}")
+    #   print("メールをするボタンが見つかりません")
+    #   current_url = driver.current_url
+    #   # print(f"現在のURL: {current_url}")
+    #   # print(driver.current_url)
+    #   time.sleep(7)
+    #   # ユーザ名を取得
+    #   user_name = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+    #   if user_name:
+    #     user_name = user_name[0].text
+    #   else:
+    #     user_name = "取得に失敗しました"
+    #   mail_button = driver.find_elements(By.CLASS_NAME, value="btn-mail")
+    #   print(user_name)
+    #   print(len(mail_button))
+    #   time.sleep(1.5)
+    # mail_button = mail_button[0].find_elements(By.TAG_NAME, value="a")
+    # if len(mail_button):
+    #   driver.execute_script("arguments[0].click();", mail_button[0])
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(1.5)
+    #   driver.back()
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(1)
+    #   now = datetime.now().strftime('%m-%d %H:%M:%S')
+    #   print(f'{name}:足跡付け,  {user_name}  {now}')
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(wait_time)
+    #   warning_pop = catch_warning_screen(driver)
+    #   if warning_pop:
+    #     print(f"{name}：警告画面が出ている可能性があります")
+    #     print(warning_pop)
+    #     break
+    #   swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
+    #   if not len(swiper_button):
+    #     break
+    #   driver.execute_script("arguments[0].click();", swiper_button[0])
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(1)
+    #   catch_warning_screen(driver)
   
 def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count):
   wait_time = random.uniform(2, 5)

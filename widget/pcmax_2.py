@@ -188,6 +188,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
     # ユーザーリスト結果表示その１
     if elements:
       print(f"プロフ制限あり")
+      break
       # list_photos = driver.find_elements(By.CLASS_NAME, 'list_photo')
       # if user_index >= len(list_photos):
       #   print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
@@ -276,7 +277,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       # driver.switch_to.window(driver.window_handles[0])
       # time.sleep(4)
       # time.sleep(random_wait)
-      
+
     # ユーザーリスト結果表示その２
     else:
       print("# ユーザーリスト結果表示その２")
