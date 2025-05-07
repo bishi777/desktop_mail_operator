@@ -44,12 +44,11 @@ while True:
         time.sleep(1.5)  
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
-      
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       print(9999)
       print(name_on_pcmax)
       if not len(name_on_pcmax):
-        pcmax_2.catch_warning_pop(driver)
+        pcmax_2.catch_warning_pop("", driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
         if len(login_form):
           print(99999999)
@@ -74,7 +73,6 @@ while True:
           second_message = i["second_message"]
           condition_message = i["condition_message"]
           send_cnt = 3
-          
           try:
             print("新着メールチェック開始")     
             pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password)
