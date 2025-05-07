@@ -58,7 +58,7 @@ while True:
       print(f"~~~{name_on_pcmax[0].text}~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
-        if name_on_pcmax.text == i['name']:
+        if name_on_pcmax[0].text == i['name']:
           name = i["name"]
           # if  "りこ" != name:
           #   print(name)
