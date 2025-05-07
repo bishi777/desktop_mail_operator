@@ -54,9 +54,12 @@ while True:
           login = login_form[0].find_elements(By.TAG_NAME, 'a')
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2.5)
+          time.sleep(8.5)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+          pcmax_2.catch_warning_pop("", driver)
       name_on_pcmax = name_on_pcmax[0].text
       print(f"~~~{name_on_pcmax}~~~")
       for index, i in enumerate(pcmax_datas):
