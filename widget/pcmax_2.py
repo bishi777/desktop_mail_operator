@@ -45,11 +45,14 @@ def catch_warning_pop(name, driver):
       print("dialog1")
       if driver.find_elements(By.ID, 'this_month'):
         driver.find_element(By.ID, 'this_month').click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
       try:
         close1 = driver.find_element(By.ID, 'close1')
         print(77777777)
         driver.execute_script('arguments[0].click();', close1)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
       except NoSuchElementException:
         pass
   except Exception:
@@ -184,96 +187,96 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
     elements = driver.find_elements(By.CLASS_NAME, 'list')
     # ユーザーリスト結果表示その１
     if elements:
-      print("ユーザーリスト結果表示その１")
-      list_photos = driver.find_elements(By.CLASS_NAME, 'list_photo')
-      if user_index >= len(list_photos):
-        print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
-        return
-      list_photo = list_photos[user_index]
-      user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
-      send_flag = False
-      while not send_flag:
-        send_flag = True
-        for img in user_imgs:
-          if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in img.get_attribute('src'):
-            user_index += 1
-            if user_index >= len(list_photos) - 1:
-              print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
-              return
-            list_photo = list_photos[user_index]
-            user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
-            send_flag = False
-            if user_index % 15 == 0:
-              driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-              time.sleep(4)
-      link_elements = driver.find_elements(By.CLASS_NAME, 'text_left')
-      link = link_elements[user_index].find_element(By.TAG_NAME, 'a')
-      href = link.get_attribute('href')
-      driver.execute_script(f"window.open('{href}', '_blank');")
-      # タブを切り替え
-      driver.switch_to.window(driver.window_handles[-1])
-      time.sleep(0.5)
-      catch_warning_pop(name, driver)
-      try:
-        pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
-      except NoSuchElementException:
-        print('正常に開けません スキップします')
-        user_index += 1
-        # いまのタブを閉じる
-        driver.close()
-        # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-        driver.switch_to.window(driver.window_handles[0])         
-        continue
-      try:
-        content_menu = driver.find_element(By.ID, 'content_menu')
-        children = content_menu.find_elements(By.XPATH, "./*")
-        okotowari_flag = False
-        for child in children:
-          if child.text == "お断りリストに追加":
-            for ng_word in ng_words:
-              if ng_word in pr_area.text:
-                okotowari_flag = True
-                print('自己紹介文に危険なワードが含まれていました')
-                child.click()
-                driver.find_element(By.ID, 'image_button2').click()
-                time.sleep(5)
-                # いまのタブを閉じる
-                driver.close()
-                # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-                driver.switch_to.window(driver.window_handles[0])
-                user_index += 1
-                break
+      print(f"プロフ制限あり")
+      # list_photos = driver.find_elements(By.CLASS_NAME, 'list_photo')
+      # if user_index >= len(list_photos):
+      #   print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
+      #   return
+      # list_photo = list_photos[user_index]
+      # user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
+      # send_flag = False
+      # while not send_flag:
+      #   send_flag = True
+      #   for img in user_imgs:
+      #     if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in img.get_attribute('src'):
+      #       user_index += 1
+      #       if user_index >= len(list_photos) - 1:
+      #         print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
+      #         return
+      #       list_photo = list_photos[user_index]
+      #       user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
+      #       send_flag = False
+      #       if user_index % 15 == 0:
+      #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+      #         time.sleep(4)
+      # link_elements = driver.find_elements(By.CLASS_NAME, 'text_left')
+      # link = link_elements[user_index].find_element(By.TAG_NAME, 'a')
+      # href = link.get_attribute('href')
+      # driver.execute_script(f"window.open('{href}', '_blank');")
+      # # タブを切り替え
+      # driver.switch_to.window(driver.window_handles[-1])
+      # time.sleep(0.5)
+      # catch_warning_pop(name, driver)
+      # try:
+      #   pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
+      # except NoSuchElementException:
+      #   print('正常に開けません スキップします')
+      #   user_index += 1
+      #   # いまのタブを閉じる
+      #   driver.close()
+      #   # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
+      #   driver.switch_to.window(driver.window_handles[0])         
+      #   continue
+      # try:
+      #   content_menu = driver.find_element(By.ID, 'content_menu')
+      #   children = content_menu.find_elements(By.XPATH, "./*")
+      #   okotowari_flag = False
+      #   for child in children:
+      #     if child.text == "お断りリストに追加":
+      #       for ng_word in ng_words:
+      #         if ng_word in pr_area.text:
+      #           okotowari_flag = True
+      #           print('自己紹介文に危険なワードが含まれていました')
+      #           child.click()
+      #           driver.find_element(By.ID, 'image_button2').click()
+      #           time.sleep(5)
+      #           # いまのタブを閉じる
+      #           driver.close()
+      #           # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
+      #           driver.switch_to.window(driver.window_handles[0])
+      #           user_index += 1
+      #           break
         
-      except NoSuchElementException:
-        pass
-      if okotowari_flag:
-          continue
-      text_area = driver.find_element(By.ID, value="mdc")
-      script = "arguments[0].value = arguments[1];"
-      driver.execute_script(script, text_area, fst_message)
-      time.sleep(1)
-      driver.find_element(By.ID, 'send3').click()
-      user_index += 1
-      sent_cnt += 1
-      now = datetime.now().strftime('%m-%d %H:%M:%S')
-      # # まじ
-      # maji =  driver.find_element(By.ID, value="maji_btn")
-      # maji.click()
-      # print("まじ")
+      # except NoSuchElementException:
+      #   pass
+      # if okotowari_flag:
+      #     continue
+      # text_area = driver.find_element(By.ID, value="mdc")
+      # script = "arguments[0].value = arguments[1];"
+      # driver.execute_script(script, text_area, fst_message)
       # time.sleep(1)
-      # # dialog_ok
-      # dialog_ok = driver.find_element(By.ID, value="dialog_ok")
-      # dialog_ok.click()
-      # time.sleep(100)
-      print(f"{name} fst_message {sent_cnt}件 送信 {now}")
-      time.sleep(1)
-      # いまのタブを閉じる
-      driver.close()
-      # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-      driver.switch_to.window(driver.window_handles[0])
-      time.sleep(4)
-      time.sleep(random_wait)
-
+      # driver.find_element(By.ID, 'send3').click()
+      # user_index += 1
+      # sent_cnt += 1
+      # now = datetime.now().strftime('%m-%d %H:%M:%S')
+      # # # まじ
+      # # maji =  driver.find_element(By.ID, value="maji_btn")
+      # # maji.click()
+      # # print("まじ")
+      # # time.sleep(1)
+      # # # dialog_ok
+      # # dialog_ok = driver.find_element(By.ID, value="dialog_ok")
+      # # dialog_ok.click()
+      # # time.sleep(100)
+      # print(f"{name} fst_message {sent_cnt}件 送信 {now}")
+      # time.sleep(1)
+      # # いまのタブを閉じる
+      # driver.close()
+      # # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
+      # driver.switch_to.window(driver.window_handles[0])
+      # time.sleep(4)
+      # time.sleep(random_wait)
+      
     # ユーザーリスト結果表示その２
     else:
       print("# ユーザーリスト結果表示その２")
@@ -282,7 +285,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       print(elements[0].text)
       sent_user = elements[0].text
       while sent_user in sent_user_list:
-        print(f"{sent_user}はすでに送信済みです")
+        # print(f"{sent_user}はすでに送信済みです")
         user_index += 1
         sent_user = elements[user_index].text
       elements[user_index].click()

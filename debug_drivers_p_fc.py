@@ -44,8 +44,7 @@ while True:
         time.sleep(1.5)  
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      
+      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
       if not len(name_on_pcmax):
         pcmax_2.catch_warning_pop("", driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
@@ -101,6 +100,6 @@ while True:
     while elapsed_time < 720:
       time.sleep(30)
       elapsed_time = time.time() - start_time  # 経過時間を計算する
-      print(f"待機中~~ {elapsed_time} ")
+      # print(f"待機中~~ {elapsed_time} ")
   # driver.quit()
   time.sleep(2)
