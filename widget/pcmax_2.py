@@ -176,7 +176,7 @@ def profile_search(driver):
 def set_fst_mail(name, driver, fst_message, send_cnt):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
-  random_wait = random.uniform(4, 6)
+  random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
   profile_search(driver)
   user_index = 0
@@ -343,6 +343,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
         maji_soushin = True
       else:
         maji_soushin = False
+      time.sleep(random_wait)
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
         maji =  driver.find_element(By.ID, value="majiBtn")
@@ -351,16 +352,15 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
         time.sleep(1)
         link_OK = driver.find_element(By.ID, value="link_OK")
         link_OK.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
       else:
         driver.find_element(By.ID, 'send3').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+      time.sleep(0.7)
       if len(driver.find_elements(By.ID, value="mailform_box")):
         if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
-          print("連続防止")
-          time.sleep(7)
+          print("連続防止　待機中...")
+          time.sleep(6)
           if maji_soushin:
             maji =  driver.find_element(By.ID, value="majiBtn")
             maji.click()

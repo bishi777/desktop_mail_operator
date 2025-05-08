@@ -1239,16 +1239,20 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       time.sleep(wait_time)
       while return_foot_cnt >= return_cnt + 1:
         send_status = True
-        # ページの最後までスクロール
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
         # ページが完全に読み込まれるまで待機
         time.sleep(1)
-        f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
-        while len(f_user) < 19:
+        while len(f_user) < 1:
+          print("足跡ユーザーが見つかりませんでした,# ページをリフレッシュして再度取得")
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
           # ページの最後までスクロール
           driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
           time.sleep(2)
           f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
+         # ページの最後までスクロール
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
         mail_icon = name_field.find_elements(By.TAG_NAME, value="img")

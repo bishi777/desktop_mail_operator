@@ -60,7 +60,7 @@ while True:
           time.sleep(1.5)
           pcmax_2.catch_warning_pop("", driver)
       name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~{name_on_pcmax}~~~")
+      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
       for index, i in enumerate(pcmax_datas):
         login_id = ""
         if name_on_pcmax == i['name']:

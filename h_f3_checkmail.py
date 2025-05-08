@@ -120,6 +120,7 @@ try:
                 if sent_cnt >= daily_limit:
                   print(f"🔴 {name} : 足跡返しの上限 {daily_limit} に達しています。スキップします。")
                 else:
+                  # 足跡返しの処理
                   try:
                     happymail_cnt = happymail.return_footpoint(
                         name, driver, wait, return_foot_message, 5, 5, 5, mail_img, fst_message
