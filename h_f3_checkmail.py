@@ -74,24 +74,26 @@ try:
       # print(f"名前、ID、PASSチェック {name} : {login_id} : {password}")
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
+        login_id = drivers[name]["login_id"]
+        password = drivers[name]["password"]
+        return_foot_message = drivers[name]["return_foot_message"]
+        fst_message = drivers[name]["fst_message"]
+        conditions_message = drivers[name]["conditions_message"]
+        conditions_message = drivers[name]["conditions_message"]
+        mail_img = drivers[name]["mail_img"]
         if index  == 0:
-          login_id = drivers[name]["login_id"]
-          password = drivers[name]["password"]
-          return_foot_message = drivers[name]["return_foot_message"]
-          fst_message = drivers[name]["fst_message"]
-          conditions_message = drivers[name]["conditions_message"]
-          mail_img = drivers[name]["mail_img"]
-          try:
-            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
-          except NoSuchWindowException:
-            print(f"NoSuchWindowExceptionエラーが出ました, {e}")
-            pass
-          except ReadTimeoutError as e:
-            print("🔴 ページの読み込みがタイムアウトしました:", e)
-            driver.refresh()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          except Exception as e:
-            print(traceback.format_exc())
+          print(f"タブ{index+1}: {driver.current_url}")  
+          # try:
+          #   happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+          # except NoSuchWindowException:
+          #   print(f"NoSuchWindowExceptionエラーが出ました, {e}")
+          #   pass
+          # except ReadTimeoutError as e:
+          #   print("🔴 ページの読み込みがタイムアウトしました:", e)
+          #   driver.refresh()
+          #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # except Exception as e:
+          #   print(traceback.format_exc())
         elif index == 1:
           top_image_check = happymail.check_top_image(name, driver, wait)  
           if top_image_check:
