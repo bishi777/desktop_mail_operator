@@ -83,17 +83,15 @@ try:
         mail_img = drivers[name]["mail_img"]
         if index  == 0:
           print(f"タブ{index+1}: {driver.current_url}")  
-          # try:
-          #   happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
-          # except NoSuchWindowException:
-          #   print(f"NoSuchWindowExceptionエラーが出ました, {e}")
-          #   pass
-          # except ReadTimeoutError as e:
-          #   print("🔴 ページの読み込みがタイムアウトしました:", e)
-          #   driver.refresh()
-          #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          # except Exception as e:
-          #   print(traceback.format_exc())
+          try:
+            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+          except ReadTimeoutError as e:
+            print("🔴 ページの読み込みがタイムアウトしました:", e)
+            driver.refresh()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          except Exception as e:
+            print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+            print(traceback.format_exc())
         elif index == 1:
           top_image_check = happymail.check_top_image(name, driver, wait)  
           if top_image_check:
@@ -133,19 +131,15 @@ try:
                         i["足跡返し総数"] += happymail_cnt[2]
                         i["合計"] += total_cnt
                     print(f"足跡返し{happymail_cnt[2]} 件")
-                  except NoSuchWindowException:
-                    print(f"NoSuchWindowExceptionエラーが出ました, {e}")
-                    pass
                   except ReadTimeoutError as e:
                     print("🔴 ページの読み込みがタイムアウトしました:", e)
                     driver.refresh()
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   except Exception as e:
+                    print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
                     print(traceback.format_exc())
               else:
                 print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
-            except NoSuchWindowException:
-              pass
             except ReadTimeoutError as e:
               print("🔴 ページの読み込みがタイムアウトしました:", e)
               driver.refresh()
@@ -157,12 +151,6 @@ try:
             if new_message_flug == "新着メールなし" and top_image_check is False:
               print(f"{name}　新着メールなし")
             else:  
-              login_id = drivers[name]["login_id"]
-              password = drivers[name]["password"]
-              return_foot_message = drivers[name]["return_foot_message"]
-              fst_message = drivers[name]["fst_message"]
-              conditions_message = drivers[name]["conditions_message"]
-              mail_img = drivers[name]["mail_img"]
               try:
                 happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
               except NoSuchWindowException:
@@ -172,6 +160,7 @@ try:
                 driver.refresh()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               except Exception as e:
+                print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
                 print(traceback.format_exc())
           if top_image_check:
             happymail_new_list.append(top_image_check)
