@@ -147,7 +147,7 @@ def profile_search(driver):
     oldest_age_select_box = driver.find_element(By.ID, "makerItem")
   except NoSuchElementException:
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  oldest_age_select_box.send_keys("40歳")
+  oldest_age_select_box.send_keys("30歳")
 
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
@@ -339,7 +339,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
       pattern = r'\d+'
       match = re.findall(pattern, mile_point_text)
-      if int(match[0]) > 1:
+      if int(match[0]) > 20:
         maji_soushin = True
       else:
         maji_soushin = False

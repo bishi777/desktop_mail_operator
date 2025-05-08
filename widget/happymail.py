@@ -955,7 +955,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       mail_icon_cnt += 1
       user_icon += 1
       # # メールアイコンが20つ続いたら終了
-      if mail_icon_cnt == 19:
+      if mail_icon_cnt == 18:
         ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
         top_link = ds_logo.find_element(By.TAG_NAME, value="a")
         top_link.click()
@@ -981,7 +981,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", message_button)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
-    message_button.click()
+    driver.execute_script('arguments[0].click();', message_button)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
     catch_warning_screen(driver)
@@ -1059,6 +1059,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
+    catch_warning_screen(driver)
   user_icon = 0
   return return_matching_counted
 
