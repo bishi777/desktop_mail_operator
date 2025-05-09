@@ -1548,8 +1548,17 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   for i in range(num):
     catch_warning_screen(driver)
     # 並びの表示を設定
-    active_tab = driver.find_element(By.CLASS_NAME, value="active")
-    children = active_tab.find_elements(By.XPATH, "./*")
+    active_tab = driver.find_elements(By.CLASS_NAME, value="active")
+    if not len(active_tab):
+      print("アクティブなタブが見つかりません")
+      print(driver.current_url)
+      time.sleep(2)
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
+      active_tab = driver.find_elements(By.CLASS_NAME, value="active")
+      
+    children = active_tab[0].find_elements(By.XPATH, "./*")
     all_have_class = all("ds_user_post_link_item_r" in child.get_attribute("class") for child in children)
     if not all_have_class:
       sort_order = driver.find_elements(By.ID, value="kind_select")
