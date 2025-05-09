@@ -970,6 +970,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         print(len(matching_users))
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(0.7)
+        matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
