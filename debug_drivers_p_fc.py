@@ -39,17 +39,20 @@ while True:
         "profile_rest_reference.php",
       ]
       if any(part in driver.current_url for part in skip_urls):
+        print(987)
         driver.get("https://pcmax.jp/pcm/index.php")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1.5)  
+
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
       if not len(name_on_pcmax):
-        pcmax_2.catch_warning_pop("", driver)
+        login_flug = pcmax_2.catch_warning_pop("", driver)
         login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
         if len(login_form):
           print(99999999)
+          print(login_flug)
           login = login_form[0].find_elements(By.TAG_NAME, 'a')
           login[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -59,6 +62,7 @@ while True:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
           pcmax_2.catch_warning_pop("", driver)
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
       name_on_pcmax = name_on_pcmax[0].text
       print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
       for index, i in enumerate(pcmax_datas):
