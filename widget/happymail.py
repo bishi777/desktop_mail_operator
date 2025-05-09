@@ -1096,6 +1096,11 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       type_users_wait_cnt += 1
       if type_users_wait_cnt == 3:
           return return_type_counted
+    if len(type_users) <= user_icon_type:
+      print("ユーザーアイコンの範囲を超えました1111")
+      print(f"{len(type_users)}  {user_icon_type} ")
+      duplication_user = True
+      break
     name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
