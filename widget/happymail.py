@@ -969,6 +969,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       else:
         print(777777)
         print(len(matching_users))
+        print(user_icon)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
@@ -1139,7 +1140,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         user_name = name_field.text
     if len(type_users) <= user_icon_type:
       print("ユーザーアイコンの範囲を超えました")
-      print(f"{len(type_users)}  {len(user_icon_type)} ")
+      print(f"{len(type_users)}  {user_icon_type} ")
       duplication_user = True
       break
     # タイプユーザーをクリック
