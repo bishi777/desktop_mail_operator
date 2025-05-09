@@ -1103,12 +1103,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       mail_icon_cnt += 1
       user_icon_type += 1
       # # メールアイコンが5つ続いたら終了
-      if mail_icon_cnt == 20:
-        # ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
-        # top_link = ds_logo.find_element(By.TAG_NAME, value="a")
-        # top_link.click()
-        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        # time.sleep(0.5)
+      if mail_icon_cnt == 20: 
         print("タイプリストで送信履歴のあるユーザーが20回続きました")
         return return_type_counted
       if user_icon_type >= len(type_users):
@@ -1142,6 +1137,11 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
             break
         name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
+    if len(type_users) <= user_icon_type:
+      print("ユーザーアイコンの範囲を超えました")
+      print(f"{len(type_users)}  {len(user_icon_type)} ")
+      duplication_user = True
+      break
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     if duplication_user:
