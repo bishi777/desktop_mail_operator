@@ -1594,6 +1594,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_footprint)
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(wait_time)
     candidate_footprint.find_element(By.TAG_NAME, "a").click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
