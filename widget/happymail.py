@@ -1526,6 +1526,18 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   num = random.randint(6,12)
   nav_flug = nav_item_click("プロフ検索", driver, wait)
   if not nav_flug:
+    print(driver.current_url)
+    print(f"{name} {login_id} {password}  でログインします")
+    login_flug = login(name, login_id, password, driver, wait,)
+    if login_flug:
+      print(f"{name} ::{login_flug}") 
+    warning = catch_warning_screen(driver)
+    if warning:
+      print(f"{name} :::{warning}")
+      return
+    print(f"{name}のログインに成功しました")
+    print(driver.current_url)
+    nav_flug = nav_item_click("プロフ検索", driver, wait)
     return
   for i in range(num):
     catch_warning_screen(driver)
@@ -1987,7 +1999,21 @@ def check_new_mail(happy_info, driver, wait):
         return_list.append(f"ハッピーメール、{name}のトップ画の設定がNoImageです")
   new_message_flug = nav_item_click("メッセージ", driver, wait)
   if not new_message_flug:
-     return
+    print(driver.current_url)
+    print(f"{name} {login_id} {login_pass}  でログインします")
+    login_flug = login(name, login_id, login_pass, driver, wait,)
+    if login_flug:
+      print(f"{name} ::{login_flug}") 
+    warning = catch_warning_screen(driver)
+    if warning:
+      print(f"{name} :::{warning}")
+      return
+    print(f"{name}のログインに成功しました")
+    print(driver.current_url)
+    nav_flug = nav_item_click("プロフ検索", driver, wait)
+    if not nav_flug:
+      print(12345689)
+      return
   else:  
   # 新着があった
   # if True:
