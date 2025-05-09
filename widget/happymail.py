@@ -409,9 +409,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   reload_cnt = 0
                   send_text_clean = func.normalize_text(send_msg_elem[-1].text)
                   while send_text_clean != conditions_message_clean:
-                    print(send_text_clean)
-                    print("~~~~~~~~~~~~~~~~~~~~~")
-                    print(conditions_message_clean)
+                    # print(send_text_clean)
+                    # print("~~~~~~~~~~~~~~~~~~~~~")
+                    # print(conditions_message_clean)
                     driver.refresh()
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(5)
@@ -1407,9 +1407,9 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           most_recent_msg_clean = func.normalize_text(most_recent_msg)
           return_foot_message_clean = func.normalize_text(return_foot_message)
           while most_recent_msg_clean != return_foot_message_clean:
-            print(most_recent_msg)
-            print("~~~~~~~~~~~~~~~~~~~~")
-            print(return_foot_message)
+            # print(most_recent_msg)
+            # print("~~~~~~~~~~~~~~~~~~~~")
+            # print(return_foot_message)
             driver.refresh()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(wait_time)
