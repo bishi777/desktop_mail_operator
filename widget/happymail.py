@@ -1423,6 +1423,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
               driver.execute_script("arguments[0].click();", submit)
               img_wait_cnt = 0
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1.5)
               while img_conform.is_displayed():
                 time.sleep(2)
                 modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")

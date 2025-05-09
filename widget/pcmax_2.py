@@ -93,7 +93,7 @@ def get_header_menu(driver, menu):
           try:
             new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
             if not new_message_badge:
-              print("新着メールなし")
+              print("新着メール完了")
               return False
           except NoSuchElementException:
             pass
