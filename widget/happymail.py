@@ -945,13 +945,9 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           return return_matching_counted
     name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
     user_name = name_field.text
-    print(777)
-    print(len(matching_users))
-    
-    print(user_name)
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")    
     while len(mail_icon):
-      print(f'送信履歴あり {user_name}　~ skip ~')
+      # print(f'送信履歴あり {user_name}　~ skip ~')
       mail_icon_cnt += 1
       user_icon += 1
       # # メールアイコンが20つ続いたら終了
@@ -961,15 +957,15 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         top_link.click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
-        print("マッチングリストで送信履歴のあるユーザーが20回続きました")
-        print(len(matching_users))
+        # print("マッチングリストで送信履歴のあるユーザーが20回続きました")
+        # print(len(matching_users))
         return return_matching_counted
       if 0 <= user_icon < len(matching_users):
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       else:
-        print(777777)
-        print(len(matching_users))
-        print(user_icon)
+        # print(777777)
+        # print(len(matching_users))
+        # print(user_icon)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
@@ -979,7 +975,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
     # ユーザー重複チェック
     if len(user_name_list):
       while user_name in user_name_list:
-        print(f'重複ユーザー {user_name}　~ skip ~')
+        # print(f'重複ユーザー {user_name}　~ skip ~')
         user_icon = user_icon + 1
         if len(matching_users) <= user_icon:
             duplication_user = True
@@ -1097,8 +1093,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       if type_users_wait_cnt == 3:
           return return_type_counted
     if len(type_users) <= user_icon_type:
-      print("ユーザーアイコンの範囲を超えました1111")
-      print(f"{len(type_users)}  {user_icon_type} ")
+      # print("ユーザーアイコンの範囲を超えました1111")
+      # print(f"{len(type_users)}  {user_icon_type} ")
       duplication_user = True
       break
     name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
