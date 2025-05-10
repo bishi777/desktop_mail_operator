@@ -29,6 +29,7 @@ while True:
   if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
     start_time = time.time() 
     for idx, handle in enumerate(handles): 
+      WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
       driver.switch_to.window(handle)
       print(f"  📄 タブ{idx+1}: {driver.current_url}")
       skip_urls = [
