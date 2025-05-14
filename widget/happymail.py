@@ -1773,6 +1773,7 @@ def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user)
       mail_icon_parent = user.find_elements(By.CLASS_NAME, value="text-male")
       mail_icon = mail_icon_parent[0].find_elements(By.TAG_NAME, value="img")
+      print(f"メールアイコンの数{len(mail_icon)}")
       if  not len(mail_icon):
         mail_icon_flag = False
         break
