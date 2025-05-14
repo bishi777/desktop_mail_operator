@@ -52,11 +52,15 @@ def catch_warning_pop(name, driver):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)     
         try:
-          close1 = driver.find_element(By.ID, 'close1')
-          print(77777777)
-          driver.execute_script('arguments[0].click();', close1)
+          # close1 = driver.find_element(By.ID, 'close1')
+          # print(77777777)
+          # driver.execute_script('arguments[0].click();', close1)
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # time.sleep(1)
+          driver.find_element(By.ID, 'send3').click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
+          time.sleep(2)
+          
         except NoSuchElementException:
           pass
   except Exception:
@@ -97,7 +101,7 @@ def get_header_menu(driver, menu):
           try:
             new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
             if not new_message_badge:
-              print("新着メール完了")
+              print("新着メールチェック完了")
               return False
           except NoSuchElementException:
             pass
