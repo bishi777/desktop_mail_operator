@@ -182,9 +182,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
   user_index = 0
   sent_cnt = 0
   sent_user_list = []
-  if send_cnt == 0:
-    print("送信件数が0件のため、スキップします")
-    return
   while sent_cnt < send_cnt:
     catch_warning_pop(name, driver)
     elements = driver.find_elements(By.CLASS_NAME, 'list')
