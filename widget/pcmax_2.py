@@ -380,8 +380,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{sent_user}  {sent_cnt}件送信  {now}")
       user_index += 1
       catch_warning_pop(name, driver)
-      print(77777)
-      time.sleep(1000)
       sent_user_list.append(sent_user)
       back2 = driver.find_element(By.ID, value="back2")
       driver.execute_script("arguments[0].click();", back2)
