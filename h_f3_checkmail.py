@@ -103,12 +103,12 @@ try:
             print(f"{name} {warning}")
             happymail_new_list.append(f"{name} {warning}")
           else:
-            top_image_check = happymail.check_top_image(name, driver, wait)  
-            if top_image_check:
-              if "ブラウザ" in top_image_check:
-                print(top_image_check)
-                happymail_new_list.append(top_image_check)
             try:
+              top_image_check = happymail.check_top_image(name, driver, wait)  
+              if top_image_check:
+                if "ブラウザ" in top_image_check:
+                  print(top_image_check)
+                  happymail_new_list.append(top_image_check)
               now = datetime.now()
               today = now.date()
               # 日付が変わっていたらカウントをリセット

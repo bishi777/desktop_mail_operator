@@ -50,14 +50,19 @@ while True:
 
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
       while not len(name_on_pcmax):
-        login_flug = pcmax_2.catch_warning_pop("", driver)
-        login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-        if len(login_form):
-          print(99999999)
-          print(login_flug)
-          login = login_form[0].find_elements(By.TAG_NAME, 'a')
-          login[0].click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+        if len(main_photo):
+          print(8888888888888)
+          login_flug = pcmax_2.catch_warning_pop("", driver)
+          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+          if len(login_form):
+            print(99999999)
+            print(login_flug)
+            login = login_form[0].find_elements(By.TAG_NAME, 'a')
+            login[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete') 
+        else:
+          print("メイン写真が見つかりません")
           time.sleep(8.5)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()

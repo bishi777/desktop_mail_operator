@@ -1101,7 +1101,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
     while len(mail_icon):
-      print(f'送信履歴あり {user_name} ~ skip ~ {mail_icon_cnt} {len(type_users)} ::{user_icon_type}')
+      # print(f'送信履歴あり {user_name} ~ skip ~ {mail_icon_cnt} {len(type_users)} ::{user_icon_type}')
       mail_icon_cnt += 1
       user_icon_type += 1
       # # メールアイコンが5つ続いたら終了
@@ -1573,7 +1573,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
     while len(mail_icon):
-      print(f'送信履歴あり {user_name}　~ skip ~')
+      # print(f'送信履歴あり {user_name}　~ skip ~')
       mail_icon_cnt += 1
       user_icon += 1
       # # メールアイコンが5つ続いたら終了
