@@ -43,18 +43,22 @@ def catch_warning_pop(name, driver):
   try:
     if driver.find_elements(By.ID, 'dialog1'):
       print("dialog1")
-      if driver.find_elements(By.ID, 'this_month'):
+      
+      this_month = driver.find_elements(By.ID, 'this_month')
+      if len(this_month):
+        time.sleep(1)
+        driver.execute_script('arguments[0].click();', this_month[0])
         driver.find_element(By.ID, 'this_month').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-      try:
-        close1 = driver.find_element(By.ID, 'close1')
-        print(77777777)
-        driver.execute_script('arguments[0].click();', close1)
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-      except NoSuchElementException:
-        pass
+        time.sleep(2)     
+        try:
+          close1 = driver.find_element(By.ID, 'close1')
+          print(77777777)
+          driver.execute_script('arguments[0].click();', close1)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+        except NoSuchElementException:
+          pass
   except Exception:
     pass
   try:
@@ -147,7 +151,7 @@ def profile_search(driver):
     oldest_age_select_box = driver.find_element(By.ID, "makerItem")
   except NoSuchElementException:
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  oldest_age_select_box.send_keys("30歳")
+  oldest_age_select_box.send_keys("34歳")
 
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
@@ -376,9 +380,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{sent_user}  {sent_cnt}件送信  {now}")
       user_index += 1
       catch_warning_pop(name, driver)
+      print(77777)
+      time.sleep(1000)
       sent_user_list.append(sent_user)
       back2 = driver.find_element(By.ID, value="back2")
-      back2.click()
+      driver.execute_script("arguments[0].click();", back2)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(random_wait)
      

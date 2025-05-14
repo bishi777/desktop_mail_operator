@@ -25,6 +25,7 @@ wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 print(f"タブ数: {len(handles)}")
 while True:
+  start_loop_time = time.time()
   now = datetime.now()
   if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
     start_time = time.time() 
@@ -89,7 +90,7 @@ while True:
         login_id = ""
         if name_on_pcmax == i['name']:
           name = i["name"]
-          # if  "りこ" != name:
+          # if  "りな" != name:
           #   print(name)
           #   continue
           login_id = i["login_id"]
@@ -126,5 +127,9 @@ while True:
       time.sleep(20)
       elapsed_time = time.time() - start_time  # 経過時間を計算する
       # print(f"待機中~~ {elapsed_time} ")
+  print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+  elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+  minutes, seconds = divmod(int(elapsed_time), 60)
+  print(f"タイム: {minutes}分{seconds}秒")  
   # driver.quit()
   time.sleep(2)
