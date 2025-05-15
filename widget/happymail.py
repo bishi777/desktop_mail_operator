@@ -969,6 +969,12 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+        if 0 <= user_icon < len(matching_users):
+          driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(wait_time)
+          catch_warning_screen(driver)
+          return
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -979,7 +985,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         user_icon = user_icon + 1
         if len(matching_users) <= user_icon:
             duplication_user = True
-            break
+            return
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
     # マッチングユーザーをクリック
