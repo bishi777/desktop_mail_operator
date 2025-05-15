@@ -85,6 +85,15 @@ def catch_warning_pop(name, driver):
       driver.get("https://pcmax.jp/pcm/member.php")
   except Exception:
     pass
+  try:
+    tuto_pop = driver.find_elements(By.CLASS_NAME, 'tuto_screen')
+    if tuto_pop:
+      time.sleep(1)
+      driver.find_elements(By.CLASS_NAME, 'tuto_dialog')[0].find_elements(By.TAG_NAME, 'span')[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+  except Exception:
+    pass
   return warning
 
 def get_header_menu(driver, menu):
