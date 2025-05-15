@@ -79,10 +79,27 @@ try:
         return_foot_message = drivers[name]["return_foot_message"]
         fst_message = drivers[name]["fst_message"]
         conditions_message = drivers[name]["conditions_message"]
-        conditions_message = drivers[name]["conditions_message"]
         mail_img = drivers[name]["mail_img"]
         if index  == 0:
-          print(f"タブ{index+1}: {driver.current_url}")  
+          # print(f"タブ{index+1}: {driver.current_url}")  
+          print(f"{name} 新着メールチェック...")
+          new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
+          if new_message_flug == "新着メールなし" and top_image_check is False:
+            print(f"{name}　新着メールなし")
+          else:  
+            try:
+              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+              print(f"{name} 新着メールチェック完了")
+            except NoSuchWindowException:
+              pass
+            except ReadTimeoutError as e:
+              print("🔴 ページの読み込みがタイムアウトしました:", e)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            except Exception as e:
+              print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
+              print(traceback.format_exc())
+          # 足跡付けの処理
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except ReadTimeoutError as e:
@@ -92,7 +109,7 @@ try:
           except Exception as e:
             print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
             print(traceback.format_exc())
-        elif index == 1:
+        # elif index == 1:
           top_image_check = happymail.check_top_image(name, driver, wait)  
           if top_image_check:
             if "ブラウザ" in top_image_check:
@@ -126,7 +143,7 @@ try:
                     else:
                       try:
                         happymail_cnt = happymail.return_footpoint(
-                            name, driver, wait, return_foot_message, 5, 5, 5, mail_img, fst_message
+                            name, driver, wait, return_foot_message, 4, 4, 4, mail_img, fst_message
                         )
                         total_cnt = happymail_cnt[0] + happymail_cnt[2]
                         i["マッチング総数"] += happymail_cnt[0]
@@ -150,22 +167,22 @@ try:
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             except Exception as e:
               print(traceback.format_exc())
-            print(f"{name} 新着メールチェック...")
-            new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-            if new_message_flug == "新着メールなし" and top_image_check is False:
-              print(f"{name}　新着メールなし")
-            else:  
-              try:
-                happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-              except NoSuchWindowException:
-                pass
-              except ReadTimeoutError as e:
-                print("🔴 ページの読み込みがタイムアウトしました:", e)
-                driver.refresh()
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              except Exception as e:
-                print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
-                print(traceback.format_exc())
+            # print(f"{name} 新着メールチェック...")
+            # new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
+            # if new_message_flug == "新着メールなし" and top_image_check is False:
+            #   print(f"{name}　新着メールなし")
+            # else:  
+            #   try:
+            #     happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            #   except NoSuchWindowException:
+            #     pass
+            #   except ReadTimeoutError as e:
+            #     print("🔴 ページの読み込みがタイムアウトしました:", e)
+            #     driver.refresh()
+            #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            #   except Exception as e:
+            #     print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
+            #     print(traceback.format_exc())
           if top_image_check:
             happymail_new_list.append(top_image_check)
           if happymail_new:

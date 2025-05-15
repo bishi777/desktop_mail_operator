@@ -233,7 +233,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if i["name"] != "つむぎ" :
+      # if i["name"] != "きりこ" :
       #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
@@ -271,10 +271,10 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       else:
         print(f"{i['name']}のログインに成功しました")
       # タブを追加する
-      if tab:
-        driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+      # if tab:
+      #   driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
+      #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #   time.sleep(1)
       drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
     time.sleep(1)
     return drivers
@@ -963,18 +963,17 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       if 0 <= user_icon < len(matching_users):
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       else:
-        # print(777777)
         # print(len(matching_users))
         # print(user_icon)
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
-        if 0 <= user_icon < len(matching_users):
+        if user_icon < len(matching_users):
           driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
           catch_warning_screen(driver)
-          return
+          return return_matching_counted
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -1112,10 +1111,10 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       user_icon_type += 1
       # # メールアイコンが5つ続いたら終了
       if mail_icon_cnt == 20: 
-        print("タイプリストで送信履歴のあるユーザーが20回続きました")
+        # print("タイプリストで送信履歴のあるユーザーが20回続きました")
         return return_type_counted
       if user_icon_type >= len(type_users):
-        print("mohu")
+        # print("mohu")
         break  # 範囲チェック
       name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
@@ -1131,7 +1130,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
-        print(len(type_users))
+        # print(len(type_users))
       if user_name == "ユーザーネーム取得に失敗しました":
         print("ユーザーネーム取得に失敗しました")
         break  
@@ -1207,16 +1206,17 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       image_filename = None 
     # タイプ返し
     type_counted = 0
-    print(f"マッチングチェック...")
     try:
+      print(f"タイプリストチェック...")
       type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
-      # print(f"タイプ返し総数 {type_counted}")
+      print(f"タイプ返し総数 {type_counted}")
     except Exception as e:  
       print("タイプ返しエラー")
       print(traceback.format_exc())
     # マッチング返し
     matching_counted = 0
     try:
+      print(f"マッチングリストチェック...")
       matching_counted = return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt)
       print(f"マッチング {matching_counted} 件")
     except Exception as e:  
@@ -1230,7 +1230,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
           
-    # print(f"メッセージ送信数　{return_cnt} {matching_counted} {type_counted}")
+    print(f"メッセージ送信数　{return_cnt} {matching_counted} {type_counted}")
     # 足跡返し
     print(f"足跡返し開始...")
     try:
@@ -1253,23 +1253,19 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       driver.execute_script("arguments[0].click();", return_footpoint)
       # return_footpoint.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(wait_time)
+      time.sleep(3)
       while return_foot_cnt >= return_cnt + 1:
         send_status = True
         f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
         # ページが完全に読み込まれるまで待機
         time.sleep(1)
+        
         while len(f_user) < 1:
           print("足跡ユーザーが見つかりませんでした,# ページをリフレッシュして再度取得")
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          # ページの最後までスクロール
-          driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-          time.sleep(2)
-          f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
-         # ページの最後までスクロール
-        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+          time.sleep(2)        
+         
         name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
         mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -1282,15 +1278,19 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
             user_icon += 1
             # print(f'送信履歴あり {user_name} ~ skip ~')
             send_skip_cnt += 1
-            try:
-              name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
-              user_name = name_field.text
-              mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
-            except IndexError:
-              print("送信可能なユーザーが見つかりませんでした")
-              return return_cnt
-            if send_skip_cnt > 19:
-              # print("送れないユーザーが20回続きました")
+            if len(f_user) <= user_icon:
+              # ページの最後までスクロール
+              driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(0.7)
+              f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
+              # print(len(f_user))
+            name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
+            user_name = name_field.text
+            mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
+            
+            if send_skip_cnt > 50:
+              print("送れないユーザーが50回続きました")
               return return_cnt
           elif len(user_name_list):
             while user_name in user_name_list:
