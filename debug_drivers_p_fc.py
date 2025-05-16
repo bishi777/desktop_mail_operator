@@ -48,45 +48,53 @@ while True:
 
       if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
         continue
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      print(login_flug)
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
-      while not len(name_on_pcmax):
-        main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
-        if len(main_photo):
-          print(8888888888888)
-          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-          if len(login_form):
-            print(99999999)
-            login = login_form[0].find_elements(By.TAG_NAME, 'a')
-            login[0].click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')  
-        else:
-          print("メイン写真が見つかりません")
-          # スクショします
-          driver.save_screenshot("screenshot.png")
-        time.sleep(8.5)
-        login_button = driver.find_element(By.NAME, "login")
-        login_button.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1.5)
-        pcmax_2.catch_warning_pop("", driver)
+      try:
+        login_flug = pcmax_2.catch_warning_pop("", driver)
+        print(login_flug)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
-        re_login_cnt = 0
         while not len(name_on_pcmax):
-          time.sleep(5)
+          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+          if len(main_photo):
+            print(8888888888888)
+            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+            if len(login_form):
+              print(99999999)
+              login = login_form[0].find_elements(By.TAG_NAME, 'a')
+              login[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')  
+          else:
+            print("メイン写真が見つかりません")
+            # スクショします
+            driver.save_screenshot("screenshot.png")
+          time.sleep(8.5)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
           pcmax_2.catch_warning_pop("", driver)
-          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-          re_login_cnt += 1
-          if re_login_cnt > 5:
-            print("再ログイン失敗")
-            break
-      name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name') 
+          re_login_cnt = 0
+          while not len(name_on_pcmax):
+            time.sleep(5)
+            login_button = driver.find_element(By.NAME, "login")
+            login_button.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            pcmax_2.catch_warning_pop("", driver)
+            name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+            re_login_cnt += 1
+            if re_login_cnt > 5:
+              print("再ログイン失敗")
+              break
+        name_on_pcmax = name_on_pcmax[0].text
+        print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
+      except Exception as e:
+        print(f"~~~~~❌ ログインの操作でエラー: {e}")
+        traceback.print_exc()  
+        driver.get("https://pcmax.jp/pcm/index.php")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
+        continue
       for index, i in enumerate(pcmax_datas):
         login_id = ""
         if name_on_pcmax == i['name']:

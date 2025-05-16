@@ -1145,8 +1145,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
     if len(type_users) <= user_icon_type:
-      print("ユーザーアイコンの範囲を超えました")
-      print(f"{len(type_users)}  {user_icon_type} ")
+      # print("ユーザーアイコンの範囲を超えました")
+      # print(f"{len(type_users)}  {user_icon_type} ")
       duplication_user = True
       break
     # タイプユーザーをクリック
@@ -1255,6 +1255,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
       while return_foot_cnt >= return_cnt + 1:
+        print("足跡返しループ")
         send_status = True
         f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
         # ページが完全に読み込まれるまで待機
@@ -1290,7 +1291,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
             mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
             
             if send_skip_cnt > 50:
-              print("送れないユーザーが50回続きました")
+              # print("送れないユーザーが50回続きました")
               return return_cnt
           elif len(user_name_list):
             while user_name in user_name_list:

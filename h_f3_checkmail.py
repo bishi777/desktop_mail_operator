@@ -205,7 +205,9 @@ try:
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     minutes, seconds = divmod(int(elapsed_time), 60)
     print(f"タイム: {minutes}分{seconds}秒")
-    print(send_messages_list)
+    # 各辞書を改行して出力
+    for item in send_messages_list:
+      print(item)
     loop_cnt += 1
         
 except KeyboardInterrupt:
