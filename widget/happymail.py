@@ -1800,6 +1800,13 @@ def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count
       continue
 
     user_link = user.find_elements(By.TAG_NAME, value="a")
+    loader = driver.find_elements(By.CLASS_NAME, "loader")
+    # loaderが表示されている場合は待機
+    if len(loader):
+      print("loaderが表示されています")      
+      WebDriverWait(driver, 10).until_not(
+        EC.presence_of_element_located((By.CLASS_NAME, "loader"))
+      )
     user_link[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
