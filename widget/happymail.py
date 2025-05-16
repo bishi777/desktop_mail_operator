@@ -1230,7 +1230,6 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
           
-    print(f"メッセージ送信数　{return_cnt} {matching_counted} {type_counted}")
     # 足跡返し
     print(f"足跡返し開始...")
     try:
