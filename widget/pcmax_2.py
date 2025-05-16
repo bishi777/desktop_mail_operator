@@ -79,9 +79,10 @@ def catch_warning_pop(name, driver):
   except Exception:
     pass
   try:
-    print("kiyaku_btns")
     kiyaku_btns = driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')
     if kiyaku_btns:
+      print("kiyaku_btns")
+
       print(kiyaku_btns[0].text)
       kiyaku_btns[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
