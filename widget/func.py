@@ -35,8 +35,8 @@ import psutil
 import signal
 from DrissionPage import ChromiumOptions
 from DrissionPage import Chromium, ChromiumPage
-
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
+from urllib3.exceptions import ReadTimeoutError
 
 def get_the_temporary_folder(temp_dir):
   # スクリプトのディレクトリを基準にディレクトリを作成
@@ -960,3 +960,28 @@ def test_get_DrissionChromium(profile_dir=None, headless_flag=False, max_retries
       time.sleep(180)
       if attempt == max_retries - 1:
         raise
+
+# 最大リトライ回数
+MAX_RETRIES = 3
+def safe_execute(driver, action, *args, **kwargs):
+  """
+  タイムアウトが発生した場合にリトライするラッパー関数
+  """
+  retries = 0
+  while retries < MAX_RETRIES:
+    try:
+      print(f"[試行中] {action.__name__} (試行回数: {retries + 1})")
+      result = action(*args, **kwargs)
+      print(f"[成功] {action.__name__} が完了しました")
+      return result
+    except (ReadTimeoutError, TimeoutException) as e:
+      retries += 1
+      print(f"[警告] タイムアウト発生: {e}")
+      print("[再試行] ページをリロードします")
+      driver.refresh()
+      time.sleep(5)  # 5秒待機して再試行
+    except Exception as e:
+      print(f"[エラー] {action.__name__} の実行中にエラーが発生しました: {e}")
+      return None
+  print(f"[エラー] 最大試行回数 ({MAX_RETRIES}) に達したためスキップします")
+  return None

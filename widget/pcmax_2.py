@@ -41,9 +41,7 @@ def catch_warning_pop(name, driver):
   except Exception:
     pass
   try:
-    if driver.find_elements(By.ID, 'dialog1'):
-      print("dialog1")
-      
+    if driver.find_elements(By.ID, 'dialog1'):      
       this_month = driver.find_elements(By.ID, 'this_month')
       if len(this_month):
         time.sleep(1)
