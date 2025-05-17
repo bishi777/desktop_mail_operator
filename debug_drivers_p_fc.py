@@ -203,11 +203,11 @@ while True:
           driver.get("https://pcmax.jp/pcm/index.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
-    elapsed_time = time.time() - start_time  # 経過時間を計算する   
-    while elapsed_time < 720:
-      time.sleep(20)
-      elapsed_time = time.time() - start_time  # 経過時間を計算する
-      print(f"待機中~~ {elapsed_time} ")
+  elapsed_time = time.time() - start_time  # 経過時間を計算する   
+  while elapsed_time < 720:
+    time.sleep(20)
+    elapsed_time = time.time() - start_time  # 経過時間を計算する
+    print(f"待機中~~ {elapsed_time} ")
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
