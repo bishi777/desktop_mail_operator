@@ -98,109 +98,386 @@ def catch_warning_pop(name, driver):
     pass
   return warning
 
-def get_header_menu(driver, menu):
+def get_header_menu(driver, menu, user_agent_type):
   wait = WebDriverWait(driver, 10)
-  try:
-    if menu == "メッセージ":
-      header = driver.find_element(By.ID, "header_box_under")
-    else:
-      header = driver.find_element(By.ID, "header_box")
-    links = header.find_elements(By.TAG_NAME, "a")
-    for link in links:
-      if menu in link.text:
-        if menu == "メッセージ":
-          try:
-            new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
-            if not new_message_badge:
-              print("新着メールチェック完了")
-              return False
-          except NoSuchElementException:
-            pass
-        link.click()
+  # iPhone版
+  if user_agent_type == "iPhone":
+    try:
+      if menu == "メッセージ":
+        link = driver.find_elements(By.CLASS_NAME, "sp-fl-message")
+        new_message_badge = link[0].find_elements(By.CLASS_NAME, "badge1")
+        if not new_message_badge:
+          print("新着メールチェック完了")
+          return False
+        link[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1) 
+        return True
+      elif menu == "プロフ検索": 
+        link = driver.find_elements(By.CLASS_NAME, "sp-fl-prof")
+        link[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-
         return True
-  except NoSuchElementException:
-    pass
-
-  return False
-
-def profile_search(driver):
-  get_header_menu(driver, "プロフ検索")
-  area_id_dict = {
-    "静岡県": 27,
-    "栃木県": 20,
-    "群馬県": 21,
-    "神奈川県": 23,
-    "千葉県": 25
-  }
-  # チェックが入っている項目をリセット
-  try:
-    area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
-    for el in area_check_elements:
-      if el.is_selected():
-        el.click()
-        time.sleep(0.5)
-  except NoSuchElementException:
-    pass
-  try:
-    tokyo_checkbox = driver.find_element(By.ID, "22")
-    if not tokyo_checkbox.is_selected():
-      tokyo_checkbox.click()
-      time.sleep(1)
-  except NoSuchElementException:
-    pass
-  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  for area, area_id in random_areas.items():
+    except NoSuchElementException:
+      pass
+    return False
+  # PC版
+  if user_agent_type == "PC": 
     try:
-      checkbox = driver.find_element(By.ID, str(area_id))
-      if not checkbox.is_selected():
-        checkbox.click()
+      if menu == "メッセージ":
+        header = driver.find_element(By.ID, "header_box_under")
+      else:
+        header = driver.find_element(By.ID, "header_box")
+      links = header.find_elements(By.TAG_NAME, "a")
+      for link in links:
+        if menu in link.text:
+          if menu == "メッセージ":
+            try:
+              new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
+              if not new_message_badge:
+                print("新着メールチェック完了")
+                return False
+            except NoSuchElementException:
+              pass
+          link.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+
+          return True
+    except NoSuchElementException:
+      pass
+
+    return False
+
+def profile_search(driver, user_agent_type):
+  wait = WebDriverWait(driver, 10)
+  oldest_age = "34"
+  youngest_age = "18"
+  get_header_menu(driver, "プロフ検索", user_agent_type)
+  if user_agent_type == "PC":
+    area_id_dict = {
+      "静岡県": 27,
+      "栃木県": 20,
+      "群馬県": 21,
+      "神奈川県": 23,
+      "千葉県": 25
+    }
+    # チェックが入っている項目をリセット
+    try:
+      area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
+      for el in area_check_elements:
+        if el.is_selected():
+          el.click()
+          time.sleep(0.5)
+    except NoSuchElementException:
+      pass
+    try:
+      tokyo_checkbox = driver.find_element(By.ID, "22")
+      if not tokyo_checkbox.is_selected():
+        tokyo_checkbox.click()
         time.sleep(1)
     except NoSuchElementException:
       pass
-  # 年齢設定
-  try:
-    time.sleep(2)
-    oldest_age_select_box = driver.find_element(By.ID, "makerItem")
-  except NoSuchElementException:
-    oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  oldest_age_select_box.send_keys("34歳")
-
-  # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
-  exclusion_ids = [
-    ("10120", "except12"),
-    ("10160", "except16"),
-    ("10190", "except19"),
-    ("10200", "except20"),
-  ]
-
-  for primary_id, fallback_id in exclusion_ids:
+    random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+    for area, area_id in random_areas.items():
+      try:
+        checkbox = driver.find_element(By.ID, str(area_id))
+        if not checkbox.is_selected():
+          checkbox.click()
+          time.sleep(1)
+      except NoSuchElementException:
+        pass
+    # 年齢設定
     try:
-      checkbox = driver.find_element(By.ID, primary_id)
+      time.sleep(2)
+      oldest_age_select_box = driver.find_element(By.ID, "makerItem")
     except NoSuchElementException:
-      checkbox = driver.find_element(By.ID, fallback_id)
-    if not checkbox.is_selected():
-      checkbox.click()
-    time.sleep(1)
+      oldest_age_select_box = driver.find_element(By.ID, "to_age")
+    oldest_age_select_box.send_keys("34歳")
 
-  # 検索ボタンを押す
-  try:
-    search_button = driver.find_element(By.ID, "image_button")
-  except NoSuchElementException:
-    search_button = driver.find_element(By.ID, "search1")
-  search_button.click()
+    # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
+    exclusion_ids = [
+      ("10120", "except12"),
+      ("10160", "except16"),
+      ("10190", "except19"),
+      ("10200", "except20"),
+    ]
 
-def set_fst_mail(name, driver, fst_message, send_cnt):
+    for primary_id, fallback_id in exclusion_ids:
+      try:
+        checkbox = driver.find_element(By.ID, primary_id)
+      except NoSuchElementException:
+        checkbox = driver.find_element(By.ID, fallback_id)
+      if not checkbox.is_selected():
+        checkbox.click()
+      time.sleep(1)
+
+    # 検索ボタンを押す
+    try:
+      search_button = driver.find_element(By.ID, "image_button")
+    except NoSuchElementException:
+      search_button = driver.find_element(By.ID, "search1")
+    search_button.click()
+
+  elif user_agent_type == "iPhone":
+    print(" iPhone版")
+
+    driver.find_element(By.ID, "search1").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    search_elem = driver.find_elements(By.ID, value="search1")
+    if not len(search_elem):
+      print(f" プロフィール検索に利用制限あり")
+      return
+    select_area = driver.find_elements(By.CLASS_NAME, value="pref-select-link")    
+    reset_area = driver.find_elements(By.CLASS_NAME, value="reference_btn")
+
+    if not len(select_area) and not len(reset_area):
+        # /////////////////////////利用制限あり
+        print(f"利用制限あり")
+       
+    else:
+      # /////////////////////////利用制限なし
+      # 地域選択（3つまで選択可能）
+      areas = [
+        "東京都",
+        "千葉県",
+        "埼玉県",
+        "神奈川県",
+        # "静岡県",
+        # "新潟県",
+        # "山梨県",
+        # "長野県",
+        # "茨城県",
+        "栃木県",
+        # "群馬県",
+      ]
+      areas.remove("東京都")
+      select_areas = random.sample(areas, 2)
+      select_areas.append("東京都")
+      
+      # 地域選択
+      if len(select_area):
+        select_link = select_area[0].find_elements(By.TAG_NAME, value="a")
+        select_link[0].click()
+      else:
+        # 都道府県の変更、リセット
+        
+        reset_area[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        reset_area_orange = driver.find_elements(By.CLASS_NAME, value="btn-orange")
+        reset_area_orange[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        ok_button = driver.find_element(By.ID, value="link_OK")
+        ok_button.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        select_area = driver.find_elements(By.CLASS_NAME, value="pref-select-link")
+        # たまにエラー
+        select_area_cnt = 0
+        while not len(select_area):
+          time.sleep(1)
+          # print("select_areaが取得できません")
+          select_area = driver.find_elements(By.CLASS_NAME, value="pref-select-link")
+          select_area_cnt += 1
+          if select_area_cnt == 10:
+            break
+
+        select_link = select_area[0].find_elements(By.TAG_NAME, value="a")
+        select_link[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      area_id_dict = {"静岡県":27, "新潟県":13, "山梨県":17, "長野県":18, "茨城県":19, "栃木県":20, "群馬県":21, "東京都":22, "神奈川県":23, "埼玉県":24, "千葉県":25}
+      area_ids = []
+      for select_area in select_areas:
+        if area_id_dict.get(select_area):
+          area_ids.append(area_id_dict.get(select_area))
+      for area_id in area_ids:
+        if 19 <= area_id <= 25:
+          region = driver.find_elements(By.CLASS_NAME, value="select-details-area")[1]
+        elif 13 <= area_id <= 18:
+          region = driver.find_elements(By.CLASS_NAME, value="select-details-area")[2]
+        elif 26 <= area_id <= 29:
+          region = driver.find_elements(By.CLASS_NAME, value="select-details-area")[4]
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", region)
+        check = region.find_elements(By.ID, value=int(area_id))
+        time.sleep(1)
+        driver.execute_script("arguments[0].click();", check[0])
+      save_area = driver.find_elements(By.NAME, value="change")
+      time.sleep(1)
+      save_area[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      # 年齢
+      if youngest_age:
+        if 17 < int(youngest_age) < 59:
+          str_youngest_age = youngest_age + "歳"
+        elif 60 <= int(youngest_age):
+          str_youngest_age = "60歳以上"
+        from_age = driver.find_element(By.NAME, value="from_age")
+        select_from_age = Select(from_age)
+        select_from_age.select_by_visible_text(str_youngest_age)
+        time.sleep(1)
+      else:
+        youngest_age = ""
+      if oldest_age:
+        if 17 < int(oldest_age) < 59:
+          str_oldest_age = oldest_age + "歳"
+        elif 60 <= int(oldest_age):
+          str_oldest_age = "60歳以上" 
+        to_age = driver.find_element(By.ID, "to_age")
+        select = Select(to_age)
+        select.select_by_visible_text(str_oldest_age)
+        time.sleep(1)
+      else:
+        youngest_age = ""
+      # ページの高さを取得
+      last_height = driver.execute_script("return document.body.scrollHeight")
+      while True:
+        # ページの最後までスクロール
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        # ページが完全に読み込まれるまで待機
+        time.sleep(2)
+        # 新しい高さを取得
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        # ページの高さが変わらなければ、すべての要素が読み込まれたことを意味する
+        if new_height == last_height:
+            break
+        last_height = new_height
+      # 履歴あり、なしの設定
+      mail_history = driver.find_elements(By.CLASS_NAME, value="thumbnail-c")
+      check_flag = driver.find_element(By.ID, value="opt3") 
+      is_checked = check_flag.is_selected()
+      while not is_checked:
+          mail_history[2].click()
+          time.sleep(1)
+          is_checked = check_flag.is_selected()
+
+      enter_button = driver.find_elements(By.ID, value="search1")
+      enter_button[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      
+
+def set_fst_mail(name, driver, fst_message, send_cnt, user_agent_type):
+  mail_img = None
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
-  profile_search(driver)
+  profile_search(driver, user_agent_type)
   user_index = 0
   sent_cnt = 0
   sent_user_list = []
+  if user_agent_type == "iPhone":
+    catch_warning_pop(name, driver)
+    # ユーザーを取得
+    user_list = driver.find_element(By.CLASS_NAME, value="content_inner")
+    users = user_list.find_elements(By.XPATH, value='./div')
+    # ユーザーのhrefを取得
+    user_cnt = 1
+    link_list = []
+    for user_cnt in range(len(users)):
+      user_id = users[user_cnt].get_attribute("id")
+      if user_id == "loading":
+        # print('id=loading')
+        while user_id != "loading":
+          time.sleep(2)
+          user_id = users[user_cnt].get_attribute("id")
+      link = "https://pcmax.jp/mobile/profile_detail.php?user_id=" + user_id + "&search=prof&condition=648ac5f23df62&page=1&sort=&stmp_counter=13&js=1"
+      random_index = random.randint(0, len(link_list))
+      link_list.insert(random_index, link)
+
+    # print(f'リンクリストの数{len(link_list)}')
+    # メール送信
+    sent_cnt = 0
+    for idx, link_url in enumerate(link_list, 1):
+      send_status = True
+      driver.get(link_url)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      catch_warning_pop(name, driver)
+      # 名前を取得
+      user_name = driver.find_elements(By.CLASS_NAME, value="page_title")
+      if len(user_name):
+        user_name = user_name[0].text
+      else:
+        user_name = ""
+      # 年齢,活動地域を取得
+      profile_data = driver.find_elements(By.CLASS_NAME, value="data")
+      span_cnt = 0
+      while not len(profile_data):
+        time.sleep(1)
+        profile_data = driver.find_elements(By.CLASS_NAME, value="data")
+        span_cnt += 1
+        if span_cnt == 10:
+          print("年齢と活動地域の取得に失敗しました")
+          break
+      if not len(profile_data):
+        user_age = ""
+        area_of_activity = ""
+      else:
+        span_elem = profile_data[0].find_elements(By.TAG_NAME, value="span")
+        span_elem_list = []
+        for span in span_elem:
+          span_elem_list.append(span)
+        for i in span_elem_list:
+          if i.text == "送信歴あり":
+            print(f"{user_name}:送信歴ありのためスキップ")
+            send_status = False
+            # send_cnt += 1
+            break
+        user_age = span_elem[0].text
+        area_of_activity = span_elem[1].text
+      # 自己紹介文をチェック
+      self_introduction = driver.find_elements(By.XPATH, value="/html/body/main/div[4]/div/p")
+      if len(self_introduction):
+        self_introduction = self_introduction[0].text.replace(" ", "").replace("\n", "")
+        for ng_word in ng_words:
+          if ng_word in self_introduction:
+            print('自己紹介文に危険なワードが含まれていました')
+            time.sleep(1)
+            send_status = False
+            continue
+          if send_status == False:
+            break
+      # メッセージを送信
+      if send_status:
+        # メッセージをクリック
+        message = driver.find_elements(By.ID, value="message1")
+        if len(message):
+          message[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(3)
+        else:
+          continue
+        # 画像があれば送付
+        if mail_img:
+          picture_icon = driver.find_elements(By.CLASS_NAME, value="mail-menu-title")
+          picture_icon[0].click()
+          time.sleep(1)
+          picture_select = driver.find_element(By.ID, "my_photo")
+          select = Select(picture_select)
+          select.select_by_visible_text(mail_img)
+        # メッセージを入力
+        text_area = driver.find_element(By.ID, value="mdc")
+        script = "arguments[0].value = arguments[1];"
+        driver.execute_script(script, text_area, fst_message)
+        time.sleep(4)   
+        send = driver.find_element(By.ID, value="send_n")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send)
+        send.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2.5)
+        sent_cnt += 1
+        now = datetime.now().strftime('%m-%d %H:%M:%S')
+        print(f"{name} fst_message   ユーザー名:{user_name}  {sent_cnt}件送信  {now}")
+        if sent_cnt >= send_cnt:
+          break
+        
+
   while sent_cnt < send_cnt:
     catch_warning_pop(name, driver)
     elements = driver.find_elements(By.CLASS_NAME, 'list')
@@ -208,95 +485,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
     if elements:
       print(f"プロフ制限あり")
       break
-      # list_photos = driver.find_elements(By.CLASS_NAME, 'list_photo')
-      # if user_index >= len(list_photos):
-      #   print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
-      #   return
-      # list_photo = list_photos[user_index]
-      # user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
-      # send_flag = False
-      # while not send_flag:
-      #   send_flag = True
-      #   for img in user_imgs:
-      #     if "https://pcmax.jp/image/icon/16pix/emoji_206.png" in img.get_attribute('src'):
-      #       user_index += 1
-      #       if user_index >= len(list_photos) - 1:
-      #         print("~~~~~~~~~ユーザーリストを全て読み込みました~~~~~~~~~~~~~")
-      #         return
-      #       list_photo = list_photos[user_index]
-      #       user_imgs = list_photo.find_elements(By.TAG_NAME, 'img')
-      #       send_flag = False
-      #       if user_index % 15 == 0:
-      #         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-      #         time.sleep(4)
-      # link_elements = driver.find_elements(By.CLASS_NAME, 'text_left')
-      # link = link_elements[user_index].find_element(By.TAG_NAME, 'a')
-      # href = link.get_attribute('href')
-      # driver.execute_script(f"window.open('{href}', '_blank');")
-      # # タブを切り替え
-      # driver.switch_to.window(driver.window_handles[-1])
-      # time.sleep(0.5)
-      # catch_warning_pop(name, driver)
-      # try:
-      #   pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
-      # except NoSuchElementException:
-      #   print('正常に開けません スキップします')
-      #   user_index += 1
-      #   # いまのタブを閉じる
-      #   driver.close()
-      #   # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-      #   driver.switch_to.window(driver.window_handles[0])         
-      #   continue
-      # try:
-      #   content_menu = driver.find_element(By.ID, 'content_menu')
-      #   children = content_menu.find_elements(By.XPATH, "./*")
-      #   okotowari_flag = False
-      #   for child in children:
-      #     if child.text == "お断りリストに追加":
-      #       for ng_word in ng_words:
-      #         if ng_word in pr_area.text:
-      #           okotowari_flag = True
-      #           print('自己紹介文に危険なワードが含まれていました')
-      #           child.click()
-      #           driver.find_element(By.ID, 'image_button2').click()
-      #           time.sleep(5)
-      #           # いまのタブを閉じる
-      #           driver.close()
-      #           # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-      #           driver.switch_to.window(driver.window_handles[0])
-      #           user_index += 1
-      #           break
-        
-      # except NoSuchElementException:
-      #   pass
-      # if okotowari_flag:
-      #     continue
-      # text_area = driver.find_element(By.ID, value="mdc")
-      # script = "arguments[0].value = arguments[1];"
-      # driver.execute_script(script, text_area, fst_message)
-      # time.sleep(1)
-      # driver.find_element(By.ID, 'send3').click()
-      # user_index += 1
-      # sent_cnt += 1
-      # now = datetime.now().strftime('%m-%d %H:%M:%S')
-      # # # まじ
-      # # maji =  driver.find_element(By.ID, value="maji_btn")
-      # # maji.click()
-      # # print("まじ")
-      # # time.sleep(1)
-      # # # dialog_ok
-      # # dialog_ok = driver.find_element(By.ID, value="dialog_ok")
-      # # dialog_ok.click()
-      # # time.sleep(100)
-      # print(f"{name} fst_message {sent_cnt}件 送信 {now}")
-      # time.sleep(1)
-      # # いまのタブを閉じる
-      # driver.close()
-      # # 残っているウィンドウの一覧を取得して、先頭のタブに切り替える
-      # driver.switch_to.window(driver.window_handles[0])
-      # time.sleep(4)
-      # time.sleep(random_wait)
-
     # ユーザーリスト結果表示その２
     else:
       # print("# ユーザーリスト結果表示その２")
@@ -328,7 +516,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
           except NoSuchElementException:
             pass
           user_index += 1
-          profile_search(driver)
+          profile_search(driver, user_agent_type)
           ng_flag = True
           break
       if ng_flag:
@@ -337,7 +525,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
           time.sleep(random_wait)
-          profile_search(driver)
+          profile_search(driver, user_agent_type)
           user_index += 1
           sent_user_list.append(sent_user)
           continue
@@ -403,13 +591,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
      
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, second_message, condition_message,
-               mailserver_address, mailserver_password):
+               mailserver_address, mailserver_password, user_agent_type):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
-  driver.find_element(By.ID, "header_logo").click()
-  catch_warning_pop(name, driver)
   return_list = []
-  new_message_flag = get_header_menu(driver, "メッセージ")
+  new_message_flag = get_header_menu(driver, "メッセージ", user_agent_type)
   if not new_message_flag:
     return
   driver.find_element(By.CLASS_NAME, "not_yet").find_element(By.TAG_NAME, "a").click()
