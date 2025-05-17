@@ -973,6 +973,9 @@ def safe_execute(driver, action, *args, **kwargs):
       print(f"[試行中] {action.__name__} (試行回数: {retries + 1})")
       result = action(*args, **kwargs)
       print(f"[成功] {action.__name__} が完了しました")
+      print(driver.current_url)
+      # スクショします
+      driver.save_screenshot(f"{action.__name__}_{retries + 1}.png")
       return result
     except (ReadTimeoutError, TimeoutException) as e:
       retries += 1

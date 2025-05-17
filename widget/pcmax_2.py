@@ -416,6 +416,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   while True:
+    catch_warning_pop(name, driver)
     user_div_list = driver.find_elements(By.CSS_SELECTOR, ".mail_area.clearfix")
     if not user_div_list:
       break
@@ -463,7 +464,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           driver.find_element(By.ID, "image_button2").click()
         except Exception:
           pass
-
     elif not sent_by_me:
       try:
         if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
@@ -517,3 +517,5 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           driver.find_element(By.ID, "send_n").click()
         catch_warning_pop(name, driver)
     driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.5) 
