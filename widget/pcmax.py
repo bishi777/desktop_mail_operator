@@ -726,7 +726,6 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
       select_link[0].click()
     else:
       # 都道府県の変更、リセット
-      
       reset_area[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -894,17 +893,14 @@ def check_new_mail(pcmax_info, driver, wait):
   mail_address = pcmax_info["mail_address"]
   gmail_password = pcmax_info["gmail_password"]
   name = pcmax_info["name"]
-  # DEBUG
-  # if name != "りな":
-  #   return
   if login_id == None or login_id == "":
     print(f"{name}のpcmaxキャラ情報を取得できませんでした")
     return 1, 0
-  login_flug = login(name, login_id, login_pass, driver, wait)
+  # login_flug = login(name, login_id, login_pass, driver, wait)
   
-  if "制限" in login_flug:
-    return_list.append(login_flug)
-    return return_list, 0
+  # if "制限" in login_flug:
+  #   return_list.append(login_flug)
+  #   return return_list, 0
   warning_flug = catch_warning_pop(name, driver, wait)
   if warning_flug:
     warning_text = f"PCMAX {login_id}:{login_pass} {warning_flug}"
