@@ -110,12 +110,20 @@ try:
             print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
             print(traceback.format_exc())
         # elif index == 1:
-          top_image_check = happymail.check_top_image(name, driver, wait)  
-          if top_image_check:
-            if "ブラウザ" in top_image_check:
-              print("11111111111111111111111111111111")
-              happymail_new_list.append(top_image_check)
-          warning = happymail.catch_warning_screen(driver)
+          try:
+            top_image_check = happymail.check_top_image(name, driver, wait)  
+            if top_image_check:
+              if "ブラウザ" in top_image_check:
+                print("11111111111111111111111111111111")
+                happymail_new_list.append(top_image_check)
+            warning = happymail.catch_warning_screen(driver)
+          except ReadTimeoutError as e:
+            print("🔴 ページの読み込みがタイムアウトしました:", e)
+            func.safe_execute(driver, driver.refresh)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          except Exception as e:
+            print(f"{name}❌ 画像チェック  の操作でエラー: {e}")
+            print(traceback.format_exc())
           if warning:
             print(f"{name} {warning}")
             happymail_new_list.append(f"{name} {warning}")
