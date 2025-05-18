@@ -112,9 +112,9 @@ while True:
       login_id = ""
       if name_on_pcmax == i['name']:
         name = i["name"]
-        if  "すい" != name:
-          print(name)
-          continue
+        # if  "すい" != name:
+        #   print(name)
+        #   continue
         login_id = i["login_id"]
         login_pass = i["password"]
         # print(f"{login_id}   {login_pass}")
