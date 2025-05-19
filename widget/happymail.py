@@ -117,6 +117,9 @@ def nav_item_click(nav_name, driver, wait):
       print(f"ナビゲーターリストの取得に失敗しました")
       return False
   choice_nav = nav_list[0].find_elements(By.LINK_TEXT, nav_name)
+  if not len(choice_nav):
+      print(f"choice_navの取得に失敗しました")
+      return False
   if nav_name == "メッセージ":
     parent_elem = choice_nav[0].find_element(By.XPATH, "..")
     new_message = parent_elem.find_elements(By.CLASS_NAME, value="ds_red_circle")
