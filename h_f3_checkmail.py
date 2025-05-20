@@ -51,10 +51,11 @@ if mailaddress and gmail_password and receiving_address:
 try:
   drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
   for name, data in drivers.items(): 
-    send_messages_list.append({"名前": name, "マッチング総数": 0, "足跡返し総数": 0, "合計": 0, "送信上限フラグ": False,})
+    send_messages_list.append({"名前": name, "マッチング総数": 0, "足跡返し総数": 0, "合計": 0, "マッチング送信上限フラグ": False, "足跡返し送信上限フラグ": False,})
   loop_cnt = 0
   sent_cnt = 0
-  daily_limit = 111
+  returnfoot_daily_limit = 100
+  matching_daily_limit = 20
   last_sent_date = datetime.now().date()
   # 足跡付け、チェックメール　ループ
   while True:
@@ -141,25 +142,30 @@ try:
                   print(f"✅ 日付が変わったので {name} のカウントをリセットします（{last_sent_date} → {today}）")
                   sent_cnt = 0
                   last_sent_date = today
+                  text = ""
+                  title = "result"
+                  for item in send_messages_list:
+                    text += item + ",\n" 
+                  func.send_mail(text, mail_info, title)
+
               if 6 <= now.hour < 22:
                 # 6時から22時の間に足跡返しを実行
                 # 足跡返しの処理
                 for i in send_messages_list:
                   if i["名前"] == name:
-                    if i["送信上限フラグ"] == True:
-                      print(f"🔴 {name} : 足跡返しの上限 {daily_limit} に達しています。スキップします。")  
-                    else:
+                    if i["足跡返し送信上限フラグ"] and i["マッチング送信上限フラグ"]:
+                      print(f"🔴 {name} : 足跡返しの上限 {returnfoot_daily_limit} に達しています。スキップします。")  
+                    else: 
                       try:
                         happymail_cnt = happymail.return_footpoint(
-                            name, driver, wait, return_foot_message, 4, 4, 4, mail_img, fst_message
+                            name, driver, wait, return_foot_message, 4, 4, 4, mail_img, fst_message, matching_daily_limit, returnfoot_daily_limit, i["マッチング総数"], i["足跡返し総数"]
                         )
                         total_cnt = happymail_cnt[0] + happymail_cnt[2]
                         i["マッチング総数"] += happymail_cnt[0]
                         i["足跡返し総数"] += happymail_cnt[2]
                         i["合計"] += total_cnt
-                        if i["足跡返し総数"] > daily_limit:
-                          i["送信上限フラグ"] = True
-                        print(f"足跡返し{happymail_cnt[2]} 件")
+                        i["マッチング送信上限フラグ"] = happymail_cnt[3]
+                        i["足跡返し送信上限フラグ"] = happymail_cnt[4]
                       except ReadTimeoutError as e:
                         print("🔴 ページの読み込みがタイムアウトしました:", e)
                         func.safe_execute(driver, driver.refresh)
