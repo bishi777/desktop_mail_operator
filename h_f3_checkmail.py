@@ -115,7 +115,6 @@ try:
             top_image_check = happymail.check_top_image(name, driver, wait)  
             if top_image_check:
               if "ブラウザ" in top_image_check:
-                print("11111111111111111111111111111111")
                 happymail_new_list.append(top_image_check)
             warning = happymail.catch_warning_screen(driver)
           except ReadTimeoutError as e:
@@ -139,16 +138,16 @@ try:
               today = now.date()
               # 日付が変わっていたらカウントをリセット
               if today != last_sent_date:
-                  print(f"✅ 日付が変わったので {name} のカウントをリセットします（{last_sent_date} → {today}）")
-                  sent_cnt = 0
-                  last_sent_date = today
-                  text = ""
-                  title = "result"
-                  for item in send_messages_list:
-                    text += item + ",\n" 
-                  func.send_mail(text, mail_info, title)
-
+                print(f"✅ 日付が変わったので {name} のカウントをリセットします（{last_sent_date} → {today}）")
+                sent_cnt = 0
+                last_sent_date = today
+                text = ""
+                title = "result"
+                for item in send_messages_list:
+                  text += item + ",\n" 
+                func.send_mail(text, mail_info, title)
               if 6 <= now.hour < 22:
+                rf_out_of_hours_cnt = 0
                 # 6時から22時の間に足跡返しを実行
                 # 足跡返しの処理
                 for i in send_messages_list:
@@ -175,6 +174,13 @@ try:
                         print(traceback.format_exc())
               else:
                 print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
+                if rf_out_of_hours_cnt == 0:
+                  text = ""
+                  title = "result"
+                  for item in send_messages_list:
+                    text += item + ",\n" 
+                  func.send_mail(text, mail_info, title)
+                rf_out_of_hours_cnt += 1
             except ReadTimeoutError as e:
               print("🔴 ページの読み込みがタイムアウトしました:", e)
               func.safe_execute(driver, driver.refresh)
