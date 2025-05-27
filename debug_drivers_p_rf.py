@@ -125,26 +125,26 @@ while True:
         second_message = i["second_message"]
         condition_message = i["condition_message"]
         send_cnt = 3
-        # try:
-        #   print("新着メールチェック開始")   
-        #   pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
-        #   driver.get("https://pcmax.jp/pcm/index.php")   
-        # except Exception as e:
-        #   print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-        #   traceback.print_exc()  
+        try:
+          print("新着メールチェック開始")   
+          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
+          driver.get("https://pcmax.jp/pcm/index.php")   
+        except Exception as e:
+          print(f"{name}❌ メールチェック  の操作でエラー: {e}")
+          traceback.print_exc()  
         if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
-          # try:
-          #   print("足跡付け送信開始")
-          #   fp_cnt = 3
-          #   if fp_cnt > 0:
-          #     pcmax_2.make_footprint(name, driver,  fp_cnt)
-          #     time.sleep(1.5)   
-          # except Exception as e:
-          #   print(f"{name}❌ fst_mail  の操作でエラー: {e}")
-          #   traceback.print_exc()   
-          # driver.get("https://pcmax.jp/pcm/index.php")
-          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          # time.sleep(1.5)
+          try:
+            print("足跡付け送信開始")
+            fp_cnt = 9
+            if fp_cnt > 0:
+              pcmax_2.make_footprint(name, driver,  fp_cnt)
+              time.sleep(1.5)   
+          except Exception as e:
+            print(f"{name}❌ fst_mail  の操作でエラー: {e}")
+            traceback.print_exc()   
+          driver.get("https://pcmax.jp/pcm/index.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
           try:
             print("足跡がえし送信開始")
             rf_cnt = 3
