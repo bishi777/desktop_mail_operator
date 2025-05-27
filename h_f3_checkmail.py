@@ -84,22 +84,18 @@ try:
         if index  == 0:
           # print(f"タブ{index+1}: {driver.current_url}")  
           print(f"{name} 新着メールチェック...")
-          new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-          if new_message_flug == "新着メールなし" and top_image_check is False:
-            print(f"{name}　新着メールなし")
-          else:  
-            try:
-              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-              print(f"{name} 新着メールチェック完了")
-            except NoSuchWindowException:
-              pass
-            except ReadTimeoutError as e:
-              print("🔴 ページの読み込みがタイムアウトしました:", e)
-              func.safe_execute(driver, driver.refresh)
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            except Exception as e:
-              print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
-              print(traceback.format_exc())
+          try:
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            print(f"{name} 新着メールチェック完了")
+          except NoSuchWindowException:
+            pass
+          except ReadTimeoutError as e:
+            print("🔴 ページの読み込みがタイムアウトしました:", e)
+            func.safe_execute(driver, driver.refresh)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          except Exception as e:
+            print(f"{name}❌ 新着メールチェック  の操作でエラー: {e}")
+            print(traceback.format_exc())
           # 足跡付けの処理
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
@@ -213,6 +209,10 @@ try:
     for item in send_messages_list:
       print(item)
     loop_cnt += 1
+    while elapsed_time < 600:
+      time.sleep(20)
+      elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
+      print(f"待機中~~ {elapsed_time} ")
         
 except KeyboardInterrupt:
   # Ctrl+C が押された場合

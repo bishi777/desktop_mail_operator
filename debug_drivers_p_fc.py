@@ -124,8 +124,12 @@ while True:
         second_message = i["second_message"]
         condition_message = i["condition_message"]
         send_cnt = 3
+        
         try:
           print("新着メールチェック開始")   
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
           pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
           driver.get("https://pcmax.jp/pcm/index.php")   
         except Exception as e:
@@ -145,7 +149,7 @@ while True:
           time.sleep(1.5)
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:
-    time.sleep(20)
+    time.sleep(10)
     elapsed_time = time.time() - start_time  # 経過時間を計算する
     print(f"待機中~~ {elapsed_time} ")
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")

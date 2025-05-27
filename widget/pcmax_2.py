@@ -161,15 +161,15 @@ def profile_search(driver):
       time.sleep(1)
   except NoSuchElementException:
     pass
-  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  for area, area_id in random_areas.items():
-    try:
-      checkbox = driver.find_element(By.ID, str(area_id))
-      if not checkbox.is_selected():
-        checkbox.click()
-        time.sleep(1)
-    except NoSuchElementException:
-      pass
+  # random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+  # for area, area_id in random_areas.items():
+  #   try:
+  #     checkbox = driver.find_element(By.ID, str(area_id))
+  #     if not checkbox.is_selected():
+  #       checkbox.click()
+  #       time.sleep(1)
+  #   except NoSuchElementException:
+  #     pass
   # 年齢設定
   try:
     time.sleep(2)
@@ -491,7 +491,138 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       print("４分経過していません")
       break
 
+def make_footprint(name, driver,  fp_limit_cnt):
+  catch_warning_pop(name, driver)
+  wait = WebDriverWait(driver, 10)
+  random_wait = random.uniform(1.5, 8)
+
+  profile_search(driver)
+  elements = driver.find_elements(By.CLASS_NAME, 'list')
+  # ユーザーリスト結果表示その１
+  if elements:
+    print(f"プロフ制限あり")
+    return
+  fp_cnt = 0
+  while fp_cnt < fp_limit_cnt:
+    catch_warning_pop(name, driver)
+    elements = driver.find_elements(By.CLASS_NAME, 'name')
+    fp_user = elements[fp_cnt].text
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[fp_cnt])
+    time.sleep(0.6)
+    elements[fp_cnt].click()
+    catch_warning_pop(name, driver)
+    try:
+      driver.find_element(By.CLASS_NAME, 'pr_area')
+    except NoSuchElementException:
+      print('正常に開けません スキップします') 
+      continue
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(random_wait)
+    print(f"足跡付け　　{fp_user}")
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.5)
+    fp_cnt += 1
+  return
   
-        
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
+  catch_warning_pop(name, driver)
+  wait = WebDriverWait(driver, 10)
+  ashiato_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[2]
+  # print(ashiato_list_link.text)
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
+  time.sleep(0.5)
+  ashiato_list_link.click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.5)
+  rf_cnt = 0
+  user_index = 0
+  while rf_cnt < send_limit_cnt:
+    foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+    if user_index >= len(foot_user_list):
+      print(f"user_index={user_index} が foot_user_list の長さ {len(foot_user_list)} を超えています。")
+      break  
+    like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
+    if not len(like):
+      user_index += 1
+    else:
+      like[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.8)
+      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+      foot_user_link = foot_user_list[user_index].find_element(By.CLASS_NAME, "post_content").find_elements(By.TAG_NAME, 'a')[0]
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_link)
+      time.sleep(0.5)
+      foot_user_link.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.5)
+      try:
+        memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
+        if "もふ" in memo_edit.text:
+          time.sleep(2)
+          user_index += 1
+          continue
+      except NoSuchElementException:
+        pass
+      driver.find_element(By.CLASS_NAME, 'memo_open').click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+      driver.find_element(By.ID, 'memo_send').click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      text_area = driver.find_element(By.ID, value="mail_com")
+      script = "arguments[0].value = arguments[1];"
+      driver.execute_script(script, text_area, return_foot_message)
+      time.sleep(1)
+      # まじ送信　
+      mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+      pattern = r'\d+'
+      match = re.findall(pattern, mile_point_text)
+      if int(match[0]) > 20:
+        maji_soushin = True
+      else:
+        maji_soushin = False
+      time.sleep(4)
+      now = datetime.now().strftime('%m-%d %H:%M:%S')
+      if maji_soushin:
+        maji =  driver.find_element(By.ID, value="majiBtn")
+        maji.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        link_OK = driver.find_element(By.ID, value="link_OK")
+        link_OK.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+      else:
+        driver.find_element(By.ID, 'send3').click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      if len(driver.find_elements(By.ID, value="mailform_box")):
+        if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
+          print("連続防止　待機中...")
+          time.sleep(6)
+          if maji_soushin:
+            maji =  driver.find_element(By.ID, value="majiBtn")
+            maji.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            link_OK = driver.find_element(By.ID, value="link_OK")
+            link_OK.click()
+          else:
+            driver.find_element(By.ID, 'send3').click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+      rf_cnt += 1   
+      print(f"{name} 足跡がえし マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+      user_index += 1
+      catch_warning_pop(name, driver)
+      back2 = driver.find_element(By.ID, value="back2")
+      driver.execute_script("arguments[0].click();", back2)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+
+
+
+
         
         

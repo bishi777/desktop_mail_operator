@@ -22,7 +22,7 @@ receiving_address = user_data['user'][0]['user_email']
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[1]['port']}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[0]['port']}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
@@ -121,28 +121,40 @@ while True:
         gmail_address = i["mail_address"]
         gmail_password= i["gmail_password"]
         fst_message = i["fst_mail"]
+        return_foot_message = i["return_foot_message"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
         send_cnt = 3
-        try:
-          print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
-          driver.get("https://pcmax.jp/pcm/index.php")   
-        except Exception as e:
-          print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-          traceback.print_exc()  
+        # try:
+        #   print("新着メールチェック開始")   
+        #   pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
+        #   driver.get("https://pcmax.jp/pcm/index.php")   
+        # except Exception as e:
+        #   print(f"{name}❌ メールチェック  の操作でエラー: {e}")
+        #   traceback.print_exc()  
         if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+          # try:
+          #   print("足跡付け送信開始")
+          #   fp_cnt = 3
+          #   if fp_cnt > 0:
+          #     pcmax_2.make_footprint(name, driver,  fp_cnt)
+          #     time.sleep(1.5)   
+          # except Exception as e:
+          #   print(f"{name}❌ fst_mail  の操作でエラー: {e}")
+          #   traceback.print_exc()   
+          # driver.get("https://pcmax.jp/pcm/index.php")
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # time.sleep(1.5)
           try:
-            print("fst_mail送信開始")
-            if send_cnt > 0:
-              pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
+            print("足跡がえし送信開始")
+            rf_cnt = 3
+            if rf_cnt > 0:
+              pcmax_2.return_footmessage(name, driver,  return_foot_message, rf_cnt)
               time.sleep(1.5)   
           except Exception as e:
-            print(f"{name}❌ fst_mail  の操作でエラー: {e}")
+            print(f"{name}❌ 足跡がえし  の操作でエラー: {e}")
             traceback.print_exc()   
-          driver.get("https://pcmax.jp/pcm/index.php")
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
+
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:
     time.sleep(20)
