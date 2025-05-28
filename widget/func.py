@@ -885,7 +885,9 @@ def get_user_data():
   raise Exception("サーバーへの接続に失敗しました。")
 
 # 文字列を正規化する関数
-def normalize_text(text):
+def normalize_text(text, user_name=""):
+    if user_name:
+      text.replace("〇〇", user_name)
     # Unicodeの互換正規化（NFKC）を使って、全角・半角や記号を統一
     return unicodedata.normalize('NFKC', text).replace("\n", "").replace("\r", "").replace(" ", "").replace("　", "").replace("〜", "~")
 
