@@ -13,7 +13,9 @@ import smtplib
 import traceback
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
+import sys
 
+arg1 = sys.argv[1] if len(sys.argv) > 1 else None
 user_data = func.get_user_data()
 wait_time = 1.5
 mailserver_address = user_data['user'][0]['gmail_account']
@@ -22,7 +24,7 @@ receiving_address = user_data['user'][0]['user_email']
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[0]['port']}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[int(arg1)]['port']}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
@@ -35,7 +37,6 @@ handles = driver.window_handles
 # driver.refresh()
 # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 # time.sleep(1.5)
-
 print(f"タブ数: {len(handles)}")
 roop_index = 0
 while True:
