@@ -404,6 +404,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           for user_address in email_list:
             site = "pcmax"
             try:
+              func.normalize_text(condition_message)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
               print("アドレス内1stメールを送信しました")
             except Exception:

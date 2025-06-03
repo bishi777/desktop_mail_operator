@@ -37,6 +37,7 @@ handles = driver.window_handles
 # time.sleep(1.5)
 
 print(f"タブ数: {len(handles)}")
+roop_index = 0
 while True:
   start_loop_time = time.time()
   now = datetime.now()
@@ -112,8 +113,7 @@ while True:
       login_id = ""
       if name_on_pcmax == i['name']:
         name = i["name"]
-        # if  "すい" != name:
-        #   print(name)
+        # if  "りな" != name:
         #   continue
         login_id = i["login_id"]
         login_pass = i["password"]
@@ -138,6 +138,11 @@ while True:
         if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
           try:
             print("fst_mail送信開始")
+            if  "りな" == name:
+              print(name)
+              print(roop_index)
+              if roop_index % 5 == 0 and roop_index != 0:
+                send_cnt = 4
             if send_cnt > 0:
               pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
               time.sleep(1.5)   
@@ -153,6 +158,7 @@ while True:
     elapsed_time = time.time() - start_time  # 経過時間を計算する
     print(f"待機中~~ {elapsed_time} ")
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+  roop_index += 1
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
