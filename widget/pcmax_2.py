@@ -204,9 +204,6 @@ def profile_search(driver):
 
 
 def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
-  print(777)
-  print(mail_img)
-  
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
@@ -298,6 +295,9 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
             select.select_by_visible_text(option.text)
             time.sleep(0.4)
             break
+        driver.find_element(By.NAME, "preview").click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.3)
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
         maji =  driver.find_element(By.ID, value="majiBtn")
