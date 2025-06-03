@@ -161,15 +161,15 @@ def profile_search(driver):
       time.sleep(1)
   except NoSuchElementException:
     pass
-  # random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  # for area, area_id in random_areas.items():
-  #   try:
-  #     checkbox = driver.find_element(By.ID, str(area_id))
-  #     if not checkbox.is_selected():
-  #       checkbox.click()
-  #       time.sleep(1)
-  #   except NoSuchElementException:
-  #     pass
+  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+  for area, area_id in random_areas.items():
+    try:
+      checkbox = driver.find_element(By.ID, str(area_id))
+      if not checkbox.is_selected():
+        checkbox.click()
+        time.sleep(1)
+    except NoSuchElementException:
+      pass
   # 年齢設定
   try:
     time.sleep(2)
@@ -202,10 +202,11 @@ def profile_search(driver):
     search_button = driver.find_element(By.ID, "search1")
   search_button.click()
 
-  
 
-def set_fst_mail(name, driver, fst_message, send_cnt):
-  mail_img = None
+def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
+  print(777)
+  print(mail_img)
+  
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
@@ -287,6 +288,16 @@ def set_fst_mail(name, driver, fst_message, send_cnt):
       else:
         maji_soushin = False
       time.sleep(random_wait)
+      # mail_imgがあれば送付
+      if mail_img:
+        my_photo_element = driver.find_element(By.ID, "my_photo")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+        select = Select(my_photo_element)
+        for option in select.options:
+          if mail_img in option.text:
+            select.select_by_visible_text(option.text)
+            time.sleep(0.4)
+            break
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
         maji =  driver.find_element(By.ID, value="majiBtn")

@@ -124,6 +124,7 @@ while True:
         fst_message = i["fst_mail"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
+        mail_img = i["mail_img"]
         send_cnt = 3
         
         try:
@@ -142,10 +143,10 @@ while True:
             if  "りな" == name:
               print(name)
               print(roop_index)
-              if roop_index % 5 == 0 and roop_index != 0:
+              if roop_index % 5 == 0:
                 send_cnt = 4
             if send_cnt > 0:
-              pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt)
+              pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
               time.sleep(1.5)   
           except Exception as e:
             print(f"{name}❌ fst_mail  の操作でエラー: {e}")
