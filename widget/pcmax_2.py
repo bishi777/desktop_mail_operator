@@ -223,8 +223,15 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
     else:
       # print("# ユーザーリスト結果表示その２")
       elements = driver.find_elements(By.CLASS_NAME, 'name')
-      # print(len(elements))
-      # print(elements[0].text)
+      cnt = 0
+      while not len(elements):
+        driver.refresh()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        elements = driver.find_elements(By.CLASS_NAME, 'name')
+        cnt += 1
+        if cnt == 2:
+          return
       sent_user = elements[0].text
       while sent_user in sent_user_list:
         # print(f"{sent_user}はすでに送信済みです")
