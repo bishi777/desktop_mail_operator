@@ -27,140 +27,59 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 
-# DevTools Protocol で User-Agent を変更
-# driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-#     "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-# })
-# user_agent_type = "iPhone"
-# driver.refresh()
-# wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-# time.sleep(1.5)
-
-print(f"タブ数: {len(handles)}")
-while True:
+mohu = 0
+for i in range(9999):
   start_loop_time = time.time()
   now = datetime.now()
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
-    WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
-    print(f"  📄 タブ{idx+1}: {driver.current_url}")
-    skip_urls = [
-      "profile_reference.php",
-      "profile_rest_list.php",
-      "profile_list.php",
-      "profile_detail.php",
-      "profile_rest_reference.php",
-      "pcmax.jp/pcm/file.php"
-    ]
-    if any(part in driver.current_url for part in skip_urls):
-      driver.get("https://pcmax.jp/pcm/index.php")
+    if mohu == 50:
+      driver.get("https://pcmax.jp/pcm/index.php")   
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)  
-
-    if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
-      continue
+      time.sleep(1)
+      pcmax_2.profile_search(driver)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      mohu = 0
+    # 足跡付け
     try:
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      print(login_flug)   
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      while not len(name_on_pcmax):
-        # 再ログイン処理
-        main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
-        if len(main_photo):
-          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-          if len(login_form):
-            login = login_form[0].find_elements(By.TAG_NAME, 'a')
-            login[0].click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
-        else:
-          print("メイン写真が見つかりません")
-          # スクショします
-          driver.save_screenshot("screenshot.png")
-        time.sleep(8.5)
-        login_button = driver.find_element(By.NAME, "login")
-        login_button.click()
+      if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
+        mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1.5)      
-        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        re_login_cnt = 0
-        while not len(name_on_pcmax):
-          time.sleep(5)
-          login_button = driver.find_element(By.NAME, "login")
-          login_button.click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
-          pcmax_2.catch_warning_pop("", driver)
-          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-          re_login_cnt += 1
-          if re_login_cnt > 5:
-            print("再ログイン失敗")
-            break
-          
-      name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
+        user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[mohu])
+        time.sleep(1)
+        user_list[mohu].find_element(By.CLASS_NAME, "profile_link_btn").click()
+      elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
+        mohu_flug = True
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        driver.back()
+        time.sleep(1)
     except Exception as e:
-      print(f"~~~~~❌ ログインの操作でエラー: {e}")
+      print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
-      driver.get("https://pcmax.jp/pcm/index.php")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
-      continue
-    for index, i in enumerate(pcmax_datas):
-      login_id = ""
-      if name_on_pcmax == i['name']:
-        name = i["name"]
-        # if  "すい" != name:
-        #   print(name)
-        #   continue
-        login_id = i["login_id"]
-        login_pass = i["password"]
-        # print(f"{login_id}   {login_pass}")
-        gmail_address = i["mail_address"]
-        gmail_password= i["gmail_password"]
-        fst_message = i["fst_mail"]
-        return_foot_message = i["return_foot_message"]
-        second_message = i["second_message"]
-        condition_message = i["condition_message"]
-        send_cnt = 3
-        try:
-          print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
-          driver.get("https://pcmax.jp/pcm/index.php")   
-        except Exception as e:
-          print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-          traceback.print_exc()  
-        if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
-          try:
-            print("足跡付け送信開始")
-            fp_cnt = 9
-            if fp_cnt > 0:
-              pcmax_2.make_footprint(name, driver,  fp_cnt)
-              time.sleep(1.5)   
-          except Exception as e:
-            print(f"{name}❌ fst_mail  の操作でエラー: {e}")
-            traceback.print_exc()   
-          driver.get("https://pcmax.jp/pcm/index.php")
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
-          try:
-            print("足跡がえし送信開始")
-            rf_cnt = 3
-            if rf_cnt > 0:
-              pcmax_2.return_footmessage(name, driver,  return_foot_message, rf_cnt)
-              time.sleep(1.5)   
-          except Exception as e:
-            print(f"{name}❌ 足跡がえし  の操作でエラー: {e}")
-            traceback.print_exc()   
+  if mohu_flug:
+    mohu += 1
+    print(f"足跡付け {mohu}件")    
+    elapsed_time = time.time() - start_time  # 経過時間を計算する   
+    print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    minutes, seconds = divmod(int(elapsed_time), 60)
+    print(f"タイム: {minutes}分{seconds}秒")  
+  
 
-  elapsed_time = time.time() - start_time  # 経過時間を計算する   
-  while elapsed_time < 720:
-    time.sleep(20)
-    elapsed_time = time.time() - start_time  # 経過時間を計算する
-    print(f"待機中~~ {elapsed_time} ")
-  print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
-  elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
-  minutes, seconds = divmod(int(elapsed_time), 60)
-  print(f"タイム: {minutes}分{seconds}秒")  
-  # driver.quit()
-  time.sleep(2)
+
+
+# driver.execute_script("window.open('https://pcmax.jp/pcm/index.php');")
+          # time.sleep(1)
+          # tabs = driver.window_handles
+          # driver.switch_to.window(tabs[1])
+          # print("新着メールチェック開始")   
+          # pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
+          # driver.get("https://pcmax.jp/pcm/index.php")   
+          # print("足跡がえし")
+          # pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img)
+          #  finally:
+          # driver.close()
+          # # 残っている元のタブに戻る
+          # driver.switch_to.window(tabs[0])

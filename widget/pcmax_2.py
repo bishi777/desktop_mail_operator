@@ -510,41 +510,9 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       print("４分経過していません")
       break
 
-def make_footprint(name, driver,  fp_limit_cnt):
-  catch_warning_pop(name, driver)
-  wait = WebDriverWait(driver, 10)
-  random_wait = random.uniform(1.5, 8)
 
-  profile_search(driver)
-  elements = driver.find_elements(By.CLASS_NAME, 'list')
-  # ユーザーリスト結果表示その１
-  if elements:
-    print(f"プロフ制限あり")
-    return
-  fp_cnt = 0
-  while fp_cnt < fp_limit_cnt:
-    catch_warning_pop(name, driver)
-    elements = driver.find_elements(By.CLASS_NAME, 'name')
-    fp_user = elements[fp_cnt].text
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[fp_cnt])
-    time.sleep(0.6)
-    elements[fp_cnt].click()
-    catch_warning_pop(name, driver)
-    try:
-      driver.find_element(By.CLASS_NAME, 'pr_area')
-    except NoSuchElementException:
-      print('正常に開けません スキップします') 
-      continue
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(random_wait)
-    print(f"足跡付け　　{fp_user}")
-    driver.back()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.5)
-    fp_cnt += 1
-  return
   
-def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   ashiato_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[2]
@@ -558,9 +526,16 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
   user_index = 0
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+    bottom_scroll_cnt = 0
     if user_index >= len(foot_user_list):
-      print(f"user_index={user_index} が foot_user_list の長さ {len(foot_user_list)} を超えています。")
-      break  
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      bottom_scroll_cnt += 1
+      if bottom_scroll_cnt == 1:
+        print(f"user_index={user_index} が foot_user_list の長さ {len(foot_user_list)} を超えています。")
+        break
+
     like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
     if not len(like):
       user_index += 1
@@ -578,6 +553,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
       try:
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
+          driver.back()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           user_index += 1
           continue
@@ -593,7 +570,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
       text_area = driver.find_element(By.ID, value="mail_com")
       script = "arguments[0].value = arguments[1];"
       driver.execute_script(script, text_area, return_foot_message)
-      time.sleep(1)
+      time.sleep(1)  
       # まじ送信　
       mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
       pattern = r'\d+'
@@ -603,6 +580,18 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt):
       else:
         maji_soushin = False
       time.sleep(4)
+      if mail_img:
+        my_photo_element = driver.find_element(By.ID, "my_photo")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+        select = Select(my_photo_element)
+        for option in select.options:
+          if mail_img in option.text:
+            select.select_by_visible_text(option.text)
+            time.sleep(0.4)
+            break
+        driver.find_element(By.NAME, "preview").click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.3)  
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
         maji =  driver.find_element(By.ID, value="majiBtn")
