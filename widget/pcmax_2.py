@@ -36,8 +36,14 @@ def catch_warning_pop(name, driver):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
   try:
-    if driver.find_elements(By.CLASS_NAME, 'suspend-title') or driver.find_elements(By.CLASS_NAME, 'setting-title'):
-      warning = f"{name} pcmax利用制限がかかっている可能性があります"
+    suspend_title = driver.find_elements(By.CLASS_NAME, 'suspend-title')
+    if suspend_title:
+      if "利用"in suspend_title[0].text:
+        warning = f"{name} pcmax利用制限がかかっている可能性があります"
+    setting_title = driver.find_elements(By.CLASS_NAME, 'setting-title')
+    if setting_title:
+      if "番号"in setting_title[0].text:
+        warning = f"{name} pcmax利用制限がかかっている可能性があります"
   except Exception:
     pass
   try:
@@ -80,7 +86,6 @@ def catch_warning_pop(name, driver):
     kiyaku_btns = driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')
     if kiyaku_btns:
       print("kiyaku_btns")
-
       print(kiyaku_btns[0].text)
       kiyaku_btns[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
