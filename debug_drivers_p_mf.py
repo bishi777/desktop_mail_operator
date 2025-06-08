@@ -46,9 +46,10 @@ for i in range(9999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
-        time.sleep(0.5)
+        time.sleep(0.3)
         user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
         print(f"足跡付け {current_step}件")    
+        time.sleep(0.5)
     except Exception as e:
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
