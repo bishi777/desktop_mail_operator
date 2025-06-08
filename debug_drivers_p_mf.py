@@ -26,10 +26,9 @@ options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
-
 current_step = 0
 
-for i in range(9999):
+for i in range(99999):
   start_loop_time = time.time()
   now = datetime.now()
   start_time = time.time() 
@@ -45,36 +44,66 @@ for i in range(9999):
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
-        time.sleep(0.4)
-        user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
-        print(f"足跡付け {current_step}件")    
-        time.sleep(2)
+        if current_step < len(user_list):
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
+          time.sleep(0.4)
+          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
+          current_step += 1  
+          print(f"足跡付け {current_step}件")    
+          time.sleep(2)
+        else:
+          print("足跡付けのユーザーがいません")
+          search_profile_flug = True
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
+  if search_profile_flug:
+    for idx, handle in enumerate(handles): 
+      driver.switch_to.window(handle)
+      login_flug = pcmax_2.catch_warning_pop("", driver)
+      if login_flug and "制限" in login_flug:
+        # print("制限がかかっているため、スキップを行います")
+        continue
+      print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
+      try:    
+        driver.get("https://pcmax.jp/pcm/index.php")   
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.5)
+        pcmax_2.catch_warning_pop("", driver)
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        pcmax_2.profile_search(driver)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        continue
+      except Exception as e:
+        print(f"❌  の操作でエラー: {e}")
+        traceback.print_exc()  
+      # ユーザーをクリック
+      try:
+        if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
+          mohu_flug = False
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+          if current_step < len(user_list):
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
+            time.sleep(0.4)
+            user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
+            current_step += 1  
+            print(f"足跡付け {current_step}件")    
+            time.sleep(2)
+          else:
+            print("足跡付けのユーザーがいません")
+            search_profile_flug = True
+      except Exception as e:
+        print(f"❌  足跡付けの操作でエラー: {e}")
+        traceback.print_exc()  
+
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
       # print("制限がかかっているため、スキップを行います")
       continue
-    if idx == i % len(handles):
-      if random.random() < 0.5:
-        print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
-        try:    
-          driver.get("https://pcmax.jp/pcm/index.php")   
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5)
-          pcmax_2.catch_warning_pop("", driver)
-          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-          print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
-          pcmax_2.profile_search(driver)
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          continue
-        except Exception as e:
-          print(f"❌  の操作でエラー: {e}")
-          traceback.print_exc()  
     # ユーザー詳細画面から戻る
     try:
       login_flug = pcmax_2.catch_warning_pop("", driver)
@@ -84,7 +113,6 @@ for i in range(9999):
       if "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         driver.back()
-        current_step_flug = True    
       else:
         try:
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
@@ -137,8 +165,6 @@ for i in range(9999):
     except Exception as e:
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
-  if current_step_flug:
-    current_step += 1  
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
