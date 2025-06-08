@@ -57,8 +57,9 @@ for i in range(9999):
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
-      print("制限がかかっているため、スキップを行います")
+      print("制限がかかっているため、スキップを行います8888888888")
       continue
+    print(77777)
     if idx == i % len(handles):
       if current_step % 5 == 0:
         try:    
@@ -75,9 +76,6 @@ for i in range(9999):
     # ユーザー詳細画面から戻る
     try:
       login_flug = pcmax_2.catch_warning_pop("", driver)
-      if login_flug and "制限" in login_flug:
-        print("制限がかかっているため、スキップを行います")
-        continue
       if "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         driver.back()
