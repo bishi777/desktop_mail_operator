@@ -46,10 +46,10 @@ for i in range(9999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
-        time.sleep(0.3)
+        time.sleep(0.4)
         user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
         print(f"足跡付け {current_step}件")    
-        time.sleep(0.5)
+        time.sleep(0.6)
     except Exception as e:
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
@@ -57,7 +57,7 @@ for i in range(9999):
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
-      print("制限がかかっているため、スキップを行います")
+      # print("制限がかかっているため、スキップを行います")
       continue
     if idx == i % len(handles):
       if current_step % 5 == 0:
@@ -76,7 +76,7 @@ for i in range(9999):
     try:
       login_flug = pcmax_2.catch_warning_pop("", driver)
       if login_flug and "制限" in login_flug:
-        print("制限がかかっているため、スキップを行います")
+        # print("制限がかかっているため、スキップを行います")
         continue
       if "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -105,7 +105,7 @@ for i in range(9999):
             time.sleep(1.5)
             login_flug = pcmax_2.catch_warning_pop("", driver)
             if login_flug and "制限" in login_flug:
-              print("制限がかかっているため、スキップを行います8888888888")
+              # print("制限がかかっているため、スキップを行います8888888888")
               break      
             name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
             re_login_cnt = 0
@@ -142,20 +142,3 @@ for i in range(9999):
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
     
-
-
-
-
-# driver.execute_script("window.open('https://pcmax.jp/pcm/index.php');")
-          # time.sleep(1)
-          # tabs = driver.window_handles
-          # driver.switch_to.window(tabs[1])
-          # print("新着メールチェック開始")   
-          # pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
-          # driver.get("https://pcmax.jp/pcm/index.php")   
-          # print("足跡がえし")
-          # pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img)
-          #  finally:
-          # driver.close()
-          # # 残っている元のタブに戻る
-          # driver.switch_to.window(tabs[0])
