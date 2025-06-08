@@ -36,6 +36,7 @@ for i in range(99999):
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
+    print(login_flug)
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
