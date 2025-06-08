@@ -38,7 +38,7 @@ for i in range(9999):
     # ユーザーをクリック
     try:
       login_flug = pcmax_2.catch_warning_pop("", driver)
-      if "制限" in login_flug:
+      if login_flug and "制限" in login_flug:
         print("制限がかかっているため、スキップを行います")
         continue
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
@@ -59,7 +59,7 @@ for i in range(9999):
       if current_step % 5 == 0:
         try:
           login_flug = pcmax_2.catch_warning_pop("", driver)
-          if "制限" in login_flug:
+          if login_flug and "制限" in login_flug:
             print("制限がかかっているため、スキップを行います")
             continue
           driver.get("https://pcmax.jp/pcm/index.php")   
@@ -81,7 +81,7 @@ for i in range(9999):
       else:
         try:
           login_flug = pcmax_2.catch_warning_pop("", driver)
-          if "制限" in login_flug:
+          if login_flug and "制限" in login_flug:
             print("制限がかかっているため、スキップを行います")
             continue
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
