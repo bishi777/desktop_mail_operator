@@ -27,6 +27,7 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 current_step = 0
+current_step_flug = False
 search_profile_flug = False
 
 for i in range(99999):
@@ -39,7 +40,7 @@ for i in range(99999):
     print(login_flug)
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
-      time.sleep(1000.5)
+      time.sleep(10.5)
       continue
     # ユーザーをクリック 
     try:
@@ -55,7 +56,6 @@ for i in range(99999):
           print(f"足跡付け {current_step}件")    
           time.sleep(2)
           search_profile_flug = False
-
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
@@ -103,6 +103,7 @@ for i in range(99999):
         if "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           driver.back()
+          current_step_flug = True
         else:
           try:
             name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
@@ -155,6 +156,8 @@ for i in range(99999):
       except Exception as e:
         print(f"❌  の操作でエラー: {e}")
         traceback.print_exc()  
+  if current_step_flug:
+    current_step += 1
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
