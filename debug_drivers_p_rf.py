@@ -35,12 +35,12 @@ for i in range(9999):
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
+    login_flug = pcmax_2.catch_warning_pop("", driver)
+    if login_flug and "制限" in login_flug:
+      print("制限がかかっているため、スキップを行います")
+      continue
     # ユーザーをクリック
     try:
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      if login_flug and "制限" in login_flug:
-        print("制限がかかっているため、スキップを行います")
-        continue
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -55,13 +55,13 @@ for i in range(9999):
       traceback.print_exc()  
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
+    login_flug = pcmax_2.catch_warning_pop("", driver)
+    if login_flug and "制限" in login_flug:
+      print("制限がかかっているため、スキップを行います")
+      continue
     if idx == i % len(handles):
       if current_step % 5 == 0:
-        try:
-          login_flug = pcmax_2.catch_warning_pop("", driver)
-          if login_flug and "制限" in login_flug:
-            print("制限がかかっているため、スキップを行います")
-            continue
+        try:    
           driver.get("https://pcmax.jp/pcm/index.php")   
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5)
@@ -131,8 +131,7 @@ for i in range(9999):
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
   if current_step_flug:
-    current_step += 1
-    
+    current_step += 1  
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
