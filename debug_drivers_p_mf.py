@@ -27,6 +27,7 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 current_step = 0
+search_profile_flug = False
 
 for i in range(99999):
   start_loop_time = time.time()
@@ -51,6 +52,7 @@ for i in range(99999):
           current_step += 1  
           print(f"足跡付け {current_step}件")    
           time.sleep(2)
+          search_profile_flug = False
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
