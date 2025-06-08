@@ -28,6 +28,7 @@ options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
+report_dict = {}
 
 roop_index = 0
 while True:
@@ -86,10 +87,11 @@ while True:
           re_login_cnt += 1
           if re_login_cnt > 5:
             print("再ログイン失敗")
-            break
-          
+            break      
       name_on_pcmax = name_on_pcmax[0].text
       print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
+      if name_on_pcmax not in report_dict:
+        report_dict[name_on_pcmax] = 0
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  
@@ -124,7 +126,7 @@ while True:
           try:
             print("足跡返し送信開始")
             if send_cnt > 0:
-              pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   

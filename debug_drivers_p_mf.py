@@ -51,7 +51,7 @@ for i in range(9999):
         print(f"足跡付け {current_step}件")    
         time.sleep(1.5)
     except Exception as e:
-      print(f"❌  の操作でエラー: {e}")
+      print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
@@ -59,8 +59,11 @@ for i in range(9999):
     if login_flug and "制限" in login_flug:
       # print("制限がかかっているため、スキップを行います")
       continue
+    print(f"-------------{idx}------------------")
+    print(f"-------------{i % len(handles)}------------------")
     if idx == i % len(handles):
       if current_step % 5 == 0:
+        print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
         try:    
           driver.get("https://pcmax.jp/pcm/index.php")   
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
