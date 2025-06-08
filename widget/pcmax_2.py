@@ -36,7 +36,7 @@ def catch_warning_pop(name, driver):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
   try:
-    if driver.find_elements(By.CLASS_NAME, 'suspend-title'):
+    if driver.find_elements(By.CLASS_NAME, 'suspend-title') or driver.find_elements(By.CLASS_NAME, 'setting-title'):
       warning = f"{name} pcmax利用制限がかかっている可能性があります"
   except Exception:
     pass
