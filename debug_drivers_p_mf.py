@@ -37,10 +37,9 @@ for i in range(99999):
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
-    print(login_flug)
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
-      time.sleep(10.5)
+      time.sleep(0.5)
       continue
     # ユーザーをクリック 
     try:
@@ -52,7 +51,6 @@ for i in range(99999):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
           time.sleep(0.4)
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
-          current_step += 1  
           print(f"足跡付け {current_step}件")    
           time.sleep(2)
           search_profile_flug = False
