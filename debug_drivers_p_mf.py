@@ -49,7 +49,7 @@ for i in range(9999):
         time.sleep(0.4)
         user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
         print(f"足跡付け {current_step}件")    
-        time.sleep(0.6)
+        time.sleep(1.5)
     except Exception as e:
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
