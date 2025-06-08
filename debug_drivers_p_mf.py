@@ -39,6 +39,7 @@ for i in range(99999):
     print(login_flug)
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
+      time.sleep(1000.5)
       continue
     # ユーザーをクリック 
     try:
