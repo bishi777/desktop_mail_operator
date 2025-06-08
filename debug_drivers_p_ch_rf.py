@@ -29,8 +29,6 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 report_dict = {}
-
-roop_index = 0
 while True:
   start_loop_time = time.time()
   now = datetime.now()
@@ -89,9 +87,7 @@ while True:
             print("再ログイン失敗")
             break      
       name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
-      if name_on_pcmax not in report_dict:
-        report_dict[name_on_pcmax] = 0
+      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")  
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  
@@ -102,6 +98,11 @@ while True:
     for index, i in enumerate(pcmax_datas):
       login_id = ""
       if name_on_pcmax == i['name']:
+        print(888)
+        if name_on_pcmax not in report_dict:
+          
+          report_dict[name_on_pcmax] = 0
+          print(f"777 {report_dict[name_on_pcmax]}")
         name = i["name"]
         # if  "レイナ" != name:
         #   continue
@@ -126,20 +127,29 @@ while True:
           try:
             print("足跡返し送信開始")
             if send_cnt > 0:
-              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)   
+            report_dict[name] = report_dict[name] + rf_cnt
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
-          
+          if  now.hour % 6 == 0:
+            try:
+              func.send_mail(
+                f"足跡返しの報告\n{report_dict}\n",
+                [receiving_address,mailserver_address,mailserver_password,],
+                f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+              )
+            except Exception as e:
+              print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+              traceback.print_exc()   
+
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:
     time.sleep(10)
     elapsed_time = time.time() - start_time  # 経過時間を計算する
     print(f"待機中~~ {elapsed_time} ")
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
-  roop_index += 1
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  # driver.quit()
-  time.sleep(2)
+  

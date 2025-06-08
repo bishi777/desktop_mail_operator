@@ -545,7 +545,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           bottom_scroll_flug = False
           break
     if user_index >= len(foot_user_list):
-      return
+      return rf_cnt
     like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
     if not len(like):
       user_index += 1
