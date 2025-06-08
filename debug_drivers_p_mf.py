@@ -39,7 +39,7 @@ for i in range(99999):
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
-    # ユーザーをクリック
+    # ユーザーをクリック 
     try:
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
@@ -56,9 +56,12 @@ for i in range(99999):
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
+      else:
+        search_profile_flug = True
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
+  # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if search_profile_flug:
     for idx, handle in enumerate(handles): 
       driver.switch_to.window(handle)
@@ -99,14 +102,13 @@ for i in range(99999):
       except Exception as e:
         print(f"❌  足跡付けの操作でエラー: {e}")
         traceback.print_exc()  
-
+  # ユーザー詳細画面から戻る
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
       # print("制限がかかっているため、スキップを行います")
       continue
-    # ユーザー詳細画面から戻る
     try:
       login_flug = pcmax_2.catch_warning_pop("", driver)
       if login_flug and "制限" in login_flug:

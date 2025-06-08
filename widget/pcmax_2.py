@@ -38,7 +38,9 @@ def catch_warning_pop(name, driver):
   try:
     suspend_title = driver.find_elements(By.CLASS_NAME, 'suspend-title')
     if suspend_title:
-      if "利用"in suspend_title[0].text:
+      if "相手"in suspend_title[0].text:
+        warning = None
+      elif "利用"in suspend_title[0].text:
         warning = f"{name} pcmax利用制限がかかっている可能性があります"
     setting_title = driver.find_elements(By.CLASS_NAME, 'setting-title')
     if setting_title:
@@ -63,8 +65,7 @@ def catch_warning_pop(name, driver):
           # time.sleep(1)
           driver.find_element(By.ID, 'send3').click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          
+          time.sleep(2)        
         except NoSuchElementException:
           pass
   except Exception:
@@ -101,7 +102,6 @@ def catch_warning_pop(name, driver):
       time.sleep(1)
   except Exception:
     pass
-  # mail_screen
   try:
     mail_screen = driver.find_elements(By.ID, 'mail_screen')
     if mail_screen:
@@ -111,7 +111,6 @@ def catch_warning_pop(name, driver):
       time.sleep(1)
   except Exception:
     pass
-
   return warning
 
 def get_header_menu(driver, menu):
