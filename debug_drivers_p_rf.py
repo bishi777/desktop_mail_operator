@@ -37,15 +37,19 @@ for i in range(9999):
     driver.switch_to.window(handle)
     # ユーザーをクリック
     try:
+      login_flug = pcmax_2.catch_warning_pop("", driver)
+      if "制限" in login_flug:
+        print("制限がかかっているため、スキップを行います")
+        continue
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
-        time.sleep(1)
+        time.sleep(0.5)
         user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
         print(f"足跡付け {current_step}件")    
-        time.sleep(1)
+        time.sleep(0.5)
     except Exception as e:
       print(f"❌  の操作でエラー: {e}")
       traceback.print_exc()  
@@ -54,9 +58,13 @@ for i in range(9999):
     if idx == i % len(handles):
       if current_step % 5 == 0:
         try:
+          login_flug = pcmax_2.catch_warning_pop("", driver)
+          if "制限" in login_flug:
+            print("制限がかかっているため、スキップを行います")
+            continue
           driver.get("https://pcmax.jp/pcm/index.php")   
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
+          time.sleep(0.5)
           pcmax_2.catch_warning_pop("", driver)
           pcmax_2.profile_search(driver)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -73,6 +81,9 @@ for i in range(9999):
       else:
         try:
           login_flug = pcmax_2.catch_warning_pop("", driver)
+          if "制限" in login_flug:
+            print("制限がかかっているため、スキップを行います")
+            continue
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           while not len(name_on_pcmax):
             # 再ログイン処理
