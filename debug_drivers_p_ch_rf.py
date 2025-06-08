@@ -37,6 +37,10 @@ while True:
   for idx, handle in enumerate(handles): 
     WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
+    login_flug = pcmax_2.catch_warning_pop("", driver)
+    if login_flug and "制限" in login_flug:
+      print("制限がかかっているため、スキップを行います")
+      continue
     print(f"  📄 タブ{idx+1}: {driver.current_url}")
     urls = [
       "pcmax.jp/pcm/index.php"
@@ -45,10 +49,7 @@ while True:
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
-
     try:
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      print(login_flug)   
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       while not len(name_on_pcmax):
         # 再ログイン処理
