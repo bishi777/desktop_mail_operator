@@ -514,14 +514,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     else:
       print("４分経過していません")
       break
+  driver.get("https://pcmax.jp/pcm/index.php")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.5) 
 
-
-  
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   ashiato_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[2]
-  # print(ashiato_list_link.text)
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
   time.sleep(0.5)
   ashiato_list_link.click()
@@ -529,32 +529,42 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   time.sleep(0.5)
   rf_cnt = 0
   user_index = 0
+  bottom_scroll_flug = True
+  bottom_scroll_cnt = 0
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-    bottom_scroll_cnt = 0
+    if bottom_scroll_flug:
+      while user_index >= len(foot_user_list):
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(3)
+        bottom_scroll_cnt += 1
+        foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+        if bottom_scroll_cnt == 2:
+          bottom_scroll_flug = False
+          break
     if user_index >= len(foot_user_list):
-      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      bottom_scroll_cnt += 1
-      if bottom_scroll_cnt == 1:
-        print(f"user_index={user_index} が foot_user_list の長さ {len(foot_user_list)} を超えています。")
-        break
-
+      return
     like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
     if not len(like):
       user_index += 1
     else:
+      user_name = like[0].get_attribute("data-go2")
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
-      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      foot_user_link = foot_user_list[user_index].find_element(By.CLASS_NAME, "post_content").find_elements(By.TAG_NAME, 'a')[0]
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_link)
-      time.sleep(0.5)
-      foot_user_link.click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.5)
+      candidate_users = driver.find_elements(By.CLASS_NAME, 'user-name')
+      for candidate_user in candidate_users:
+        if user_name in candidate_user.text:
+          print(candidate_user.text)
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_user)
+          time.sleep(1.5)
+          grandparent = candidate_user.find_element(By.XPATH, "../..")
+          grandparent.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.2)
+          break
       try:
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
@@ -633,7 +643,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       driver.execute_script("arguments[0].click();", back2)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
-
 
 
 
