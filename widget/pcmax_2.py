@@ -557,7 +557,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       candidate_users = driver.find_elements(By.CLASS_NAME, 'user-name')
       for candidate_user in candidate_users:
         if user_name in candidate_user.text:
-          print(candidate_user.text)
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_user)
           time.sleep(1.5)
           grandparent = candidate_user.find_element(By.XPATH, "../..")
