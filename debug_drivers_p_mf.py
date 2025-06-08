@@ -59,9 +59,8 @@ for i in range(9999):
     if login_flug and "制限" in login_flug:
       # print("制限がかかっているため、スキップを行います")
       continue
-    print(f"-------------{idx}------------------~~~~~~~~~~~~~~~{i % len(handles)}~~~~~~~~~~~~~~~")
     if idx == i % len(handles):
-      if current_step % 5 == 0:
+      if random.random() < 0.5:
         print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
         try:    
           driver.get("https://pcmax.jp/pcm/index.php")   
