@@ -60,7 +60,7 @@ for i in range(9999):
       # print("制限がかかっているため、スキップを行います")
       continue
     print(f"-------------{idx}------------------")
-    print(f"-------------{i % len(handles)}------------------")
+    print(f"~~~~~~~~~~~~~~~{i % len(handles)}~~~~~~~~~~~~~~~")
     if idx == i % len(handles):
       if current_step % 5 == 0:
         print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
@@ -69,6 +69,8 @@ for i in range(9999):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5)
           pcmax_2.catch_warning_pop("", driver)
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+          print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
           pcmax_2.profile_search(driver)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           continue
