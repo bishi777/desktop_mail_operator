@@ -58,6 +58,8 @@ for i in range(99999):
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
       else:
+        print("pcmax.jp/mobile/profile_list.phpにいません")
+        print(f"現在のURL: {driver.current_url}")
         search_profile_flug = True
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
