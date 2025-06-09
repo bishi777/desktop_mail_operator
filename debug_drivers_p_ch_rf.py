@@ -29,6 +29,7 @@ driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 report_dict = {}
+send_flug = False
 while True:
   start_loop_time = time.time()
   now = datetime.now()
@@ -133,15 +134,19 @@ while True:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
           if  now.hour % 6 == 0:
-            try:
-              func.send_mail(
-                f"足跡返しの報告\n{report_dict}\n",
-                [receiving_address,mailserver_address,mailserver_password,],
-                f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
-              )
-            except Exception as e:
-              print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
-              traceback.print_exc()   
+            if send_flug:
+              try:
+                func.send_mail(
+                  f"足跡返しの報告\n{report_dict}\n",
+                  [receiving_address,mailserver_address,mailserver_password,],
+                  f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                )
+                send_flug = False
+              except Exception as e:
+                print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+                traceback.print_exc()   
+          else:
+            send_flug = True
 
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:

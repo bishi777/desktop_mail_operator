@@ -180,7 +180,8 @@ def profile_search(driver):
     oldest_age_select_box = driver.find_element(By.ID, "makerItem")
   except NoSuchElementException:
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  oldest_age_select_box.send_keys("34歳")
+  random_age = f"{random.randint(29, 38)}歳"
+  oldest_age_select_box.send_keys(random_age)
 
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [

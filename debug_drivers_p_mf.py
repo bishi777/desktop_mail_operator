@@ -30,6 +30,15 @@ current_step = 0
 current_step_flug = False
 search_profile_flug = False
 
+# DevTools Protocol で User-Agent を変更
+driver.execute_cdp_cmd('Network.setUserAgentOverride', {
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
+})
+user_agent_type = "iPhone"
+driver.refresh()
+wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+time.sleep(1.5)
+
 for i in range(99999):
   start_loop_time = time.time()
   now = datetime.now()
