@@ -167,26 +167,32 @@ for i in range(99999):
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  if now.minute % 1 == 0:
-    print("1分おきの処理")
-    handle_to_use = handles[six_minute_index % len(handles)]
-    driver.switch_to.window(handle_to_use)
-    try:
-      driver.get("https://pcmax.jp/pcm/index.php")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      pcmax_2.catch_warning_pop("", driver)
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
-      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-      driver.back()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-    except Exception as e:
-      print(f"❌ 6分おき処理でエラー: {e}")
-      traceback.print_exc()
-    six_minute_index += 1  
+  if now.minute % 2 == 0:
+    if six_minute_flug:
+      print("2分おきの処理")
+      handle_to_use = handles[six_minute_index % len(handles)]
+      driver.switch_to.window(handle_to_use)
+      try:
+        driver.get("https://pcmax.jp/pcm/index.php")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        pcmax_2.catch_warning_pop("", driver)
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        driver.back()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        six_minute_flug = False
+      except Exception as e:
+        print(f"❌ 6分おき処理でエラー: {e}")
+        traceback.print_exc()
+      six_minute_index += 1  
+  else:
+    six_minute_flug = True
+    
+    
 
 
     
