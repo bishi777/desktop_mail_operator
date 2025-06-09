@@ -29,7 +29,8 @@ handles = driver.window_handles
 current_step = 0
 current_step_flug = False
 search_profile_flug = False
-six_minute_index = 0  #
+six_minute_index = 0  
+six_minute_flug = True
 
 
 
