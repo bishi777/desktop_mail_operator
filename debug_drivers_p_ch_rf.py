@@ -62,8 +62,8 @@ while True:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
         else:
           print("メイン写真が見つかりません")
-          # スクショします
-          driver.save_screenshot("screenshot.png")
+          # スクショ
+          # driver.save_screenshot("screenshot.png")
         time.sleep(8.5)
         login_button = driver.find_element(By.NAME, "login")
         login_button.click()
