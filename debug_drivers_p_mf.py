@@ -29,15 +29,9 @@ handles = driver.window_handles
 current_step = 0
 current_step_flug = False
 search_profile_flug = False
+six_minute_index = 0  #
 
-# DevTools Protocol で User-Agent を変更
-driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-})
-user_agent_type = "iPhone"
-driver.refresh()
-wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-time.sleep(1.5)
+
 
 for i in range(99999):
   start_loop_time = time.time()
@@ -61,7 +55,7 @@ for i in range(99999):
           time.sleep(0.4)
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
           print(f"足跡付け {current_step}件")    
-          time.sleep(2)
+          time.sleep(1)
           search_profile_flug = False
         else:
           print("足跡付けのユーザーがいません")
@@ -128,7 +122,7 @@ for i in range(99999):
               else:
                 print("メイン写真が見つかりません")
                 # スクショします
-                driver.save_screenshot("screenshot.png")
+                # driver.save_screenshot("screenshot.png")
               time.sleep(8.5)
               login_button = driver.find_element(By.NAME, "login")
               login_button.click()
@@ -167,9 +161,29 @@ for i in range(99999):
         traceback.print_exc()  
   if current_step_flug:
     current_step += 1
+  
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
+  if now.minute % 1 == 0:
+    print("1分おきの処理")
+    handle_to_use = handles[six_minute_index % len(handles)]
+    driver.switch_to.window(handle_to_use)
+    driver.get("https://pcmax.jp/pcm/index.php")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    pcmax_2.catch_warning_pop("", driver)
+    name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+    print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+
+
+    
+
     
