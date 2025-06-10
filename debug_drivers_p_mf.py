@@ -48,7 +48,7 @@ for i in range(99999):
       print("制限がかかっているため、スキップを行います")
       time.sleep(0.5)
       continue
-    if "規約に同意" in login_flug:
+    if login_flug and "規約に同意" in login_flug:
       driver.get("https://pcmax.jp/pcm/index.php")   
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.5)
