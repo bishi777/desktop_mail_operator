@@ -48,6 +48,13 @@ for i in range(99999):
       print("制限がかかっているため、スキップを行います")
       time.sleep(0.5)
       continue
+    if "規約に同意" in login_flug:
+      driver.get("https://pcmax.jp/pcm/index.php")   
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.5)
+      pcmax_2.catch_warning_pop("", driver)
+      pcmax_2.profile_search(driver)
+      
     # ユーザーをクリック 
     try:
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:

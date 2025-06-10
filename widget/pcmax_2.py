@@ -91,6 +91,9 @@ def catch_warning_pop(name, driver):
       kiyaku_btns[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
+      warning = f"{name} 規約に同意しました"
+
+      return warning
   except Exception:
     pass
   try:
