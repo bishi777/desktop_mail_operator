@@ -64,11 +64,12 @@ for i in range(99999):
         if current_step < len(user_list):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
           time.sleep(0.4)
-          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()
-          current_step += 1
+          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()        
           print(f"足跡付け {current_step}件")    
           time.sleep(1)
           search_profile_flug = False
+          current_step_flug = True
+            
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
@@ -183,7 +184,8 @@ for i in range(99999):
         print(f"❌  の操作でエラー: {e}")
         traceback.print_exc()  
   
-  
+  if current_step_flug:
+    current_step += 1
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
