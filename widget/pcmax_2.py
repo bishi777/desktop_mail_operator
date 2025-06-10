@@ -687,12 +687,14 @@ def re_post(driver,wait, post_title, post_content):
     driver.find_element(By.ID, "bty_6").click()
     driver.find_element(By.ID, "bty_7").click()
     driver.find_element(By.ID, "bty_8").click()
+    
     bbs_title = driver.find_element(By.NAME, "bbs_title")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
     time.sleep(0.5)
-    bbs_title.send_keys(post_title)
+    script = "arguments[0].value = arguments[1];"
+    driver.execute_script(script, bbs_title, post_title)
     time.sleep(0.5)
-    driver.find_element(By.ID, "bbs_comment1").send_keys(post_content)
+    driver.execute_script(script, driver.find_element(By.ID, "bbs_comment1"), post_content)
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
     time.sleep(1)
     driver.find_element(By.ID, "wri").click()

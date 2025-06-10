@@ -191,43 +191,45 @@ for i in range(99999):
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  if now.minute % interval_minute == 0:
-    if minute_flug:
-      print(f"{interval_minute}分おきの処理")
-      handle_to_use = handles[minute_index % len(handles)]
-      driver.switch_to.window(handle_to_use)
-      try:
-        driver.get("https://pcmax.jp/pcm/index.php")
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        pcmax_2.catch_warning_pop("", driver)
-        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        for key in pcmax_datas:
-          # print(f"名前: {key['name']}")
-          if name_on_pcmax[0].text == key["name"]:
-            post_title = key["post_title"]
-            post_content = key["post_content"]
-            if not post_title or not post_content:
-              print("掲示板タイトルと投稿内容が設定されていません")
-              print(  f"名前: {key['name']}, タイトル: {key['post_title']}, 内容: {key['post_content']}")
+  if 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
+    # if True:
+    if now.minute % interval_minute == 0:
+      if minute_flug:
+        print(f"{interval_minute}分おきの処理")
+        handle_to_use = handles[minute_index % len(handles)]
+        driver.switch_to.window(handle_to_use)
+        try:
+          driver.get("https://pcmax.jp/pcm/index.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          pcmax_2.catch_warning_pop("", driver)
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+          print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+          print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+          print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+          for key in pcmax_datas:
+            # print(f"名前: {key['name']}")
+            if name_on_pcmax[0].text == key["name"]:
+              post_title = key["post_title"]
+              post_content = key["post_content"]
+              if not post_title or not post_content:
+                print("掲示板タイトルと投稿内容が設定されていません")
+                print(  f"名前: {key['name']}, タイトル: {key['post_title']}, 内容: {key['post_content']}")
 
-            else:
-              pcmax_2.re_post(driver,wait, post_title, post_content)
-              driver.get("https://pcmax.jp/pcm/index.php")
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              pcmax_2.catch_warning_pop("", driver)
-            pcmax_2.profile_search(driver)
-            minute_flug = False
-            break
-      except Exception as e:
-        print(f"❌ {interval_minute}分おき処理でエラー: {e}")
-        traceback.print_exc()
-      minute_index += 1  
-  else:
-    minute_flug = True
+              else:
+                pcmax_2.re_post(driver,wait, post_title, post_content)
+                driver.get("https://pcmax.jp/pcm/index.php")
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                pcmax_2.catch_warning_pop("", driver)
+              pcmax_2.profile_search(driver)
+              minute_flug = False
+              break
+        except Exception as e:
+          print(f"❌ {interval_minute}分おき処理でエラー: {e}")
+          traceback.print_exc()
+        minute_index += 1  
+    else:
+      minute_flug = True
     
     
 
