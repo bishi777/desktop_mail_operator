@@ -36,7 +36,9 @@ handles = driver.window_handles
 # user_agent_type = "iPhone"
 # driver.refresh()
 # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-# time.sleep(1.5)
+# print(777)
+# time.sleep(1000.5)
+
 print(f"タブ数: {len(handles)}")
 roop_index = 0
 while True:

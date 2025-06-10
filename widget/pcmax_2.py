@@ -425,7 +425,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           time.sleep(0.5) 
         else:
           for user_address in email_list:
-            site = "pcmax"
+            site = "リンクル"
             try:
               func.normalize_text(condition_message)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
@@ -644,6 +644,86 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(3)
   return rf_cnt
 
-
-        
-        
+def re_post(driver,wait, post_title, post_content):
+  post_area_tokyo = ["千代田区",  "文京区", 
+                   "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", 
+                   "杉並区", "豊島区",  "荒川区", "板橋区", "練馬区",
+                    "武蔵野市",  "西東京市", "三鷹市", "調布市", "小金井市", "小平市",
+                    "立川市", "八王子市",  "府中市", 
+                   ]
+  get_header_menu(driver, "掲示板投稿")
+  driver.find_element(By.CLASS_NAME, "text_right").find_elements(By.TAG_NAME, "a")[0].click()
+  wait = driver.find_elements(By.CLASS_NAME, "wait")
+  if len(wait):
+    print("掲示板投稿の審査中です")
+    return
+  list_photo = driver.find_elements(By.CLASS_NAME, "list_photo")
+  if not len(list_photo):
+    print("投稿がありません。新規投稿します")
+    candidate_add_post_links = driver.find_element(By.CLASS_NAME, "instructions").find_elements(By.TAG_NAME, "a")
+    for candidate_add_post_link in candidate_add_post_links:
+      if "掲示板でお相手を募集する" in candidate_add_post_link.text:
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_add_post_link)
+        time.sleep(0.5)
+        candidate_add_post_link.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        break
+    driver.find_element(By.ID, "2").click()
+    detail_area = driver.find_element(By.ID, "citych")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
+    time.sleep(0.5)
+    select = Select(detail_area)
+    select.select_by_visible_text(random.choice(post_area_tokyo))
+    max_reception_count = driver.find_element(By.NAME, "max_reception_count")
+    select = Select(max_reception_count)
+    select.select_by_visible_text("5通")
+    driver.find_element(By.ID, "bty_4").click()
+    driver.find_element(By.ID, "bty_16").click()
+    driver.find_element(By.ID, "bty_5").click()
+    driver.find_element(By.ID, "bty_6").click()
+    driver.find_element(By.ID, "bty_7").click()
+    driver.find_element(By.ID, "bty_8").click()
+    bbs_title = driver.find_element(By.NAME, "bbs_title")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
+    time.sleep(0.5)
+    bbs_title.send_keys(post_title)
+    time.sleep(0.5)
+    driver.find_element(By.ID, "bbs_comment1").send_keys(post_content)
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
+    time.sleep(1)
+    driver.find_element(By.ID, "wri").click()
+    return
+  elif len(list_photo) == 1:
+    # 30分経過しているか
+    posted_date = driver.find_elements(By.CLASS_NAME, value="font_size")
+    date_numbers = re.findall(r'\d+', posted_date[0].text)
+    # datetime型を作成
+    current_year = datetime.now().year
+    arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
+    now = datetime.today()
+    elapsed_time = now - arrival_datetime
+    print(f"前回の投稿からの経過時間{elapsed_time}")
+    if elapsed_time >= timedelta(minutes=1):
+      print("地域を変更して再投稿します")
+      line_bottoms = driver.find_elements(By.CLASS_NAME, "line_bottom")
+      for line_bottom in line_bottoms:
+        if "地域を変えてコピー" in line_bottom.text:
+          line_bottom.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          detail_area = driver.find_element(By.ID, "citych")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
+          time.sleep(1)
+          select = Select(detail_area)
+          select.select_by_visible_text(random.choice(post_area_tokyo))
+          max_reception_count = driver.find_element(By.NAME, "max_reception_count")
+          select = Select(max_reception_count)
+          select.select_by_visible_text("5通")
+          time.sleep(1)
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
+          time.sleep(10)
+          driver.find_element(By.ID, "wri").click()
+          break
+    else:
+      print("30分経過していません")
+      return

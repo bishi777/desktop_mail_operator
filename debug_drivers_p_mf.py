@@ -13,6 +13,8 @@ import smtplib
 import traceback
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
+from math import ceil
+
 
 user_data = func.get_user_data()
 wait_time = 1.5
@@ -29,9 +31,10 @@ handles = driver.window_handles
 current_step = 0
 current_step_flug = False
 search_profile_flug = False
-six_minute_index = 0  
-six_minute_flug = True
-
+minute_index = 0  
+minute_flug = True
+tab_count = len(handles)
+interval_minute = ceil(180 / tab_count)
 
 
 for i in range(99999):
@@ -64,6 +67,48 @@ for i in range(99999):
       else:
         print("pcmax.jp/mobile/profile_list.phpにいません")
         print(f"現在のURL: {driver.current_url}")
+        pcmax_2.catch_warning_pop("", driver)
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        while not len(name_on_pcmax):
+          # 再ログイン処理
+          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+          if len(main_photo):
+            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+            if len(login_form):
+              login = login_form[0].find_elements(By.TAG_NAME, 'a')
+              login[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
+          else:
+            print("メイン写真が見つかりません")
+            # スクショします
+            # driver.save_screenshot("screenshot.png")
+          time.sleep(8.5)
+          login_button = driver.find_element(By.NAME, "login")
+          login_button.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+          login_flug = pcmax_2.catch_warning_pop("", driver)
+          if login_flug and "制限" in login_flug:
+            # print("制限がかかっているため、スキップを行います8888888888")
+            break      
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+          re_login_cnt = 0
+          while not len(name_on_pcmax):
+            time.sleep(5)
+            login_button = driver.find_element(By.NAME, "login")
+            login_button.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            pcmax_2.catch_warning_pop("", driver)
+            name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+            re_login_cnt += 1
+            if re_login_cnt > 5:
+              print("再ログイン失敗")
+              break
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.5)
+        pcmax_2.profile_search(driver)
         search_profile_flug = True
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
@@ -85,6 +130,42 @@ for i in range(99999):
         pcmax_2.catch_warning_pop("", driver)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        while not len(name_on_pcmax):
+          # 再ログイン処理
+          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+          if len(main_photo):
+            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+            if len(login_form):
+              login = login_form[0].find_elements(By.TAG_NAME, 'a')
+              login[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
+          else:
+            print("メイン写真が見つかりません")
+            # スクショします
+            # driver.save_screenshot("screenshot.png")
+          time.sleep(8.5)
+          login_button = driver.find_element(By.NAME, "login")
+          login_button.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+          login_flug = pcmax_2.catch_warning_pop("", driver)
+          if login_flug and "制限" in login_flug:
+            # print("制限がかかっているため、スキップを行います8888888888")
+            break      
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+          re_login_cnt = 0
+          while not len(name_on_pcmax):
+            time.sleep(5)
+            login_button = driver.find_element(By.NAME, "login")
+            login_button.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            pcmax_2.catch_warning_pop("", driver)
+            name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+            re_login_cnt += 1
+            if re_login_cnt > 5:
+              print("再ログイン失敗")
+              break
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         continue
@@ -168,10 +249,11 @@ for i in range(99999):
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  if now.minute % 2 == 0:
-    if six_minute_flug:
-      print("2分おきの処理")
-      handle_to_use = handles[six_minute_index % len(handles)]
+  
+  if now.minute % interval_minute == 0:
+    if minute_flug:
+      print(f"{interval_minute}分おきの処理")
+      handle_to_use = handles[minute_index % len(handles)]
       driver.switch_to.window(handle_to_use)
       try:
         driver.get("https://pcmax.jp/pcm/index.php")
@@ -182,16 +264,26 @@ for i in range(99999):
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
         print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        driver.back()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        six_minute_flug = False
+        for key in pcmax_datas:
+          if name_on_pcmax == key["name"]:
+            post_title = key["post_title"]
+            post_content = key["post_content"]
+            if not post_title or not post_content:
+              print("掲示板タイトルと投稿内容が設定されていません")
+            else:
+              pcmax_2.re_post(driver,wait, post_title, post_content)
+              driver.get("https://pcmax.jp/pcm/index.php")
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              pcmax_2.catch_warning_pop("", driver)
+            pcmax_2.profile_search(driver)
+            minute_flug = False
+            break
       except Exception as e:
         print(f"❌ 6分おき処理でエラー: {e}")
         traceback.print_exc()
-      six_minute_index += 1  
+      minute_index += 1  
   else:
-    six_minute_flug = True
+    minute_flug = True
     
     
 
