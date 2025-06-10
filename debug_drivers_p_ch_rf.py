@@ -147,6 +147,8 @@ while True:
                 traceback.print_exc()   
           else:
             send_flug = True
+          if now.hour  == 24:
+            report_dict = {}
 
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:
