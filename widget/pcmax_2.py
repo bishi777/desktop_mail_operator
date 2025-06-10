@@ -656,8 +656,8 @@ def re_post(driver,wait, post_title, post_content):
                    ]
   get_header_menu(driver, "掲示板投稿")
   driver.find_element(By.CLASS_NAME, "text_right").find_elements(By.TAG_NAME, "a")[0].click()
-  wait = driver.find_elements(By.CLASS_NAME, "wait")
-  if len(wait):
+  examination_wait = driver.find_elements(By.CLASS_NAME, "wait")
+  if len(examination_wait):
     print("掲示板投稿の審査中です")
     return
   list_photo = driver.find_elements(By.CLASS_NAME, "list_photo")
