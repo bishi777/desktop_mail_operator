@@ -79,9 +79,14 @@ for i in range(99999):
           driver.back()
       else:
         print(f"現在のURL: {driver.current_url}")
+
+        pcmax_2.catch_warning_pop("", driver)
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        driver.get("https://pcmax.jp/pcm/index.php")   
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.5)
         pcmax_2.catch_warning_pop("", driver)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
         while not len(name_on_pcmax):
           # 再ログイン処理
           main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
