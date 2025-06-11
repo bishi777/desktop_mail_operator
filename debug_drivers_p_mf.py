@@ -123,9 +123,10 @@ for i in range(99999):
             if re_login_cnt > 5:
               print("再ログイン失敗")
               break
+          func.send_error(name_on_pcmax[0].text, f"リンクル足跡付けの処理中に再ログインしました")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
-        func.send_error(name_on_pcmax[0].text, f"リンクル足跡付けの処理中に再ログインしました")
+        
         pcmax_2.profile_search(driver)
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
