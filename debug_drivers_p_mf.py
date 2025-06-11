@@ -53,9 +53,9 @@ for i in range(99999):
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.5)
       pcmax_2.catch_warning_pop("", driver)
-      pcmax_2.profile_search(driver)
-      
-    # ユーザーをクリック 
+      pcmax_2.profile_search(driver) 
+
+    # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     try:
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
@@ -73,7 +73,7 @@ for i in range(99999):
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
-      # ユーザー詳細画面から戻る
+      # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           driver.back()
@@ -120,6 +120,7 @@ for i in range(99999):
               break
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
+        func.send_error(name_on_pcmax[0].text, f"リンクル足跡付けの処理中に再ログインしました")
         pcmax_2.profile_search(driver)
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
@@ -184,7 +185,7 @@ for i in range(99999):
         print(f"❌  の操作でエラー: {e}")
         traceback.print_exc()  
   
-  if current_step_flug:
+  if i % 2 == 0:
     current_step += 1
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
