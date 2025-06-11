@@ -191,7 +191,7 @@ for i in range(99999):
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  if 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
+  if 7 <= now.hour <= 22:
     # if True:
     if now.minute % interval_minute == 0:
       if minute_flug:

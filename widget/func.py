@@ -262,7 +262,7 @@ def send_error(chara, error_message):
   mailaddress = 'kenta.bishi777@gmail.com'
   password = 'rjdzkswuhgfvslvd'
   text = f"キャラ名:{chara} \n {error_message}"
-  subject = "サイト回しエラーメッセージ"
+  subject = "エラーメッセージ"
   address_from = 'kenta.bishi777@gmail.com'
   # address_to = "ryapya694@ruru.be"
   address_to = "gifopeho@kmail.li"

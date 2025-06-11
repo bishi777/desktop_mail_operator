@@ -428,15 +428,18 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           time.sleep(0.5) 
         else:
           for user_address in email_list:
-            site = "リンクル"
+            site = "リンクル(PCMAX)"
             try:
               func.normalize_text(condition_message)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
               print("アドレス内1stメールを送信しました")
             except Exception:
               print(f"{name} アドレス内1stメールの送信に失敗しました")
+              error = traceback.print_exc()
               print(f"user_address:{user_address}  gmail_address:{gmail_address} gmail_password:{gmail_password}")
               print(condition_message)
+              func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
+                                    )
           # みちゃいや
           catch_warning_pop(name, driver)
           driver.back()

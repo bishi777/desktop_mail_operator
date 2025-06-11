@@ -99,13 +99,12 @@ while True:
     for index, i in enumerate(pcmax_datas):
       login_id = ""
       if name_on_pcmax == i['name']:
-        print(888)
         if name_on_pcmax not in report_dict:
           
           report_dict[name_on_pcmax] = 0
           print(f"777 {report_dict[name_on_pcmax]}")
         name = i["name"]
-        # if  "レイナ" != name:
+        # if  "わかな" != name:
         #   continue
         login_id = i["login_id"]
         login_pass = i["password"]
@@ -124,7 +123,7 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+        if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
           try:
             print("足跡返し送信開始")
             if send_cnt > 0:
@@ -149,7 +148,6 @@ while True:
             send_flug = True
           if now.hour  == 24:
             report_dict = {}
-
   elapsed_time = time.time() - start_time  # 経過時間を計算する   
   while elapsed_time < 720:
     time.sleep(10)
