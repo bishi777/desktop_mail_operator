@@ -86,7 +86,9 @@ while True:
           re_login_cnt += 1
           if re_login_cnt > 5:
             print("再ログイン失敗")
-            break      
+            break   
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        func.send_error(name_on_pcmax[0].text, f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")   
       name_on_pcmax = name_on_pcmax[0].text
       print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")  
     except Exception as e:

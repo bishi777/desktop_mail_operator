@@ -468,6 +468,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
+        driver.find_element(By.CLASS_NAME, 'memo_open').click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+        driver.find_element(By.ID, 'memo_send').click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
         text_area = driver.find_element(By.ID, value="mdc")
         script = "arguments[0].value = arguments[1];"
         driver.execute_script(script, text_area, fst_message)
@@ -476,7 +483,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           time.sleep(6)
           driver.find_element(By.ID, "send_n").click()
         catch_warning_pop(name, driver)
-
       elif len(sent_by_me) >= 1:
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:

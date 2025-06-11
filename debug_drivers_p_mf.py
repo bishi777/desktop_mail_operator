@@ -34,7 +34,7 @@ search_profile_flug = False
 minute_index = 0  
 minute_flug = True
 tab_count = len(handles)
-interval_minute = ceil(180 / tab_count)
+interval_minute = ceil(150 / tab_count)
 
 
 for i in range(99999):
@@ -68,8 +68,7 @@ for i in range(99999):
           print(f"足跡付け {current_step}件")    
           time.sleep(1)
           search_profile_flug = False
-          current_step_flug = True
-            
+          current_step_flug = True   
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
@@ -126,7 +125,6 @@ for i in range(99999):
           func.send_error(name_on_pcmax[0].text, f"リンクル足跡付けの処理中に再ログインしました")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
-        
         pcmax_2.profile_search(driver)
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
@@ -193,11 +191,11 @@ for i in range(99999):
   
   if i % 2 == 0:
     current_step += 1
-  elapsed_time = time.time() - start_time  # 経過時間を計算する   
-  print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
-  elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
-  minutes, seconds = divmod(int(elapsed_time), 60)
-  print(f"タイム: {minutes}分{seconds}秒")  
+    elapsed_time = time.time() - start_time  # 経過時間を計算する   
+    print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    minutes, seconds = divmod(int(elapsed_time), 60)
+    print(f"タイム: {minutes}分{seconds}秒")  
   if 7 <= now.hour <= 22:
     # if True:
     if now.minute % interval_minute == 0:
