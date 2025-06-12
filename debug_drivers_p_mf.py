@@ -43,7 +43,7 @@ for i in range(99999):
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
-    if i % len(handles) != idx:
+    if i % len(handles) == idx:
       try:
         driver.get("https://pcmax.jp/pcm/index.php")   
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
