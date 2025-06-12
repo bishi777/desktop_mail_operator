@@ -178,10 +178,11 @@ for i in range(99999):
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
-  if i % len(handles) == idx:
-      print(77777777777777777777777)
-      print(i % len(handles))
-      time.sleep(7)
+  print(77777777777777777777777)
+  print(i % len(handles))
+      
+      
+  time.sleep(7)
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if search_profile_flug:
     current_step = 0
