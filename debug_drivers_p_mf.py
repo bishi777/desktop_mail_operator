@@ -43,16 +43,16 @@ for i in range(99999):
   now = datetime.now()
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
-    driver.switch_to.window(handle)
-    login_flug = pcmax_2.catch_warning_pop("", driver)
-    if login_flug and "制限" in login_flug:
-      print("制限がかかっているため、スキップを行います")
-      time.sleep(0.5)
-      continue
-    pcmax_2.catch_warning_pop("", driver)
-    pcmax_2.profile_search(driver) 
-    # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     try:
+      driver.switch_to.window(handle)
+      login_flug = pcmax_2.catch_warning_pop("", driver)
+      if login_flug and "制限" in login_flug:
+        print("制限がかかっているため、スキップを行います")
+        time.sleep(0.5)
+        continue
+      pcmax_2.catch_warning_pop("", driver)
+      pcmax_2.profile_search(driver) 
+      # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -141,13 +141,13 @@ for i in range(99999):
   if search_profile_flug:
     current_step = 0
     for idx, handle in enumerate(handles): 
-      driver.switch_to.window(handle)
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      if login_flug and "制限" in login_flug:
-        # print("制限がかかっているため、スキップを行います")
-        continue
-      print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
-      try:    
+      try:  
+        driver.switch_to.window(handle)
+        login_flug = pcmax_2.catch_warning_pop("", driver)
+        if login_flug and "制限" in login_flug:
+          # print("制限がかかっているため、スキップを行います")
+          continue
+        print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
         driver.get("https://pcmax.jp/pcm/index.php")   
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
