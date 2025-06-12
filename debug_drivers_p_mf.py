@@ -37,7 +37,6 @@ tab_count = len(handles)
 interval_minute = ceil(150 / tab_count)
 reset_profile_search_cnt = 0
 
-
 for i in range(99999):
   start_loop_time = time.time()
   now = datetime.now()
@@ -49,13 +48,8 @@ for i in range(99999):
       print("制限がかかっているため、スキップを行います")
       time.sleep(0.5)
       continue
-    if login_flug and "規約に同意" in login_flug:
-      driver.get("https://pcmax.jp/pcm/index.php")   
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.5)
-      pcmax_2.catch_warning_pop("", driver)
-      pcmax_2.profile_search(driver) 
-
+    pcmax_2.catch_warning_pop("", driver)
+    pcmax_2.profile_search(driver) 
     # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
     try:
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
@@ -130,7 +124,6 @@ for i in range(99999):
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
-  
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if search_profile_flug:
     current_step = 0
@@ -190,10 +183,9 @@ for i in range(99999):
       except Exception as e:
         print(f"❌  の操作でエラー: {e}")
         traceback.print_exc()  
-  
   if i % 2 == 0:
-    print(77777777777777777777777)
-    print(i % len(handles))
+    print(77777777777)
+    print(reset_profile_search_cnt)
     for idx, handle in enumerate(handles): 
       if reset_profile_search_cnt % len(handles) == idx:
         driver.switch_to.window(handle) 
@@ -245,14 +237,14 @@ for i in range(99999):
         except Exception as e:
           print(f"❌  プロフ検索再セットの操作でエラー: {e}")
           traceback.print_exc()  
-        reset_profile_search_cnt += 1
-        break
+        finally:
+          reset_profile_search_cnt += 1
+          break
     if reset_profile_search_cnt >= len(handles):
       reset_profile_search_cnt = 0
       print("プロフ検索再セットカウントをリセットしました")
     current_step += 1
     elapsed_time = time.time() - start_time  # 経過時間を計算する   
-    
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     minutes, seconds = divmod(int(elapsed_time), 60)
@@ -281,7 +273,6 @@ for i in range(99999):
               if not post_title or not post_content:
                 print("掲示板タイトルと投稿内容が設定されていません")
                 print(  f"名前: {key['name']}, タイトル: {key['post_title']}, 内容: {key['post_content']}")
-
               else:
                 pcmax_2.re_post(driver,wait, post_title, post_content)
                 driver.get("https://pcmax.jp/pcm/index.php")

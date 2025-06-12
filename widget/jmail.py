@@ -20,6 +20,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 import base64
 import requests
+import shutil
 
 def login_jmail(driver, wait, login_id, login_pass):
   driver.delete_all_cookies()
@@ -64,75 +65,34 @@ def login_jmail(driver, wait, login_id, login_pass):
       return True
   
 
-def re_post(driver, name):
+def start_jmail_drivers(login_id, password, jmail_list, headless, base_path):
+  drivers = {}
   try:
-    wait = WebDriverWait(driver, 15)
-    dbpath = 'firstdb.db'
-    conn = sqlite3.connect(dbpath)
-    # SQLiteを操作するためのカーソルを作成
-    cur = conn.cursor()
-    # 順番
-    # データ検索  
-    cur.execute('SELECT * FROM jmail WHERE name = ?', (name,))
-    for row in cur:
-        # print(6666)
-        # print(row)
-        login_id = row[2]
-        login_pass = row[3]
-        post_title = row[4]
-        post_content = row[5]
-    login_jmail(driver, wait, login_id, login_pass)
-    # メニューをクリック
-    menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
-    menu_icon[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    #  アダルト掲示板をクリック
-    menu = driver.find_elements(By.CLASS_NAME, value="iconMenu")
-    adult_post_menus = menu[0].find_elements(By.TAG_NAME, value="p")
-    adult_post_menu = adult_post_menus[0].find_elements(By.XPATH, "//*[contains(text(), 'アダルト掲示板')]")
-    adult_post_menu_link = adult_post_menu[0].find_element(By.XPATH, "./.")
-    #  adult_post_menu_link.click()
-    driver.get(adult_post_menu_link.get_attribute("href"))
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    #  投稿をクリック　color_variations_03
-    post_icon = driver.find_elements(By.CLASS_NAME, value="color_variations_03")
-    post_icon[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    #  コーナーを選択
-    corner_select = driver.find_elements(By.NAME, value="CornerId")
-    select = Select(corner_select[0])
-    select.select_by_visible_text("今すぐあそぼっ")
-    time.sleep(1)
-    #  件名を入力
-    post_title_input = driver.find_elements(By.NAME, value="Subj")
-    post_title_input[0].clear()
-    post_title_input[0].send_keys(post_title)
-    time.sleep(1)
-    #  メッセージを入力
-    post_content_input = driver.find_elements(By.NAME, value="Comment")
-    post_content_input[0].clear()
-    post_content_input[0].send_keys(post_content)
-    time.sleep(1)
-    #  メール受信数を選択　Number of emails received
-    select_recieve_number = driver.find_elements(By.NAME, value="ResMaxCount")
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", select_recieve_number[0])
-    time.sleep(1)
-    select = Select(select_recieve_number[0])
-    select.select_by_visible_text("5件")
-    time.sleep(1)
-    #  書き込む
-    write_button = driver.find_elements(By.NAME, value="Bw")
-    write_button[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-
-    return True
+    for i in jmail_list:
+      profile_path = os.path.join(base_path, i["name"])
+      if os.path.exists(profile_path):
+        shutil.rmtree(profile_path)  # フォルダごと削除
+        os.makedirs(profile_path, exist_ok=True)  
+      driver,wait = func.get_multi_driver(profile_path, headless)
+      name = i["name"]
+      login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
+    return drivers
+  except KeyboardInterrupt:
+    # Ctrl+C が押された場合
+    print("ログイン中にプログラムが Ctrl+C により中断qされました。")
+    func.close_all_drivers(drivers)
   except Exception as e:
-    print(f"掲示板再投稿エラー{name}")    
-    return False
+    # 予期しないエラーが発生した場合
+    print("ログイン中〜〜〜〜〜〜〜〜〜〜〜〜〜〜")
+    func.close_all_drivers(drivers)
+    print("エラーが発生しました:", e)
+    traceback.print_exc()
+  
+
+def re_post(driver):
+  # menu-off
+  menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")[0].click()
 
 
 import sqlite3

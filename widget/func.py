@@ -174,7 +174,7 @@ def close_all_drivers(drivers_dict):
       print(f"{name} のブラウザを閉じる際にエラーが発生: {e}")
   drivers_dict.clear() 
 
-def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
+def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path="", user_agent=""):
     # os_name = platform.system()
     # print(tmp_dir)
     # tmpフォルダ内に一意のキャッシュディレクトリを作成
@@ -194,6 +194,8 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path=""):
           options.add_argument("--profile-directory=Profile 74")
         else:
           options.add_argument("--incognito")
+        if user_agent:
+          options.add_argument(f"--user-agent={user_agent}")
         options.add_argument("--disable-gpu") 
         options.add_argument("--disable-software-rasterizer")
         options.add_argument("--disable-dev-shm-usage")  # 共有メモリの使用を無効化（仮想環境で役立つ）

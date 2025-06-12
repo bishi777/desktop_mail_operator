@@ -36,6 +36,18 @@ def catch_warning_pop(name, driver):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
   try:
+    kiyaku_btns = driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')
+    if kiyaku_btns:
+      print("kiyaku_btns")
+      print(kiyaku_btns[0].text)
+      # kiyaku_btns[0].click()
+      driver.execute_script("arguments[0].click();", kiyaku_btns[0])
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      warning = f"{name} 規約に同意しました"
+  except Exception:
+    pass
+  try:
     suspend_title = driver.find_elements(By.CLASS_NAME, 'suspend-title')
     if suspend_title:
       if "相手"in suspend_title[0].text:
@@ -83,19 +95,7 @@ def catch_warning_pop(name, driver):
         ng_dialog_btns[0].click()
   except Exception:
     pass
-  try:
-    kiyaku_btns = driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')
-    if kiyaku_btns:
-      print("kiyaku_btns")
-      print(kiyaku_btns[0].text)
-      kiyaku_btns[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      warning = f"{name} 規約に同意しました"
-
-      return warning
-  except Exception:
-    pass
+  
   try:
     tuto_pop = driver.find_elements(By.CLASS_NAME, 'tuto_screen')
     if tuto_pop:
