@@ -44,54 +44,56 @@ for i in range(99999):
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
     if i % len(handles) == idx:
-      try:
-        driver.get("https://pcmax.jp/pcm/index.php")   
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(0.5)
-        pcmax_2.catch_warning_pop("", driver)
-        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}　<<<プロフ検索再セット>>>")
-        while not len(name_on_pcmax):
-          # 再ログイン処理
-          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
-          if len(main_photo):
-            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-            if len(login_form):
-              login = login_form[0].find_elements(By.TAG_NAME, 'a')
-              login[0].click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
-          else:
-            print("メイン写真が見つかりません")
-            # スクショします
-            # driver.save_screenshot("screenshot.png")
-          time.sleep(8.5)
-          login_button = driver.find_element(By.NAME, "login")
-          login_button.click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
-          login_flug = pcmax_2.catch_warning_pop("", driver)
-          if login_flug and "制限" in login_flug:
-            # print("制限がかかっているため、スキップを行います8888888888")
-            break      
-          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-          re_login_cnt = 0
-          while not len(name_on_pcmax):
-            time.sleep(5)
-            login_button = driver.find_element(By.NAME, "login")
-            login_button.click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5)
-            pcmax_2.catch_warning_pop("", driver)
-            name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-            re_login_cnt += 1
-            if re_login_cnt > 5:
-              print("再ログイン失敗")
-              break
-        pcmax_2.profile_search(driver)
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      except Exception as e:
-        print(f"❌  プロフ検索再セットの操作でエラー: {e}")
-        traceback.print_exc()  
+      print(77777777777777777777777)
+      time.sleep(7)
+      # try:
+      #   driver.get("https://pcmax.jp/pcm/index.php")   
+      #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #   time.sleep(0.5)
+      #   pcmax_2.catch_warning_pop("", driver)
+      #   name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      #   print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}　<<<プロフ検索再セット>>>")
+      #   while not len(name_on_pcmax):
+      #     # 再ログイン処理
+      #     main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+      #     if len(main_photo):
+      #       login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+      #       if len(login_form):
+      #         login = login_form[0].find_elements(By.TAG_NAME, 'a')
+      #         login[0].click()
+      #         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
+      #     else:
+      #       print("メイン写真が見つかりません")
+      #       # スクショします
+      #       # driver.save_screenshot("screenshot.png")
+      #     time.sleep(8.5)
+      #     login_button = driver.find_element(By.NAME, "login")
+      #     login_button.click()
+      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #     time.sleep(1.5)
+      #     login_flug = pcmax_2.catch_warning_pop("", driver)
+      #     if login_flug and "制限" in login_flug:
+      #       # print("制限がかかっているため、スキップを行います8888888888")
+      #       break      
+      #     name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      #     re_login_cnt = 0
+      #     while not len(name_on_pcmax):
+      #       time.sleep(5)
+      #       login_button = driver.find_element(By.NAME, "login")
+      #       login_button.click()
+      #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #       time.sleep(1.5)
+      #       pcmax_2.catch_warning_pop("", driver)
+      #       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      #       re_login_cnt += 1
+      #       if re_login_cnt > 5:
+      #         print("再ログイン失敗")
+      #         break
+      #   pcmax_2.profile_search(driver)
+      #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      # except Exception as e:
+      #   print(f"❌  プロフ検索再セットの操作でエラー: {e}")
+      #   traceback.print_exc()  
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
