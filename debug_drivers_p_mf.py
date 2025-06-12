@@ -14,6 +14,7 @@ import traceback
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 from math import ceil
+from selenium.common.exceptions import NoSuchElementException
 
 
 user_data = func.get_user_data()
@@ -121,9 +122,21 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         pcmax_2.profile_search(driver)
+    except NoSuchElementException as e:
+      print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
+      time.sleep(300)
+      try:
+        driver.refresh()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
+      except Exception as e2:
+        print("📨 再実行でも失敗。メール通知します。")
+        func.send_error("PCMAX ネット接続エラー", str(e2))
+        raise  # ここで終了するか、ログだけで続行するかは自由
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
+    
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if search_profile_flug:
     current_step = 0
@@ -180,9 +193,21 @@ for i in range(99999):
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         continue
+      except NoSuchElementException as e:
+        print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
+        time.sleep(300)
+        try:
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+        except Exception as e2:
+          print("📨 再実行でも失敗。メール通知します。")
+          func.send_error("PCMAX ネット接続エラー", str(e2))
+          raise  # ここで終了するか、ログだけで続行するかは自由
       except Exception as e:
-        print(f"❌  の操作でエラー: {e}")
+        print(f"❌  プロフ再セット　の操作でエラー: {e}")
         traceback.print_exc()  
+      
   if i % 2 == 0:
     print(77777777777)
     print(reset_profile_search_cnt)
@@ -234,6 +259,17 @@ for i in range(99999):
                 break
           pcmax_2.profile_search(driver)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        except NoSuchElementException as e:
+          print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
+          time.sleep(300)
+          try:
+            driver.refresh()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+          except Exception as e2:
+            print("📨 再実行でも失敗。メール通知します。")
+            func.send_error("PCMAX ネット接続エラー", str(e2))
+            raise  # ここで終了するか、ログだけで続行するかは自由
         except Exception as e:
           print(f"❌  プロフ検索再セットの操作でエラー: {e}")
           traceback.print_exc()  
@@ -281,6 +317,17 @@ for i in range(99999):
               pcmax_2.profile_search(driver)
               minute_flug = False
               break
+        except NoSuchElementException as e:
+          print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
+          time.sleep(300)
+          try:
+            driver.refresh()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+          except Exception as e2:
+            print("📨 再実行でも失敗。メール通知します。")
+            func.send_error("PCMAX ネット接続エラー", str(e2))
+            raise  # ここで終了するか、ログだけで続行するかは自由
         except Exception as e:
           print(f"❌ {interval_minute}分おき処理でエラー: {e}")
           traceback.print_exc()
