@@ -43,9 +43,7 @@ for i in range(99999):
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
     driver.switch_to.window(handle)
-    if i % len(handles) == idx:
-      print(77777777777777777777777)
-      time.sleep(7)
+    
       # try:
       #   driver.get("https://pcmax.jp/pcm/index.php")   
       #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -243,6 +241,9 @@ for i in range(99999):
   if i % 2 == 0:
     current_step += 1
     elapsed_time = time.time() - start_time  # 経過時間を計算する   
+    if i % len(handles) == idx:
+      print(77777777777777777777777)
+      print()
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     minutes, seconds = divmod(int(elapsed_time), 60)
