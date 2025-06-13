@@ -46,6 +46,7 @@ for i in range(99999):
     try:
       driver.switch_to.window(handle)
       login_flug = pcmax_2.catch_warning_pop("", driver)
+      pcmax_2.get_header_menu( driver, "マイメニュー",)
       if login_flug and "制限" in login_flug:
         print("制限がかかっているため、スキップを行います")
         time.sleep(0.5)
@@ -208,11 +209,8 @@ for i in range(99999):
       #     raise  # ここで終了するか、ログだけで続行するかは自由
       except Exception as e:
         print(f"❌  プロフ再セット　の操作でエラー: {e}")
-        traceback.print_exc()  
-      
+        traceback.print_exc()    
   if i % 2 == 0:
-    print(77777777777)
-    print(reset_profile_search_cnt)
     for idx, handle in enumerate(handles): 
       if reset_profile_search_cnt % len(handles) == idx:
         driver.switch_to.window(handle) 
@@ -303,6 +301,7 @@ for i in range(99999):
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
           print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+          pcmax_2.imahima_on(driver, wait)
           for key in pcmax_datas:
             # print(f"名前: {key['name']}")
             if name_on_pcmax[0].text == key["name"]:

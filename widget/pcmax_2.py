@@ -115,7 +115,7 @@ def catch_warning_pop(name, driver):
   except Exception:
     pass
   return warning
-
+  
 def get_header_menu(driver, menu):
   wait = WebDriverWait(driver, 10)  
   try:
@@ -142,6 +142,21 @@ def get_header_menu(driver, menu):
   except NoSuchElementException:
     pass
   return False
+
+def imahima_on(driver,wait):
+  get_header_menu(driver, "マイメニュー")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  imahima_icon = driver.find_element(By.ID, "ted")
+  if 'ted-on' in imahima_icon.get_attribute("class").split():
+    print("✅ いまヒマアイコンがオンになっています")
+  else:
+    print("❌ いまヒマアイコンがオフになっています")
+    imahima_icon.click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print("❌ いまヒマアイコンおんにしました")
+  driver.back()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 
 def profile_search(driver):
   get_header_menu(driver, "プロフ検索")
