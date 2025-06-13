@@ -51,7 +51,6 @@ for i in range(99999):
         time.sleep(0.5)
         continue
       pcmax_2.catch_warning_pop("", driver)
-      pcmax_2.profile_search(driver) 
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       # https://pcmax.jp/mobile/profile_reference.php
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
