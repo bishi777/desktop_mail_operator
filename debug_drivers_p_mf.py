@@ -46,7 +46,6 @@ for i in range(99999):
     try:
       driver.switch_to.window(handle)
       login_flug = pcmax_2.catch_warning_pop("", driver)
-      pcmax_2.get_header_menu( driver, "マイメニュー",)
       if login_flug and "制限" in login_flug:
         print("制限がかかっているため、スキップを行います")
         time.sleep(0.5)
@@ -54,6 +53,7 @@ for i in range(99999):
       pcmax_2.catch_warning_pop("", driver)
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       # https://pcmax.jp/mobile/profile_reference.php
+      # https://pcmax.jp/mobile/profile_list.php?condition=684c03f923e93
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
