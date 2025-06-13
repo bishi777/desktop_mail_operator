@@ -53,6 +53,7 @@ for i in range(99999):
       pcmax_2.catch_warning_pop("", driver)
       pcmax_2.profile_search(driver) 
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
+      # https://pcmax.jp/mobile/profile_reference.php
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -122,6 +123,8 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         pcmax_2.profile_search(driver)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.5)
     # except NoSuchElementException as e:
     #   print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
     #   time.sleep(300)
