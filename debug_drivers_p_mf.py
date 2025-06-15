@@ -44,6 +44,9 @@ for i in range(99999):
   start_time = time.time() 
   for idx, handle in enumerate(handles): 
     try:
+      if handle not in driver.window_handles:
+        print(f"❗ 無効なハンドルをスキップ: {handle}")
+        continue
       driver.switch_to.window(handle)
       login_flug = pcmax_2.catch_warning_pop("", driver)
       if login_flug and "制限" in login_flug:
@@ -125,17 +128,7 @@ for i in range(99999):
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
-    # except NoSuchElementException as e:
-    #   print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
-    #   time.sleep(300)
-    #   try:
-    #     driver.refresh()
-    #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #     time.sleep(1.5)
-    #   except Exception as e2:
-    #     print("📨 再実行でも失敗。メール通知します。")
-    #     func.send_error("PCMAX ネット接続エラー", str(e2))
-    #     raise  # ここで終了するか、ログだけで続行するかは自由
+    
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
@@ -219,6 +212,8 @@ for i in range(99999):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5)
           pcmax_2.catch_warning_pop("", driver)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.5)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}　<<<プロフ検索再セット>>>")
           while not len(name_on_pcmax):
