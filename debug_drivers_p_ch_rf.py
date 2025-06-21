@@ -49,7 +49,8 @@ while True:
       driver.get("https://pcmax.jp/mobile/mymenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
-    
+      print("PCMAXのマイメニューに移動しました")
+      print(driver.current_url)
     try:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       while not len(name_on_pcmax):
