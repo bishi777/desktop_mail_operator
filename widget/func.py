@@ -815,7 +815,7 @@ def get_user_data():
   # APIエンドポイントURL
   api_url = "https://meruopetyan.com/api/user-data/"
   # DEBUG
-  # api_url = "http://127.0.0.1:8000/api/user-data/"
+  api_url = "http://127.0.0.1:8000/api/user-data/"
   max_retries = 3
   retry_count = 0
   wait_time = 300  # 5分（300秒）

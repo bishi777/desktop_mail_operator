@@ -65,7 +65,7 @@ def login_jmail(driver, wait, login_id, login_pass):
       return True
   
 
-def start_jmail_drivers(login_id, password, jmail_list, headless, base_path):
+def start_jmail_drivers(jmail_list, headless, base_path):
   drivers = {}
   try:
     for i in jmail_list:
@@ -76,7 +76,7 @@ def start_jmail_drivers(login_id, password, jmail_list, headless, base_path):
       driver,wait = func.get_multi_driver(profile_path, headless)
       name = i["name"]
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
@@ -97,6 +97,35 @@ def re_post(driver):
 
 import sqlite3
 
+def check_mail(name, jmail_info):
+  login_id = jmail_info['login_id']
+  password = jmail_info['password']
+  submitted_users = jmail_info['submitted_users']
+  print(submitted_users)
+  submitted_users.append("666")
+  print(666)
+  print(submitted_users)
+  
+  api_url = "https://meruopetyan.com/api/update-submitted-users/"
+  api_url = "http://127.0.0.1:8000/api/update-submitted-users/"
+
+  payload = {
+      "login_id": login_id,
+      "password": password,
+      "submitted_users": submitted_users
+  }
+
+  try:
+      response = requests.post(api_url, json=payload)
+      if response.status_code == 200:
+          print("✅ 更新成功:", response.json())
+      else:
+          print(f"❌ 更新失敗（ステータス: {response.status_code}）:", response.json())
+  except requests.exceptions.RequestException as e:
+      print("⚠️ 通信エラー:", e)
+      traceback.print_exc()  
+
+
 def check_new_mail(driver, wait, jmail_info, try_cnt):
   name = jmail_info['name']
   login_id = jmail_info['login_id']
@@ -116,19 +145,7 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
   else:
     image_path = ""
     image_filename = None 
-  # データベース接続とテーブル作成
-  conn = sqlite3.connect('user_data.db')
-  c = conn.cursor()
-  # テーブル作成時に login_id と password を NULL を許容する
-  c.execute('''
-      CREATE TABLE IF NOT EXISTS jmail (
-          id INTEGER PRIMARY KEY AUTOINCREMENT,
-          name TEXT NOT NULL,
-          login_id TEXT,
-          password TEXT,
-          send_list TEXT
-      )
-  ''')
+ 
   c.execute('SELECT * FROM jmail WHERE name = ? AND login_id = ? AND password = ?', (name, login_id, password))
   sqlite_jmail_result = c.fetchone()  
   if sqlite_jmail_result is None:

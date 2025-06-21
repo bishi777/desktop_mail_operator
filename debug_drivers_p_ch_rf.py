@@ -42,11 +42,11 @@ while True:
       print("制限がかかっているため、スキップを行います")
       continue
     print(f"  📄 タブ{idx+1}: {driver.current_url}")
-    urls = [
-      "pcmax.jp/pcm/index.php"
-    ]
-    if not any(part in driver.current_url for part in urls):
-      driver.get("https://pcmax.jp/pcm/index.php")
+    # urls = [
+    #   "pcmax.jp/pcm/index.php"
+    # ]
+    if not "pcmax.jp/pcm/index.php" in driver.current_url:
+      driver.get("https://pcmax.jp/mobile/mymenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
     

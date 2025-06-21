@@ -2,7 +2,7 @@ from widget import func, jmail
 import signal
 import sys
 from selenium.webdriver.support.ui import WebDriverWait
-
+import time
 
 user_data = func.get_user_data()
 wait_time = 1.5
@@ -16,11 +16,17 @@ def jmail_debug(headless):
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
 
-  login_id = jmail_datas[0]['login_id']
-  login_pass = jmail_datas[0]['password']
-  drivers = jmail.start_jmail_drivers(login_id, login_pass, jmail_datas, headless, base_path)
-  print(drivers)
-  # jmail.re_post(driver)
+  drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
+  while True:
+    if drivers == {}:
+      break
+    for name, data in drivers.items():
+      print(name)
+      print(data)
+      driver = drivers[name]["driver"]
+      wait = drivers[name]["wait"]
+      jmail.check_mail(name,data)
+    time.sleep(100)
 
 
 
