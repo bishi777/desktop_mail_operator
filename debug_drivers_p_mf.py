@@ -55,8 +55,6 @@ for i in range(99999):
         continue
       pcmax_2.catch_warning_pop("", driver)
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
-      # https://pcmax.jp/mobile/profile_reference.php
-      # https://pcmax.jp/mobile/profile_list.php?condition=684c03f923e93
       if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
         mohu_flug = False
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -85,6 +83,10 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         pcmax_2.catch_warning_pop("", driver)
+        if "https://pcmax.jp/mobile/mail" in driver.current_url:
+          print("メール画面にいます")
+          pcmax_2.catch_warning_pop("", driver)
+          pcmax_2.get_header_menu(driver, "マイメニュー")
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         while not len(name_on_pcmax):
           # 再ログイン処理
