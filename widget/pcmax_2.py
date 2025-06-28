@@ -404,7 +404,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       received_mail = received_elems[-1].text if received_elems else ""
-      received_mail = func.normalize_text(received_mail)
       received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
@@ -444,6 +443,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           time.sleep(0.5) 
         else:
           for user_address in email_list:
+            user_address = func.normalize_text(user_address)
             site = "リンクル(PCMAX)"
             try:
               func.normalize_text(condition_message)

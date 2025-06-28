@@ -96,11 +96,8 @@ def clear_webdriver_cache():
             except Exception as e:
                 print(f"Error clearing cache {cache_dir}: {e}")
 
-def get_multi_driver(profile_path, headless_flag, max_retries=3):
+def get_multi_driver(profile_path, headless_flag, user_agent="", max_retries=3):
   for attempt in range(max_retries):
-    # iPhone14
-    user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
-    
     base_dir = os.path.dirname(os.path.abspath(__file__))
     profile_path = os.path.join(base_dir, profile_path)
     os.makedirs(profile_path, exist_ok=True)
@@ -122,7 +119,8 @@ def get_multi_driver(profile_path, headless_flag, max_retries=3):
       options.add_argument('--log-level=3')  # これでエラーログが抑制されます
       options.add_argument('--disable-web-security')
       options.add_argument('--disable-extensions')
-      options.add_argument(f"--user-agent={user_agent}")
+      if user_agent:
+        options.add_argument(f"--user-agent={user_agent}")
       options.add_argument("--no-sandbox")
       options.add_argument("--window-size=456,912")
       options.add_experimental_option("detach", True)

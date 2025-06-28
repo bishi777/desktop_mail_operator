@@ -22,9 +22,26 @@ import base64
 import requests
 import shutil
 
+def encode_img(name, mail_img):
+  # 画像データを取得してBase64にエンコード
+  if mail_img:
+    # image_response = requests.get(f"https://meruopetyan.com/{mail_img}")
+    image_response = requests.get(f"http://127.0.0.1:8000/{mail_img}")
+    image_base64 = base64.b64encode(image_response.content).decode('utf-8')
+    # ローカルに一時的に画像ファイルとして保存
+    image_filename = f"{name}_image.png"
+    with open(image_filename, 'wb') as f:
+        f.write(base64.b64decode(image_base64))
+    # 画像の保存パスを取得
+    image_path = os.path.abspath(image_filename)
+    print(image_path)
+  else:
+    image_path = ""
+    image_filename = None 
+  return image_filename, image_path
+
 def login_jmail(driver, wait, login_id, login_pass):
   driver.delete_all_cookies()
-  # https://mintj.com/msm/login/?adv=___36h1tmot02r12l8kxdtxx0b3z
   driver.get("https://mintj.com/msm/login/")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   wait_time = random.uniform(3, 6)
@@ -73,10 +90,12 @@ def start_jmail_drivers(jmail_list, headless, base_path):
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
-      driver,wait = func.get_multi_driver(profile_path, headless)
+      # iPhone14
+      user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
+      driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       name = i["name"]
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"]}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
@@ -88,42 +107,228 @@ def start_jmail_drivers(jmail_list, headless, base_path):
     func.close_all_drivers(drivers)
     print("エラーが発生しました:", e)
     traceback.print_exc()
-  
-
-def re_post(driver):
-  # menu-off
-  menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")[0].click()
 
 
-import sqlite3
-
-def check_mail(name, jmail_info):
+def check_mail(name, jmail_info, driver, wait):
   login_id = jmail_info['login_id']
   password = jmail_info['password']
+  fst_message = jmail_info['fst_message']
+  second_message = jmail_info['second_message']
   submitted_users = jmail_info['submitted_users']
-  print(submitted_users)
-  submitted_users.append("666")
-  print(666)
-  print(submitted_users)
+  mail_img = jmail_info['chara_image']
+  mail_address_image = jmail_info['mail_address_image']
+  # login_flug = login_jmail(driver, wait, login_id, password)
+  # if not login_flug:
+  #   print(f"jmail:{name}に警告画面が出ている可能性があります")
+  #   return ""
+  if fst_message == "":
+    print(f"{name}のjmailキャラ情報に1stメッセージが設定されていません")
+    return
+  # メールアイコンをクリック
+  mail_icon = driver.find_elements(By.CLASS_NAME, value="mail-off")
+  link = mail_icon[0].find_element(By.XPATH, "./..")
+  driver.get(link.get_attribute("href"))
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  message_tab = driver.find_element(By.CLASS_NAME, value="message_tab")
+  link_message_tabs = message_tab.find_elements(By.TAG_NAME, value="a")
+  for link_message_tab in link_message_tabs:
+    if "未読" in link_message_tab.text:
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", link_message_tab)
+      link_message_tab.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      break
+  interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
+  # 未読メールをチェック
+  sended_mail = False
+  return_list = []
+  for interacting_user_cnt in range(len(interacting_users)):
+    # interacting_userリストを取得
+    interacting_user_name = interacting_users[interacting_user_cnt].text
+    if "未読" in interacting_user_name:
+      interacting_user_name = interacting_user_name.replace("未読", "")
+    if "退会" in interacting_user_name:
+      interacting_user_name = interacting_user_name.replace("退会", "")
+    if " " in interacting_user_name:
+      interacting_user_name = interacting_user_name.replace(" ", "")
+    if "　" in interacting_user_name:
+      interacting_user_name = interacting_user_name.replace("　", "")
+    # 未読、退会以外でNEWのアイコンも存在してそう
+    # NEWアイコンがあるかチェック
+    new_icon = interacting_users[interacting_user_cnt].find_elements(By.TAG_NAME, value="img")
+    if "テラ" in interacting_users[interacting_user_cnt].text or len(new_icon):
+      submitted_users.append(interacting_user_name)
+    if "未読" in interacting_users[interacting_user_cnt].text or len(new_icon):
+    # deug
+      # 時間を取得　
+      parent_usr_info = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+      parent_usr_info = parent_usr_info.find_element(By.XPATH, "./..")
+      next_element = parent_usr_info.find_element(By.XPATH, value="following-sibling::*[1]")
+      current_year = datetime.now().year
+      date_string = f"{current_year} {next_element.text}"
+      date_format = "%Y %m/%d %H:%M" 
+      date_object = datetime.strptime(date_string, date_format)
+      now = datetime.today()
+      elapsed_time = now - date_object
+      # print(interacting_users[interacting_user_cnt].text)
+      # print(f"メール到着からの経過時間{elapsed_time}")
+      # print(interacting_user_name)
+      if elapsed_time >= timedelta(minutes=4):
+        # print("4分以上経過しています。")
+        if interacting_user_name not in submitted_users:
+          submitted_users.append(interacting_user_name)
+        send_message = ""
+        # リンクを取得
+        link_element = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+        driver.get(link_element.get_attribute("href"))
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        send_by_user = driver.find_elements(By.CLASS_NAME, value="balloon_left")
+        send_by_user_message = send_by_user[0].find_elements(By.CLASS_NAME, value="balloon")[0].text
+        # 相手からのメッセージが何通目か確認する
+        if not sended_mail:
+          send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
+          if len(send_by_me) == 0:
+            send_message = fst_message
+            if mail_img:
+              image_filename, image_path = encode_img(name, mail_img)
+            else:
+              image_filename, image_path = "", ""
+          elif len(send_by_me) == 1:
+            send_message = second_message
+            if mail_address_image:
+              image_filename, image_path = encode_img(name, mail_address_image)
+            else:
+              image_filename, image_path = "", ""
+          elif len(send_by_me) == 2:
+            print("捨てメアドに通知")
+            print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
+            return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
+            return_list.append(return_message)  
+            print("捨てメアドに、送信しました")
+            image_path = ""
+            image_filename = ""
+        if send_message:
+          # 返信するをクリック
+          res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
+          res_do[1].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          # メッセージを入力　name=comment
+          text_area = driver.find_elements(By.NAME, value="comment")
+          script = "arguments[0].value = arguments[1];"
+          driver.execute_script(script, text_area[0], send_message)
+          time.sleep(4)
+          # 画像があれば送信 
+          if image_path:
+            img_input = driver.find_elements(By.NAME, value="image1")
+            img_input[0].send_keys(image_path)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+          send_button = driver.find_elements(By.NAME, value="sendbutton")
+          send_button[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+        # メール一覧に戻る　message_back
+        back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
+        back = back_parent[0].find_elements(By.TAG_NAME, value="a")
+        back[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")  
+  pager = driver.find_elements(By.CLASS_NAME, value="pager")
+  if len(pager):
+    pager_link = pager[0].find_elements(By.TAG_NAME, value="a")
+    for i in range(len(pager_link)):
+      next_pager = pager_link[i]
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", next_pager)
+      next_pager.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
+      for interacting_user_cnt in range(len(interacting_users)):
+      # interacting_userリストを取得
+        interacting_user_name = interacting_users[interacting_user_cnt].text
+        if "未読" in interacting_user_name:
+          interacting_user_name = interacting_user_name.replace("未読", "")
+        if "退会" in interacting_user_name:
+          interacting_user_name = interacting_user_name.replace("退会", "")
+        if " " in interacting_user_name:
+          interacting_user_name = interacting_user_name.replace(" ", "")
+        if "　" in interacting_user_name:
+          interacting_user_name = interacting_user_name.replace("　", "")
+        # 未読、退会以外でNEWのアイコンも存在してそう
+        # NEWアイコンがあるかチェック
+        new_icon = interacting_users[interacting_user_cnt].find_elements(By.TAG_NAME, value="img")
+        if "未読" in interacting_users[interacting_user_cnt].text or len(new_icon):          
+          # 時間を取得　align_right
+          parent_usr_info = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+          parent_usr_info = parent_usr_info.find_element(By.XPATH, "./..")
+          next_element = parent_usr_info.find_element(By.XPATH, value="following-sibling::*[1]")
+          current_year = datetime.now().year
+          date_string = f"{current_year} {next_element.text}"
+          date_format = "%Y %m/%d %H:%M" 
+          date_object = datetime.strptime(date_string, date_format)
+          now = datetime.today()   
+          elapsed_time = now - date_object
+          # print(interacting_users[interacting_user_cnt].text)
+          # print(f"メール到着からの経過時間{elapsed_time}")
+          if elapsed_time >= timedelta(minutes=4):
+            # print("4分以上経過しています。")
+            # ユーザー名を保存
+            if interacting_user_name not in submitted_users:
+              submitted_users.append(interacting_user_name)
+            send_message = ""
+            # リンクを取得
+            link_element = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+            driver.get(link_element.get_attribute("href"))
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+            send_by_user = driver.find_elements(By.CLASS_NAME, value="balloon_left")
+            send_by_user_message = send_by_user[0].find_elements(By.CLASS_NAME, value="balloon")[0].text
+            # 相手からのメッセージが何通目か確認する
+            if not sended_mail:
+              send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
+              if len(send_by_me) == 0:
+                send_message = fst_message
+              elif len(send_by_me) == 1:
+                send_message = second_message
+              elif second_message in send_by_me[0].text:
+                print("捨てメアドに通知")
+                print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
+                return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
+                return_list.append(return_message)  
+                print("捨てメアドに、送信しました")
+            if send_message:
+              # 返信するをクリック
+              res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
+              res_do[1].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              # メッセージを入力　name=comment
+              text_area = driver.find_elements(By.NAME, value="comment")
+              script = "arguments[0].value = arguments[1];"
+              driver.execute_script(script, text_area[0], send_message)
+              time.sleep(4)
+              # 画像があれば送信
+              if send_message == fst_message and image_path:              
+                img_input = driver.find_elements(By.NAME, value="image1")
+                img_input[0].send_keys(image_path)
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+              
+            # メール一覧に戻る　message_back
+            back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
+            back = back_parent[0].find_elements(By.TAG_NAME, value="a")
+            back[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+        pager = driver.find_elements(By.CLASS_NAME, value="pager")
+        if len(pager):
+          pager_link = pager[0].find_elements(By.TAG_NAME, value="a")
+  return submitted_users      
   
-  api_url = "https://meruopetyan.com/api/update-submitted-users/"
-  api_url = "http://127.0.0.1:8000/api/update-submitted-users/"
-
-  payload = {
-      "login_id": login_id,
-      "password": password,
-      "submitted_users": submitted_users
-  }
-
-  try:
-      response = requests.post(api_url, json=payload)
-      if response.status_code == 200:
-          print("✅ 更新成功:", response.json())
-      else:
-          print(f"❌ 更新失敗（ステータス: {response.status_code}）:", response.json())
-  except requests.exceptions.RequestException as e:
-      print("⚠️ 通信エラー:", e)
-      traceback.print_exc()  
 
 
 def check_new_mail(driver, wait, jmail_info, try_cnt):
@@ -131,20 +336,8 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
   login_id = jmail_info['login_id']
   password = jmail_info['password']
   mail_img = jmail_info['chara_image']
-  # 画像データを取得してBase64にエンコード
   if mail_img:
-    image_response = requests.get(f"https://meruopetyan.com/{mail_img}")
-    image_base64 = base64.b64encode(image_response.content).decode('utf-8')
-    # ローカルに一時的に画像ファイルとして保存
-    image_filename = f"{name}_image.png"
-    with open(image_filename, 'wb') as f:
-        f.write(base64.b64decode(image_base64))
-    # 画像の保存パスを取得
-    image_path = os.path.abspath(image_filename)
-    print(image_path)
-  else:
-    image_path = ""
-    image_filename = None 
+    image_path = encode_img(name, mail_img)
  
   c.execute('SELECT * FROM jmail WHERE name = ? AND login_id = ? AND password = ?', (name, login_id, password))
   sqlite_jmail_result = c.fetchone()  
@@ -365,8 +558,7 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
                 img_input = driver.find_elements(By.NAME, value="image1")
                 img_input[0].send_keys(image_path)
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(2)
-              
+                time.sleep(2)  
             # メール一覧に戻る　message_back
             back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
             back = back_parent[0].find_elements(By.TAG_NAME, value="a")
@@ -574,9 +766,7 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
   c.execute("UPDATE jmail SET send_list = ? WHERE name = ?", (send_list_string, name))
   conn.commit()
   conn.close()
-  if image_filename:
-    if os.path.exists(image_filename):
-        os.remove(image_filename)
+  
   if len(return_list):
     return return_list
   else:
@@ -659,8 +849,180 @@ def make_footprints(name, jmail_id, jmail_pass, driver, wait):
   query_submit = driver.find_elements(By.ID, value="button")
   query_submit[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(100)
+
+def return_footprint(data, driver,wait,submitted_users):
+  return_foot_message_cnt = 0
+  return_foot_message = data["return_foot_message"]
+  mail_img = data["chara_image"]
+  if mail_img:
+    image_filename, image_path = encode_img(mail_img)
+  else:
+    image_filename, image_path = "", ""
   
+  menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
+  menu_icon[0].click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  menu = driver.find_elements(By.CLASS_NAME, value="iconMenu")
+  #あしあとをクリック
+  foot_menus = menu[0].find_elements(By.TAG_NAME, value="p")
+  foot_menu = foot_menus[0].find_elements(By.XPATH, "//*[contains(text(), 'あしあと')]")
+  foot_menu_link = foot_menu[0].find_element(By.XPATH, "./..")
+  driver.get(foot_menu_link.get_attribute("href"))
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  foot_users = driver.find_element(By.ID, value="ulList").find_elements(By.TAG_NAME, value="li")
+  for i in range(len(foot_users)):
+    # NEW があるかチェック 
+    # if not "New" in foot_users[i].text:
+    #   continue
+    # 送信済ユーザーかチェック
+    foot_user_name = foot_users[i].find_element(By.CLASS_NAME, value="icon_sex_m").text
+    if foot_user_name in submitted_users:
+      print(f"{foot_user_name}は送信済ユーザーです")
+      continue
+    submitted_users.append(foot_user_name)
+    foot_users[i].find_element(By.TAG_NAME, value="a").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.5)
+    # 自己紹介文チェック
+    profile = driver.find_elements(By.CLASS_NAME, value="prof_pr")
+    if len(profile):
+      profile = profile[0].text.replace(" ", "").replace("\n", "")
+      if '通報' in profile or '業者' in profile:
+        print('自己紹介文に危険なワードが含まれていました')
+        driver.back()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        continue
+    text_area = driver.find_elements(By.ID, value="textarea")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+    time.sleep(1)
+    script = "arguments[0].value = arguments[1];"
+    driver.execute_script(script, text_area[0], return_foot_message)
+    time.sleep(4)
+    # 画像があれば送信 
+    if image_path:
+      img_input = driver.find_elements(By.NAME, value="image1")
+      img_input[0].send_keys(image_path)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+    send_btn = driver.find_elements(By.ID, value="message_send")
+    driver.execute_script("arguments[0].click();", send_btn[0])
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    send_complete_element = driver.find_elements(By.ID, value="modal_title")
+    send_complete = send_complete_element[0].text
+    wait_cnt = 0
+    send_status = True
+    while send_complete != "送信完了しました":
+      time.sleep(4)
+      print(send_complete)
+      wait_cnt += 1
+      if wait_cnt > 3:
+        print("ロード時間が15秒以上かかっています")
+        print("送信失敗しました")
+        send_status = False
+        break
+      send_complete = send_complete_element[0].text
+      if len(driver.find_elements(By.ID, value="errormsg1")):
+        if "連続送信はできません"in driver.find_element(By.ID, value="errormsg1").text:
+          print("連続送信はできません")
+        send_status = False
+        break
+    if send_status:
+      return_foot_message_cnt += 1
+      print(f"jmail 足跡返し　{foot_user_name} : {return_foot_message_cnt}件送信")
+    if return_foot_message_cnt == 5:
+      print("送信上限5件に達しました")
+      break
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    foot_users = driver.find_element(By.ID, value="ulList").find_elements(By.TAG_NAME, value="li")
+  if image_filename:
+    if os.path.exists(image_filename):
+        os.remove(image_filename)
+
+def post_set(post_title, post_contents, driver, wait):
+  menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
+  menu_icon[0].click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  menu = driver.find_elements(By.CLASS_NAME, value="iconMenu")
+  #その他募集をクリック
+  foot_menus = menu[0].find_elements(By.TAG_NAME, value="p")
+  foot_menu = foot_menus[0].find_elements(By.XPATH, "//*[contains(text(), 'その他募集')]") 
+  if foot_menu[0].get_attribute("href"):
+    post_link = foot_menu[0].get_attribute("href")
+  else:
+    post_link = foot_menu[0].find_element(By.XPATH, "./..").get_attribute("href")
+  print(777)
+  print(post_link)
+  driver.get(post_link)
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  driver.find_element(By.CLASS_NAME, value="icon_pen").click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  # コーナー選択
+  select = Select(driver.find_element(By.NAME, value="CornerId"))
+  select.select_by_visible_text("今すぐ会いたい")
+  time.sleep(1)
+  # 掲示板タイトル入力
+  script = "arguments[0].value = arguments[1];"
+  driver.execute_script(script, driver.find_element(By.NAME, value="Subj"), post_title)
+  time.sleep(0.5)
+  # 掲示板投稿文入力
+  driver.execute_script(script, driver.find_element(By.NAME, value="Comment"), post_contents)
+  time.sleep(0.5)
+  # 受信メール数選択
+  select = Select(driver.find_element(By.NAME, value="ResMaxCount"))
+  select.select_by_visible_text("5件")
+  time.sleep(1.5)
+  # 書き込むをクリック
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, value="Bw"))
+  time.sleep(1.5)
+  driver.find_element(By.ID, value="Bw").click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+def change_areas(area, driver, wait):
+  setting_icon = driver.find_elements(By.CLASS_NAME, value="setting-off")
+  setting_icon[0].click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  #プロフィール変更をクリック
+  driver.find_element(By.ID, value="settingmenu-list").find_element(By.XPATH, "//*[contains(text(), 'プロフィール変更')]").click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, value="state_id"))
+  time.sleep(1.5)
+  select = Select(driver.find_element(By.ID, value="state_id"))
+  select.select_by_visible_text(area)
+  time.sleep(1.5)
+  driver.find_element(By.NAME, value="PfUpdate").click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+def re_post(data, post_areas, driver,wait):
+  post_title = data["post_title"]
+  post_contents = data["post_contents"]
+  if not post_title:
+    print(f"掲示板タイトルが設定されていません {post_title}")
+    return
+  # ~~~~~~~~~掲示板投稿〜〜〜〜〜〜〜〜〜〜〜〜〜
+  post_set(post_title, post_contents, driver, wait)
+  time.sleep(15)
+  # ~~~~~~~~~地域変更〜〜〜〜〜〜〜〜〜〜〜〜〜
+  for area in random.sample(post_areas, 2):
+    change_areas(area, driver, wait)
+    post_set(post_title, post_contents, driver, wait)
+    # 間隔規制
+    time.sleep(15)
+  change_areas("東京", driver, wait)
+
+
 
    
    

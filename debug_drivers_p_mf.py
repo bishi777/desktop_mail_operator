@@ -55,8 +55,9 @@ for i in range(99999):
         continue
       pcmax_2.catch_warning_pop("", driver)
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
-      if "pcmax.jp/mobile/profile_list.php" in driver.current_url:
-        mohu_flug = False
+      if "pcmax.jp/mobile/profile_rest_list.php" in driver.current_url:
+        print("プロフ検索に制限がかかっています")
+      elif "pcmax.jp/mobile/profile_list.php" in driver.current_url :
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         if current_step < len(user_list):

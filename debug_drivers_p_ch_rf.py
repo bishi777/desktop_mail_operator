@@ -33,7 +33,6 @@ send_flug = False
 while True:
   start_loop_time = time.time()
   now = datetime.now()
-  start_time = time.time() 
   for idx, handle in enumerate(handles): 
     WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
@@ -49,8 +48,8 @@ while True:
       driver.get("https://pcmax.jp/mobile/mymenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
-      print("PCMAXのマイメニューに移動しました")
-      print(driver.current_url)
+      # print("PCMAXのマイメニューに移動しました")
+      # print(driver.current_url)
     try:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       while not len(name_on_pcmax):
@@ -152,10 +151,10 @@ while True:
             send_flug = True
           if now.hour  == 24:
             report_dict = {}
-  elapsed_time = time.time() - start_time  # 経過時間を計算する   
+  elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   while elapsed_time < 720:
     time.sleep(10)
-    elapsed_time = time.time() - start_time  # 経過時間を計算する
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
     print(f"待機中~~ {elapsed_time} ")
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
