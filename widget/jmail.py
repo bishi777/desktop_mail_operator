@@ -25,8 +25,8 @@ import shutil
 def encode_img(name, mail_img):
   # 画像データを取得してBase64にエンコード
   if mail_img:
-    # image_response = requests.get(f"https://meruopetyan.com/{mail_img}")
-    image_response = requests.get(f"http://127.0.0.1:8000/{mail_img}")
+    image_response = requests.get(f"https://meruopetyan.com/{mail_img}")
+    # image_response = requests.get(f"http://127.0.0.1:8000/{mail_img}")
     image_base64 = base64.b64encode(image_response.content).decode('utf-8')
     # ローカルに一時的に画像ファイルとして保存
     image_filename = f"{name}_image.png"
@@ -879,7 +879,7 @@ def return_footprint(data, driver,wait,submitted_users):
     # 送信済ユーザーかチェック
     foot_user_name = foot_users[i].find_element(By.CLASS_NAME, value="icon_sex_m").text
     if foot_user_name in submitted_users:
-      print(f"{foot_user_name}は送信済ユーザーです")
+      # print(f"{foot_user_name}は送信済ユーザーです")
       continue
     submitted_users.append(foot_user_name)
     foot_users[i].find_element(By.TAG_NAME, value="a").click()
@@ -933,8 +933,8 @@ def return_footprint(data, driver,wait,submitted_users):
     if send_status:
       return_foot_message_cnt += 1
       print(f"jmail 足跡返し　{foot_user_name} : {return_foot_message_cnt}件送信")
-    if return_foot_message_cnt == 5:
-      print("送信上限5件に達しました")
+    if return_foot_message_cnt == 4:
+      print("送信上限4件に達しました")
       break
     driver.back()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')

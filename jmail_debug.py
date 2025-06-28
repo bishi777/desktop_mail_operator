@@ -31,6 +31,7 @@ def jmail_debug(headless):
     if drivers == {}:
       break
     for name, data in drivers.items():
+      print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       submitted_users = jmail.check_mail(name,data, driver, wait)
@@ -53,9 +54,9 @@ def jmail_debug(headless):
       try:
         response = requests.post(api_url, json=payload)
         if response.status_code == 200:
-          print("✅ 送信済ユーザー更新成功:", response.json())
+          print(f"✅ {name} 送信済ユーザー更新成功:", response.json())
         else:
-          print(f"❌ 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
+          print(f"❌ {name} 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
       except requests.exceptions.RequestException as e:
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
