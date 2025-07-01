@@ -34,17 +34,22 @@ def jmail_debug(headless):
       print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
-      submitted_users = jmail.check_mail(name,data, driver, wait)
-      jmail.return_footprint(data,driver,wait,submitted_users)
-      if repost_flug:
-        driver.refresh()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-        jmail.re_post(data, post_areas, driver,wait)
-        repost_flug = False
-        driver.refresh()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
+      try:
+        submitted_users = jmail.check_mail(name,data, driver, wait)
+        jmail.return_footprint(data,driver,wait,submitted_users)
+        if repost_flug:
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          jmail.re_post(data, post_areas, driver,wait)
+          repost_flug = False
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+      except Exception as e:
+        print(f"❌ {name} エラー発生:", e)
+        traceback.print_exc()
+        continue
       # 送信履歴ユーザー更新
       payload = {
         "login_id": drivers[name]["login_id"],

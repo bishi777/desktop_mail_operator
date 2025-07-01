@@ -35,6 +35,7 @@ half = n // 2
 # first_half = happy_info[:half]  # 前半
 # first_half = happy_info[:1]  
 first_half = happy_info
+print(f"{first_half}")
 
 profile_path = "chrome_profiles/h_footprint"
 drivers = {}
@@ -142,41 +143,41 @@ try:
                 for item in send_messages_list:
                   text += item + ",\n" 
                 func.send_mail(text, mail_info, title)
-              if 6 <= now.hour < 22:
-                rf_out_of_hours_cnt = 0
-                # 6時から22時の間に足跡返しを実行
-                # 足跡返しの処理
-                for i in send_messages_list:
-                  if i["名前"] == name:
-                    if i["足跡返し送信上限フラグ"] and i["マッチング送信上限フラグ"]:
-                      print(f"🔴 {name} : 足跡返しの上限 {returnfoot_daily_limit} に達しています。スキップします。")  
-                    else: 
-                      try:
-                        happymail_cnt = happymail.return_footpoint(
-                            name, driver, wait, return_foot_message, 4, 4, 4, mail_img, fst_message, matching_daily_limit, returnfoot_daily_limit, i["マッチング総数"], i["足跡返し総数"]
-                        )
-                        total_cnt = happymail_cnt[0] + happymail_cnt[2]
-                        i["マッチング総数"] += happymail_cnt[0]
-                        i["足跡返し総数"] += happymail_cnt[2]
-                        i["合計"] += total_cnt
-                        i["マッチング送信上限フラグ"] = happymail_cnt[3]
-                        i["足跡返し送信上限フラグ"] = happymail_cnt[4]
-                      except ReadTimeoutError as e:
-                        print("🔴 ページの読み込みがタイムアウトしました:", e)
-                        func.safe_execute(driver, driver.refresh)
-                        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                      except Exception as e:
-                        print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
-                        print(traceback.format_exc())
-              else:
-                print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
-                if rf_out_of_hours_cnt == 0:
-                  text = ""
-                  title = "result"
-                  for item in send_messages_list:
-                    text += item + ",\n" 
-                  func.send_mail(text, mail_info, title)
-                rf_out_of_hours_cnt += 1
+              # if 6 <= now.hour < 22:
+              #   rf_out_of_hours_cnt = 0
+              #   # 6時から22時の間に足跡返しを実行
+              #   # 足跡返しの処理
+              #   for i in send_messages_list:
+              #     if i["名前"] == name:
+              #       if i["足跡返し送信上限フラグ"] and i["マッチング送信上限フラグ"]:
+              #         print(f"🔴 {name} : 足跡返しの上限 {returnfoot_daily_limit} に達しています。スキップします。")  
+              #       else: 
+              #         try:
+              #           happymail_cnt = happymail.return_footpoint(
+              #               name, driver, wait, return_foot_message, 1, 1, 1, mail_img, fst_message, matching_daily_limit, returnfoot_daily_limit, i["マッチング総数"], i["足跡返し総数"]
+              #           )
+              #           total_cnt = happymail_cnt[0] + happymail_cnt[2]
+              #           i["マッチング総数"] += happymail_cnt[0]
+              #           i["足跡返し総数"] += happymail_cnt[2]
+              #           i["合計"] += total_cnt
+              #           i["マッチング送信上限フラグ"] = happymail_cnt[3]
+              #           i["足跡返し送信上限フラグ"] = happymail_cnt[4]
+              #         except ReadTimeoutError as e:
+              #           print("🔴 ページの読み込みがタイムアウトしました:", e)
+              #           func.safe_execute(driver, driver.refresh)
+              #           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              #         except Exception as e:
+              #           print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
+              #           print(traceback.format_exc())
+              # else:
+              #   print(f"⏸ {name}: 現在は足跡返し実行時間外（{now.hour}時）です")
+              #   if rf_out_of_hours_cnt == 0:
+              #     text = ""
+              #     title = "result"
+              #     for item in send_messages_list:
+              #       text += item + ",\n" 
+              #     func.send_mail(text, mail_info, title)
+              #   rf_out_of_hours_cnt += 1
             except ReadTimeoutError as e:
               print("🔴 ページの読み込みがタイムアウトしました:", e)
               func.safe_execute(driver, driver.refresh)
@@ -210,7 +211,7 @@ try:
       print(item)
     loop_cnt += 1
     while elapsed_time < 600:
-      time.sleep(20)
+      time.sleep(30)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
       print(f"待機中~~ {elapsed_time} ")
         

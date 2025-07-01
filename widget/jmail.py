@@ -22,6 +22,19 @@ import base64
 import requests
 import shutil
 
+def catch_warning(driver, wait):
+  try:
+    # 警告画面が表示されているか確認
+    warning_element = driver.find_element(By.CLASS_NAME, value="karte-widget__container")
+    if warning_element:
+      print("警告画面が表示されています。")
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      return True
+  except NoSuchElementException:
+    # 警告画面が表示されていない場合
+    return False
 def encode_img(name, mail_img):
   # 画像データを取得してBase64にエンコード
   if mail_img:
@@ -124,6 +137,7 @@ def check_mail(name, jmail_info, driver, wait):
   if fst_message == "":
     print(f"{name}のjmailキャラ情報に1stメッセージが設定されていません")
     return
+  catch_warning(driver, wait)
   # メールアイコンをクリック
   mail_icon = driver.find_elements(By.CLASS_NAME, value="mail-off")
   link = mail_icon[0].find_element(By.XPATH, "./..")
@@ -246,6 +260,7 @@ def check_mail(name, jmail_info, driver, wait):
       next_pager.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
+      catch_warning(driver, wait)
       interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
       for interacting_user_cnt in range(len(interacting_users)):
       # interacting_userリストを取得
@@ -871,6 +886,7 @@ def return_footprint(data, driver,wait,submitted_users):
   driver.get(foot_menu_link.get_attribute("href"))
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
+  catch_warning(driver, wait)
   foot_users = driver.find_element(By.ID, value="ulList").find_elements(By.TAG_NAME, value="li")
   for i in range(len(foot_users)):
     # NEW があるかチェック 
