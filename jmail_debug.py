@@ -67,7 +67,7 @@ def jmail_debug(headless):
       #   print("⚠️ 通信エラー:", e)
       #   traceback.print_exc()  
     elapsed_time = time.time() - start_loop_time
-    while elapsed_time < 6:
+    while elapsed_time < 600:
       time.sleep(20)
       elapsed_time = time.time() - start_loop_time
       print(f"待機中~~ {elapsed_time} ")

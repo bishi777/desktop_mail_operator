@@ -798,14 +798,10 @@ def make_footprints(driver, wait):
   menu = driver.find_elements(By.CLASS_NAME, value="iconMenu")
   #プロフ検索をクリック
   foot_menus = menu[0].find_elements(By.TAG_NAME, value="p")
-  foot_menu = foot_menus[0].find_elements(By.XPATH, "//*[contains(text(), 'プロフ検索')]")
-  foot_menu_link = foot_menu[0].find_element(By.XPATH, "./..")
-  print(777)
-  if foot_menu_link.get_attribute("href"):
-    prof_link = foot_menu_link.get_attribute("href")
-  else:
-    prof_link = foot_menu[0].get_attribute("href")
-  print(prof_link)
+  for i in foot_menus:
+    if i.text == "プロフ検索":
+      prof_menu_link = i.find_element(By.XPATH, "./..")
+      prof_link = prof_menu_link.get_attribute("href")
   driver.get(prof_link)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
@@ -878,7 +874,7 @@ def make_footprints(driver, wait):
   # search_list_col
   users = driver.find_elements(By.CLASS_NAME, value="search_list_col")
   makefoot_cnt = random.randint(10, 15)
-  for i in range(1):
+  for i in range(makefoot_cnt):
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", users[i])
     time.sleep(1)
     users[i].find_element(By.TAG_NAME, value="a").click()
