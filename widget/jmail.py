@@ -21,6 +21,8 @@ from selenium.common.exceptions import TimeoutException
 import base64
 import requests
 import shutil
+from selenium.webdriver.support import expected_conditions as EC
+
 
 def catch_warning(driver, wait):
   try:
@@ -787,8 +789,7 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
   else:
     return ""
 
-def make_footprints(name, jmail_id, jmail_pass, driver, wait):
-  login_jmail(driver, wait, jmail_id, jmail_pass)
+def make_footprints(driver, wait):
   #メニューをクリック
   menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
   menu_icon[0].click()
@@ -844,7 +845,6 @@ def make_footprints(name, jmail_id, jmail_pass, driver, wait):
   height169 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight5"]')
   height169[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
 
   # 地域を選択
   tokyo_state = selected_state = driver.find_elements(By.XPATH, '//label[@for="CheckState-9"]')
@@ -860,10 +860,29 @@ def make_footprints(name, jmail_id, jmail_pass, driver, wait):
     selected_state[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
-  # 検索する
+  # 検索するボタンをクリック可能のシルため少しスクロール
+  driver.execute_script("window.scrollBy(0, 300);")
+  time.sleep(1)
+  driver.execute_script("window.scrollBy(0, -300);")
+  time.sleep(1)
   query_submit = driver.find_elements(By.ID, value="button")
   query_submit[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  # search_list_col
+  users = driver.find_elements(By.CLASS_NAME, value="search_list_col")
+  makefoot_cnt = random.randint(10, 15)
+  for i in range(makefoot_cnt):
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", users[i])
+    time.sleep(1)
+    users[i].find_element(By.TAG_NAME, value="a").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    users = driver.find_elements(By.CLASS_NAME, value="search_list_col")
+
 
 def return_footprint(data, driver,wait,submitted_users):
   return_foot_message_cnt = 0

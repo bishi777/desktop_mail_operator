@@ -34,37 +34,38 @@ def jmail_debug(headless):
       print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
-      try:
-        submitted_users = jmail.check_mail(name,data, driver, wait)
-        jmail.return_footprint(data,driver,wait,submitted_users)
-        if repost_flug:
-          driver.refresh()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          jmail.re_post(data, post_areas, driver,wait)
-          repost_flug = False
-          driver.refresh()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-      except Exception as e:
-        print(f"❌ {name} エラー発生:", e)
-        traceback.print_exc()
-        continue
-      # 送信履歴ユーザー更新
-      payload = {
-        "login_id": drivers[name]["login_id"],
-        "password": drivers[name]["password"],
-        "submitted_users": submitted_users
-      }
-      try:
-        response = requests.post(api_url, json=payload)
-        if response.status_code == 200:
-          print(f"✅ {name} 送信済ユーザー更新成功:", response.json())
-        else:
-          print(f"❌ {name} 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
-      except requests.exceptions.RequestException as e:
-        print("⚠️ 通信エラー:", e)
-        traceback.print_exc()  
+      jmail.make_footprints( driver, wait)
+      # try:
+      #   submitted_users = jmail.check_mail(name,data, driver, wait)
+      #   jmail.return_footprint(data,driver,wait,submitted_users)
+      #   if repost_flug:
+      #     driver.refresh()
+      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #     time.sleep(2)
+      #     jmail.re_post(data, post_areas, driver,wait)
+      #     repost_flug = False
+      #     driver.refresh()
+      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #     time.sleep(2)
+      # except Exception as e:
+      #   print(f"❌ {name} エラー発生:", e)
+      #   traceback.print_exc()
+      #   continue
+      # # 送信履歴ユーザー更新
+      # payload = {
+      #   "login_id": drivers[name]["login_id"],
+      #   "password": drivers[name]["password"],
+      #   "submitted_users": submitted_users
+      # }
+      # try:
+      #   response = requests.post(api_url, json=payload)
+      #   if response.status_code == 200:
+      #     print(f"✅ {name} 送信済ユーザー更新成功:", response.json())
+      #   else:
+      #     print(f"❌ {name} 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
+      # except requests.exceptions.RequestException as e:
+      #   print("⚠️ 通信エラー:", e)
+      #   traceback.print_exc()  
     elapsed_time = time.time() - start_loop_time
     while elapsed_time < 600:
       time.sleep(20)
