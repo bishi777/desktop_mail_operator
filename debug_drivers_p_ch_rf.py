@@ -135,7 +135,7 @@ while True:
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
-          if  now.hour % 6 == 0:
+          if  now.hour % 6 == 0 or now.hour == 1:
             if send_flug:
               try:
                 func.send_mail(

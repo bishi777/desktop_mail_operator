@@ -27,7 +27,7 @@ def catch_warning(driver, wait):
     # 警告画面が表示されているか確認
     warning_element = driver.find_element(By.CLASS_NAME, value="karte-widget__container")
     if warning_element:
-      print("警告画面が表示されています。")
+      print("広告が表示されています。")
       driver.refresh()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
