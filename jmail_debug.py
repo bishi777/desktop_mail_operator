@@ -6,6 +6,7 @@ import time
 import requests
 import traceback
 from datetime import datetime
+from selenium.common.exceptions import TimeoutException
 
 user_data = func.get_user_data()
 wait_time = 1.5
@@ -34,7 +35,11 @@ def jmail_debug(headless):
       print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
-      jmail.make_footprints( driver, wait)
+      try:
+        jmail.make_footprints( driver, wait)
+      except TimeoutException as e:
+        print("TimeoutException")
+        driver.refresh()
       # try:
       #   submitted_users = jmail.check_mail(name,data, driver, wait)
       #   jmail.return_footprint(data,driver,wait,submitted_users)
