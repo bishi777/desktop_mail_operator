@@ -49,7 +49,6 @@ def encode_img(name, mail_img):
         f.write(base64.b64decode(image_base64))
     # 画像の保存パスを取得
     image_path = os.path.abspath(image_filename)
-    print(image_path)
   else:
     image_path = ""
     image_filename = None 
@@ -813,60 +812,68 @@ def make_footprints(driver, wait):
   # 年齢を選択
 
   age18_21 = driver.find_elements(By.XPATH, '//label[@for="CheckAge1"]')
-  age18_21.value_of_css_property("background-color")
-  print(777)
-  print(age18_21.value_of_css_property("background-color"))
-  age18_21[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in age18_21[0].value_of_css_property("background-color"):
+    age18_21[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   age22_25 = driver.find_elements(By.XPATH, '//label[@for="CheckAge2"]')
-  age22_25[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in age22_25[0].value_of_css_property("background-color"):
+    age22_25[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   age26_29 = driver.find_elements(By.XPATH, '//label[@for="CheckAge3"]')
-  age26_29[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in age26_29[0].value_of_css_property("background-color"):
+    age26_29[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   age30_34 = driver.find_elements(By.XPATH, '//label[@for="CheckAge4"]')
-  age30_34[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in age30_34[0].value_of_css_property("background-color"):
+    age30_34[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # 身長を選択
   height150 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight1"]')
-  height150[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in height150[0].value_of_css_property("background-color"):
+    height150[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   height154 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight2"]')
-  height154[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in height154[0].value_of_css_property("background-color"):
+    height154[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   height159 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight3"]')
-  height159[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in height154[0].value_of_css_property("background-color"):
+    height159[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   height164 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight4"]')
-  height164[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in height164[0].value_of_css_property("background-color"):
+    height164[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   height169 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight5"]')
-  height169[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-
+  if "rgba(0, 0, 0, 0)" in height169[0].value_of_css_property("background-color"):
+    height169[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  height174 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight6"]')
+  if "rgba(0, 0, 0, 0)" in height174[0].value_of_css_property("background-color"):
+    height174[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  height179 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight7"]')
+  if "rgba(0, 0, 0, 0)" in height179[0].value_of_css_property("background-color"):
+    height179[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # 地域を選択
   tokyo_state = selected_state = driver.find_elements(By.XPATH, '//label[@for="CheckState-9"]')
-  tokyo_state[0].click()
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", tokyo_state[0])
+  time.sleep(1)
+  if "rgba(0, 0, 0, 0)" in tokyo_state[0].value_of_css_property("background-color"):
+    tokyo_state[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   area_id_dict = {"東京都":"CheckState-8", "神奈川県":"CheckState-9",}
   random_selected = random.choice(list(area_id_dict.values()))
   xpath = f'//label[@for="{random_selected}"]'
   selected_state = driver.find_elements(By.XPATH, xpath)
   background_color = selected_state[0].value_of_css_property('background-color')
-  
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", selected_state[0])
   if background_color == "rgba(0, 0, 0, 0)":
     selected_state[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
-  # 検索するボタンをクリック可能のシルため少しスクロール
+  # 検索するボタンをクリック可能にするため少しスクロール
   driver.execute_script("window.scrollBy(0, 300);")
   time.sleep(1)
   driver.execute_script("window.scrollBy(0, -300);")

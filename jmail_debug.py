@@ -36,15 +36,16 @@ def jmail_debug(headless):
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       try:
-        jmail.make_footprints( driver, wait)
-      except TimeoutException as e:
-        print(f"足跡付け　TimeoutException")
-        driver.refresh()
-      try:
         submitted_users = jmail.check_mail(name,data, driver, wait)
       except TimeoutException as e:
         print("新着メールチェックTimeoutException")
         driver.refresh()
+      try:
+        jmail.make_footprints( driver, wait)
+      except TimeoutException as e:
+        print(f"足跡付け　TimeoutException")
+        driver.refresh()
+     
       
       #   jmail.return_footprint(data,driver,wait,submitted_users)
       #   if repost_flug:
