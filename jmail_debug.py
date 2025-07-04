@@ -38,10 +38,14 @@ def jmail_debug(headless):
       try:
         jmail.make_footprints( driver, wait)
       except TimeoutException as e:
-        print("TimeoutException")
+        print(f"足跡付け　TimeoutException")
         driver.refresh()
-      # try:
-      #   submitted_users = jmail.check_mail(name,data, driver, wait)
+      try:
+        submitted_users = jmail.check_mail(name,data, driver, wait)
+      except TimeoutException as e:
+        print("新着メールチェックTimeoutException")
+        driver.refresh()
+      
       #   jmail.return_footprint(data,driver,wait,submitted_users)
       #   if repost_flug:
       #     driver.refresh()
@@ -56,21 +60,21 @@ def jmail_debug(headless):
       #   print(f"❌ {name} エラー発生:", e)
       #   traceback.print_exc()
       #   continue
-      # # 送信履歴ユーザー更新
-      # payload = {
-      #   "login_id": drivers[name]["login_id"],
-      #   "password": drivers[name]["password"],
-      #   "submitted_users": submitted_users
-      # }
-      # try:
-      #   response = requests.post(api_url, json=payload)
-      #   if response.status_code == 200:
-      #     print(f"✅ {name} 送信済ユーザー更新成功:", response.json())
-      #   else:
-      #     print(f"❌ {name} 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
-      # except requests.exceptions.RequestException as e:
-      #   print("⚠️ 通信エラー:", e)
-      #   traceback.print_exc()  
+      # 送信履歴ユーザー更新
+      payload = {
+        "login_id": drivers[name]["login_id"],
+        "password": drivers[name]["password"],
+        "submitted_users": submitted_users
+      }
+      try:
+        response = requests.post(api_url, json=payload)
+        if response.status_code == 200:
+          print(f"✅ {name} 送信済ユーザー更新成功:", response.json())
+        else:
+          print(f"❌ {name} 送信済ユーザー更新失敗（ステータス: {response.status_code}）:", response.json())
+      except requests.exceptions.RequestException as e:
+        print("⚠️ 通信エラー:", e)
+        traceback.print_exc()  
     elapsed_time = time.time() - start_loop_time
     while elapsed_time < 600:
       time.sleep(20)

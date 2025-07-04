@@ -811,7 +811,11 @@ def make_footprints(driver, wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   # 年齢を選択
+
   age18_21 = driver.find_elements(By.XPATH, '//label[@for="CheckAge1"]')
+  age18_21.value_of_css_property("background-color")
+  print(777)
+  print(age18_21.value_of_css_property("background-color"))
   age18_21[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # time.sleep(1)
@@ -871,7 +875,6 @@ def make_footprints(driver, wait):
   query_submit[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
-  # search_list_col
   users = driver.find_elements(By.CLASS_NAME, value="search_list_col")
   makefoot_cnt = random.randint(10, 15)
   for i in range(makefoot_cnt):
@@ -879,6 +882,8 @@ def make_footprints(driver, wait):
     time.sleep(1)
     users[i].find_element(By.TAG_NAME, value="a").click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    name = driver.find_element(By.CLASS_NAME, value="prof_name").text
+    print(f"足跡{i+1} 件 : {name}")
     time.sleep(2)
     driver.back()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
