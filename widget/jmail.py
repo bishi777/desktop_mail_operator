@@ -22,6 +22,7 @@ import base64
 import requests
 import shutil
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import StaleElementReferenceException
 
 
 def catch_warning(driver, wait):
@@ -245,7 +246,17 @@ def check_mail(name, jmail_info, driver, wait):
           send_button[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
-        # メール一覧に戻る　message_back
+        # メール一覧に戻る
+        try:
+          back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
+          back = back_parent[0].find_elements(By.TAG_NAME, value="a")
+          back[0].click()
+        except StaleElementReferenceException:
+          print("⚠️ back要素がstaleでした。再取得します...")
+          time.sleep(1)
+          back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
+          back = back_parent[0].find_elements(By.TAG_NAME, value="a")
+          back[0].click()
         back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
         back = back_parent[0].find_elements(By.TAG_NAME, value="a")
         back[0].click()
