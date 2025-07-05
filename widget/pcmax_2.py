@@ -40,10 +40,13 @@ def catch_warning_pop(name, driver):
     if kiyaku_btns:
       print("kiyaku_btns")
       print(kiyaku_btns[0].text)
-      # kiyaku_btns[0].click()
       driver.execute_script("arguments[0].click();", kiyaku_btns[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
+      if len(driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')):
+        driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
       warning = f"{name} 規約に同意しました"
   except Exception:
     pass
