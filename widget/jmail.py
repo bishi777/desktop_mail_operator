@@ -910,8 +910,9 @@ def return_footprint(data, driver,wait,submitted_users):
   return_foot_message_cnt = 0
   return_foot_message = data["return_foot_message"]
   mail_img = data["chara_image"]
+  name = data["name"]
   if mail_img:
-    image_filename, image_path = encode_img(mail_img)
+    image_filename, image_path = encode_img(name, mail_img)
   else:
     image_filename, image_path = "", ""
   
