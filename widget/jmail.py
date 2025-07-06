@@ -991,8 +991,8 @@ def return_footprint(data, driver,wait,submitted_users):
     if send_status:
       return_foot_message_cnt += 1
       print(f"jmail 足跡返し　{foot_user_name} : {return_foot_message_cnt}件送信")
-    if return_foot_message_cnt == 3:
-      print("送信上限3件に達しました")
+    if return_foot_message_cnt == 2:
+      print("送信上限2件に達しました")
       driver.refresh()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
