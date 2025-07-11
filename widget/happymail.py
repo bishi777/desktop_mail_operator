@@ -242,7 +242,9 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
-      driver,wait = func.get_multi_driver(profile_path, headless)
+       # iPhone14
+      user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
+      driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       login_flug = login(i["name"], i["login_id"], i["password"], driver, wait)
       if login_flug:
         # print(f"{i['name']} {login_flug}")
@@ -1509,7 +1511,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     #       return_cnt = 0
     #     return [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
 
-    
+
     return [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
 def set_mutidriver_make_footprints(driver,wait):
   # 並びの表示を設定

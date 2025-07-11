@@ -61,6 +61,7 @@ try:
         happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
         time.sleep(2)     
   # 足跡付け、チェックメール　ループ
+  return_foot_counted = 0
   while True:
     if drivers == {}:
       break
@@ -71,10 +72,38 @@ try:
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       tabs = driver.window_handles
+      login_id = drivers[name]["login_id"]
+      password = drivers[name]["password"]
+      return_foot_message = drivers[name]["return_foot_message"]
+      fst_message = drivers[name]["fst_message"]
+      conditions_message = drivers[name]["conditions_message"]
+      return_foot_img = drivers[name]["return_foot_img"]
+      matching_cnt = 3
+      type_cnt = 3
+      return_foot_cnt = 1
+      
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
         if index  == 0:
+          try:
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+          except NoSuchWindowException:
+            pass
+          except ReadTimeoutError as e:
+            print("🔴 ページの読み込みがタイムアウトしました:", e)
+            driver.refresh()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          except Exception as e:
+            print(traceback.format_exc())
+          # マッチング返し、足跡返し
+          try:
+            return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message)
+          except Exception as e:
+            print(f"足跡返しエラー{name}")
+            print(traceback.format_exc())
+            func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
+
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
@@ -86,39 +115,30 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
-        elif index == 1:
-          top_image_check = happymail.check_top_image(name, driver, wait)  
-          if top_image_check:
-            if "ブラウザ" in top_image_check:
-              print(1111111111111111111111111111111)
-              happymail_new_list.append(top_image_check)    
-          warning = happymail.catch_warning_screen(driver)
-          if warning:
-            happymail_new_list.append(warning)
-          else:
-            top_image_check = happymail.check_top_image(name, driver, wait)  
-            if top_image_check:
-              if "ブラウザ" in top_image_check:
-                happymail_new_list.append(top_image_check)
-            new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-            if new_message_flug == "新着メールなし" and top_image_check is False:
-              print(f"{name}　新着メールなし")
-              continue  
-            login_id = drivers[name]["login_id"]
-            password = drivers[name]["password"]
-            return_foot_message = drivers[name]["return_foot_message"]
-            fst_message = drivers[name]["fst_message"]
-            conditions_message = drivers[name]["conditions_message"]
-            try:
-              happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-            except NoSuchWindowException:
-              pass
-            except ReadTimeoutError as e:
-              print("🔴 ページの読み込みがタイムアウトしました:", e)
-              driver.refresh()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            except Exception as e:
-              print(traceback.format_exc())
+        # elif index == 1:
+        #   top_image_check = happymail.check_top_image(name, driver, wait)  
+        #   if top_image_check:
+        #     if "ブラウザ" in top_image_check:
+        #       print(1111111111111111111111111111111)
+        #       happymail_new_list.append(top_image_check)    
+        #   warning = happymail.catch_warning_screen(driver)
+        #   if warning:
+        #     happymail_new_list.append(warning)
+        #   else:
+        #     top_image_check = happymail.check_top_image(name, driver, wait)  
+        #     if top_image_check:
+        #       if "ブラウザ" in top_image_check:
+        #         happymail_new_list.append(top_image_check)
+        #     new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
+        #     if new_message_flug == "新着メールなし" and top_image_check is False:
+        #       print(f"{name}　新着メールなし")
+        #       continue  
+        #     login_id = drivers[name]["login_id"]
+        #     password = drivers[name]["password"]
+        #     return_foot_message = drivers[name]["return_foot_message"]
+        #     fst_message = drivers[name]["fst_message"]
+        #     conditions_message = drivers[name]["conditions_message"]
+            
           if top_image_check:
             happymail_new_list.append(top_image_check)
           if happymail_new:

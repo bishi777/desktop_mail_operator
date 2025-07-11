@@ -66,10 +66,10 @@ if __name__ == '__main__':
     # matching_cnt = int(sys.argv[3])
     # type_cnt = int(sys.argv[4])
   happy_chara_list = func.get_user_data()["happymail"]
-  for i in happy_chara_list:
-    if i['name'] == "はづき":
-      happy_chara_list = i
-  print(happy_chara_list)
+  # for i in happy_chara_list:
+  #   if i['name'] == "はづき":
+  #     happy_chara_list = i
+  # print(happy_chara_list)
 
   matching_cnt = 0
   type_cnt = 0

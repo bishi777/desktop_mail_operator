@@ -948,7 +948,7 @@ def return_footprint(data, driver,wait,submitted_users):
     if len(profile):
       profile = profile[0].text.replace(" ", "").replace("\n", "")
       if '通報' in profile or '業者' in profile:
-        print('自己紹介文に危険なワードが含まれていました')
+        print(f'{foot_user_name} 自己紹介文に危険なワードが含まれていました')
         driver.back()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
