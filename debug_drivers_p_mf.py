@@ -62,8 +62,9 @@ for i in range(99999):
         if current_step < len(user_list):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
           time.sleep(0.4)
-          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()        
-          print(f"足跡付け {current_step}件")    
+          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+          now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+          print(f"足跡付け {current_step}件 {now}")    
           time.sleep(0.4)
         else:
           print("足跡付けのユーザーがいません")
