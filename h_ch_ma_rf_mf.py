@@ -22,6 +22,7 @@ import signal
 import shutil
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from urllib3.exceptions import ReadTimeoutError
+from datetime import datetime
 
 
 user_data = func.get_user_data()
@@ -44,27 +45,29 @@ if mailaddress and gmail_password and receiving_address:
   ]
 try:
   drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
-  # タブを切り替えて操作
-  # tab1で足跡付け, tab2でチェックメールSET
-  for name, data in drivers.items():
-    driver = drivers[name]["driver"]
-    wait = drivers[name]["wait"]
-    tabs = driver.window_handles
-    login_id = drivers[name]["login_id"]
-    password = drivers[name]["password"]
-    for index, tab in enumerate(tabs):
-      driver.switch_to.window(tab)
-      if index + 1 == 1:
-        nav_flug = happymail.nav_item_click("プロフ検索", driver, wait)
-        if not nav_flug:
-          break
-        happymail.set_mutidriver_make_footprints(drivers[name]["driver"], drivers[name]["wait"])
-        time.sleep(2)     
+      
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
+  matching_daily_limit = 777
+  returnfoot_daily_limit = 777
+  total_daily_limit = 20
+  oneday_total_match = 0
+  oneday_total_returnfoot = 0
+  returnfoot_flug = True
+  last_reset_date = (datetime.now() - timedelta(days=1)).date()
+
   while True:
+    start_loop_time = time.time()
     if drivers == {}:
       break
+    # 24時に一度だけ初期化
+    now = datetime.now()
+    if now.hour == 0 and now.date() != last_reset_date:
+      oneday_total_match = 0
+      oneday_total_returnfoot = 0
+      returnfoot_flug = True
+      last_reset_date = now.date()
+
     for name, data in drivers.items():
       happymail_new_list = []
       top_image_check = None
@@ -77,15 +80,16 @@ try:
       return_foot_message = drivers[name]["return_foot_message"]
       fst_message = drivers[name]["fst_message"]
       conditions_message = drivers[name]["conditions_message"]
-      return_foot_img = drivers[name]["return_foot_img"]
-      matching_cnt = 3
-      type_cnt = 3
+      return_foot_img = drivers[name]["mail_img"]
+      matching_cnt = 1
+      type_cnt = 1
       return_foot_cnt = 1
       
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         # print(f"現在のタブ: {index + 1},")
         if index  == 0:
+          # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
           except NoSuchWindowException:
@@ -97,12 +101,23 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、足跡返し
-          try:
-            return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message)
-          except Exception as e:
-            print(f"足跡返しエラー{name}")
-            print(traceback.format_exc())
-            func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
+          if returnfoot_flug:
+            try:
+              return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
+              print(777)
+              print(return_foot_counted)
+              # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
+              oneday_total_match += return_foot_counted[0]
+              oneday_total_returnfoot += return_foot_counted[2]
+              if total_daily_limit <= oneday_total_match + oneday_total_returnfoot:
+                print("本日のマッチング、足跡返しの上限に達しました。")
+                func.send_error(f"{name} 本日のマッチング、足跡返しの上限に達しました。", f"{name} 本日のマッチング、足跡返しの上限に達しました。")
+                returnfoot_flug = False
+                
+            except Exception as e:
+              print(f"足跡返しエラー{name}")
+              print(traceback.format_exc())
+              func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
 
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
@@ -115,30 +130,8 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
-        # elif index == 1:
-        #   top_image_check = happymail.check_top_image(name, driver, wait)  
-        #   if top_image_check:
-        #     if "ブラウザ" in top_image_check:
-        #       print(1111111111111111111111111111111)
-        #       happymail_new_list.append(top_image_check)    
-        #   warning = happymail.catch_warning_screen(driver)
-        #   if warning:
-        #     happymail_new_list.append(warning)
-        #   else:
-        #     top_image_check = happymail.check_top_image(name, driver, wait)  
-        #     if top_image_check:
-        #       if "ブラウザ" in top_image_check:
-        #         happymail_new_list.append(top_image_check)
-        #     new_message_flug = happymail.nav_item_click("メッセージ", driver, wait)
-        #     if new_message_flug == "新着メールなし" and top_image_check is False:
-        #       print(f"{name}　新着メールなし")
-        #       continue  
-        #     login_id = drivers[name]["login_id"]
-        #     password = drivers[name]["password"]
-        #     return_foot_message = drivers[name]["return_foot_message"]
-        #     fst_message = drivers[name]["fst_message"]
-        #     conditions_message = drivers[name]["conditions_message"]
-            
+        # elif index == 1:　2個目のタブの処理があれば記載
+          
           if top_image_check:
             happymail_new_list.append(top_image_check)
           if happymail_new:
@@ -157,6 +150,12 @@ try:
             else:
               print("通知メールの送信に必要な情報が不足しています")
               print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+    # ループの間隔を調整
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    while elapsed_time < 720:
+      time.sleep(10)
+      elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
+      print(f"待機中~~ {elapsed_time} ")
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
