@@ -92,6 +92,24 @@ try:
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            print(777)
+            print(happymail_new)
+            if happymail_new:
+              happymail_new_list.extend(happymail_new)
+            if happymail_new_list:
+              title = "新着メッセージ"
+              text = ""
+              for new_mail in happymail_new_list:
+                text = text + new_mail + ",\n"
+                if "警告" in text or "NoImage" in text or "利用" in text :
+                  title = "メッセージ"
+              # メール送信
+              smtpobj = None
+              if mail_info:
+                func.send_mail(text, mail_info, title)
+              else:
+                print("通知メールの送信に必要な情報が不足しています")
+                print(f"{mailaddress}   {gmail_password}  {receiving_address}")
           except NoSuchWindowException:
             pass
           except ReadTimeoutError as e:
@@ -109,9 +127,11 @@ try:
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
               oneday_total_match += return_foot_counted[0]
               oneday_total_returnfoot += return_foot_counted[2]
+              print(f"本日のマッチング数: {oneday_total_match}, 足跡返し数: {oneday_total_returnfoot}")
               if total_daily_limit <= oneday_total_match + oneday_total_returnfoot:
                 print("本日のマッチング、足跡返しの上限に達しました。")
-                func.send_error(f"{name} 本日のマッチング、足跡返しの上限に達しました。", f"{name} 本日のマッチング、足跡返しの上限に達しました。")
+                limit_text = f"マッチング返し：{oneday_total_match} \n足跡返し：{oneday_total_returnfoot}"
+                func.send_error(f"{name} 本日のマッチング、足跡返しの上限に達しました。", limit_text)
                 returnfoot_flug = False
                 
             except Exception as e:
@@ -131,25 +151,9 @@ try:
           except Exception as e:
             print(traceback.format_exc())
         # elif index == 1:　2個目のタブの処理があれば記載
-          
           if top_image_check:
             happymail_new_list.append(top_image_check)
-          if happymail_new:
-            happymail_new_list.extend(happymail_new)
-          if happymail_new_list:
-            title = "新着メッセージ"
-            text = ""
-            for new_mail in happymail_new_list:
-              text = text + new_mail + ",\n"
-              if "警告" in text or "NoImage" in text or "利用" in text :
-                title = "メッセージ"
-            # メール送信
-            smtpobj = None
-            if mail_info:
-              func.send_mail(text, mail_info, title)
-            else:
-              print("通知メールの送信に必要な情報が不足しています")
-              print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+          
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     while elapsed_time < 720:

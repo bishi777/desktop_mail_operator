@@ -304,7 +304,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
     if new_message_flug == "新着メールなし":
       return
     else:  
-      
     # 新着があった
     # if True:
       #  未返信のみ表示
@@ -440,12 +439,10 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   # みちゃいや
                   plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
                   plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
-                  
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
                   plus_icon[0].click()
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(2)
-                  # ds_message_txt_media_text
                   mityaiya = ""
                   candidate_mityaiya = driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_text")
                   for c_m in candidate_mityaiya:
@@ -468,7 +465,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                 return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
                 return_list.append(return_message)
-
                 # みちゃいや
                 plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
                 plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
@@ -977,7 +973,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(3)
         matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
-        if user_icon < len(matching_users):
+        if user_icon <= len(matching_users):
           driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
@@ -1175,6 +1171,13 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
             break
         name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
+    # 年齢チェック
+    user_age = driver.find_element(By.CLASS_NAME, value="ds_like_list_age")
+    if "20代" not in user_age.text and "18~19" not in user_age.text:
+      print("年齢が１０〜２０代ではないユーザーです")
+      user_icon_type = user_icon_type + 1
+      if len(type_users) <= user_icon_type:
+        break
     if len(type_users) <= user_icon_type:
       # print("ユーザーアイコンの範囲を超えました")
       # print(f"{len(type_users)}  {user_icon_type} ")
@@ -1266,7 +1269,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     if daily_limit  >= oneday_total_returnfoot:
       returnfoot_limit_flug = False
       # 足跡返し
-      print(f"足跡返し開始...")
+      # print(f"足跡返し開始...")
       try:
         warning_pop = catch_warning_screen(driver)
         if warning_pop:
@@ -1289,7 +1292,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)
         while return_foot_cnt >= return_cnt + 1:
-          print("足跡返しループ")
+          # print("足跡返しループ")
           send_status = True
           f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
           # ページが完全に読み込まれるまで待機
@@ -1302,7 +1305,6 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           user_name = name_field.text
           mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
           send_skip_cnt = 0
-          time.sleep(0.1)
           while len(mail_icon) or user_name in user_name_list:
             if len(mail_icon):
               # print("***")
@@ -1348,6 +1350,9 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
             # print("年齢が１０〜２０代ではないユーザーです")
             user_icon += 1
             if len(f_user) <= user_icon:
+              break
+            elif user_icon > 50:
+              print("送信条件に当てはまらない足跡リストユーザーが50人を超えました")
               break
             else:
               continue
