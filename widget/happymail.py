@@ -1172,12 +1172,15 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
     # 年齢チェック
-    user_age = driver.find_element(By.CLASS_NAME, value="ds_like_list_age")
+    user_age = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_age")
+    print(f"年齢チェック {user_age.text} {user_name}")
     if "20代" not in user_age.text and "18~19" not in user_age.text:
       print("年齢が１０〜２０代ではないユーザーです")
       user_icon_type = user_icon_type + 1
       if len(type_users) <= user_icon_type:
         break
+      continue
+
     if len(type_users) <= user_icon_type:
       # print("ユーザーアイコンの範囲を超えました")
       # print(f"{len(type_users)}  {user_icon_type} ")

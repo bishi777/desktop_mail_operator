@@ -92,8 +92,7 @@ try:
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-            print(777)
-            print(happymail_new)
+        
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:
