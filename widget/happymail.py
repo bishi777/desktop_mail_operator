@@ -300,7 +300,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
     return_list = []
     new_message_flug = nav_item_click("メッセージ", driver, wait)
-    print(f"新着メールフラグ: {new_message_flug}")
+    # print(f"新着メールフラグ: {new_message_flug}")
     if new_message_flug == "新着メールなし":
       return
     else:  
@@ -1173,9 +1173,9 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         user_name = name_field.text
     # 年齢チェック
     user_age = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_age")
-    print(f"年齢チェック {user_age.text} {user_name}")
+    # print(f"年齢チェック {user_age.text} {user_name}")
     if "20代" not in user_age.text and "18~19" not in user_age.text:
-      print("年齢が１０〜２０代ではないユーザーです")
+      # print("年齢が１０〜２０代ではないユーザーです")
       user_icon_type = user_icon_type + 1
       if len(type_users) <= user_icon_type:
         break
@@ -1245,9 +1245,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     # タイプ返し
     type_counted = 0
     try:
-      print(f"タイプリストチェック...")
       type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
-      print(f"タイプ返し総数 {type_counted}")
+      # print(f"タイプ返し総数 {type_counted}")
     except Exception as e:  
       print("タイプ返しエラー")
       print(traceback.format_exc())

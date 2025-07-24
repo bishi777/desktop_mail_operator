@@ -32,7 +32,8 @@ headless = False
 # リストを2つに分割する
 n = len(happy_info)  
 half = n // 2
-first_half = happy_info[half:]  # 後半
+first_half = happy_info
+# first_half = happy_info[half:]  # 後半
 profile_path = "chrome_profiles/h_footprint"
 drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
@@ -92,7 +93,6 @@ try:
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
-        
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:
@@ -121,8 +121,7 @@ try:
           if returnfoot_flug:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
-              print(777)
-              print(return_foot_counted)
+              # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
               oneday_total_match += return_foot_counted[0]
               oneday_total_returnfoot += return_foot_counted[2]
@@ -158,9 +157,9 @@ try:
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     while elapsed_time < 720:
-      time.sleep(10)
+      time.sleep(20)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
-      print(f"待機中~~ {elapsed_time} ")
+      # print(f"待機中~~ {elapsed_time} ")
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
