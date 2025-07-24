@@ -127,6 +127,8 @@ try:
               oneday_total_match += return_foot_counted[0]
               oneday_total_returnfoot += return_foot_counted[2]
               print(f"本日のマッチング数: {oneday_total_match}, 足跡返し数: {oneday_total_returnfoot}")
+              if name == "ハル":
+                total_daily_limit = 25
               if total_daily_limit <= oneday_total_match + oneday_total_returnfoot:
                 print("本日のマッチング、足跡返しの上限に達しました。")
                 limit_text = f"マッチング返し：{oneday_total_match} \n足跡返し：{oneday_total_returnfoot}"
