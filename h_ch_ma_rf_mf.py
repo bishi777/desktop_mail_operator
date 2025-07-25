@@ -51,7 +51,7 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 777
   returnfoot_daily_limit = 777
-  total_daily_limit = 20
+  total_daily_limit = 10
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   returnfoot_flug = True
@@ -61,14 +61,14 @@ try:
     start_loop_time = time.time()
     if drivers == {}:
       break
-    # 24時に一度だけ初期化
     now = datetime.now()
-    if now.hour == 0 and now.date() != last_reset_date:
+    # 7時または20時、かつ直前に初期化されていない場合
+    if now.hour in [7, 20] and now.hour != last_reset_hour:
       oneday_total_match = 0
       oneday_total_returnfoot = 0
       returnfoot_flug = True
-      last_reset_date = now.date()
-
+      last_reset_hour = now.hour  # 初期化済みとして記録
+   
     for name, data in drivers.items():
       happymail_new_list = []
       top_image_check = None
@@ -126,12 +126,12 @@ try:
               oneday_total_match += return_foot_counted[0]
               oneday_total_returnfoot += return_foot_counted[2]
               print(f"本日のマッチング数: {oneday_total_match}, 足跡返し数: {oneday_total_returnfoot}")
-              if name == "ハル":
-                total_daily_limit = 25
+              # if name == "ハル":
+              #   total_daily_limit = 25
               if total_daily_limit <= oneday_total_match + oneday_total_returnfoot:
-                print("本日のマッチング、足跡返しの上限に達しました。")
+                print("マッチング、足跡返しの上限に達しました。")
                 limit_text = f"マッチング返し：{oneday_total_match} \n足跡返し：{oneday_total_returnfoot}"
-                func.send_error(f"{name} 本日のマッチング、足跡返しの上限に達しました。", limit_text)
+                func.send_error(f"{name} マッチング、足跡返しの上限に達しました。", limit_text)
                 returnfoot_flug = False
                 
             except Exception as e:
@@ -139,25 +139,25 @@ try:
               print(traceback.format_exc())
               func.send_error(f"足跡返しエラー{name}", traceback.format_exc())
 
-          try:
-            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
-          except NoSuchWindowException:
-            print(f"NoSuchWindowExceptionエラーが出ました, {e}")
-            pass
-          except ReadTimeoutError as e:
-            print("🔴 ページの読み込みがタイムアウトしました:", e)
-            driver.refresh()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          except Exception as e:
-            print(traceback.format_exc())
-        # elif index == 1:　2個目のタブの処理があれば記載
-          if top_image_check:
-            happymail_new_list.append(top_image_check)
+            try:
+              happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+            except NoSuchWindowException:
+              print(f"NoSuchWindowExceptionエラーが出ました, {e}")
+              pass
+            except ReadTimeoutError as e:
+              print("🔴 ページの読み込みがタイムアウトしました:", e)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            except Exception as e:
+              print(traceback.format_exc())
+          # elif index == 1:　2個目のタブの処理があれば記載
+            if top_image_check:
+              happymail_new_list.append(top_image_check)
           
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     while elapsed_time < 720:
-      time.sleep(20)
+      time.sleep(30)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
       # print(f"待機中~~ {elapsed_time} ")
 except KeyboardInterrupt:
