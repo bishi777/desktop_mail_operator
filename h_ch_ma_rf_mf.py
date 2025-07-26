@@ -40,13 +40,13 @@ mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 mail_info = None
+last_reset_hour = None  
 if mailaddress and gmail_password and receiving_address:
   mail_info = [
     receiving_address, mailaddress, gmail_password, 
   ]
 try:
   drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
-      
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
   matching_daily_limit = 777
@@ -56,6 +56,9 @@ try:
   oneday_total_returnfoot = 0
   returnfoot_flug = True
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
+  report_dict = {}
+  for i in first_half:
+    report_dict[i["name"]] = 0
 
   while True:
     start_loop_time = time.time()
@@ -64,15 +67,15 @@ try:
     now = datetime.now()
     # 7時または20時、かつ直前に初期化されていない場合
     if now.hour in [7, 20] and now.hour != last_reset_hour:
-      oneday_total_match = 0
-      oneday_total_returnfoot = 0
       returnfoot_flug = True
       last_reset_hour = now.hour  # 初期化済みとして記録
-   
-    for name, data in drivers.items():
-      if name != "ゆっこ":
-        continue
+      for i in first_half:
+        report_dict[i["name"]] = 0
 
+    for name, data in drivers.items():
+      
+      # if name == "ゆっこ":
+      #   continue
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -121,17 +124,20 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、足跡返し
-          if returnfoot_flug:
+          print(777)
+          print(f"{name}  : {report_dict[name]}")
+          if report_dict[name] <= total_daily_limit and returnfoot_flug:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
-              # print(return_foot_counted)
+              print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-              oneday_total_match += return_foot_counted[0]
-              oneday_total_returnfoot += return_foot_counted[2]
-              print(f"本日のマッチング数: {oneday_total_match}, 足跡返し数: {oneday_total_returnfoot}")
-              # if name == "ハル":
-              #   total_daily_limit = 25
-              if total_daily_limit <= oneday_total_match + oneday_total_returnfoot:
+              # print(f"{report_dict[name]} : {return_foot_counted[0]} : {return_foot_counted[2]}")
+              report_dict[name] = report_dict[name] + return_foot_counted[0] + return_foot_counted[2]
+             
+              print(888)
+              print(f"{name}  : {report_dict[name]}")
+             
+              if total_daily_limit <= report_dict[name]:
                 print("マッチング、足跡返しの上限に達しました。")
                 limit_text = f"マッチング返し：{oneday_total_match} \n足跡返し：{oneday_total_returnfoot}"
                 func.send_error(f"{name} マッチング、足跡返しの上限に達しました。", limit_text)
@@ -157,12 +163,13 @@ try:
             if top_image_check:
               happymail_new_list.append(top_image_check)
           
+          
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     while elapsed_time < 720:
       time.sleep(30)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
-      # print(f"待機中~~ {elapsed_time} ")
+      print(f"待機中~~ {elapsed_time} ")
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")

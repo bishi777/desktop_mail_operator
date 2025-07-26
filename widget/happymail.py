@@ -283,7 +283,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       #   driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
       #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       #   time.sleep(1)
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["conditions_message"], "mail_img":i["chara_image"],}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
     time.sleep(1)
     return drivers
   except KeyboardInterrupt:
@@ -298,8 +298,6 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     traceback.print_exc()
   
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
-    print(888)
-    print(conditions_message)
     return_list = []
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     # print(f"新着メールフラグ: {new_message_flug}")
@@ -344,7 +342,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               for_minutes_passed = False
           if for_minutes_passed:
           # if True:
-            print("4分以上経過しているメッセージあり")          
+            # print("4分以上経過しているメッセージあり")          
             new_mail[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
@@ -388,23 +386,21 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               conditions_message_clean = func.normalize_text(conditions_message)
               
               # 変換後のデバッグ表示
-              print("---------------------------------------")
-              print(f"変換後のsend_text: {repr(send_text_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のfst_message: {repr(fst_message_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のsend_text: {repr(send_text_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のfst_message: {repr(fst_message_clean)}")
+              # print("---------------------------------------")
+              # print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
               
-              print("---------------------------------------")
-              print(fst_message_clean == send_text_clean)
-              print("---------------------------------------")
-              print(return_foot_message_clean == send_text_clean)
-              print("---------------------------------------")
-              print("募集メッセージ" in send_text)
+              # print("---------------------------------------")
+              # print(fst_message_clean == send_text_clean)
+              # print("---------------------------------------")
+              # print(return_foot_message_clean == send_text_clean)
+              # print("---------------------------------------")
+              # print("募集メッセージ" in send_text)
               if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
                 if conditions_message:
-                  print(777)
-                  print("条件メッセージあり")
                   text_area = driver.find_element(By.ID, value="text-message")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
                   script = "arguments[0].value = arguments[1];"
@@ -1082,6 +1078,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
               break # modal-content お相手が年齢確認されていない為
       except Exception as e:
             print("画像の送信に失敗しました", e)
+            print(traceback.format_exc())
       mail_icon_cnt = 0
       user_icon = 0
       return_matching_counted += 1
@@ -1257,7 +1254,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       matching_counted = 0
       matching_limit_flug = True
       try:
-        print(f"マッチングリストチェック...")
+        # print(f"マッチングリストチェック...")
         matching_counted, matching_limit_flug = return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt, matching_daily_limit, oneday_total_match)     
       except Exception as e:   
         print("マッチング返しエラー")
@@ -1500,6 +1497,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
                   img_wait_cnt += 1
             except Exception as e:
               print("画像の送信に失敗しました", e)
+              print(traceback.format_exc())
             return_cnt += 1
             mail_icon_cnt = 0
             user_icon = 0
