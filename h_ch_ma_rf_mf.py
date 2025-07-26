@@ -70,6 +70,9 @@ try:
       last_reset_hour = now.hour  # 初期化済みとして記録
    
     for name, data in drivers.items():
+      if name != "ゆっこ":
+        continue
+
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
