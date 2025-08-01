@@ -28,7 +28,6 @@ from datetime import datetime
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 headless = False
-
 # リストを2つに分割する
 n = len(happy_info)  
 half = n // 2
@@ -51,10 +50,10 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 777
   returnfoot_daily_limit = 777
-  total_daily_limit = 10
+  total_daily_limit = 20
   oneday_total_match = 0
   oneday_total_returnfoot = 0
-  returnfoot_flug = True
+  returnfoot_flug = False
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
   for i in first_half:
@@ -65,15 +64,14 @@ try:
     if drivers == {}:
       break
     now = datetime.now()
-    # 7時または20時、かつ直前に初期化されていない場合
-    if now.hour in [7, 20] and now.hour != last_reset_hour:
+    # 6時、かつ直前に初期化されていない場合
+    if now.hour == 6 and now.hour != last_reset_hour:
       returnfoot_flug = True
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
         report_dict[i["name"]] = 0
-
+        
     for name, data in drivers.items():
-      
       # if name == "ゆっこ":
       #   continue
       happymail_new_list = []
@@ -91,6 +89,7 @@ try:
       matching_cnt = 1
       type_cnt = 1
       return_foot_cnt = 1
+      send_flug = False
       
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
