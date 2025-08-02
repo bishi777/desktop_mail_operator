@@ -50,7 +50,7 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 777
   returnfoot_daily_limit = 777
-  total_daily_limit = 20
+  total_daily_limit = 16
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   returnfoot_flug = False
@@ -70,7 +70,7 @@ try:
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
         report_dict[i["name"]] = 0
-        
+
     for name, data in drivers.items():
       # if name == "ゆっこ":
       #   continue
