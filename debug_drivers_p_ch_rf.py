@@ -84,8 +84,8 @@ while True:
           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
           if len(login_form):
             print(888)
-            print(login_form.is_displayed())
-            if login_form.is_displayed():
+            print(login_form[0].is_displayed())
+            if login_form[0].is_displayed():
               login = login_form[0].find_elements(By.TAG_NAME, 'a')
               login[0].click()
               time.sleep(5)
