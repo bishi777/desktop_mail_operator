@@ -36,7 +36,7 @@ while True:
   start_loop_time = time.time()
   now = datetime.now()
   for idx, handle in enumerate(handles): 
-    WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
+    WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
@@ -80,7 +80,6 @@ while True:
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         re_login_cnt = 0
         while not len(name_on_pcmax):
-          
           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
           if len(login_form):
             if login_form[0].is_displayed():
@@ -89,25 +88,12 @@ while True:
               time.sleep(5)
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
           driver.refresh()
-          print(777)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(150)
-          # success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
-          # success_circle_cnt = 0
-          # while not len(success_circle):
-          #   print(6666)
-          #   time.sleep(150)
-          #   success_circle_cnt += 1
-          #   if success_circle_cnt > 3:
-          #     print("success_circleが見つかりません")
-          #     break
-          #   success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
-
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
-          
           pcmax_2.catch_warning_pop("", driver)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           re_login_cnt += 1
@@ -127,16 +113,13 @@ while True:
       continue
     for index, i in enumerate(pcmax_datas):
       login_id = ""
-      if name_on_pcmax != "きりこ":
-        continue
+      # if name_on_pcmax != "きりこ":
+      #   continue
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
-          
           report_dict[name_on_pcmax] = 0
           print(f"777 {report_dict[name_on_pcmax]}")
         name = i["name"]
-        # if  "わかな" != name:
-        #   continue
         login_id = i["login_id"]
         login_pass = i["password"]
         # print(f"{login_id}   {login_pass}")
