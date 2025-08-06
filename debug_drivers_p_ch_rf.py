@@ -83,8 +83,6 @@ while True:
           
           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
           if len(login_form):
-            print(888)
-            print(login_form[0].is_displayed())
             if login_form[0].is_displayed():
               login = login_form[0].find_elements(By.TAG_NAME, 'a')
               login[0].click()
@@ -93,11 +91,22 @@ while True:
           driver.refresh()
           print(777)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(5)
+          time.sleep(7)
+          success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
+          
+          while not len(success_circle):
+            print(6666)
+            time.sleep(100)
+            success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
+
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
+          
+            
+            
+          
           pcmax_2.catch_warning_pop("", driver)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           re_login_cnt += 1
