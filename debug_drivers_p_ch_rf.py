@@ -79,6 +79,8 @@ while True:
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         re_login_cnt = 0
         while not len(name_on_pcmax):
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(5)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
