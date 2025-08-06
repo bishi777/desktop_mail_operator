@@ -1,34 +1,64 @@
-import uiautomator2 as u2
+import subprocess
+import re
 import time
+from appium import webdriver
+from selenium.webdriver.common.by import By
+from appium.options.ios import SafariOptions
 
-# d = u2.connect("a02aca5e")
-d = u2.connect("e2448c60")
-# d.app_start("jp.co.i_bec.suteki_happy")
+# === ① iPhone 16 のUDIDを取得 ===
+print("🔍 iPhone 16 のUDIDを探しています...")
+output = subprocess.run(["xcrun", "simctl", "list", "devices"], capture_output=True, text=True).stdout
+devices = re.findall(r"(iPhone 16.*) \(([-A-F0-9]+)\) \((Shutdown|Booted)\)", output)
 
-# # ログインボタンをクリック
-# d(resourceId="jp.co.i_bec.suteki_happy:id/fragment_start_btn_login").wait(timeout=5.0)
-# d(resourceId="jp.co.i_bec.suteki_happy:id/fragment_start_btn_login").click()
-# # ログインボタン2をクリック
-# d(resourceId="jp.co.i_bec.suteki_happy:id/fragment_login_btn_login").wait(timeout=5.0)
-# d(resourceId="jp.co.i_bec.suteki_happy:id/fragment_login_btn_login").click()
+if not devices:
+    print("❌ iPhone 16 のシミュレータが見つかりません。Xcodeで追加してください。")
+    exit(1)
 
-# ページのロードが終わる待て待機
-loading_flug_ele = "jp.co.i_bec.suteki_happy:id/maintab_footer_image_message_off"
-if d(resourceId=loading_flug_ele).wait(timeout=10.0):
-  print("✅ ログイン後の画面が表示されました")
-else:
-  print("❌ ログイン後の画面が表示されませんでした（タイムアウト）")
-loading_flug_ele = "jp.co.i_bec.suteki_happy:id/activity_maintab_loading_normal"
-start = time.time()
-while time.time() - start < 10:
-  if not d(resourceId=loading_flug_ele).exists:
-    print("✅ ログイン完了")
-    break
-  time.sleep(0.5)
+device_name, udid, state = devices[0]
+print(f"✅ {device_name} を使用します（UDID: {udid}）")
 
-# 新着メッセージはあるか
-new_message_xpath = "jp.co.i_bec.suteki_happy:id/maintab_footer_badge_message"
-if d.xpath(new_message_xpath).exists:
-  print("✅ 新着メッセージは存在します")
-else:
-  print("❌ 新着メッセージは存在しません")
+# === ② Simulator 起動 ===
+if state != "Booted":
+    print("🚀 シミュレータを起動中...")
+    subprocess.run(["xcrun", "simctl", "boot", udid])
+    time.sleep(5)  # Boot待ち
+
+print("🖥 Simulator.app を起動中...")
+subprocess.run(["open", "-a", "Simulator"])
+time.sleep(5)
+
+# === ③ Safari を開いて URL にアクセス ===
+url = "https://pcmax.jp/pcm/?ad_id=unknown"
+print(f"🌐 Safariを起動してアクセス中: {url}")
+subprocess.run(["xcrun", "simctl", "openurl", udid, url])
+time.sleep(5)  # ページ読み込み待ち
+
+# === ④ Appiumでログインボタンをクリック ===
+
+# === Desired Capabilities の設定 ===
+options = SafariOptions()
+options.set_platform_name("iOS")
+options.set_platform_version("17.4")  # あなたの環境に合わせて
+options.set_device_name("iPhone 16 Pro")
+options.set_browser_name("Safari")
+options.set_capability("automationName", "XCUITest")
+
+# === Appium接続 ===
+driver = webdriver.Remote(
+    command_executor='http://localhost:4723',
+    options=options
+)
+
+print("⌛ ページを待機中...")
+time.sleep(5)
+
+try:
+    print("🔍 ログインボタンを探しています...")
+    # ログインボタンを XPath またはテキストから特定（適宜調整）
+    login_button = driver.find_element(By.XPATH, '//button[contains(., "ログイン")]')
+    login_button.click()
+    print("✅ ログインボタンをクリックしました！")
+except Exception as e:
+    print(f"❌ ログインボタンが見つかりませんでした: {e}")
+
+driver.quit()
