@@ -91,21 +91,22 @@ while True:
           driver.refresh()
           print(777)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(7)
-          success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
-          
-          while not len(success_circle):
-            print(6666)
-            time.sleep(100)
-            success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
+          time.sleep(150)
+          # success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
+          # success_circle_cnt = 0
+          # while not len(success_circle):
+          #   print(6666)
+          #   time.sleep(150)
+          #   success_circle_cnt += 1
+          #   if success_circle_cnt > 3:
+          #     print("success_circleが見つかりません")
+          #     break
+          #   success_circle = driver.find_elements(By.CLASS_NAME, 'success-circle')
 
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
-          
-            
-            
           
           pcmax_2.catch_warning_pop("", driver)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
