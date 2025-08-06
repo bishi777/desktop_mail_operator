@@ -54,6 +54,7 @@ while True:
       # print(driver.current_url)
     try:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      
       while not len(name_on_pcmax):
         # 再ログイン処理
         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
@@ -82,6 +83,12 @@ while True:
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(5)
+          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+          if len(login_form):
+            login = login_form[0].find_elements(By.TAG_NAME, 'a')
+            login[0].click()
+            time.sleep(5)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -105,6 +112,8 @@ while True:
       continue
     for index, i in enumerate(pcmax_datas):
       login_id = ""
+      if name_on_pcmax.text != "きりこ":
+        continue
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           
