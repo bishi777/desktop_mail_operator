@@ -30,7 +30,6 @@ wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 report_dict = {}
 send_flug = False
-last_reset_hour = None  
 
 while True:
   start_loop_time = time.time()
@@ -155,15 +154,13 @@ while True:
                   f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
                 )
                 send_flug = False
+                report_dict = {}
               except Exception as e:
                 print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
                 traceback.print_exc()   
           else:
             send_flug = True
-          now = datetime.now()
-          if now.hour == 24 and now.hour != last_reset_hour:
-            last_reset_hour = now.hour  # 初期化済みとして記録
-            report_dict = {}
+         
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   while elapsed_time < 720:
     time.sleep(10)

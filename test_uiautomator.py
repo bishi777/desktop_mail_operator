@@ -1,64 +1,66 @@
-import subprocess
-import re
-import time
 from appium import webdriver
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import TimeoutException
 from appium.options.ios import SafariOptions
+import time
+import subprocess
+from widget import func
+import os
+import settings
 
-# === ① iPhone 16 のUDIDを取得 ===
-print("🔍 iPhone 16 のUDIDを探しています...")
-output = subprocess.run(["xcrun", "simctl", "list", "devices"], capture_output=True, text=True).stdout
-devices = re.findall(r"(iPhone 16.*) \(([-A-F0-9]+)\) \((Shutdown|Booted)\)", output)
+user_data = func.get_user_data()
+pcmax_datas = user_data["pcmax"]
 
-if not devices:
-    print("❌ iPhone 16 のシミュレータが見つかりません。Xcodeで追加してください。")
-    exit(1)
+for i in pcmax_datas:
+  name = i["name"]
+  login_id = i["login_id"]
+  login_pass = i["password"]
+  # Appium Safari Options 設定
+  options = SafariOptions()
+  options.set_capability("safariInitialUrl", "https://pcmax.jp/pcm/?ad_id=unknown")
+  options.set_capability("platformName", "iOS")
+  options.set_capability("platformVersion", "18.5")
+  options.set_capability("udid", settings.udid)
+  options.set_capability("browserName", "Safari")
+  options.set_capability("automationName", "XCUITest")
 
-device_name, udid, state = devices[0]
-print(f"✅ {device_name} を使用します（UDID: {udid}）")
+  # Appium 接続
+  driver = webdriver.Remote("http://localhost:4723", options=options)
+  wait = WebDriverWait(driver, 10)
 
-# === ② Simulator 起動 ===
-if state != "Booted":
-    print("🚀 シミュレータを起動中...")
-    subprocess.run(["xcrun", "simctl", "boot", udid])
-    time.sleep(5)  # Boot待ち
+  try:
+    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+    time.sleep(1)
+    # 「ログイン（登録済みの方）」ボタンをクリック
+    login_form = driver.find_element(By.CLASS_NAME, 'login-sub')
+    login_link = login_form.find_element(By.TAG_NAME, 'a')
+    login_link.click()
+    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+    time.sleep(3)
+    # フォーム入力
+    id_form = driver.find_element(By.ID, "login_id")
+    id_form.send_keys(login_id)
+    time.sleep(3)
+    pass_form = driver.find_element(By.ID, "login_pw")
+    pass_form.send_keys(login_pass)
+    time.sleep(3)
+    send_form = driver.find_element(By.NAME, "login")
+    send_form.click()
+    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+    print(f"{name} ✅ ログイン成功")
+    time.sleep(5)
+  except Exception as e:
+    print(f"{name} ❌ ログイン処理でエラー:", e)
+  finally:
+    # Appiumセッション終了
+    driver.quit()
+    # Simulator停止＋初期化
+    print(f"{name} ⏹ Simulatorシャットダウン中...")
+    subprocess.run(["xcrun", "simctl", "shutdown", settings.udid])
+    print(f"{name} ♻️ Simulator初期化中...")
+    subprocess.run(["xcrun", "simctl", "erase", settings.udid])
+    subprocess.run(["osascript", "-e", 'quit app "Simulator"'])
+    print(f"{name} ✅ 完了")
 
-print("🖥 Simulator.app を起動中...")
-subprocess.run(["open", "-a", "Simulator"])
-time.sleep(5)
-
-# === ③ Safari を開いて URL にアクセス ===
-url = "https://pcmax.jp/pcm/?ad_id=unknown"
-print(f"🌐 Safariを起動してアクセス中: {url}")
-subprocess.run(["xcrun", "simctl", "openurl", udid, url])
-time.sleep(5)  # ページ読み込み待ち
-
-# === ④ Appiumでログインボタンをクリック ===
-
-# === Desired Capabilities の設定 ===
-options = SafariOptions()
-options.set_platform_name("iOS")
-options.set_platform_version("17.4")  # あなたの環境に合わせて
-options.set_device_name("iPhone 16 Pro")
-options.set_browser_name("Safari")
-options.set_capability("automationName", "XCUITest")
-
-# === Appium接続 ===
-driver = webdriver.Remote(
-    command_executor='http://localhost:4723',
-    options=options
-)
-
-print("⌛ ページを待機中...")
-time.sleep(5)
-
-try:
-    print("🔍 ログインボタンを探しています...")
-    # ログインボタンを XPath またはテキストから特定（適宜調整）
-    login_button = driver.find_element(By.XPATH, '//button[contains(., "ログイン")]')
-    login_button.click()
-    print("✅ ログインボタンをクリックしました！")
-except Exception as e:
-    print(f"❌ ログインボタンが見つかりませんでした: {e}")
-
-driver.quit()
+os.system("pkill -f appium")
