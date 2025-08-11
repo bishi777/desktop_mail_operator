@@ -244,8 +244,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
-        os.makedirs(profile_path, exist_ok=True)  
-       # iPhone14
+        os.makedirs(profile_path, exist_ok=True)
+      # iPhone14
       user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
       driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       login_flug = login(i["name"], i["login_id"], i["password"], driver, wait)
@@ -299,6 +299,10 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
   
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
     return_list = []
+    driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.7)
+    catch_warning_screen(driver)
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     # print(f"新着メールフラグ: {new_message_flug}")
     if new_message_flug == "新着メールなし":
@@ -1669,7 +1673,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
 
-
     # if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
     #   driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
     #   if "https://happymail.co.jp/sp/app/html/profile_list.php" in driver.current_url:
@@ -1793,6 +1796,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     #   time.sleep(1)
     #   catch_warning_screen(driver)
   
+
 def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count):
   wait_time = random.uniform(2, 5)
   login(name, happymail_id, happymail_pass, driver, wait)
