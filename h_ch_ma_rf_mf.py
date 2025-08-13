@@ -73,8 +73,7 @@ try:
 
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
-      if name != "ゆかり":
-        continue
+     
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
