@@ -158,9 +158,7 @@ try:
             print(traceback.format_exc())
         # elif index == 1:　2個目のタブの処理があれば記載
           if top_image_check:
-            happymail_new_list.append(top_image_check)
-          
-          
+            happymail_new_list.append(top_image_check)  
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     while elapsed_time < 720:
