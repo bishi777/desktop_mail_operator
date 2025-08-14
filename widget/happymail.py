@@ -1232,7 +1232,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     duplication_user = False
     user_name_list = []
     user_icon = 0
-    
+    catch_warning_screen(driver)
     if return_foot_img:
       # 画像データを取得してBase64にエンコード
       image_response = requests.get(return_foot_img)
