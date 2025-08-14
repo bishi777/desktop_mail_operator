@@ -65,11 +65,11 @@ try:
       break
     now = datetime.now()
     # 6時、かつ直前に初期化されていない場合
-    # if now.hour == 6 and now.hour != last_reset_hour:
-    #   returnfoot_flug = True
-    #   last_reset_hour = now.hour  # 初期化済みとして記録
-    #   for i in first_half:
-    #     report_dict[i["name"]] = 0
+    if now.hour == 6 and now.hour != last_reset_hour:
+      returnfoot_flug = True
+      last_reset_hour = now.hour  # 初期化済みとして記録
+      for i in first_half:
+        report_dict[i["name"]] = 0
 
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
