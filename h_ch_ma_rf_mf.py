@@ -48,9 +48,9 @@ try:
   drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
-  matching_daily_limit = 777
-  returnfoot_daily_limit = 777
-  total_daily_limit = 16
+  matching_daily_limit = 5
+  returnfoot_daily_limit = 0
+  total_daily_limit = 5
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   returnfoot_flug = False
