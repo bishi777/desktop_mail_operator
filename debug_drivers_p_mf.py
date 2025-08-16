@@ -100,7 +100,8 @@ for i in range(99999):
             print("メイン写真が見つかりません")
             # スクショします
             # driver.save_screenshot("screenshot.png")
-          time.sleep(8.5)
+          print("85byoutaiki")
+          time.sleep(85)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
