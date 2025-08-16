@@ -896,6 +896,14 @@ def change_tor_ip():
       controller.authenticate()  # デフォルト設定の場合は認証不要
       controller.signal(Signal.NEWNYM)
 
+def get_current_ip():
+  session = requests.session()
+  session.proxies = {
+      'http': 'socks5h://127.0.0.1:9050',
+      'https': 'socks5h://127.0.0.1:9050'
+  }
+  return session.get("http://httpbin.org/ip").text
+
 def resolve_reCAPTCHA(login_url, site_key):
   API_KEY = "1bc4af1c018d3882d89bae813594befb"  
   PAGE_URL = login_url

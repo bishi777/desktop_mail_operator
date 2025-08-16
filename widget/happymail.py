@@ -239,8 +239,12 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      if i["name"] != "きりこ" and i["name"] != "さな" :
+      # if i["name"] != "つむぎ" and i["name"] != "アスカ" :
+      if  i["name"] != "アスカ" :
         continue
+      print("変更前:", func.get_current_ip())
+      func.change_tor_ip()
+      print("変更後:", func.get_current_ip())
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
