@@ -87,9 +87,7 @@ for i in range(99999):
           pcmax_2.catch_warning_pop("", driver)
           pcmax_2.get_header_menu(driver, "マイメニュー")
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(9999)
         while not len(name_on_pcmax):
-          print(88888)
           # 再ログイン処理
           main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
           if len(main_photo):
@@ -102,7 +100,8 @@ for i in range(99999):
             print("メイン写真が見つかりません")
             # スクショします
             # driver.save_screenshot("screenshot.png")
-          time.sleep(85)
+          print("120byoutaiki")
+          time.sleep(120)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -165,8 +164,8 @@ for i in range(99999):
             print("メイン写真が見つかりません")
             # スクショします
             # driver.save_screenshot("screenshot.png")
-          print("85byoutaiki")
-          time.sleep(8.5)
+          print("120byoutaiki")
+          time.sleep(120)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
