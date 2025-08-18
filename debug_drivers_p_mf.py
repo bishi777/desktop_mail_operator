@@ -31,6 +31,7 @@ wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 current_step = 0
 search_profile_flug = False
+all_search_profile_flug = False
 minute_index = 0  
 minute_flug = True
 tab_count = len(handles)
@@ -66,6 +67,8 @@ for i in range(99999):
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"足跡付け {current_step}件 {footprint_now}")    
           time.sleep(0.4)
+          if current_step >= 100:
+            all_search_profile_flug = True
         else:
           print("足跡付けのユーザーがいません")
           search_profile_flug = True
@@ -183,77 +186,77 @@ for i in range(99999):
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
-  # if search_profile_flug:
-  #   current_step = 0
-  #   for idx, handle in enumerate(handles): 
-  #     try:  
-  #       driver.switch_to.window(handle)
-  #       login_flug = pcmax_2.catch_warning_pop("", driver)
-  #       if login_flug and "制限" in login_flug:
-  #         # print("制限がかかっているため、スキップを行います")
-  #         continue
-  #       print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
-  #       driver.get("https://pcmax.jp/pcm/index.php")   
-  #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #       time.sleep(0.5)
-  #       pcmax_2.catch_warning_pop("", driver)
-  #       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-  #       print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
-  #       while not len(name_on_pcmax):
-  #         # 再ログイン処理
-  #         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
-  #         if len(main_photo):
-  #           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-  #           if len(login_form):
-  #             login = login_form[0].find_elements(By.TAG_NAME, 'a')
-  #             login[0].click()
-  #             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
-  #         else:
-  #           print("メイン写真が見つかりません")
-  #           # スクショします
-  #           # driver.save_screenshot("screenshot.png")
-  #         print("150byoutaiki")
-  #         time.sleep(150)
-  #         login_button = driver.find_element(By.NAME, "login")
-  #         login_button.click()
-  #         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #         time.sleep(1.5)
-  #         login_flug = pcmax_2.catch_warning_pop("", driver)
-  #         if login_flug and "制限" in login_flug:
-  #           # print("制限がかかっているため、スキップを行います8888888888")
-  #           break      
-  #         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-  #         re_login_cnt = 0
-  #         while not len(name_on_pcmax):
-  #           time.sleep(5)
-  #           login_button = driver.find_element(By.NAME, "login")
-  #           login_button.click()
-  #           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #           time.sleep(1.5)
-  #           pcmax_2.catch_warning_pop("", driver)
-  #           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-  #           re_login_cnt += 1
-  #           if re_login_cnt > 5:
-  #             print("再ログイン失敗")
-  #             break
-  #       pcmax_2.profile_search(driver)
-  #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #       continue
-  #     # except NoSuchElementException as e:
-  #     #   print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
-  #     #   time.sleep(300)
-  #     #   try:
-  #     #     driver.refresh()
-  #     #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #     #     time.sleep(1.5)
-  #     #   except Exception as e2:
-  #     #     print("📨 再実行でも失敗。メール通知します。")
-  #     #     func.send_error("PCMAX ネット接続エラー", str(e2))
-  #     #     raise  # ここで終了するか、ログだけで続行するかは自由
-  #     except Exception as e:
-  #       print(f"❌  プロフ再セット　の操作でエラー: {e}")
-  #       traceback.print_exc()    
-  #   search_profile_flug = False
+  if all_search_profile_flug:
+    current_step = 0
+    for idx, handle in enumerate(handles): 
+      try:  
+        driver.switch_to.window(handle)
+        login_flug = pcmax_2.catch_warning_pop("", driver)
+        if login_flug and "制限" in login_flug:
+          # print("制限がかかっているため、スキップを行います")
+          continue
+        print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
+        driver.get("https://pcmax.jp/pcm/index.php")   
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.5)
+        pcmax_2.catch_warning_pop("", driver)
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        while not len(name_on_pcmax):
+          # 再ログイン処理
+          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
+          if len(main_photo):
+            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+            if len(login_form):
+              login = login_form[0].find_elements(By.TAG_NAME, 'a')
+              login[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
+          else:
+            print("メイン写真が見つかりません")
+            # スクショします
+            # driver.save_screenshot("screenshot.png")
+          print("150byoutaiki")
+          time.sleep(150)
+          login_button = driver.find_element(By.NAME, "login")
+          login_button.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+          login_flug = pcmax_2.catch_warning_pop("", driver)
+          if login_flug and "制限" in login_flug:
+            # print("制限がかかっているため、スキップを行います8888888888")
+            break      
+          name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+          re_login_cnt = 0
+          while not len(name_on_pcmax):
+            time.sleep(5)
+            login_button = driver.find_element(By.NAME, "login")
+            login_button.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            pcmax_2.catch_warning_pop("", driver)
+            name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+            re_login_cnt += 1
+            if re_login_cnt > 5:
+              print("再ログイン失敗")
+              break
+        pcmax_2.profile_search(driver)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        continue
+      # except NoSuchElementException as e:
+      #   print("📡 ネット接続エラーの可能性。5分待ってリトライします...")
+      #   time.sleep(300)
+      #   try:
+      #     driver.refresh()
+      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #     time.sleep(1.5)
+      #   except Exception as e2:
+      #     print("📨 再実行でも失敗。メール通知します。")
+      #     func.send_error("PCMAX ネット接続エラー", str(e2))
+      #     raise  # ここで終了するか、ログだけで続行するかは自由
+      except Exception as e:
+        print(f"❌  プロフ再セット　の操作でエラー: {e}")
+        traceback.print_exc()    
+    all_search_profile_flug = False
   if i % 2 == 0:
     current_step += 1
     elapsed_time = time.time() - start_time  # 経過時間を計算する   
