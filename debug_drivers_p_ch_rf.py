@@ -112,12 +112,12 @@ while True:
       continue
     for index, i in enumerate(pcmax_datas):
       login_id = ""
-      if name_on_pcmax != "めあり":
-        continue
+      # if name_on_pcmax != "めあり":
+      #   continue
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = 0
-          print(f"777 {report_dict[name_on_pcmax]}")
+          # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
         login_pass = i["password"]
@@ -134,9 +134,9 @@ while True:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
             func.send_mail(
-              f"pcmax {name}のTOP画像が更新されました。NOIMAGE",
+              f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
               [receiving_address,mailserver_address,mailserver_password,],
-              f"PCMAX トップ画像の更新 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+              f"PCMAX トップ画像の更新 ",
             )
         except Exception as e:
           print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")

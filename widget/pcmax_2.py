@@ -378,8 +378,6 @@ def check_top_image(name,driver):
   profile_photo = driver.find_elements(By.CLASS_NAME, 'profile_photo')
   if len(profile_photo):
     top_image_back_ground = profile_photo[0].value_of_css_property("background-image")
-    print(777)
-    print(top_image_back_ground)
     if "no-image" in top_image_back_ground:
       return True
   return False

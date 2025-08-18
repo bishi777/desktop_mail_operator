@@ -37,7 +37,6 @@ options.set_capability("noReset", True)
 driver = webdriver.Remote('http://localhost:4723', options=options)
 
 # driver.get("https://www.google.co.jp")
-print(777)
 # title = driver.execute_script("return document.title")
 
 

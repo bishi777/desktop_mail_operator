@@ -38,7 +38,6 @@ def catch_warning_pop(name, tab):
       tab.ele('#this_month').click()
       time.sleep(1)
     if tab.eles('#close1', timeout=0.5):
-      print(77777777)
       
       ele = tab.ele('#close1').click()
       tab.run_js('arguments[0].click();', ele)
