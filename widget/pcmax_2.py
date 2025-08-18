@@ -386,7 +386,7 @@ def check_top_image(name,driver):
 
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
-               fst_message, second_message, condition_message,
+               fst_message, mail_img, second_message, condition_message,
                mailserver_address, mailserver_password, receiving_address):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
@@ -514,6 +514,19 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         text_area = driver.find_element(By.ID, value="mdc")
         script = "arguments[0].value = arguments[1];"
         driver.execute_script(script, text_area, fst_message)
+        time.sleep(1)
+        if mail_img:
+          my_photo_element = driver.find_element(By.ID, "my_photo")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+          select = Select(my_photo_element)
+          for option in select.options:
+            if mail_img in option.text:
+              select.select_by_visible_text(option.text)
+              time.sleep(0.4)
+              break
+          driver.find_element(By.NAME, "preview").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.3)  
         driver.find_element(By.ID, "send_n").click()
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
