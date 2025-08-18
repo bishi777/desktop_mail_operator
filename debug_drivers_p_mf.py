@@ -34,7 +34,7 @@ search_profile_flug = False
 minute_index = 0  
 minute_flug = True
 tab_count = len(handles)
-interval_minute = ceil(150 / tab_count)
+interval_minute = ceil(120 / tab_count)
 reset_profile_search_cnt = 0
 
 for i in range(99999):
