@@ -112,8 +112,8 @@ while True:
       continue
     for index, i in enumerate(pcmax_datas):
       login_id = ""
-      # if name_on_pcmax != "きりこ":
-      #   continue
+      if name_on_pcmax != "めあり":
+        continue
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = 0
