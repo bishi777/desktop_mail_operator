@@ -496,10 +496,16 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(1)
             else:
+              send_text = fst_message
+              repost_return = driver.find_elements(By.CLASS_NAME, value="transit_info")
+              if len(repost_return):
+                if "募集から送信" in repost_return[0].text:
+                  if conditions_message:
+                    send_text = conditions_message
               text_area = driver.find_element(By.ID, value="text-message")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area, fst_message)
+              driver.execute_script(script, text_area, send_text)
               # 送信
               send_mail = driver.find_element(By.ID, value="submitButton")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
