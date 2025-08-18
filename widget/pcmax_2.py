@@ -368,7 +368,25 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
       driver.execute_script("arguments[0].click();", back2)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(random_wait)
-     
+
+def check_top_image(name,driver):
+  wait = WebDriverWait(driver, 10)
+  driver.get("https://pcmax.jp/pcm/member.php")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  catch_warning_pop(name, driver)
+  profile_photo = driver.find_elements(By.CLASS_NAME, 'profile_photo')
+  if len(profile_photo):
+    top_image_back_ground = profile_photo[0].value_of_css_property("background-image")
+    print(777)
+    print(top_image_back_ground)
+    if "no-image" in top_image_back_ground:
+      return True
+  return False
+
+
+
+
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, second_message, condition_message,
                mailserver_address, mailserver_password, receiving_address):

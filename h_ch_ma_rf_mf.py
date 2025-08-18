@@ -65,15 +65,13 @@ try:
       break
     now = datetime.now()
     # 6時、かつ直前に初期化されていない場合
-    if now.hour == 6 and now.hour != last_reset_hour:
+    if now.hour == 7 and now.hour != last_reset_hour:
       returnfoot_flug = True
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
         report_dict[i["name"]] = 0
-
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
-     
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -125,9 +123,7 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
-          # # マッチング返し、
-          if name == "さな":
-            continue
+          # マッチング返し、
           if report_dict[name] <= total_daily_limit and returnfoot_flug:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)

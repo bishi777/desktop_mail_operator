@@ -131,6 +131,17 @@ while True:
         return_foot_message = i["return_foot_message"]
         send_cnt = 3  
         try:
+          top_image_flug = pcmax_2.check_top_image(name,driver)
+          if top_image_flug:
+            func.send_mail(
+              f"pcmax {name}のTOP画像が更新されました。NOIMAGE",
+              [receiving_address,mailserver_address,mailserver_password,],
+              f"PCMAX トップ画像の更新 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+            )
+        except Exception as e:
+          print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
+          traceback.print_exc()
+        try:
           print("新着メールチェック開始")   
           pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
         except Exception as e:
