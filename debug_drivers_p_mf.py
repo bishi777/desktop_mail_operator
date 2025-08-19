@@ -71,6 +71,7 @@ for i in range(99999):
             all_search_profile_flug = True
         else:
           print("足跡付けのユーザーがいません")
+          time.sleep(6)
           search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
@@ -181,7 +182,7 @@ for i in range(99999):
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         search_profile_flug = False
-
+        time.sleep(7)
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
       traceback.print_exc()  
