@@ -67,7 +67,7 @@ for i in range(99999):
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"足跡付け {current_step}件 {footprint_now}")    
           time.sleep(0.4)
-          if current_step >= 100:
+          if current_step >= 50:
             all_search_profile_flug = True
         else:
           print("足跡付けのユーザーがいません")
