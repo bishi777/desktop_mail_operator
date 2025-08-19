@@ -130,6 +130,16 @@ while True:
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
         send_cnt = 3  
+        if name_on_pcmax == "えりか":
+          try:
+            print(f"いいかもリストチェック開始 {name}")
+            iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
+            print(f"いいかもリストチェック完了 {name}")
+            report_dict[name] = report_dict[name] + iikamo_cnt
+            send_cnt -= iikamo_cnt
+          except Exception as e:
+            print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
+            traceback.print_exc()
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
@@ -149,10 +159,11 @@ while True:
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
           try:
-            print("足跡返し送信開始")
+            print("足跡返し開始")
             if send_cnt > 0:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)   
             report_dict[name] = report_dict[name] + rf_cnt
+            print("足跡返し完了")
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
