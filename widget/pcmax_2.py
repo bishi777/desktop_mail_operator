@@ -608,45 +608,65 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
         match_users[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-        try:
-          memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-          if "もふ" in memo_edit.text:
-            return 0  
-        except NoSuchElementException:
-          pass
-        driver.find_element(By.CLASS_NAME, 'memo_open').click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-        driver.find_element(By.ID, 'memo_send').click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        text_area = driver.find_element(By.ID, value="mail_com")
-        script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, fst_message)
-        time.sleep(1)  
-        # まじ送信　
-        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
-        pattern = r'\d+'
-        match = re.findall(pattern, mile_point_text)
-        if int(match[0]) > 20:
-          maji_soushin = True
-        else:
-          maji_soushin = False
-        time.sleep(4)
-        if mail_img:
-          my_photo_element = driver.find_element(By.ID, "my_photo")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
-          select = Select(my_photo_element)
-          for option in select.options:
-            if mail_img in option.text:
-              select.select_by_visible_text(option.text)
-              time.sleep(0.4)
-              break
-          driver.find_element(By.NAME, "preview").click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.3)  
-        now = datetime.now().strftime('%m-%d %H:%M:%S')
+      else:
+        return 0
+    else:
+      print("いいかもリストのページにいません")
+    try:
+      memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
+      if "もふ" in memo_edit.text:
+        return 0  
+    except NoSuchElementException:
+      pass
+    driver.find_element(By.CLASS_NAME, 'memo_open').click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+    driver.find_element(By.ID, 'memo_send').click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    text_area = driver.find_element(By.ID, value="mail_com")
+    script = "arguments[0].value = arguments[1];"
+    driver.execute_script(script, text_area, fst_message)
+    time.sleep(1)  
+    # まじ送信　
+    mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+    pattern = r'\d+'
+    match = re.findall(pattern, mile_point_text)
+    if int(match[0]) > 20:
+      maji_soushin = True
+    else:
+      maji_soushin = False
+    time.sleep(4)
+    if mail_img:
+      my_photo_element = driver.find_element(By.ID, "my_photo")
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+      select = Select(my_photo_element)
+      for option in select.options:
+        if mail_img in option.text:
+          select.select_by_visible_text(option.text)
+          time.sleep(0.4)
+          break
+      driver.find_element(By.NAME, "preview").click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.3)  
+    now = datetime.now().strftime('%m-%d %H:%M:%S')
+    if maji_soushin:
+      maji =  driver.find_element(By.ID, value="majiBtn")
+      maji.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      link_OK = driver.find_element(By.ID, value="link_OK")
+      link_OK.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+    else:
+      driver.find_element(By.ID, 'send3').click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.7)
+    if len(driver.find_elements(By.ID, value="mailform_box")):
+      if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
+        print("連続防止　待機中...")
+        time.sleep(6)
         if maji_soushin:
           maji =  driver.find_element(By.ID, value="majiBtn")
           maji.click()
@@ -654,31 +674,14 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
           time.sleep(1)
           link_OK = driver.find_element(By.ID, value="link_OK")
           link_OK.click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
         else:
           driver.find_element(By.ID, 'send3').click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(0.7)
-        if len(driver.find_elements(By.ID, value="mailform_box")):
-          if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
-            print("連続防止　待機中...")
-            time.sleep(6)
-            if maji_soushin:
-              maji =  driver.find_element(By.ID, value="majiBtn")
-              maji.click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1)
-              link_OK = driver.find_element(By.ID, value="link_OK")
-              link_OK.click()
-            else:
-              driver.find_element(By.ID, 'send3').click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1)
-         
-        print(f"{name} マッチングがえし マジ送信{maji_soushin}   {1}件送信  {now}")
-        return 1
-    else:
-      print("いいかもリストのページにいません")
+          time.sleep(1)
+      
+    print(f"{name} マッチングがえし マジ送信{maji_soushin}   {1}件送信  {now}")
+    return 1
+    
       
 
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img):
