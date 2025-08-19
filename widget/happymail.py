@@ -394,19 +394,19 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               conditions_message_clean = func.normalize_text(conditions_message)
               
               # 変換後のデバッグ表示
-              # print("---------------------------------------")
-              # print(f"変換後のsend_text: {repr(send_text_clean)}")
-              # print("---------------------------------------")
-              # print(f"変換後のfst_message: {repr(fst_message_clean)}")
-              # print("---------------------------------------")
-              # print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のsend_text: {repr(send_text_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のfst_message: {repr(fst_message_clean)}")
+              print("---------------------------------------")
+              print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
               
-              # print("---------------------------------------")
-              # print(fst_message_clean == send_text_clean)
-              # print("---------------------------------------")
-              # print(return_foot_message_clean == send_text_clean)
-              # print("---------------------------------------")
-              # print("募集メッセージ" in send_text)
+              print("---------------------------------------")
+              print(fst_message_clean == send_text_clean)
+              print("---------------------------------------")
+              print(return_foot_message_clean == send_text_clean)
+              print("---------------------------------------")
+              print("募集メッセージ" in send_text)
               if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
                 if conditions_message:
                   text_area = driver.find_element(By.ID, value="text-message")
