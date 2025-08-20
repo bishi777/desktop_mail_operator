@@ -71,6 +71,7 @@ for i in range(99999):
             all_search_profile_flug = True
         else:
           print("足跡付けのユーザーがいません")
+          print(current_step)
           time.sleep(6)
           search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜

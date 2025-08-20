@@ -382,9 +382,6 @@ def check_top_image(name,driver):
       return True
   return False
 
-
-
-
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, mail_img, second_message, condition_message,
                mailserver_address, mailserver_password, receiving_address):
