@@ -466,8 +466,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                       time.sleep(1)      
               else:
                 # print('やり取りしてます')
+                
+
                 user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
                 user_name = user_name.text
+                if send_text_clean == "":
+                  html = driver.page_source
+                  return_list.append(html)
                 receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                 return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
                 return_list.append(return_message)
