@@ -473,7 +473,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 # デバック
                 if send_text_clean == "":
                   html = driver.page_source
-                  html = driver.page_source
                   soup = BeautifulSoup(html, "html.parser")
                   print(soup.prettify())
                   return_list.append(soup.prettify())
