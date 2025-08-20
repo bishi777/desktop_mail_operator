@@ -96,6 +96,7 @@ try:
         print("変更後:", func.get_current_ip())
         # print(f"現在のタブ: {index + 1},")
         if index  == 0:
+          print(999)
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
