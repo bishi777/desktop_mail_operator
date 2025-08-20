@@ -30,6 +30,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from twocaptcha import TwoCaptcha
 import shutil
+from bs4 import BeautifulSoup
+
 
 # 警告画面
 def catch_warning_screen(driver):
@@ -468,9 +470,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 # print('やり取りしてます')
                 user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
                 user_name = user_name.text
+                # デバック
                 if send_text_clean == "":
                   html = driver.page_source
-                  return_list.append(html)
+                  html = driver.page_source
+                  soup = BeautifulSoup(html, "html.parser")
+                  print(soup.prettify())
+                  return_list.append(soup.prettify())
                 receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                 return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
                 return_list.append(return_message)
