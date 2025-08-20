@@ -239,7 +239,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      if i["name"] != "いおり" and i["name"] != "アスカ" :
+      if i["name"] != "えりか" and i["name"] != "アスカ" :
       # if  i["name"] != "アスカ" :
         continue
       print("変更前:", func.get_current_ip())
@@ -466,8 +466,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                       time.sleep(1)      
               else:
                 # print('やり取りしてます')
-                
-
                 user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
                 user_name = user_name.text
                 if send_text_clean == "":
