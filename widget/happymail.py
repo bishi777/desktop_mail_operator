@@ -309,7 +309,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.7)
     ban_flug = catch_warning_screen(driver)
-    if "利用できません" in ban_flug:
+    if isinstance(ban_flug, str) and "利用できません" in ban_flug:
       return "この登録は利用できません"
     new_message_flug = nav_item_click("メッセージ", driver, wait)
     # print(f"新着メールフラグ: {new_message_flug}")
