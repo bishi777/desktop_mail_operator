@@ -711,6 +711,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       return rf_cnt
     like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
     if not len(like):
+      like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type4')
+    if not len(like):
       user_index += 1
     else:
       user_name = like[0].get_attribute("data-go2")
