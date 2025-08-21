@@ -65,7 +65,7 @@ for i in range(99999):
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"足跡付け {current_step}件 {footprint_now}")    
-          time.sleep(0.4)
+          time.sleep(0.6)
           if current_step >= 50:
             all_search_profile_flug = True
         else:
