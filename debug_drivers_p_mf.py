@@ -73,8 +73,16 @@ for i in range(99999):
           print("足跡付けのユーザーがいません")
           print(current_step)
           print(len(user_list))
+          driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+          # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(6)
-          search_profile_flug = True
+          user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+          print("スクロールした")
+          print(current_step)
+          print(len(user_list))
+          if current_step < len(user_list):
+            search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
