@@ -271,11 +271,8 @@ for i in range(99999):
     all_search_profile_flug = False
   if i % 2 == 0:
     current_step += 1
-    print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
-    print(f"開始タイム: {start_loop_time}")  
-    
+    print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")    
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
-    print(f"経過タイム: {elapsed_time}")  
     minutes, seconds = divmod(int(elapsed_time), 60)
     print(f"タイム: {minutes}分{seconds}秒")  
   if 7 <= now.hour <= 22:
