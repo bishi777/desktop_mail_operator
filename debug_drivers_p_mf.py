@@ -41,7 +41,6 @@ print(f"タブ数: {tab_count}, 掲示板投稿インターバル: {interval_min
 for i in range(99999):
   start_loop_time = time.time()
   now = datetime.now()
-  start_time = time.time() 
   for idx, handle in enumerate(handles): 
     try:
       if handle not in driver.window_handles:
@@ -270,7 +269,6 @@ for i in range(99999):
     all_search_profile_flug = False
   if i % 2 == 0:
     current_step += 1
-    elapsed_time = time.time() - start_time  # 経過時間を計算する   
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     minutes, seconds = divmod(int(elapsed_time), 60)
