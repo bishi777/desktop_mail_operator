@@ -81,7 +81,7 @@ for i in range(99999):
           print("スクロールした")
           print(current_step)
           print(len(user_list))
-          if current_step < len(user_list):
+          if current_step > len(user_list):
             search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
