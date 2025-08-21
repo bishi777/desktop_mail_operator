@@ -40,6 +40,8 @@ reset_profile_search_cnt = 0
 print(f"タブ数: {tab_count}, 掲示板投稿インターバル: {interval_minute}分")
 for i in range(99999):
   start_loop_time = time.time()
+  minutes1, seconds1 = divmod(int(start_loop_time), 60)
+
   now = datetime.now()
   for idx, handle in enumerate(handles): 
     try:
@@ -270,7 +272,10 @@ for i in range(99999):
   if i % 2 == 0:
     current_step += 1
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
+    print(f"開始タイム: {start_loop_time}")  
+    
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    print(f"経過タイム: {elapsed_time}")  
     minutes, seconds = divmod(int(elapsed_time), 60)
     print(f"タイム: {minutes}分{seconds}秒")  
   if 7 <= now.hour <= 22:
