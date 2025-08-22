@@ -127,6 +127,7 @@ while True:
         fst_message = i["fst_mail"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
+        confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
         send_cnt = 3  
@@ -153,7 +154,7 @@ while True:
           traceback.print_exc()
         try:
           print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, mail_img, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
+          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  

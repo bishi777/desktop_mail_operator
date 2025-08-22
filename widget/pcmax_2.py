@@ -383,9 +383,11 @@ def check_top_image(name,driver):
   return False
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
-               fst_message, mail_img, second_message, condition_message,
+               fst_message, mail_img, second_message, condition_message, confirmation_mail,
                mailserver_address, mailserver_password, receiving_address):
   catch_warning_pop(name, driver)
+  print(777)
+  print(confirmation_mail)
   wait = WebDriverWait(driver, 10)
   return_list = []
   new_message_flag = get_header_menu(driver, "メッセージ")
@@ -473,6 +475,20 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print(condition_message)
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
+              
+          if confirmation_mail:
+            print(666)
+            try:
+              text_area = driver.find_element(By.ID, value="mdc")
+              script = "arguments[0].value = arguments[1];"
+              driver.execute_script(script, text_area, confirmation_mail)
+              time.sleep(4)
+              driver.find_element(By.ID, "send_n").click()
+              if driver.find_elements(By.CLASS_NAME, "banned-word"):
+                time.sleep(6)
+                driver.find_element(By.ID, "send_n").click()
+            except Exception:
+              pass
           # みちゃいや
           catch_warning_pop(name, driver)
           driver.back()
