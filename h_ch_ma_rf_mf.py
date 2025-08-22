@@ -50,7 +50,7 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 5
   returnfoot_daily_limit = 0
-  total_daily_limit = 5
+  total_daily_limit = 6
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   returnfoot_flug = False
@@ -72,6 +72,8 @@ try:
         report_dict[i["name"]] = 0
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
+      if "アスカ" == name:
+        total_daily_limit = 7
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
