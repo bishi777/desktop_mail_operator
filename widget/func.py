@@ -893,9 +893,10 @@ def normalize_text(text, user_name=""):
 
 def change_tor_ip():
   with Controller.from_port(port=9051) as controller:
-      controller.authenticate()  # デフォルト設定の場合は認証不要
-      controller.signal(Signal.NEWNYM)
-
+    controller.authenticate()  # デフォルト設定の場合は認証不要
+    controller.signal(Signal.NEWNYM)
+  time.sleep(5)  # 新しい回線が張られるのを待つ
+  
 def get_current_ip():
   session = requests.session()
   session.proxies = {
