@@ -138,8 +138,8 @@ try:
              
               if total_daily_limit <= report_dict[name]:
                 print("マッチング返しの上限に達しました。")
-                limit_text = f"送信数：{oneday_total_match} \n"
-                func.send_error(f"{name} マッチング、足跡返しの上限に達しました。", limit_text)
+                limit_text = f"送信数：{report_dict[name]} \n"
+                func.send_mail(f"{name} マッチング、足跡返しの上限に達しました。", mail_info, f"ハッピーメール送信上限の通知")
                 returnfoot_flug = False
                 
             except Exception as e:
