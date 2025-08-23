@@ -427,7 +427,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       email_list = re.findall(email_pattern, received_mail)
       user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
       if email_list:
-        if "icloud.com" in received_mail:
+        if name == "つむぎ" or "icloud.com" in received_mail:
           # print("icloud.comが含まれています")
           icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
           try:
@@ -475,7 +475,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print(condition_message)
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
-              
           if confirmation_mail:
             print(666)
             try:
