@@ -363,8 +363,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             if len(send_message):
               chara_img_senf_flug = send_message[-1].find_elements(By.CLASS_NAME, value="attached_photo_link")
               if len(chara_img_senf_flug):
-                # print("画像あり")
+                print("画像あり")
+                print(send_message[-1].text)
+                print("画像あり-----------------")
                 sent_text_element = send_message[-2]
+                print(send_text.text)
+                
               else:
                 sent_text_element = send_message[-1]            
               script = """

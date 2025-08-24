@@ -135,7 +135,9 @@ try:
              
               print(888)
               print(f"{name}  : {report_dict[name]}")
-             
+              print(f"上限　{total_daily_limit}")
+              print(total_daily_limit <= report_dict[name])
+                    
               if total_daily_limit <= report_dict[name]:
                 print("マッチング返しの上限に達しました。")
                 limit_text = f"送信数：{report_dict[name]} \n"
