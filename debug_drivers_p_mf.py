@@ -196,6 +196,7 @@ for i in range(99999):
         time.sleep(7)
     except Exception as e:
       print(f"❌  足跡付けの操作でエラー: {e}")
+      print(driver.current_url)
       traceback.print_exc()  
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if all_search_profile_flug:
