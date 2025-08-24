@@ -362,13 +362,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")    
             if len(send_message):
               
-                print("画像あり")
-                print(send_message[-1].text)
-                print("画像あり-----------------")
-                sent_text_element = send_message[-2]
-                print(send_text.text)
+              print("画像あり")
+              print(send_message[-1].text)
+              print("画像あり-----------------")
+              # sent_text_element = send_message[-2]
+              print(send_message[-2].text)
 
-                  
+              sent_text_element = send_message[-1]            
               script = """
               var element = arguments[0];
 
