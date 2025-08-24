@@ -361,15 +361,15 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             catch_warning_screen(driver)
             send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")    
             if len(send_message):
-              
-              print("画像あり")
-              print(send_message[-1].text)
-              print("画像あり-----------------")
-              # sent_text_element = send_message[-2]
-              if len(send_message) > 1:
-                print(send_message[-2].text)
-
               sent_text_element = send_message[-1]            
+              img = send_message[-1].find_elements(By.TAG_NAME, value="img")
+              if len(img):
+                print("画像あり")
+                print(send_message[-2].text)
+                sent_text_element = send_message[-2]
+              
+
+              
               script = """
               var element = arguments[0];
 
@@ -475,12 +475,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 # print('やり取りしてます')
                 user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
                 user_name = user_name.text
-                # デバック
-                if send_text_clean == "":
-                  html = driver.page_source
-                  soup = BeautifulSoup(html, "html.parser")
-                  print(soup.prettify())
-                  return_list.append(soup.prettify())
                 receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                 return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
                 return_list.append(return_message)
