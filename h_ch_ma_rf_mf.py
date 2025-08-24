@@ -73,6 +73,8 @@ try:
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
       if "アスカ" == name:
+        total_daily_limit = 8
+      else:
         total_daily_limit = 7
       happymail_new_list = []
       top_image_check = None
