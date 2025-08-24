@@ -898,17 +898,12 @@ def change_tor_ip():
   time.sleep(5)  # 新しい回線が張られるのを待つ
   
 def get_current_ip():
-    system = platform.system()
-    if system == "Windows":
-        port = 9150   # Windows Tor Browser のデフォルト
-    else:
-        port = 9050   # Mac/Linux の Tor デフォルト
-    session = requests.session()
-    session.proxies = {
-        'http': f'socks5h://127.0.0.1:{port}',
-        'https': f'socks5h://127.0.0.1:{port}'
-    }
-    return session.get("http://httpbin.org/ip").text
+  session = requests.session()
+  session.proxies = {
+      'http': 'socks5h://127.0.0.1:9050',
+      'https': 'socks5h://127.0.0.1:9050'
+  }
+  return session.get("http://httpbin.org/ip").text
 
 def resolve_reCAPTCHA(login_url, site_key):
   API_KEY = "1bc4af1c018d3882d89bae813594befb"  
