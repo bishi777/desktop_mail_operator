@@ -366,7 +366,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print(send_message[-1].text)
               print("画像あり-----------------")
               # sent_text_element = send_message[-2]
-              print(send_message[-2].text)
+              if len(send_message) > 1:
+                print(send_message[-2].text)
 
               sent_text_element = send_message[-1]            
               script = """

@@ -38,6 +38,34 @@ from DrissionPage import Chromium, ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 from urllib3.exceptions import ReadTimeoutError
 
+def get_driver(headless):
+  options = Options()
+  if headless:
+    options.add_argument('--headless')
+  options.add_argument("--no-first-run")
+  options.add_argument("--disable-popup-blocking")
+  options.add_argument("--disable-gpu") 
+  options.add_argument("--disable-software-rasterizer")
+  options.add_argument("--disable-dev-shm-usage")  # 共有メモリの使用を無効化（仮想環境で役立つ）
+  options.add_argument("--incognito")
+  options.add_argument('--enable-unsafe-swiftshader')
+  options.add_argument('--log-level=3')  # これでエラーログが抑制されます
+  options.add_argument('--disable-web-security')
+  options.add_argument('--disable-extensions')
+  options.add_argument("--user-agent=Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1")
+  options.add_argument("--no-sandbox")
+  options.add_argument("--window-size=456,912")
+  options.add_experimental_option("detach", True)
+  options.add_argument("--disable-cache")
+  options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
+  # ChromeDriver のログを非表示
+  service = Service(ChromeDriverManager().install(), log_output=os.devnull)
+  
+  # service = Service(executable_path=ChromeDriverManager().install())
+  driver = webdriver.Chrome(options=options, service=service)
+  wait = WebDriverWait(driver, 18)
+  return driver, wait
+
 def get_the_temporary_folder(temp_dir):
   # スクリプトのディレクトリを基準にディレクトリを作成
   script_dir = os.path.dirname(os.path.abspath(__file__)) 

@@ -35,27 +35,30 @@ def jmail_debug(headless):
       print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
+      # submitted_users取得を実装する
+
+
       try:
         submitted_users = jmail.check_mail(name,data, driver, wait)
       except TimeoutException as e:
         print("新着メールチェックTimeoutException")
         driver.refresh()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-      
-      try:
-        jmail.return_footprint(data,driver,wait,submitted_users)
-
-      except TimeoutException as e:
-        print(f"足跡返し　TimeoutException")
-        driver.refresh()
-      try:
-        jmail.make_footprints( driver, wait)
-      except TimeoutException as e:
-        print(f"足跡付け　TimeoutException")
-        driver.refresh()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
+        time.sleep(2) 
+      # # 足あと返し
+      # try:
+      #   jmail.return_footprint(data,driver,wait,submitted_users)
+      # except TimeoutException as e:
+      #   print(f"足跡返し　TimeoutException")
+      #   driver.refresh()
+      # 足あと付け
+      # try:
+      #   jmail.make_footprints( driver, wait)
+      # except TimeoutException as e:
+      #   print(f"足跡付け　TimeoutException")
+      #   driver.refresh()
+      #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      #   time.sleep(2)
       
       #   if repost_flug:
       #     driver.refresh()

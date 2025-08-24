@@ -38,6 +38,13 @@ def catch_warning(driver, wait):
   except NoSuchElementException:
     # 警告画面が表示されていない場合
     return False
+  errormsg = driver.find_elements(By.CLASS_NAME, value="errormsg")
+  if len(errormsg):
+    print("警告画面が表示されています。")
+    if "電話番号・会員IDを正しく入力してください。" in errormsg[0].text:
+      print("ログアウトしています")
+      return False
+    return True
 def encode_img(name, mail_img):
   # 画像データを取得してBase64にエンコード
   if mail_img:
@@ -139,7 +146,10 @@ def check_mail(name, jmail_info, driver, wait):
   if fst_message == "":
     print(f"{name}のjmailキャラ情報に1stメッセージが設定されていません")
     return
-  catch_warning(driver, wait)
+  warning_flug = catch_warning(driver, wait)
+  if warning_flug is False:
+    print(f"jmail:{name}に警告画面が出ている可能性があります")
+    return ""
   # メールアイコンをクリック
   mail_icon = driver.find_elements(By.CLASS_NAME, value="mail-off")
   link = mail_icon[0].find_element(By.XPATH, "./..")
@@ -363,7 +373,6 @@ def check_new_mail(driver, wait, jmail_info, try_cnt):
   if mail_img:
     image_path = encode_img(name, mail_img)
  
-  c.execute('SELECT * FROM jmail WHERE name = ? AND login_id = ? AND password = ?', (name, login_id, password))
   sqlite_jmail_result = c.fetchone()  
   if sqlite_jmail_result is None:
       # print("ローカルに合致するギャラデータなし")
