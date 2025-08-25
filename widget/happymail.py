@@ -303,7 +303,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message,mail_img):
     return_list = []
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -533,6 +533,29 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(2.3)
                   break
+              # 画像があれば送信 
+              try:
+                if mail_img:
+                  img_conform = driver.find_element(By.ID, value="media-confirm")
+                  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+                  time.sleep(1)
+                  driver.execute_script("arguments[0].click();", plus_icon[0])
+                  time.sleep(1)
+                  upload_file = driver.find_element(By.ID, "upload_file")
+                  upload_file.send_keys(return_foot_img)
+                  time.sleep(2)
+                  submit = driver.find_element(By.ID, value="submit_button")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
+                  driver.execute_script("arguments[0].click();", submit)
+                  while img_conform.is_displayed():
+                    time.sleep(2)
+                    modal_content = driver.find_element(By.CLASS_NAME, value="modal-content")
+                    if len(modal_content):
+                      break # modal-content お相手が年齢確認されていない為
+              except Exception as e:
+                    print("画像の送信に失敗しました", e)
+                    print(traceback.format_exc())
               
           else:
             if len(return_list):
@@ -1077,7 +1100,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       send_mail.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
-      # 画像があれば送信
+      # 画像があれば送信 
       try:
         if return_foot_img:
           img_conform = driver.find_element(By.ID, value="media-confirm")
@@ -2053,7 +2076,7 @@ def send_fst_message(happy_user_list, driver, wait):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
           driver.execute_script("arguments[0].click();", submit)
           while img_conform.is_displayed():
-              time.sleep(2)
+            time.sleep(2)
         send_cnt += 1
         user_colum += 1
         print(f"fst_message {name}~{send_cnt}~")

@@ -101,7 +101,7 @@ try:
         if index  == 0:
           # 新着メールチェック
           try:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message)
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message,return_foot_img)
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:

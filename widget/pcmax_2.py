@@ -757,6 +757,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           user_index += 1
           continue
       except NoSuchElementException:
+        # スクショ
+        driver.save_screenshot("memoedit.png")
+        func.send_error(name, f"足跡返しでmemo_edit要素が見つからない\n")
         pass
       driver.find_element(By.CLASS_NAME, 'memo_open').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
