@@ -127,6 +127,7 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、
+          print(f"{name}送信数 {report_dict[name]} / {total_daily_limit} ")
           if report_dict[name] <= total_daily_limit and returnfoot_flug and "利用できません" not in happymail_new_list:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
