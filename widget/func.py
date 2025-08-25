@@ -39,6 +39,11 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 from email.utils import formatdate
+from email.mime.base import MIMEBase
+from email import encoders
+import mimetypes
+
+
 
 def get_driver(headless):
   options = Options()
@@ -286,33 +291,65 @@ def send_conditional(user_name, user_address, mailaddress, password, text, site)
   smtpobj.send_message(msg)
   smtpobj.close()  
 
-def send_error(chara, error_message):
-  # print("エラー送信＞＞＞＜＜＜＜＜＜＜")
-  # print(f"{chara}  :  {error_message}")
-  mailaddress = 'kenta.bishi777@gmail.com'
-  password = 'rjdzkswuhgfvslvd'
-  text = f"キャラ名:{chara} \n {error_message}"
-  subject = "エラーメッセージ"
-  address_from = 'kenta.bishi777@gmail.com'
-  # address_to = "ryapya694@ruru.be"
-  address_to = "gifopeho@kmail.li"
-  smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
-  smtpobj.set_debuglevel(1) 
-  smtpobj.starttls()
-  smtpobj.login(mailaddress, password)
-  msg = MIMEText(text)
-  msg['Subject'] = subject
-  msg['From'] = address_from
-  msg['To'] = address_to
-  msg['Date'] = formatdate()
-  try:
-    smtpobj.send_message(msg)
-  except smtplib.SMTPDataError as e:
-    print(f"SMTPDataError: {e}")
-  except Exception as e:
-    print(f"An error occurred: {e}")
-  
-  smtpobj.close()
+def send_error(chara, error_message, attachment_paths=None):
+    """
+    エラーメールを送信。画像・ファイル添付に対応
+    :param chara:  キャラ名など
+    :param error_message: 本文に載せるエラー文字列
+    :param attachment_paths: 文字列 or 文字列のリスト（添付するファイルパス）
+    """
+    # ★本番は環境変数に置き換えるのを強く推奨
+    mailaddress = 'kenta.bishi777@gmail.com'
+    password = 'rjdzkswuhgfvslvd'   # アプリパスワード推奨（2段階認証ON）
+    address_from = 'kenta.bishi777@gmail.com'
+    address_to = "gifopeho@kmail.li"
+    subject = "エラーメッセージ"
+
+    # マルチパート（本文 + 添付）
+    msg = MIMEMultipart()
+    msg['Subject'] = subject
+    msg['From'] = address_from
+    msg['To'] = address_to
+    msg['Date'] = formatdate()
+
+    # 本文（UTF-8）
+    body = f"キャラ名: {chara}\n{error_message}"
+    msg.attach(MIMEText(body, 'plain', 'utf-8'))
+
+    # 添付があれば追加（画像でもその他でもOK）
+    if attachment_paths:
+        if isinstance(attachment_paths, str):
+            attachment_paths = [attachment_paths]
+        for path in attachment_paths:
+            if not path or not os.path.exists(path):
+                continue
+            ctype, encoding = mimetypes.guess_type(path)
+            maintype, subtype = (ctype.split('/', 1) if ctype else ('application', 'octet-stream'))
+
+            with open(path, 'rb') as f:
+                if maintype == 'image':
+                    part = MIMEImage(f.read(), _subtype=subtype, name=os.path.basename(path))
+                else:
+                    part = MIMEBase(maintype, subtype)
+                    part.set_payload(f.read())
+                    encoders.encode_base64(part)
+                    part.add_header('Content-Disposition',
+                                    f'attachment; filename="{os.path.basename(path)}"')
+            # 画像の場合も Content-Disposition を付けておくと親切
+            if maintype == 'image':
+                part.add_header('Content-Disposition',
+                                f'attachment; filename="{os.path.basename(path)}"')
+            msg.attach(part)
+
+    # 送信
+    smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
+    try:
+        # smtpobj.set_debuglevel(1)  # 必要ならオン
+        smtpobj.starttls()
+        smtpobj.login(mailaddress, password)
+        smtpobj.send_message(msg)
+    finally:
+        smtpobj.close()
    
 def send_mail(message, mail_info, title, image_path=None):
   mailaddress = mail_info[1]

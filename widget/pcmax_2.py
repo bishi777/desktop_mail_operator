@@ -756,10 +756,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           time.sleep(2)
           user_index += 1
           continue
-      except NoSuchElementException:
-        # スクショ
-        driver.save_screenshot("memoedit.png")
-        func.send_error(name, f"足跡返しでmemo_edit要素が見つからない\n")
+      except NoSuchElementException as e:
+        img_path = f"{name}_error.png"
+        driver.save_screenshot(img_path)
+        func.send_error(
+            chara=name,
+            error_message=f"{user_name}\n{str(e)}",
+            attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
+        )
         pass
       driver.find_element(By.CLASS_NAME, 'memo_open').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
