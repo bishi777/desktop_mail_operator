@@ -542,7 +542,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   driver.execute_script("arguments[0].click();", plus_icon[0])
                   time.sleep(1)
                   upload_file = driver.find_element(By.ID, "upload_file")
-                  upload_file.send_keys(return_foot_img)
+                  upload_file.send_keys(mail_img)
                   time.sleep(2)
                   submit = driver.find_element(By.ID, value="submit_button")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
