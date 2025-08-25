@@ -107,14 +107,18 @@ try:
             if happymail_new_list:
               title = f"新着メッセージ {name}"
               text = ""
+              img_path = None
               for new_mail in happymail_new_list:
                 text = text + new_mail + ",\n"
                 if "警告" in text or "NoImage" in text or "利用" in text :
-                  title = "メッセージ"
+                  if mail_info:
+                    img_path = f"{i['name']}_ban.png"
+                    driver.save_screenshot(img_path)
+                    title = "メッセージ"
+                    text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
               # メール送信
-              smtpobj = None
               if mail_info:
-                func.send_mail(text, mail_info, title)
+                func.send_mail(text, mail_info, title, img_path)
               else:
                 print("通知メールの送信に必要な情報が不足しています")
                 print(f"{mailaddress}   {gmail_password}  {receiving_address}")
