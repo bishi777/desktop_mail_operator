@@ -241,8 +241,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if  i["name"] != "アスカ" :
-        # continue
+      if  i["name"] != "haru" :
+        continue
       print("変更前:", func.get_current_ip())
       func.change_tor_ip()
       print("変更後:", func.get_current_ip())
@@ -277,7 +277,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
           text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {warning}"
           # メール送信
           if mail_info:
-            func.send_mail(text, mail_info, title, img_path=img_path)
+            func.send_mail(text, mail_info, title, img_path)
           else:
             print("通知メールの送信に必要な情報が不足しています")
             print(f"{mail_info}")
