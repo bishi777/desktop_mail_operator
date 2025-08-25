@@ -386,8 +386,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
                fst_message, mail_img, second_message, condition_message, confirmation_mail,
                mailserver_address, mailserver_password, receiving_address):
   catch_warning_pop(name, driver)
-  print(777)
-  print(confirmation_mail)
   wait = WebDriverWait(driver, 10)
   return_list = []
   new_message_flag = get_header_menu(driver, "メッセージ")
@@ -399,7 +397,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   while True:
     catch_warning_pop(name, driver)
     user_div_list = driver.find_elements(By.CSS_SELECTOR, ".mail_area.clearfix")
-    print(len(user_div_list))
+    # print(len(user_div_list))
     if not user_div_list:
       break
     # ４分経過しているか
@@ -410,10 +408,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
     now = datetime.today()
     elapsed_time = now - arrival_datetime
-    print(f"メール到着からの経過時間{elapsed_time}")
+    # print(f"メール到着からの経過時間{elapsed_time}")
     # if True:
     if elapsed_time >= timedelta(minutes=4):
-      print("4分以上経過しています。")
+      # print("4分以上経過しています。")
       user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       # user_div_list[0].find_element(By.TAG_NAME, "a").click()
@@ -426,6 +424,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
       user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
+      # DEBUG
+      # if True:
       if email_list:
         if name == "つむぎ" or "icloud.com" in received_mail:
           # print("icloud.comが含まれています")
@@ -476,7 +476,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
           if confirmation_mail:
-            print(666)
             try:
               text_area = driver.find_element(By.ID, value="mdc")
               script = "arguments[0].value = arguments[1];"
@@ -486,13 +485,16 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
                 time.sleep(6)
                 driver.find_element(By.ID, "send_n").click()
+              driver.back()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1.5) 
             except Exception:
               pass
           # みちゃいや
           catch_warning_pop(name, driver)
           driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
+          time.sleep(1.5) 
           icon_menu = driver.find_elements(By.ID, "icon_menu")
           print(len(icon_menu))
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
@@ -502,6 +504,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           image_button2 = driver.find_elements(By.ID, "image_button2")
           if len(image_button2):
             image_button2[0].click()
+          else:
+            print("みちゃいやできません")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5) 
           time.sleep(1)
@@ -553,7 +557,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         no_history_second_mail = False
         sent_texts = [s.text for s in sent_by_me]
         for send_text in sent_texts:
-          if func.normalize_text(second_message) == func.normalize_text(send_text):
+          if func.normalize_text(second_message) == func.normalize_text(send_text) or len(sent_by_me) > 1:
             print("やり取り中")
             received_mail = driver.find_elements(By.CLASS_NAME, "left_balloon")[-1].text
             return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"

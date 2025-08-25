@@ -105,7 +105,7 @@ try:
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:
-              title = "新着メッセージ"
+              title = f"新着メッセージ {name}"
               text = ""
               for new_mail in happymail_new_list:
                 text = text + new_mail + ",\n"
@@ -143,7 +143,7 @@ try:
               if total_daily_limit <= report_dict[name]:
                 print("マッチング返しの上限に達しました。")
                 limit_text = f"送信数：{report_dict[name]} \n"
-                func.send_mail(f"{name} マッチング、足跡返しの上限に達しました。", mail_info, f"ハッピーメール送信上限の通知")
+                func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name]}")
                 returnfoot_flug = False
                 
             except Exception as e:
