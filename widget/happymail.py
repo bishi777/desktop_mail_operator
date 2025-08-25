@@ -241,9 +241,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      if i["name"] != "つむぎ" and i["name"] != "アスカ" and i["name"] != "ハル" and i["name"] != "ゆっこ" and i["name"] != "りな" and i["name"] != "りこ":
       # if  i["name"] != "アスカ" :
-        continue
+        # continue
       print("変更前:", func.get_current_ip())
       func.change_tor_ip()
       print("変更後:", func.get_current_ip())
