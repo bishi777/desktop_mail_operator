@@ -6,9 +6,6 @@ import sys
 import re
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 import traceback
-import smtplib
-from email.mime.text import MIMEText
-from email.utils import formatdate
 from selenium.webdriver.common.by import By
 from widget import pcmax
 from selenium.webdriver.support.select import Select
@@ -37,6 +34,11 @@ from DrissionPage import ChromiumOptions
 from DrissionPage import Chromium, ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
 from urllib3.exceptions import ReadTimeoutError
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
+from email.utils import formatdate
 
 def get_driver(headless):
   options = Options()
@@ -312,23 +314,36 @@ def send_error(chara, error_message):
   
   smtpobj.close()
    
-def send_mail(message, mail_info, title):
+def send_mail(message, mail_info, title, image_path=None):
   mailaddress = mail_info[1]
   password = mail_info[2]
   text = message
   subject = title
   address_from = mail_info[1]
   address_to = mail_info[0]
-  smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
-  # smtpobj.set_debuglevel(1) 
-  smtpobj.set_debuglevel(0)  # デバッグログをオフにする
-  smtpobj.starttls()
-  smtpobj.login(mailaddress, password)
-  msg = MIMEText(text)
+
+  # マルチパートメッセージを作成
+  msg = MIMEMultipart()
   msg['Subject'] = subject
   msg['From'] = address_from
   msg['To'] = address_to
   msg['Date'] = formatdate()
+
+  # 本文を追加
+  msg.attach(MIMEText(text, 'plain', 'utf-8'))
+
+  # 画像を添付（任意）
+  if image_path:
+      with open(image_path, 'rb') as f:
+          img_data = f.read()
+      image = MIMEImage(img_data, name=image_path.split("/")[-1])
+      msg.attach(image)
+
+  # Gmail SMTP サーバへ接続
+  smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
+  smtpobj.set_debuglevel(0)  # デバッグログオフ
+  smtpobj.starttls()
+  smtpobj.login(mailaddress, password)
   smtpobj.send_message(msg)
   smtpobj.close()
 

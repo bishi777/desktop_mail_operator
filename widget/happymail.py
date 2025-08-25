@@ -271,14 +271,17 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       if warning:
         # print(f"{i['name']} {warning}")
         if mail_info:
+          img_path = f"{i['name']}_ban.png"
+          driver.save_screenshot(img_path)
           title = "メッセージ"
           text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {warning}"
           # メール送信
           if mail_info:
-            func.send_mail(text, mail_info, title)
+            func.send_mail(text, mail_info, title, img_path=img_path)
           else:
             print("通知メールの送信に必要な情報が不足しています")
             print(f"{mail_info}")
+        
         driver.quit()
         continue
       else:
