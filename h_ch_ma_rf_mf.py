@@ -105,7 +105,7 @@ try:
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:
-              title = f"新着メッセージ {name}"
+              title = f"happy新着 {name}"
               text = ""
               img_path = None
               for new_mail in happymail_new_list:
