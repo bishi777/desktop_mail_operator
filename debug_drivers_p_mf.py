@@ -148,7 +148,7 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         print(f"{name_on_pcmax[0].text} プロフ検索再セットを行います")
-        img_path = f"{i['name']}_profile_reset.png"
+        img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
         driver.save_screenshot(img_path)
         title = "pcmaxプロフ再セットメッセージ"
         text = f"pcmax {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
