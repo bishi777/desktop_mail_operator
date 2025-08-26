@@ -53,11 +53,10 @@ try:
   total_daily_limit = 6
   oneday_total_match = 0
   oneday_total_returnfoot = 0
-  returnfoot_flug = False
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
   for i in first_half:
-    report_dict[i["name"]] = 0
+    report_dict[i["name"]] = [0, False]
 
   while True:
     start_loop_time = time.time()
@@ -66,10 +65,9 @@ try:
     now = datetime.now()
     # 6時、かつ直前に初期化されていない場合
     if now.hour == 7 and now.hour != last_reset_hour:
-      returnfoot_flug = True
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
-        report_dict[i["name"]] = 0
+        report_dict[i["name"]] = [0, True]
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
       if "アスカ" == name:
@@ -131,25 +129,24 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、
-          print(f"{name}送信数 {report_dict[name]} / {total_daily_limit} ")
-          print(f"返しフラグ {returnfoot_flug} ")
-          if report_dict[name] <= total_daily_limit and returnfoot_flug and "利用できません" not in happymail_new_list:
+          print(f"{name}送信数 {report_dict[name][0]} / {total_daily_limit} ")
+          print(f"返しフラグ {report_dict[name][1]} ")
+          if report_dict[name][0] <= total_daily_limit and report_dict[name][1] and "利用できません" not in happymail_new_list:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
               # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-              # print(f"{report_dict[name]} : {return_foot_counted[0]} : {return_foot_counted[2]}")
-              report_dict[name] = report_dict[name] + return_foot_counted[0] + return_foot_counted[2]
+              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]
              
-              print(f"{name}  : {report_dict[name]}")
+              print(f"{name}  : {report_dict[name][0]}")
               print(f"上限　{total_daily_limit}")
-              print(total_daily_limit <= report_dict[name])
+              print(total_daily_limit <= report_dict[name][0])
                     
-              if total_daily_limit <= report_dict[name]:
+              if total_daily_limit <= report_dict[name][0]:
                 print("マッチング返しの上限に達しました。")
-                limit_text = f"送信数：{report_dict[name]} \n"
-                func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name]}")
-                returnfoot_flug = False
+                limit_text = f"送信数：{report_dict[name][0]} \n"
+                func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
+                report_dict[name][1] = False
                 
             except Exception as e:
               print(f"マッチング返し{name}")

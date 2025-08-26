@@ -126,6 +126,7 @@ def nav_item_click(nav_name, driver, wait):
         new_message = parent_elem.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
           return "新着メールなし"
+       
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -241,7 +242,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if  i["name"] != "haru" :
+      # if  i["name"] != "アスカ" :
       #   continue
       print("変更前:", func.get_current_ip())
       func.change_tor_ip()
@@ -355,8 +356,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             else:
               for_minutes_passed = False
           if for_minutes_passed:
-          # if True:
-            # print("4分以上経過しているメッセージあり")          
+            print("4分以上経過しているメッセージあり")          
             new_mail[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
@@ -369,9 +369,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print("画像あり")
                 print(send_message[-2].text)
                 sent_text_element = send_message[-2]
-              
 
-              
               script = """
               var element = arguments[0];
 
@@ -537,7 +535,16 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   break
               # 画像があれば送信 
               try:
-                if mail_img:
+                if mail_img:  
+                  # 画像データを取得してBase64にエンコード
+                  image_response = requests.get(mail_img)
+                  image_base64 = base64.b64encode(image_response.content).decode('utf-8')
+                  # ローカルに一時的に画像ファイルとして保存
+                  image_filename = f"{name}_image.png"
+                  with open(image_filename, 'wb') as f:
+                      f.write(base64.b64decode(image_base64))
+                  # 画像の保存パスを取得
+                  image_path = os.path.abspath(image_filename)
                   img_conform = driver.find_element(By.ID, value="media-confirm")
                   plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
@@ -545,14 +552,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   driver.execute_script("arguments[0].click();", plus_icon[0])
                   time.sleep(1)
                   upload_file = driver.find_element(By.ID, "upload_file")
-                  upload_file.send_keys(mail_img)
+                  upload_file.send_keys(image_path)
                   time.sleep(2)
                   submit = driver.find_element(By.ID, value="submit_button")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
                   driver.execute_script("arguments[0].click();", submit)
                   while img_conform.is_displayed():
                     time.sleep(2)
-                    modal_content = driver.find_element(By.CLASS_NAME, value="modal-content")
+                    modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
                     if len(modal_content):
                       break # modal-content お相手が年齢確認されていない為
               except Exception as e:
@@ -1623,6 +1630,7 @@ def set_mutidriver_make_footprints(driver,wait):
 def mutidriver_make_footprints(name,login_id, password, driver,wait):
   wait_time = random.uniform(0.25, 0.75)
   warning = catch_warning_screen(driver)
+  bottom_scroll_cnt = 0
   if warning:
     print(f"{name} :{warning}")
   # print("足跡付け前のurl確認")
@@ -1697,6 +1705,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
       # print(f"✅ {user_name} 確認済み")
       user_icon += 1
       if len(login_users) <= user_icon:
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(3)
+        bottom_scroll_cnt += 1
+      if bottom_scroll_cnt == 3:
         print("ユーザーが見つかりません")
         return
       candidate_footprint = login_users[user_icon]
