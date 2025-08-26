@@ -148,13 +148,13 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         print(f"{name_on_pcmax[0].text} プロフ検索再セットを行います")
-        img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
-        driver.save_screenshot(img_path)
-        title = "pcmaxプロフ再セットメッセージ"
-        text = f"pcmax {name_on_pcmax[0].text}:"   
-        # メール送信
-        if mail_info:
-          func.send_mail(text, mail_info, title, img_path)
+        # img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+        # driver.save_screenshot(img_path)
+        # title = "pcmaxプロフ再セットメッセージ"
+        # text = f"pcmax {name_on_pcmax[0].text}:"   
+        # # メール送信
+        # if mail_info:
+        #   func.send_mail(text, mail_info, title, img_path)
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
@@ -310,7 +310,7 @@ for i in range(99999):
           print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
           for key in pcmax_datas:
-            print(f"名前: {key['name']}")
+            # print(f"名前: {key['name']}")
             if key['is_active'] == False:
               continue
             if name_on_pcmax[0].text == key["name"]:
