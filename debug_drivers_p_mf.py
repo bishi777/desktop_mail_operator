@@ -310,7 +310,9 @@ for i in range(99999):
           print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
           for key in pcmax_datas:
-            # print(f"名前: {key['name']}")
+            print(f"名前: {key['name']}")
+            if key['is_active'] == False:
+              continue
             if name_on_pcmax[0].text == key["name"]:
               post_title = key["post_title"]
               post_content = key["post_content"]
