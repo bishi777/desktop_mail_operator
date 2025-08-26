@@ -22,6 +22,11 @@ wait_time = 1.5
 mailserver_address = user_data['user'][0]['gmail_account']
 mailserver_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
+mail_info = None
+if mailserver_address and mailserver_password and receiving_address:
+  mail_info = [
+    receiving_address, mailserver_address, mailserver_password, 
+  ]
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
@@ -142,6 +147,14 @@ for i in range(99999):
           func.send_error(name_on_pcmax[0].text, f"リンクル足跡付けの処理中に再ログインしました")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
+        print(f"{name_on_pcmax[0].text} プロフ検索再セットを行います")
+        img_path = f"{i['name']}_profile_reset.png"
+        driver.save_screenshot(img_path)
+        title = "pcmaxプロフ再セットメッセージ"
+        text = f"pcmax {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
+        # メール送信
+        if mail_info:
+          func.send_mail(text, mail_info, title, img_path)
         pcmax_2.profile_search(driver)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
@@ -195,8 +208,11 @@ for i in range(99999):
         search_profile_flug = False
         time.sleep(7)
     except Exception as e:
-      print(f"❌  足跡付けの操作でエラー: {e}")
       print(driver.current_url)
+      img_path = f"{i['name']}_mf.png"
+      driver.save_screenshot(img_path)
+      print(f"❌  足跡付けの操作でエラー: {e}")
+      
       traceback.print_exc()  
   # <<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>"
   if all_search_profile_flug:
