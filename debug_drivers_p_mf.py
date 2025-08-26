@@ -151,7 +151,7 @@ for i in range(99999):
         img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
         driver.save_screenshot(img_path)
         title = "pcmaxプロフ再セットメッセージ"
-        text = f"pcmax {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
+        text = f"pcmax {name_on_pcmax[0].text}:"   
         # メール送信
         if mail_info:
           func.send_mail(text, mail_info, title, img_path)
@@ -209,7 +209,7 @@ for i in range(99999):
         time.sleep(7)
     except Exception as e:
       print(driver.current_url)
-      img_path = f"{i['name']}_mf.png"
+      img_path = f"{name_on_pcmax[0].text}_mf.png"
       driver.save_screenshot(img_path)
       print(f"❌  足跡付けの操作でエラー: {e}")
       
