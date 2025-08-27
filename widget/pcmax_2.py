@@ -122,13 +122,19 @@ def catch_warning_pop(name, driver):
 def get_header_menu(driver, menu):
   wait = WebDriverWait(driver, 10)  
   try:
+    
+      
     if menu == "メッセージ":
       header = driver.find_element(By.ID, "header_box_under")
     else:
       header = driver.find_element(By.ID, "header_box")
     links = header.find_elements(By.TAG_NAME, "a")
     for link in links:
+      if menu == "プロフ検索":
+        print(99999)
+        print(link.text)
       if menu in link.text:
+        
         if menu == "メッセージ":
           try:
             new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")

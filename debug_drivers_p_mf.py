@@ -148,6 +148,7 @@ for i in range(99999):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         print(f"{name_on_pcmax[0].text} プロフ検索再セットを行います")
+        pcmax_2.catch_warning_pop("", driver)
         # img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
         # driver.save_screenshot(img_path)
         # title = "pcmaxプロフ再セットメッセージ"
@@ -162,7 +163,7 @@ for i in range(99999):
         print("プロフ検索の再セットを行います")
         driver.get("https://pcmax.jp/pcm/index.php")   
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(0.5)
+        time.sleep(1.5)
         pcmax_2.catch_warning_pop("", driver)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
