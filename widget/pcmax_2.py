@@ -122,17 +122,12 @@ def catch_warning_pop(name, driver):
 def get_header_menu(driver, menu):
   wait = WebDriverWait(driver, 10)  
   try:
-    
-      
     if menu == "メッセージ":
       header = driver.find_element(By.ID, "header_box_under")
     else:
       header = driver.find_element(By.ID, "header_box")
     links = header.find_elements(By.TAG_NAME, "a")
     for link in links:
-      if menu == "プロフ検索":
-        print(99999)
-        print(link.text)
       if menu in link.text:
         if menu == "メッセージ":
           try:
@@ -178,6 +173,14 @@ def profile_search(driver):
   }
   print("✅ プロフ検索メニューのURLかチェック")
   print(driver.current_url)
+  # https://pcmax.jp/mobile/profile_reference.php
+  if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
+    time.sleep(10)
+    get_header_menu(driver, "プロフ検索")
+    print("✅ プロフ検索メニューのURLかチェック その２")
+    print(driver.current_url)
+
+  
   # チェックが入っている項目をリセット
   try:
     area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
