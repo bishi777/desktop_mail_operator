@@ -26,18 +26,15 @@ from selenium.common.exceptions import StaleElementReferenceException
 
 
 def catch_warning(driver, wait):
-  try:
-    # 警告画面が表示されているか確認
-    warning_element = driver.find_element(By.CLASS_NAME, value="karte-widget__container")
-    if warning_element:
-      print("広告が表示されています。")
-      driver.refresh()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)
-      return True
-  except NoSuchElementException:
-    # 警告画面が表示されていない場合
-    return False
+  # 警告画面が表示されているか確認
+  warning_element = driver.find_elements(By.CLASS_NAME, value="karte-widget__container")
+  if len(warning_element):
+    print("広告が表示されています。")
+    driver.refresh()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    return True
+  
   errormsg = driver.find_elements(By.CLASS_NAME, value="errormsg")
   if len(errormsg):
     print("警告画面が表示されています。")
@@ -45,6 +42,7 @@ def catch_warning(driver, wait):
       print("ログアウトしています")
       return False
     return True
+  
 def encode_img(name, mail_img):
   # 画像データを取得してBase64にエンコード
   if mail_img:
@@ -108,6 +106,9 @@ def start_jmail_drivers(jmail_list, headless, base_path):
   drivers = {}
   try:
     for i in jmail_list:
+      name = i["name"]
+      # if name != "えりか":
+      #   continue
       profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
@@ -115,9 +116,9 @@ def start_jmail_drivers(jmail_list, headless, base_path):
       # iPhone14
       user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
       driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
-      name = i["name"]
+      
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"]}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"]}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
@@ -139,17 +140,19 @@ def check_mail(name, jmail_info, driver, wait):
   submitted_users = jmail_info['submitted_users']
   mail_img = jmail_info['chara_image']
   mail_address_image = jmail_info['mail_address_image']
+  submitted_users = jmail_info['submitted_users']
+  
   # login_flug = login_jmail(driver, wait, login_id, password)
   # if not login_flug:
   #   print(f"jmail:{name}に警告画面が出ている可能性があります")
   #   return ""
   if fst_message == "":
     print(f"{name}のjmailキャラ情報に1stメッセージが設定されていません")
-    return
+    return submitted_users
   warning_flug = catch_warning(driver, wait)
   if warning_flug is False:
     print(f"jmail:{name}に警告画面が出ている可能性があります")
-    return ""
+    return submitted_users
   # メールアイコンをクリック
   mail_icon = driver.find_elements(By.CLASS_NAME, value="mail-off")
   link = mail_icon[0].find_element(By.XPATH, "./..")
@@ -201,7 +204,7 @@ def check_mail(name, jmail_info, driver, wait):
       # print(f"メール到着からの経過時間{elapsed_time}")
       # print(interacting_user_name)
       if elapsed_time >= timedelta(minutes=4):
-        # print("4分以上経過しています。")
+        print("4分以上経過しています。")
         if interacting_user_name not in submitted_users:
           submitted_users.append(interacting_user_name)
         send_message = ""
@@ -364,7 +367,7 @@ def check_mail(name, jmail_info, driver, wait):
   return submitted_users      
   
 
-
+# sqlite version
 def check_new_mail(driver, wait, jmail_info, try_cnt):
   name = jmail_info['name']
   login_id = jmail_info['login_id']

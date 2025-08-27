@@ -25,6 +25,7 @@ def jmail_debug(headless):
   repost_flug = False
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
+  
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   while True:
     start_loop_time = time.time()
@@ -35,9 +36,6 @@ def jmail_debug(headless):
       print(f"  📄 ---------- {name} ------------")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
-      # submitted_users取得を実装する
-
-
       try:
         submitted_users = jmail.check_mail(name,data, driver, wait)
       except TimeoutException as e:
@@ -74,6 +72,8 @@ def jmail_debug(headless):
       #   traceback.print_exc()
       #   continue
       # 送信履歴ユーザー更新
+      print(777)
+      print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
       payload = {
         "login_id": drivers[name]["login_id"],
         "password": drivers[name]["password"],

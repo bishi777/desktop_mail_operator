@@ -136,12 +136,7 @@ try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
               # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]
-             
-              print(f"{name}  : {report_dict[name][0]}")
-              print(f"上限　{total_daily_limit}")
-              print(total_daily_limit <= report_dict[name][0])
-                    
+              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]       
               if total_daily_limit <= report_dict[name][0]:
                 print("マッチング返しの上限に達しました。")
                 limit_text = f"送信数：{report_dict[name][0]} \n"
