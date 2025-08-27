@@ -762,6 +762,18 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           continue
       except NoSuchElementException as e:
         img_path = f"{name}_error.png"
+        print(user_name)
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        for candidate_user in candidate_users:
+          if len(candidate_user.text) > 6:
+            user_n = candidate_user.text[6]
+          else:
+            user_n = candidate_user.text
+          print(user_n)
+          print(user_n in user_name)
+          print("-------------------------")
+
+
         driver.save_screenshot(img_path)
         func.send_error(
             chara=name,
