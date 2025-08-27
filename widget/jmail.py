@@ -23,6 +23,7 @@ import requests
 import shutil
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
+import uuid
 
 
 def catch_warning(driver, wait):
@@ -108,9 +109,11 @@ def start_jmail_drivers(jmail_list, headless, base_path):
   try:
     for i in jmail_list:
       name = i["name"]
-      # if name != "えりか":
-      #   continue
-      profile_path = os.path.join(base_path, i["name"])
+      if name != "えりか":
+        continue
+      profile_path = os.path.join(base_path, f"{i['name']}_{uuid.uuid4().hex}")
+
+      # profile_path = os.path.join(base_path, i["name"])
       if os.path.exists(profile_path):
         shutil.rmtree(profile_path)  # フォルダごと削除
         os.makedirs(profile_path, exist_ok=True)  
@@ -142,7 +145,7 @@ def check_mail(name, jmail_info, driver, wait):
   mail_img = jmail_info['chara_image']
   mail_address_image = jmail_info['mail_address_image']
   submitted_users = jmail_info['submitted_users']
-  
+  from_mypost = False
   # login_flug = login_jmail(driver, wait, login_id, password)
   # if not login_flug:
   #   print(f"jmail:{name}に警告画面が出ている可能性があります")
@@ -216,22 +219,34 @@ def check_mail(name, jmail_info, driver, wait):
         time.sleep(2)
         send_by_user = driver.find_elements(By.CLASS_NAME, value="balloon_left")
         send_by_user_message = send_by_user[0].find_elements(By.CLASS_NAME, value="balloon")[0].text
+        # 掲示板からきたか判定
+        color_variations_03 = driver.find_elements(By.CLASS_NAME, value="color_variations_03")
+        if len(color_variations_03):
+          for i in color_variations_03:
+            if "元の投稿を見る" in i.text:
+              print(f"{interacting_user_name}さんは掲示板から来た")
+              from_mypost = True
+              break
         # 相手からのメッセージが何通目か確認する
         if not sended_mail:
           send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
-          if len(send_by_me) == 0:
+          if from_mypost:
+            my_length = len(send_by_me) + 1
+          else:
+            my_length = len(send_by_me)
+          if my_length == 0:
             send_message = fst_message
             if mail_img:
               image_filename, image_path = encode_img(name, mail_img)
             else:
               image_filename, image_path = "", ""
-          elif len(send_by_me) == 1:
+          elif my_length == 1:
             send_message = second_message
             if mail_address_image:
               image_filename, image_path = encode_img(name, mail_address_image)
             else:
               image_filename, image_path = "", ""
-          elif len(send_by_me) == 2:
+          elif my_length >= 2:
             print("捨てメアドに通知")
             print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
             return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
@@ -239,6 +254,7 @@ def check_mail(name, jmail_info, driver, wait):
             print("捨てメアドに、送信しました")
             image_path = ""
             image_filename = ""
+        
         if send_message:
           # 返信するをクリック
           res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
@@ -1066,7 +1082,7 @@ def change_areas(area, driver, wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   #プロフィール変更をクリック
-  driver.find_element(By.ID, value="settingmenu-list").find_element(By.XPATH, "//*[contains(text(), 'プロフィール変更')]").click()
+  driver.find_element(By.ID, value="settingmenu-list").find_element(By.XPATH, "//*[contains(text(), 'マイプロフ')]").click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, value="state_id"))
@@ -1079,6 +1095,7 @@ def change_areas(area, driver, wait):
   time.sleep(1)
 
 def re_post(data, post_areas, driver,wait):
+  
   post_title = data["post_title"]
   post_contents = data["post_contents"]
   if not post_title:

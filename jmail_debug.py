@@ -25,15 +25,14 @@ def jmail_debug(headless):
   repost_flug = False
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
-  for jmail_data in jmail_datas:
-    if jmail_data["name"] == "えりか":
-      jmail_datas = jmail_datas
-      break
   
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   # 掲示板
-  jmail.re_post(jmail_datas, "東京都", drivers)
-  return
+  # print(drivers)
+  # driver = drivers["えりか"]["driver"]
+  # wait = drivers["えりか"]["wait"]
+  # jmail.re_post(drivers["えりか"], ["神奈川", "栃木",], driver,wait)
+  # return
   while True:
     start_loop_time = time.time()
     now = datetime.now()

@@ -94,6 +94,7 @@ try:
         driver.switch_to.window(tab) 
         print("変更前:", func.get_current_ip())
         func.change_tor_ip()
+        time.sleep(7)
         print("変更後:", func.get_current_ip())
         # print(f"現在のタブ: {index + 1},")
         if index  == 0:
