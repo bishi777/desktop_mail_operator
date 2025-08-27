@@ -107,5 +107,5 @@ def jmail_debug(headless):
       repost_flug = False
     
 if __name__ == '__main__':
-  headless = False
+  headless = True
   jmail_debug(headless)

@@ -38,6 +38,7 @@ def catch_warning(driver, wait):
   errormsg = driver.find_elements(By.CLASS_NAME, value="errormsg")
   if len(errormsg):
     print("警告画面が表示されています。")
+    print(errormsg[0].text)
     if "電話番号・会員IDを正しく入力してください。" in errormsg[0].text:
       print("ログアウトしています")
       return False
