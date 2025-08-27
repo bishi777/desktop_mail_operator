@@ -134,7 +134,6 @@ def get_header_menu(driver, menu):
         print(99999)
         print(link.text)
       if menu in link.text:
-        
         if menu == "メッセージ":
           try:
             new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
@@ -143,6 +142,7 @@ def get_header_menu(driver, menu):
               return False
           except NoSuchElementException:
             pass
+        print(f"✅ {menu} メニューをクリックします")
         link.click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
@@ -176,6 +176,8 @@ def profile_search(driver):
     "神奈川県": 23,
     "千葉県": 25
   }
+  print("✅ プロフ検索メニューのURLかチェック")
+  print(driver.current_url)
   # チェックが入っている項目をリセット
   try:
     area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
