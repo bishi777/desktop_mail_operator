@@ -103,7 +103,6 @@ def run_scheduler():
 def add_form(user_info_list):
     global form_count, form_label_added
     if form_count >= max_forms:
-        print(999)
         return  
     # 掲示板予約時間のラベルがまだ追加されていなければ追加
     if not form_label_added:
