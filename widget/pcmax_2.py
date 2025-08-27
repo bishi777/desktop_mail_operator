@@ -581,6 +581,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               driver.find_element(By.ID, "image_button2").click()
             except Exception:
               pass
+            break
         if not no_history_second_mail:
           text_area = driver.find_element(By.ID, value="mdc")
           script = "arguments[0].value = arguments[1];"

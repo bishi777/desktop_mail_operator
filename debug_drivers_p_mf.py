@@ -149,6 +149,7 @@ for i in range(99999):
         time.sleep(0.5)
         print(f"{name_on_pcmax[0].text} プロフ検索再セットを行います")
         pcmax_2.catch_warning_pop("", driver)
+        print(driver.current_url)
         # img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
         # driver.save_screenshot(img_path)
         # title = "pcmaxプロフ再セットメッセージ"
