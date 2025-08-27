@@ -43,6 +43,10 @@ def jmail_debug(headless):
         driver.refresh()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2) 
+      except Exception as e:
+        print(f"❌ {name} エラー発生:", e)
+        traceback.print_exc()
+        continue
       # # 足あと返し
       # try:
       #   jmail.return_footprint(data,driver,wait,submitted_users)
