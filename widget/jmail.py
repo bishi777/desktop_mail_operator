@@ -109,8 +109,8 @@ def start_jmail_drivers(jmail_list, headless, base_path):
   try:
     for i in jmail_list:
       name = i["name"]
-      if name != "えりか":
-        continue
+      # if name != "えりか":
+      #   continue
       profile_path = os.path.join(base_path, f"{i['name']}_{uuid.uuid4().hex}")
 
       # profile_path = os.path.join(base_path, i["name"])
@@ -1105,7 +1105,7 @@ def re_post(data, post_areas, driver,wait):
   post_set(post_title, post_contents, driver, wait)
   time.sleep(15)
   # ~~~~~~~~~地域変更〜〜〜〜〜〜〜〜〜〜〜〜〜
-  for area in random.sample(post_areas, 2):
+  for area in random.sample(post_areas, 3):
     change_areas(area, driver, wait)
     post_set(post_title, post_contents, driver, wait)
     # 間隔規制

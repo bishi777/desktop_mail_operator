@@ -22,17 +22,12 @@ api_url = "https://meruopetyan.com/api/update-submitted-users/"
 
 
 def jmail_debug(headless):
-  repost_flug = False
+  repost_flug = True
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
-  
+  chara_name_list = [data["name"] for data in jmail_datas]
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
-  # 掲示板
-  # print(drivers)
-  # driver = drivers["えりか"]["driver"]
-  # wait = drivers["えりか"]["wait"]
-  # jmail.re_post(drivers["えりか"], ["神奈川", "栃木",], driver,wait)
-  # return
+  
   while True:
     start_loop_time = time.time()
     now = datetime.now()
@@ -82,8 +77,7 @@ def jmail_debug(headless):
       #   traceback.print_exc()
       #   continue
       # 送信履歴ユーザー更新
-      print(777)
-      print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
+      # print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
       payload = {
         "login_id": drivers[name]["login_id"],
         "password": drivers[name]["password"],
@@ -98,6 +92,28 @@ def jmail_debug(headless):
       except requests.exceptions.RequestException as e:
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
+    
+    if 6 <= now.hour <= 8:
+      if repost_flug:
+        if chara_name_list:
+          repost_chara = chara_name_list.pop()
+          # 掲示板投稿
+          for name, data in drivers.items():
+            if name == repost_chara:            
+              print(f"📢 再投稿: {name}")
+              driver = drivers[name]["driver"]
+              wait = drivers[name]["wait"]
+              jmail.re_post(data, post_areas, driver,wait)
+              time.sleep(5)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              break
+        else:
+          repost_flug = False
+          chara_name_list = [data["name"] for data in jmail_datas]   
+    else:
+      repost_flug = True
     elapsed_time = time.time() - start_loop_time
     while elapsed_time < 600:
       time.sleep(20)
@@ -107,11 +123,8 @@ def jmail_debug(headless):
     elapsed_time = time.time() - start_loop_time
     minutes, seconds = divmod(int(elapsed_time), 60)
     print(f"タイム: {minutes}分{seconds}秒")  
-    if 6 == now.hour or 20 == now.hour:
-      repost_flug = True
-    else:
-      repost_flug = False
+    
     
 if __name__ == '__main__':
-  headless = False
+  headless = True
   jmail_debug(headless)
