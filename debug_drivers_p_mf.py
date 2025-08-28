@@ -88,6 +88,15 @@ for i in range(99999):
           print(current_step)
           print(len(user_list))
           if current_step > len(user_list):
+            print("スクロールしてもユーザーがいなかった")
+            print(driver.current_url)
+            img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+            driver.save_screenshot(img_path)
+            title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
+            text = f"{driver.current_url}"   
+            # メール送信
+            if mail_info:
+              func.send_mail(text, mail_info, title, img_path)
             search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
