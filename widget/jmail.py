@@ -1035,6 +1035,10 @@ def return_footprint(data, driver,wait,submitted_users):
         os.remove(image_filename)
 
 def post_set(post_title, post_contents, driver, wait):
+  if "https://mintj.com/msm/mainmenu/?sid=" not in driver.current_url:
+    driver.get("https://mintj.com/msm/mainmenu/?sid=")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
   menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
   menu_icon[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
