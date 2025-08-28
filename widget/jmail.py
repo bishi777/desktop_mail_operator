@@ -27,6 +27,11 @@ import uuid
 
 
 def catch_warning(driver, wait):
+  loader = driver.find_elements(By.ID, value="loader")
+  if len(loader):
+    driver.refresh() 
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
   # 警告画面が表示されているか確認
   warning_element = driver.find_elements(By.CLASS_NAME, value="karte-widget__container")
   if len(warning_element):
@@ -1107,14 +1112,19 @@ def re_post(data, post_areas, driver,wait):
     print(f"掲示板タイトルが設定されていません {post_title}")
     return
   # ~~~~~~~~~掲示板投稿〜〜〜〜〜〜〜〜〜〜〜〜〜
+  print("エリア：　現在の地域")
   post_set(post_title, post_contents, driver, wait)
+  print("投稿完了")
   time.sleep(15)
   # ~~~~~~~~~地域変更〜〜〜〜〜〜〜〜〜〜〜〜〜
   for area in random.sample(post_areas, 3):
+    print(f"エリア変更：　{area}")
     change_areas(area, driver, wait)
     post_set(post_title, post_contents, driver, wait)
+    print("投稿完了")
     # 間隔規制
     time.sleep(15)
+  print("エリア変更：　東京")
   change_areas("東京", driver, wait)
 
 

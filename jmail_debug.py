@@ -93,6 +93,7 @@ def jmail_debug(headless):
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
     
+
     if 12 <= now.hour <= 14:
       if repost_flug:
         if chara_name_list:
@@ -114,6 +115,30 @@ def jmail_debug(headless):
           chara_name_list = [data["name"] for data in jmail_datas]   
     else:
       repost_flug = True
+
+    if 17 <= now.hour <= 19:
+      if name == "ゆっこ":
+        if repost_flug:
+          if chara_name_list:
+            repost_chara = chara_name_list.pop()
+            # 掲示板投稿
+            for name, data in drivers.items():
+              if name == repost_chara:            
+                print(f"📢 再投稿: {name}")
+                driver = drivers[name]["driver"]
+                wait = drivers[name]["wait"]
+                jmail.re_post(data, post_areas, driver,wait)
+                time.sleep(5)
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+                break
+          else:
+            repost_flug = False
+            chara_name_list = [data["name"] for data in jmail_datas]   
+      else:
+        repost_flug = True
+
     elapsed_time = time.time() - start_loop_time
     while elapsed_time < 600:
       time.sleep(20)
