@@ -93,7 +93,7 @@ def jmail_debug(headless):
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
     
-    if 6 <= now.hour <= 8:
+    if 12 <= now.hour <= 14:
       if repost_flug:
         if chara_name_list:
           repost_chara = chara_name_list.pop()
@@ -126,5 +126,5 @@ def jmail_debug(headless):
     
     
 if __name__ == '__main__':
-  headless = True
+  headless = False
   jmail_debug(headless)

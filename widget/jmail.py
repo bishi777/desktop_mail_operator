@@ -278,6 +278,7 @@ def check_mail(name, jmail_info, driver, wait):
           time.sleep(2)
         # メール一覧に戻る
         try:
+          catch_warning(driver, wait)
           back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
           back = back_parent[0].find_elements(By.TAG_NAME, value="a")
           back[0].click()
