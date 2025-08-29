@@ -13,6 +13,10 @@ wait_time = 1.5
 mailserver_address = user_data['user'][0]['gmail_account']
 mailserver_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
+if mailserver_address and mailserver_password and receiving_address:
+  mail_info = [
+    receiving_address, mailserver_address, mailserver_password, 
+  ]
 pcmax_datas = user_data["jmail"]
 post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
@@ -38,7 +42,7 @@ def jmail_debug(headless):
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       try:
-        submitted_users = jmail.check_mail(name,data, driver, wait)
+        submitted_users = jmail.check_mail(name,data, driver, wait, mail_info)
       except TimeoutException as e:
         print("新着メールチェックTimeoutException")
         driver.refresh()

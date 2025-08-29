@@ -141,7 +141,7 @@ def start_jmail_drivers(jmail_list, headless, base_path):
     traceback.print_exc()
 
 
-def check_mail(name, jmail_info, driver, wait):
+def check_mail(name, jmail_info, driver, wait, mail_info):
   login_id = jmail_info['login_id']
   password = jmail_info['password']
   fst_message = jmail_info['fst_message']
@@ -199,6 +199,7 @@ def check_mail(name, jmail_info, driver, wait):
       submitted_users.append(interacting_user_name)
     if "未読" in interacting_users[interacting_user_cnt].text or len(new_icon):
     # deug
+    # if True:
       # 時間を取得　
       parent_usr_info = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
       parent_usr_info = parent_usr_info.find_element(By.XPATH, "./..")
@@ -212,6 +213,21 @@ def check_mail(name, jmail_info, driver, wait):
       # print(interacting_users[interacting_user_cnt].text)
       # print(f"メール到着からの経過時間{elapsed_time}")
       # print(interacting_user_name)
+
+      # 年齢を取得
+      age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[interacting_user_cnt]
+      match = re.search(r"\d+～\d+", age_element.text)
+      if match:
+        age_range = match.group()
+        # 「～」で分割して数値に変換
+        min_age, max_age = map(int, age_range.split("～"))
+        if max_age <= 30:
+          print("30歳以下です")
+          young_flag = True
+        else:
+          print("31歳以上です")
+          young_flag = False
+      # if True:
       if elapsed_time >= timedelta(minutes=4):
         print("4分以上経過しています。")
         if interacting_user_name not in submitted_users:
@@ -224,63 +240,87 @@ def check_mail(name, jmail_info, driver, wait):
         time.sleep(2)
         send_by_user = driver.find_elements(By.CLASS_NAME, value="balloon_left")
         send_by_user_message = send_by_user[0].find_elements(By.CLASS_NAME, value="balloon")[0].text
-        # 掲示板からきたか判定
-        color_variations_03 = driver.find_elements(By.CLASS_NAME, value="color_variations_03")
-        if len(color_variations_03):
-          for i in color_variations_03:
-            if "元の投稿を見る" in i.text:
-              print(f"{interacting_user_name}さんは掲示板から来た")
-              from_mypost = True
-              break
-        # 相手からのメッセージが何通目か確認する
-        if not sended_mail:
-          send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
-          if from_mypost:
-            my_length = len(send_by_me) + 1
-          else:
-            my_length = len(send_by_me)
-          if my_length == 0:
-            send_message = fst_message
-            if mail_img:
-              image_filename, image_path = encode_img(name, mail_img)
+        # if False:
+        if young_flag:
+          # 掲示板からきたか判定
+          color_variations_03 = driver.find_elements(By.CLASS_NAME, value="color_variations_03")
+          if len(color_variations_03):
+            for i in color_variations_03:
+              if "元の投稿を見る" in i.text:
+                print(f"{interacting_user_name}さんは掲示板から来た")
+                from_mypost = True
+                break
+          # 相手からのメッセージが何通目か確認する
+          if not sended_mail:
+            send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
+            if from_mypost:
+              my_length = len(send_by_me) + 1
             else:
-              image_filename, image_path = "", ""
-          elif my_length == 1:
-            send_message = second_message
-            if mail_address_image:
-              image_filename, image_path = encode_img(name, mail_address_image)
-            else:
-              image_filename, image_path = "", ""
-          elif my_length >= 2:
-            print("捨てメアドに通知")
-            print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
-            return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
-            return_list.append(return_message)  
-            print("捨てメアドに、送信しました")
-            image_path = ""
-            image_filename = ""
-        
-        if send_message:
-          # 返信するをクリック
-          res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
-          res_do[1].click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          # メッセージを入力　name=comment
-          text_area = driver.find_elements(By.NAME, value="comment")
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area[0], send_message)
-          time.sleep(4)
-          # 画像があれば送信 
-          if image_path:
-            img_input = driver.find_elements(By.NAME, value="image1")
-            img_input[0].send_keys(image_path)
+              my_length = len(send_by_me)
+            if my_length == 0:
+              send_message = fst_message
+              if mail_img:
+                image_filename, image_path = encode_img(name, mail_img)
+              else:
+                image_filename, image_path = "", ""
+            elif my_length == 1:
+              send_message = second_message
+              if mail_address_image:
+                image_filename, image_path = encode_img(name, mail_address_image)
+              else:
+                image_filename, image_path = "", ""
+            elif my_length >= 2:
+              print("捨てメアドに通知")
+              print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
+              return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
+              return_list.append(return_message)  
+              print("捨てメアドに、送信しました")
+              image_path = ""
+              image_filename = ""
+          
+          if send_message:
+            # 返信するをクリック
+            res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
+            res_do[1].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
-          send_button = driver.find_elements(By.NAME, value="sendbutton")
-          send_button[0].click()
+            # メッセージを入力　name=comment
+            text_area = driver.find_elements(By.NAME, value="comment")
+            script = "arguments[0].value = arguments[1];"
+            driver.execute_script(script, text_area[0], send_message)
+            time.sleep(4)
+            # 画像があれば送信 
+            if image_path:
+              img_input = driver.find_elements(By.NAME, value="image1")
+              img_input[0].send_keys(image_path)
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+            send_button = driver.find_elements(By.NAME, value="sendbutton")
+            send_button[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+        else:
+          user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
+          for user_link in user_links:
+            if name != user_link.text:
+              user_link.find_element(By.TAG_NAME, value="a").click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              catch_warning(driver, wait)
+              # スクショして送信
+              driver.save_screenshot("screenshot2.png")
+              title = "jmailおじさんメッセージ"
+              text = send_by_user_message   
+              # メール送信
+              if mail_info:
+                func.send_mail(text, mail_info, title,  "screenshot2.png")
+              # 送信後にスクショ削除
+              if os.path.exists("screenshot2.png"):
+                os.remove("screenshot2.png")
+              break
+          driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
+          time.sleep(1)
         # メール一覧に戻る
         try:
           catch_warning(driver, wait)

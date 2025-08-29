@@ -351,7 +351,7 @@ def send_error(chara, error_message, attachment_paths=None):
     finally:
         smtpobj.close()
    
-def send_mail(message, mail_info, title, image_path=None):
+def send_mail(message, mail_info, title, image_paths=None):
   mailaddress = mail_info[1]
   password = mail_info[2]
   text = message
@@ -369,20 +369,35 @@ def send_mail(message, mail_info, title, image_path=None):
   # 本文を追加
   msg.attach(MIMEText(text, 'plain', 'utf-8'))
 
-  # 画像を添付（任意）
-  if image_path:
-      with open(image_path, 'rb') as f:
-          img_data = f.read()
-      image = MIMEImage(img_data, name=image_path.split("/")[-1])
-      msg.attach(image)
+  # 画像の添付処理（1枚でも複数枚でも対応）
+  if image_paths:
+      # もし文字列（1枚）ならリストに変換
+      if isinstance(image_paths, str):
+          paths = [image_paths]
+      else:
+          paths = image_paths
 
+      for path in paths:
+          if os.path.exists(path):
+              with open(path, 'rb') as f:
+                  img_data = f.read()
+              image = MIMEImage(img_data, name=os.path.basename(path))
+              msg.attach(image)
+          else:
+              print(f"⚠️ 添付失敗: ファイルが存在しません → {path}")
   # Gmail SMTP サーバへ接続
-  smtpobj = smtplib.SMTP('smtp.gmail.com', 587)
+  smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)  # 30秒でタイムアウト
   smtpobj.set_debuglevel(0)  # デバッグログオフ
   smtpobj.starttls()
   smtpobj.login(mailaddress, password)
-  smtpobj.send_message(msg)
-  smtpobj.close()
+  try:
+    smtpobj.send_message(msg)
+    print("✅ メール送信完了")
+  except Exception as e:
+    print("❌ メール送信エラー:", e)
+  finally:
+    smtpobj.close()
+  
 
 
 
