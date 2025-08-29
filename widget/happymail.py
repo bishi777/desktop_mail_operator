@@ -242,8 +242,8 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if  i["name"] != "アスカ" :
-      #   continue
+      if  i["name"] != "めあり" :
+        continue
       print("変更前:", func.get_current_ip())
       func.change_tor_ip()
       print("変更後:", func.get_current_ip())
@@ -356,7 +356,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             else:
               for_minutes_passed = False
           if for_minutes_passed:
-            print("4分以上経過しているメッセージあり")          
+            print("4分以上経過しているメッセージあり")  
+            user_name = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
             new_mail[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
@@ -369,7 +370,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print("画像あり")
                 print(send_message[-2].text)
                 sent_text_element = send_message[-2]
-
               script = """
               var element = arguments[0];
 
@@ -416,6 +416,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print("募集メッセージ" in send_text)
               if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
                 if conditions_message:
+                  conditions_message = conditions_message.format(name=user_name)
+                  
                   text_area = driver.find_element(By.ID, value="text-message")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
                   script = "arguments[0].value = arguments[1];"
@@ -503,7 +505,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(1)
             else:
-              send_text = fst_message
+              send_text = fst_message.format(name=user_name)
               repost_return = driver.find_elements(By.CLASS_NAME, value="transit_info")
               if len(repost_return):
                 if "募集から送信" in repost_return[0].text:
