@@ -40,6 +40,8 @@ gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 mail_info = None
 last_reset_hour = None  
+send_flug = False
+
 if mailaddress and gmail_password and receiving_address:
   mail_info = [
     receiving_address, mailaddress, gmail_password, 
@@ -56,7 +58,7 @@ try:
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
   for i in first_half:
-    report_dict[i["name"]] = [0, False]
+    report_dict[i["name"]] = [0, send_flug]
 
   while True:
     start_loop_time = time.time()
@@ -84,12 +86,12 @@ try:
       password = drivers[name]["password"]
       return_foot_message = drivers[name]["return_foot_message"]
       fst_message = drivers[name]["fst_message"]
+      post_return_message = drivers[name]["post_return_message"]
       conditions_message = drivers[name]["conditions_message"]
       return_foot_img = drivers[name]["mail_img"]
       matching_cnt = 1
       type_cnt = 1
       return_foot_cnt = 1
-      send_flug = False
       for index, tab in enumerate(tabs):
         driver.switch_to.window(tab) 
         print("変更前:", func.get_current_ip())
@@ -100,7 +102,7 @@ try:
         if index  == 0:
           # 新着メールチェック
           try:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message,return_foot_img)
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,return_foot_img)
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:

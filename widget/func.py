@@ -42,7 +42,21 @@ from email.utils import formatdate
 from email.mime.base import MIMEBase
 from email import encoders
 import mimetypes
+import difflib
 
+def replace_name_if_diff(text1, text2):
+    matcher = difflib.SequenceMatcher(None, text1, text2)
+
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "replace":
+            diff1 = text1[i1:i2]
+            diff2 = text2[j1:j2]
+            # {name} と他の文字列の置き換え判定
+            if diff2 == "{name}":
+                return text2.replace("{name}", diff1)
+            elif diff1 == "{name}":
+                return text1.replace("{name}", diff2)
+    return text2  # 差分がなければそのまま返す
 
 
 def get_driver(headless):

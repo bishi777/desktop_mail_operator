@@ -123,10 +123,10 @@ def nav_item_click(nav_name, driver, wait):
     if nav_name in nav.text:
       if nav_name == "メッセージ":
         parent_elem = nav.find_element(By.XPATH, "..")
-        new_message = parent_elem.find_elements(By.CLASS_NAME, value="ds_red_circle")
+        new_message = nav.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
           return "新着メールなし"
-       
+        
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -292,7 +292,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       #   driver.execute_script("window.open('https://happymail.co.jp/sp/app/html/mbmenu.php', '_blank');")
       #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       #   time.sleep(1)
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"],}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "post_return_message":i["post_return_message"],}
     time.sleep(1)
     return drivers
   except KeyboardInterrupt:
@@ -306,7 +306,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, conditions_message,mail_img):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,mail_img):
     return_list = []
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -315,13 +315,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
     if isinstance(ban_flug, str) and "利用できません" in ban_flug:
       return "この登録は利用できません"
     new_message_flug = nav_item_click("メッセージ", driver, wait)
-    # print(f"新着メールフラグ: {new_message_flug}")
+    print(f"新着メールフラグ: {new_message_flug}")
     if new_message_flug == "新着メールなし":
       return
     else:  
     # 新着があった
     # if True:
-      #  未返信のみ表示
+      #  未読のみ表示
       only_new_message = driver.find_elements(By.CLASS_NAME, value="ds_message_tab_item")[1]
       only_new_message.click()
       time.sleep(1)
@@ -333,208 +333,103 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
         time.sleep(2)
       #新着がある間はループ
       while len(new_mail):
-      #  while True:
-          date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
-          date_numbers = re.findall(r'\d+', date[0].text)
-          if not len(date_numbers):
+      # while True:
+        date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
+        date_numbers = re.findall(r'\d+', date[0].text)
+        if not len(date_numbers):
+          for_minutes_passed = True
+        else:
+          now = datetime.today()
+          arrival_datetime = datetime(
+            year=now.year,
+            month=now.month,
+            day=now.day,
+            hour=int(date_numbers[0]),
+            minute=int(date_numbers[1])
+          )
+          elapsed_time = now - arrival_datetime
+          # print(f"メール到着からの経過時間{elapsed_time}")
+          # 4分経過しているか
+          # if True:
+          if elapsed_time >= timedelta(minutes=4):
             for_minutes_passed = True
           else:
-            now = datetime.today()
-            arrival_datetime = datetime(
-              year=now.year,
-              month=now.month,
-              day=now.day,
-              hour=int(date_numbers[0]),
-              minute=int(date_numbers[1])
-            )
-            elapsed_time = now - arrival_datetime
-            # print(f"メール到着からの経過時間{elapsed_time}")
-            # 4分経過しているか
-            # if True:
-            if elapsed_time >= timedelta(minutes=4):
-              for_minutes_passed = True
-            else:
-              for_minutes_passed = False
-          if for_minutes_passed:
-            print("4分以上経過しているメッセージあり")  
-            user_name = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
-            new_mail[0].click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(2)
-            catch_warning_screen(driver)
-            send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")    
-            if len(send_message):
-              sent_text_element = send_message[-1]            
-              img = send_message[-1].find_elements(By.TAG_NAME, value="img")
-              if len(img):
-                print("画像あり")
-                print(send_message[-2].text)
-                sent_text_element = send_message[-2]
-              script = """
-              var element = arguments[0];
+            for_minutes_passed = False
+        if for_minutes_passed:
+          print("4分以上経過しているメッセージあり")  
+          user_name = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
+          new_mail[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          catch_warning_screen(driver)
+          send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")      
+          if len(send_message):
+            send_me_length = len(send_message)
+            # sent_text_element = send_message[-1]            
+            img = send_message[-1].find_elements(By.TAG_NAME, value="img")
+            if len(img):
+              print("画像あり")
+              send_me_length -= 1
+              # print(send_message[-2].text)
+              # sent_text_element = send_message[-2]
+            # script = """
+            # var element = arguments[0];
 
-              // 除外するクラスを持つ子要素を取得
-              var elementsToRemove = element.querySelectorAll('.transit_info, .message__block__body__time');
+            # // 除外するクラスを持つ子要素を取得
+            # var elementsToRemove = element.querySelectorAll('.transit_info, .message__block__body__time');
 
-              // 一時的に削除
-              elementsToRemove.forEach(el => el.remove());
+            # // 一時的に削除
+            # elementsToRemove.forEach(el => el.remove());
 
-              // 要素Aのテキストを取得
-              var textContent = element.textContent.trim();
+            # // 要素Aのテキストを取得
+            # var textContent = element.textContent.trim();
 
-              // 削除した子要素を元に戻す
-              elementsToRemove.forEach(el => element.appendChild(el));
+            # // 削除した子要素を元に戻す
+            # elementsToRemove.forEach(el => element.appendChild(el));
 
-              return textContent;
-              """
-              text_without_children = driver.execute_script(script, sent_text_element) 
-              send_text = text_without_children
-              # print("<<<<<<<<<<<send_text>>>>>>>>>>>>>")
-              # print("<<<<<<<<<<<fst_message>>>>>>>>>>>>>")
-              # print(fst_message)
-              # print("<<<<<<<<<<<return_foot_message>>>>>>>>>>>>>")
-              # print(return_foot_message)
-              # 改行と空白を削除
-              send_text_clean = func.normalize_text(send_text)
-              fst_message_clean = func.normalize_text(fst_message)
-              return_foot_message_clean = func.normalize_text(return_foot_message)
-              conditions_message_clean = func.normalize_text(conditions_message)
-              
-              # 変換後のデバッグ表示
-              print("---------------------------------------")
-              print(f"変換後のsend_text: {repr(send_text_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のfst_message: {repr(fst_message_clean)}")
-              print("---------------------------------------")
-              print(f"変換後のreturn_foot_message: {repr(return_foot_message_clean)}")
-              
-              print("---------------------------------------")
-              print(fst_message_clean == send_text_clean)
-              print("---------------------------------------")
-              print(return_foot_message_clean == send_text_clean)
-              print("---------------------------------------")
-              print("募集メッセージ" in send_text)
-              if fst_message_clean == send_text_clean or return_foot_message_clean == send_text_clean or "募集メッセージ" in send_text_clean:
-                if conditions_message:
-                  conditions_message = conditions_message.format(name=user_name)
-                  
-                  text_area = driver.find_element(By.ID, value="text-message")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-                  script = "arguments[0].value = arguments[1];"
-                  driver.execute_script(script, text_area, conditions_message)
-                  # 送信
-                  send_mail = driver.find_element(By.ID, value="submitButton")
-                  send_mail.click()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(1.5)
-                  send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-                  reload_cnt = 0
-                  send_text_clean = func.normalize_text(send_msg_elem[-1].text)
-                  while send_text_clean != conditions_message_clean:
-                    # print(send_text_clean)
-                    # print("~~~~~~~~~~~~~~~~~~~~~")
-                    # print(conditions_message_clean)
-                    driver.refresh()
-                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                    time.sleep(5)
-                    send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-                    reload_cnt += 1
-                    if reload_cnt == 3:
-                        driver.refresh()
-                        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                        time.sleep(1.5)
-                        break
-                else:
-                  # print('やり取りしてます')
-                  user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
-                  user_name = user_name.text
-                  receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
-                  return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
-                  return_list.append(return_message)
-                  # みちゃいや
-                  plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
-                  plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                  plus_icon[0].click()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(2)
-                  mityaiya = ""
-                  candidate_mityaiya = driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_text")
-                  for c_m in candidate_mityaiya:
-                    if c_m.text == "見ちゃいや":
-                        mityaiya = c_m
-                  if mityaiya:
-                    # print('<<<<<<<<<<<<<<<<<みちゃいや登録>>>>>>>>>>>>>>>>>>>')
-                    mityaiya.click()
-                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                    time.sleep(2)
-                    mityaiya_send = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__send")
-                    if len(mityaiya_send):
-                      mityaiya_send[0].click()
-                      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                      time.sleep(1)      
-              else:
-                # print('やり取りしてます')
-                user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
-                user_name = user_name.text
-                receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
-                return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
-                return_list.append(return_message)
-                # みちゃいや
-                plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
-                plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
-                
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                plus_icon[0].click()
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(2)
-                # ds_message_txt_media_text
-                mityaiya = ""
-                candidate_mityaiya = driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_text")
-                for c_m in candidate_mityaiya:
-                  if c_m.text == "見ちゃいや":
-                    mityaiya = c_m
-                if mityaiya:
-                  # print('<<<<<<<<<<<<<<<<<みちゃいや登録>>>>>>>>>>>>>>>>>>>')
-                  mityaiya.click()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(2)
-                  mityaiya_send = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__send")
-                  if len(mityaiya_send):
-                    mityaiya_send[0].click()
-                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                    time.sleep(1)
-            else:
-              send_text = fst_message.format(name=user_name)
-              repost_return = driver.find_elements(By.CLASS_NAME, value="transit_info")
-              if len(repost_return):
-                if "募集から送信" in repost_return[0].text:
-                  if conditions_message:
-                    send_text = conditions_message
+            # return textContent;
+            # """
+            # text_without_children = driver.execute_script(script, sent_text_element) 
+            print(9999)
+            print(send_me_length)
+            if send_me_length == 0:
+              send_message = fst_message.format(name=user_name) 
+              # 掲示板からきたか確認
+              text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
+              for t_f_u in text_from_users:
+                if "募集から送信" in t_f_u.text:
+                  if post_return_message:
+                    send_message = post_return_message.format(name=user_name)         
               text_area = driver.find_element(By.ID, value="text-message")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area, send_text)
+              driver.execute_script(script, text_area, send_message)
+              time.sleep(0.5)
+              driver.execute_script("arguments[0].click();", text_area)
+              time.sleep(0.5)
               # 送信
               send_mail = driver.find_element(By.ID, value="submitButton")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
               send_mail.click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(2.3)
+              time.sleep(1.5)
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt = 0
-              while not len(send_msg_elem):
+              send_message_clean = func.normalize_text(send_message)
+              send_text_clean = func.normalize_text(send_msg_elem[-1].text)
+              while send_text_clean != send_message_clean:
+                print(send_text_clean)
+                print("~~~~~~~~~~~~~~~~~~~~~")
+                print(send_message)
                 driver.refresh()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(2.3)
-                # message__block__body__text--female 
+                time.sleep(5)
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt += 1
                 if reload_cnt == 3:
-                  driver.refresh()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(2.3)
-                  break
+                    driver.refresh()
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    time.sleep(1.5)
+                    break
               # 画像があれば送信 
               try:
                 if mail_img:  
@@ -565,14 +460,82 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     if len(modal_content):
                       break # modal-content お相手が年齢確認されていない為
               except Exception as e:
-                    print("画像の送信に失敗しました", e)
-                    print(traceback.format_exc())
-              
-          else:
-            if len(return_list):
-                return return_list
+                print("画像の送信に失敗しました", e)
+                print(traceback.format_exc())
+            elif send_me_length == 1:
+              send_message = conditions_message.format(name=user_name) 
+              # 掲示板からきたか確認
+              text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
+              for t_f_u in text_from_users:
+                if "募集から送信" in t_f_u.text:
+                  if post_return_message:
+                    send_message = ""
+                    print('やり取りしてます')
+                    user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
+                    user_name = user_name.text
+                    receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
+                    return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
+                    return_list.append(return_message)      
+              if send_message:
+                text_area = driver.find_element(By.ID, value="text-message")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+                script = "arguments[0].value = arguments[1];"  
+                driver.execute_script(script, text_area, send_message)
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].click();", text_area)
+                # 送信
+                send_mail = driver.find_element(By.ID, value="submitButton")
+                send_mail.click()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(1.5) 
+                send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+                reload_cnt = 0
+                send_message_clean = func.normalize_text(send_message)
+                send_text_clean = func.normalize_text(send_msg_elem[-1].text)
+                while send_text_clean != send_message_clean:
+                  print(send_text_clean)
+                  print("~~~~~~~~~~~~~~~~~~~~~")
+                  print(send_message)
+                  driver.refresh()
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  time.sleep(5)
+                  send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+                  reload_cnt += 1
+                  if reload_cnt == 3:
+                      driver.refresh()
+                      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                      time.sleep(1.5)
+                      break
+              # みちゃいや
+              plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
+              plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+              plus_icon[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              mityaiya = ""
+              candidate_mityaiya = driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_text")
+              for c_m in candidate_mityaiya:
+                if c_m.text == "見ちゃいや":
+                    mityaiya = c_m
+              if mityaiya:
+                # print('<<<<<<<<<<<<<<<<<みちゃいや登録>>>>>>>>>>>>>>>>>>>')
+                mityaiya.click()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+                mityaiya_send = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__send")
+                if len(mityaiya_send):
+                  mityaiya_send[0].click()
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  time.sleep(1)      
             else:
-                return None
+              print('やり取りしてます')
+              user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
+              user_name = user_name.text
+              receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
+              return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
+              return_list.append(return_message) 
+              
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
@@ -1101,10 +1064,12 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
     # メールするをクリック
     if send_status:
       catch_warning_screen(driver)
-      # fst_messageを入力
       text_area = driver.find_element(By.ID, value="text-message")
       script = "arguments[0].value = arguments[1];"
       driver.execute_script(script, text_area, fst_message)
+      time.sleep(0.5)
+      driver.execute_script("arguments[0].click();", text_area)
+      time.sleep(0.5)
       # 送信
       send_mail = driver.find_element(By.ID, value="submitButton")
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
