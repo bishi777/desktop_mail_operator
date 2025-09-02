@@ -584,11 +584,9 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        no_history_second_mail = False
         if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
-          print(no_history_second_mail)
           text_area = driver.find_element(By.ID, value="mdc")
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
@@ -604,7 +602,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
-          print(no_history_second_mail)
           text_area = driver.find_element(By.ID, value="mdc")
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
@@ -625,7 +622,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
           return_list.append(return_message)
-          no_history_second_mail = True
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
             time.sleep(1)
