@@ -106,7 +106,6 @@ def catch_warning_screen(driver):
       return "ログインできませんでした"
   return False
 
-
 def nav_item_click(nav_name, driver, wait):
   catch_warning_screen(driver)
   nav_list = driver.find_elements(By.ID, value='ds_nav')
@@ -125,15 +124,12 @@ def nav_item_click(nav_name, driver, wait):
         parent_elem = nav.find_element(By.XPATH, "..")
         new_message = nav.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
-          return "新着メールなし"
-        
+          return "新着メールなし"      
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)
-      
+      time.sleep(2)    
       return True
-  # nav_nameが見つからない場合
   return False
 
 def login(name, happymail_id, happymail_pass, driver, wait,):
@@ -394,12 +390,19 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             print(send_me_length)
             if send_me_length == 0:
               send_message = fst_message.format(name=user_name) 
+              print(1111111111111)
+              print(user_name)
+              print(send_message)
               # 掲示板からきたか確認
               text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
               for t_f_u in text_from_users:
                 if "募集から送信" in t_f_u.text:
                   if post_return_message:
-                    send_message = post_return_message.format(name=user_name)         
+                    send_message = post_return_message.format(name=user_name)    
+                    print(1111111111111)
+                    print(user_name)
+      
+                    print(send_message)     
               text_area = driver.find_element(By.ID, value="text-message")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
@@ -464,6 +467,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print(traceback.format_exc())
             elif send_me_length == 1:
               send_message = conditions_message.format(name=user_name) 
+              print(1111111111111)
+              print(user_name)
+              print(send_message)
               # 掲示板からきたか確認
               text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
               for t_f_u in text_from_users:
@@ -471,8 +477,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   if post_return_message:
                     send_message = ""
                     print('やり取りしてます')
-                    user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
-                    user_name = user_name.text
                     receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                     return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
                     return_list.append(return_message)      
@@ -530,8 +534,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   time.sleep(1)      
             else:
               print('やり取りしてます')
-              user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
-              user_name = user_name.text
+              
               receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
               return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
               return_list.append(return_message) 
