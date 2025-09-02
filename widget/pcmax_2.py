@@ -813,28 +813,32 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if user_index >= len(foot_user_list):
       return rf_cnt
     like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
+    
     if not len(like):
       like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type4')
     if not len(like):
       user_index += 1
+    # DEBUG
+    # if True:
     else:
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       user_name = like[0].get_attribute("data-go2")
+      # user_name = "あお"
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
-      # candidate_users = driver.find_elements(By.CLASS_NAME, 'user-name')
-
       for pressed_type in pressed_types:
         print(777)
-        print(pressed_type.get_attribute("data-va5"))
-        if user_n in pressed_type.get_attribute("data-go2"):
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_user)
+        user_n = (pressed_type.get_dom_attribute("data-va5")
+          or pressed_type.get_dom_attribute("data-go2"))
+        print(user_n)
+        if user_name in user_n:
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
           time.sleep(1.5)
           user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
           print(666)
           print(user_link.get_attribute("href"))
-          user_link.click()
+          driver.get(user_link.get_attribute("href"))
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.2)
           break
@@ -850,14 +854,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         img_path = f"{name}_error.png"
         print(user_name)
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        for candidate_user in candidate_users:
-          if len(candidate_user.text) > 6:
-            user_n = candidate_user.text[6]
-          else:
-            user_n = candidate_user.text
-          print(user_n)
-          print(user_n in user_name)
-          print("-------------------------")
+        
 
 
         driver.save_screenshot(img_path)

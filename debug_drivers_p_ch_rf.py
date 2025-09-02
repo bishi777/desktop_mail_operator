@@ -132,32 +132,32 @@ while True:
         return_foot_message = i["return_foot_message"]
         send_cnt = 3  
         
-        try:
-          print(f"いいかもリストチェック開始 {name}")
-          iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
-          print(f"いいかもリストチェック完了 {name}")
-          report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
-          send_cnt -= (iikamo_cnt or 0)
-        except Exception as e:
-          print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
-          traceback.print_exc()
-        try:
-          top_image_flug = pcmax_2.check_top_image(name,driver)
-          if top_image_flug:
-            func.send_mail(
-              f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
-              [receiving_address,mailserver_address,mailserver_password,],
-              f"PCMAX トップ画像の更新 ",
-            )
-        except Exception as e:
-          print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
-          traceback.print_exc()
-        try:
-          print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
-        except Exception as e:
-          print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-          traceback.print_exc()  
+        # try:
+        #   print(f"いいかもリストチェック開始 {name}")
+        #   iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
+        #   print(f"いいかもリストチェック完了 {name}")
+        #   report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
+        #   send_cnt -= (iikamo_cnt or 0)
+        # except Exception as e:
+        #   print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
+        #   traceback.print_exc()
+        # try:
+        #   top_image_flug = pcmax_2.check_top_image(name,driver)
+        #   if top_image_flug:
+        #     func.send_mail(
+        #       f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
+        #       [receiving_address,mailserver_address,mailserver_password,],
+        #       f"PCMAX トップ画像の更新 ",
+        #     )
+        # except Exception as e:
+        #   print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
+        #   traceback.print_exc()
+        # try:
+        #   print("新着メールチェック開始")   
+        #   pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
+        # except Exception as e:
+        #   print(f"{name}❌ メールチェック  の操作でエラー: {e}")
+        #   traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
           try:
             print("足跡返し開始")
