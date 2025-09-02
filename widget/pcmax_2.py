@@ -74,7 +74,6 @@ def catch_warning_pop(name, driver):
         time.sleep(2)     
         try:
           # close1 = driver.find_element(By.ID, 'close1')
-          # print(77777777)
           # driver.execute_script('arguments[0].click();', close1)
           # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           # time.sleep(1)
@@ -175,7 +174,6 @@ def profile_search(driver):
   print(driver.current_url)
   # https://pcmax.jp/mobile/profile_reference.php
   if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
-    print(777)
     time.sleep(10)
     get_header_menu(driver, "プロフ検索")
     time.sleep(10)
@@ -579,12 +577,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       elif len(sent_by_me) == 1:
         print(777)
         print(sent_by_me[-1].text)
+        print(func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text))
+
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
@@ -596,9 +597,29 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
+        else:
+          print("やり取り中")
+          received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
+          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
+          try:
+            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  "pcmax新着")
+            print("通知メールを送信しました")
+          except Exception as e:
+            print(f"{name} 通知メールの送信に失敗しました")
+            traceback.print_exc()  
+          return_list.append(return_message)
+          try:
+            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
+            time.sleep(1)
+            driver.find_element(By.ID, "image_button2").click()
+          except Exception:
+            pass
       elif len(sent_by_me) > 1:
-        print(777)
+        print(456456)
         print(sent_by_me[-1].text)
+        print(func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text))
+
         if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
@@ -828,7 +849,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(0.8)
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       for pressed_type in pressed_types:
-        print(777)
+        print(123123)
         user_n = (pressed_type.get_dom_attribute("data-va5")
           or pressed_type.get_dom_attribute("data-go2"))
         print(user_n)
