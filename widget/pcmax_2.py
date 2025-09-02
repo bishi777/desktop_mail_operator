@@ -447,6 +447,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
       user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
+      print(len(sent_by_me))
+      
       # DEBUG
       # if True:
       if email_list:
@@ -575,6 +577,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           driver.find_element(By.ID, "send_n").click()
         catch_warning_pop(name, driver)
       elif len(sent_by_me) == 1:
+        print(777)
+        print(sent_by_me[-1].text)
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
@@ -595,6 +599,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
       elif len(sent_by_me) > 1:
+        print(777)
+        print(sent_by_me[-1].text)
         if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
