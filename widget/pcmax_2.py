@@ -405,7 +405,7 @@ def check_top_image(name,driver):
   return False
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
-               fst_message, mail_img, second_message, condition_message, confirmation_mail,
+               fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail,
                mailserver_address, mailserver_password, receiving_address):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
@@ -599,7 +599,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       elif len(sent_by_me) > 1:
         print(777)
         print(sent_by_me[-1].text)
-        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")

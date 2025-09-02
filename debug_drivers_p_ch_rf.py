@@ -154,7 +154,7 @@ while True:
           traceback.print_exc()
         try:
           print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
+          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
