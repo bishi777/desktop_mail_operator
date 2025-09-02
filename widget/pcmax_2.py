@@ -821,12 +821,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # DEBUG
     # if True:
     else:
-      pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       user_name = like[0].get_attribute("data-go2")
       # user_name = "あお"
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
+      pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       for pressed_type in pressed_types:
         print(777)
         user_n = (pressed_type.get_dom_attribute("data-va5")
