@@ -818,21 +818,23 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if not len(like):
       user_index += 1
     else:
+      pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       user_name = like[0].get_attribute("data-go2")
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
-      candidate_users = driver.find_elements(By.CLASS_NAME, 'user-name')
-      for candidate_user in candidate_users:
-        if len(candidate_user.text) > 6:
-          user_n = candidate_user.text[6]
-        else:
-          user_n = candidate_user.text
-        if user_n in user_name:
+      # candidate_users = driver.find_elements(By.CLASS_NAME, 'user-name')
+
+      for pressed_type in pressed_types:
+        print(777)
+        print(pressed_type.get_attribute("data-va5"))
+        if user_n in pressed_type.get_attribute("data-go2"):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_user)
           time.sleep(1.5)
-          grandparent = candidate_user.find_element(By.XPATH, "../..")
-          grandparent.click()
+          user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
+          print(666)
+          print(user_link.get_attribute("href"))
+          user_link.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.2)
           break
