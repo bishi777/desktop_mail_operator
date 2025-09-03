@@ -233,6 +233,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         if interacting_user_name not in submitted_users:
           submitted_users.append(interacting_user_name)
         send_message = ""
+        ojisan_flag = False
         # リンクを取得
         link_element = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
         driver.get(link_element.get_attribute("href"))
@@ -253,27 +254,39 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         # 相手からのメッセージが何通目か確認する
         if not sended_mail:
           send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
-          if from_mypost:
-            my_length = len(send_by_me) + 1
-          else:
-            my_length = len(send_by_me)
+          # if from_mypost:
+          #   my_length = len(send_by_me) + 1
+          # else:
+          #   my_length = len(send_by_me)
+          my_length = len(send_by_me)
           if my_length == 0:
             if young_flag:
               send_message = fst_message
+              if from_mypost:
+                send_message = second_message
               if mail_img:
                 image_filename, image_path = encode_img(name, mail_img)
               else:
                 image_filename, image_path = "", ""
             else:
-              send_message = ""
-              print("おじさん処理")
-              
+              ojisan_flag = True
+              print("おじさん処理")     
           elif my_length == 1:
-            send_message = second_message
-            if mail_address_image:
-              image_filename, image_path = encode_img(name, mail_address_image)
+            if  not from_mypost:
+              send_message = second_message
+              if mail_address_image:
+                image_filename, image_path = encode_img(name, mail_address_image)
+              else:
+                image_filename, image_path = "", ""
             else:
-              image_filename, image_path = "", ""
+              
+              print("捨てメアドに通知")
+              print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
+              return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
+              return_list.append(return_message)  
+              print("捨てメアドに、送信しました")
+              image_path = ""
+              image_filename = ""
           elif my_length >= 2:
             print("捨てメアドに通知")
             print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
@@ -305,7 +318,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           # ローディングが終わるのを一定時間待って、待機後リロードしてメッセージが遅れたか確認
-        else:
+        if ojisan_flag:
           user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
           for user_link in user_links:
             if name != user_link.text:
