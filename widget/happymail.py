@@ -1641,12 +1641,14 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     all_have_class = all("ds_user_post_link_item_r" in child.get_attribute("class") for child in children)
     if not all_have_class:
       sort_order = driver.find_elements(By.ID, value="kind_select")
-      select = Select(sort_order[0])
-      select.select_by_visible_text("プロフ一覧")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      if len(sort_order):
+        select = Select(sort_order[0])
+        select.select_by_visible_text("プロフ一覧")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     login_users_wait_cnt = 0
     login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     while len(login_users) == 0:
+      print(3333)
       time.sleep(1)
       login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
       login_users_wait_cnt += 1
@@ -1675,15 +1677,18 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     while "ds_ribbon" in candidate_footprint.get_attribute("class"):
       # print(f"✅ {user_name} 確認済み")
       user_icon += 1
-      if len(login_users) <= user_icon:
+      while len(login_users) <= user_icon:
+        print("************************")
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-        # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)
+        login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
         bottom_scroll_cnt += 1
-      if bottom_scroll_cnt == 3:
+        
+      if bottom_scroll_cnt == 5:
         print("ユーザーが見つかりません")
         return
+      
       candidate_footprint = login_users[user_icon]
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text

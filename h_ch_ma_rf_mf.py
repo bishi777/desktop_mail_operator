@@ -100,57 +100,57 @@ try:
         print("変更後:", func.get_current_ip())
         # print(f"現在のタブ: {index + 1},")
         if index  == 0:
-          # 新着メールチェック
-          try:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,return_foot_img)
-            if happymail_new:
-              happymail_new_list.extend(happymail_new)
-            if happymail_new_list:
-              title = f"happy新着 {name}"
-              text = ""
-              img_path = None
-              for new_mail in happymail_new_list:
-                text = text + new_mail + ",\n"
-                if "警告" in text or "NoImage" in text or "利用" in text :
-                  if mail_info:
-                    img_path = f"{i['name']}_ban.png"
-                    driver.save_screenshot(img_path)
-                    title = "メッセージ"
-                    text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
-              # メール送信
-              if mail_info:
-                func.send_mail(text, mail_info, title, img_path)
-              else:
-                print("通知メールの送信に必要な情報が不足しています")
-                print(f"{mailaddress}   {gmail_password}  {receiving_address}")
-          except NoSuchWindowException:
-            pass
-          except ReadTimeoutError as e:
-            print("🔴 ページの読み込みがタイムアウトしました:", e)
-            driver.refresh()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          except Exception as e:
-            print(traceback.format_exc())
-          # マッチング返し、
-          print(f"{name}送信数 {report_dict[name][0]} / {total_daily_limit} ")
-          print(f"返しフラグ {report_dict[name][1]} ")
-          if report_dict[name][0] <= total_daily_limit and report_dict[name][1] and "利用できません" not in happymail_new_list:
-            try:
-              return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
-              # print(return_foot_counted)
-              # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]       
-              if total_daily_limit <= report_dict[name][0]:
-                print("マッチング返しの上限に達しました。")
-                limit_text = f"送信数：{report_dict[name][0]} \n"
-                func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
-                report_dict[name][1] = False
+          # # 新着メールチェック
+          # try:
+          #   happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,return_foot_img)
+          #   if happymail_new:
+          #     happymail_new_list.extend(happymail_new)
+          #   if happymail_new_list:
+          #     title = f"happy新着 {name}"
+          #     text = ""
+          #     img_path = None
+          #     for new_mail in happymail_new_list:
+          #       text = text + new_mail + ",\n"
+          #       if "警告" in text or "NoImage" in text or "利用" in text :
+          #         if mail_info:
+          #           img_path = f"{i['name']}_ban.png"
+          #           driver.save_screenshot(img_path)
+          #           title = "メッセージ"
+          #           text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
+          #     # メール送信
+          #     if mail_info:
+          #       func.send_mail(text, mail_info, title, img_path)
+          #     else:
+          #       print("通知メールの送信に必要な情報が不足しています")
+          #       print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+          # except NoSuchWindowException:
+          #   pass
+          # except ReadTimeoutError as e:
+          #   print("🔴 ページの読み込みがタイムアウトしました:", e)
+          #   driver.refresh()
+          #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # except Exception as e:
+          #   print(traceback.format_exc())
+          # # マッチング返し、
+          # print(f"{name}送信数 {report_dict[name][0]} / {total_daily_limit} ")
+          # print(f"返しフラグ {report_dict[name][1]} ")
+          # if report_dict[name][0] <= total_daily_limit and report_dict[name][1] and "利用できません" not in happymail_new_list:
+          #   try:
+          #     return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
+          #     # print(return_foot_counted)
+          #     # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
+          #     report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]       
+          #     if total_daily_limit <= report_dict[name][0]:
+          #       print("マッチング返しの上限に達しました。")
+          #       limit_text = f"送信数：{report_dict[name][0]} \n"
+          #       func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
+          #       report_dict[name][1] = False
                 
-            except Exception as e:
-              print(f"マッチング返し{name}")
-              print(traceback.format_exc())
-              func.send_error(f"マッチング返し{name}", traceback.format_exc())
-
+          #   except Exception as e:
+          #     print(f"マッチング返し{name}")
+          #     print(traceback.format_exc())
+          #     func.send_error(f"マッチング返し{name}", traceback.format_exc())
+          # 足跡付け
           try:
             happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
           except NoSuchWindowException:
