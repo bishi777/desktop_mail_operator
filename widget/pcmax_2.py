@@ -348,8 +348,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
             select.select_by_visible_text(option.text)
             time.sleep(0.4)
             break
-        driver.find_element(By.NAME, "preview").click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # driver.find_element(By.NAME, "preview").click()
+        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.3)
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
@@ -564,11 +564,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           for option in select.options:
             if mail_img in option.text:
               select.select_by_visible_text(option.text)
-              time.sleep(0.4)
+              time.sleep(0.7)
               break
-          driver.find_element(By.NAME, "preview").click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.3)  
+          # driver.find_element(By.NAME, "preview").click()
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # time.sleep(0.3)  
         driver.find_element(By.ID, "send_n").click()
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
@@ -770,8 +770,8 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
           select.select_by_visible_text(option.text)
           time.sleep(0.4)
           break
-      driver.find_element(By.NAME, "preview").click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      # driver.find_element(By.NAME, "preview").click()
+      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.3)  
     now = datetime.now().strftime('%m-%d %H:%M:%S')
     if maji_soushin:
@@ -916,8 +916,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             select.select_by_visible_text(option.text)
             time.sleep(0.4)
             break
-        driver.find_element(By.NAME, "preview").click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # driver.find_element(By.NAME, "preview").click()
+        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.3)  
       now = datetime.now().strftime('%m-%d %H:%M:%S')
       if maji_soushin:
