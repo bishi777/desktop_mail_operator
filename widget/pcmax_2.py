@@ -577,15 +577,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       elif len(sent_by_me) == 1:
         print(777)
         print(sent_by_me[-1].text)
-        print(func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text))
-        print(func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
 
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
@@ -617,12 +617,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       elif len(sent_by_me) > 1:
         print(456456)
         print(func.normalize_text(sent_by_me[-1].text))
-        print(func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text))
         print(func.normalize_text(fst_message))
         print("------------------------------")
-        print(func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
         print(func.normalize_text(return_foot_message))
-        if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
