@@ -616,10 +616,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             pass
       elif len(sent_by_me) > 1:
         print(456456)
-        print(sent_by_me[-1].text)
+        print(func.normalize_text(sent_by_me[-1].text))
         print(func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(fst_message))
+        print("------------------------------")
         print(func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text))
-
+        print(func.normalize_text(return_foot_message))
         if func.normalize_text(fst_message) == func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) == func.normalize_text(sent_by_me[-1].text):
           print("2ndメールを送信します")
           print(len(sent_by_me))
