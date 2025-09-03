@@ -97,7 +97,7 @@ def jmail_debug(headless):
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
     
-    if (6 <= now.hour <= 7) or (20 <= now.hour <= 21):
+    if (8 <= now.hour <= 9) or (20 <= now.hour <= 21):
       if repost_flug:
         if chara_name_list:
           repost_chara = chara_name_list.pop()

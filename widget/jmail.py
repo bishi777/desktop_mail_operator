@@ -114,8 +114,8 @@ def start_jmail_drivers(jmail_list, headless, base_path):
   try:
     for i in jmail_list:
       name = i["name"]
-      # if name != "えりか":
-      #   continue
+      if name != "えりか":
+        continue
       profile_path = os.path.join(base_path, f"{i['name']}_{uuid.uuid4().hex}")
 
       # profile_path = os.path.join(base_path, i["name"])
