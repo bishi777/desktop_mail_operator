@@ -12,14 +12,14 @@ import random
 user_data = func.get_user_data()
 wait_time = 1.5
 user_mail_info = [
+  user_data['user'][0]['user_email'],
   user_data['user'][0]['gmail_account'],
   user_data['user'][0]['gmail_account_password'],
-  user_data['user'][0]['user_email'],
   ]
 spare_mail_info = [
   "siliboco68@gmail.com",
-  "akkcxweqzdplcymh",
   "gifopeho@kmail.li",
+  "akkcxweqzdplcymh",
 ]
 
 pcmax_datas = user_data["jmail"]
