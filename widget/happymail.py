@@ -1066,7 +1066,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         
     # メールするをクリック
     if send_status and fst_message:
-      fst_message = fst_message.format(user_name=user_name)
+      fst_message = fst_message.format(name=user_name)
       catch_warning_screen(driver)
       text_area = driver.find_element(By.ID, value="text-message")
       script = "arguments[0].value = arguments[1];"
