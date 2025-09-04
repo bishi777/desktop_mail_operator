@@ -404,7 +404,10 @@ def check_top_image(name,driver):
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail,
-               mailserver_address, mailserver_password, receiving_address):
+               mail_info):
+  mailserver_address = mail_info[0]
+  mailserver_password = mail_info[1]
+  receiving_address = mail_info[2]
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   return_list = []

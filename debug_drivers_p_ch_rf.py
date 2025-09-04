@@ -18,9 +18,17 @@ import sys
 arg1 = sys.argv[1] if len(sys.argv) > 1 else None
 user_data = func.get_user_data()
 wait_time = 1.5
-mailserver_address = user_data['user'][0]['gmail_account']
-mailserver_password = user_data['user'][0]['gmail_account_password']
-receiving_address = user_data['user'][0]['user_email']
+user_mail_info = [
+  user_data['user'][0]['gmail_account'],
+  user_data['user'][0]['gmail_account_password'],
+  user_data['user'][0]['user_email'],
+  ]
+spare_mail_info = [
+  "siliboco68@gmail.com",
+  "akkcxweqzdplcymh",
+  "gifopeho@kmail.li",
+]
+mail_info = random.choice([user_mail_info, spare_mail_info])
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
@@ -146,7 +154,7 @@ while True:
           if top_image_flug:
             func.send_mail(
               f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
-              [receiving_address,mailserver_address,mailserver_password,],
+              mail_info,
               f"PCMAX トップ画像の更新 ",
             )
         except Exception as e:
@@ -154,7 +162,7 @@ while True:
           traceback.print_exc()
         try:
           print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mailserver_address, mailserver_password, receiving_address)
+          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
@@ -173,7 +181,7 @@ while True:
               try:
                 func.send_mail(
                   f"足跡返しの報告\n{report_dict}\n",
-                  [receiving_address,mailserver_address,mailserver_password,],
+                  mail_info,
                   f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
                 )
                 send_flug = False
