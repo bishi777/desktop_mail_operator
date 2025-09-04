@@ -1648,7 +1648,6 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     login_users_wait_cnt = 0
     login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     while len(login_users) == 0:
-      print(3333)
       time.sleep(1)
       login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
       login_users_wait_cnt += 1

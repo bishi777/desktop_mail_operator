@@ -142,9 +142,9 @@ while True:
         send_cnt = 3  
         
         try:
-          print(f"いいかもリストチェック開始 {name}")
+          # print(f"いいかもリストチェック開始 {name}")
           iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
-          print(f"いいかもリストチェック完了 {name}")
+          # print(f"いいかもリストチェック完了 {name}")
           report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
           send_cnt -= (iikamo_cnt or 0)
         except Exception as e:

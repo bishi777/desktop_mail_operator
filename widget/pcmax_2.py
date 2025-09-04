@@ -854,16 +854,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(0.8)
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       for pressed_type in pressed_types:
-        print(123123)
         user_n = (pressed_type.get_dom_attribute("data-va5")
           or pressed_type.get_dom_attribute("data-go2"))
-        print(user_n)
+        # print(user_n)
         if user_name in user_n:
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
           time.sleep(1.5)
           user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
-          print(666)
-          print(user_link.get_attribute("href"))
+          # print(user_link.get_attribute("href"))
           driver.get(user_link.get_attribute("href"))
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.2)
