@@ -110,7 +110,8 @@ while True:
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         func.send_error(name_on_pcmax[0].text, f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")   
       name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")  
+      now = datetime.now()
+      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~{now.strftime('%Y-%m-%d %H:%M:%S')}~~~~~~~~~~~~")  
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  

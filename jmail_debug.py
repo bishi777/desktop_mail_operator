@@ -44,7 +44,8 @@ def jmail_debug(headless):
     if drivers == {}:
       break
     for name, data in drivers.items():
-      print(f"  📄 ---------- {name} ------------")
+      now = datetime.now()
+      print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       try:
