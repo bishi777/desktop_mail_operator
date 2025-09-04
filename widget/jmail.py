@@ -158,6 +158,9 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
   if fst_message == "":
     print(f"{name}のjmailキャラ情報に1stメッセージが設定されていません")
     return submitted_users
+  driver.get("https://mintj.com/msm/mainmenu/?sid=")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.7)
   warning_flug = catch_warning(driver, wait)
   if warning_flug is False:
     print(f"jmail:{name}に警告画面が出ている可能性があります")

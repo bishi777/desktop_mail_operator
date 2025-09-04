@@ -7,16 +7,21 @@ import requests
 import traceback
 from datetime import datetime
 from selenium.common.exceptions import TimeoutException
+import random
 
 user_data = func.get_user_data()
 wait_time = 1.5
-mailserver_address = user_data['user'][0]['gmail_account']
-mailserver_password = user_data['user'][0]['gmail_account_password']
-receiving_address = user_data['user'][0]['user_email']
-if mailserver_address and mailserver_password and receiving_address:
-  mail_info = [
-    receiving_address, mailserver_address, mailserver_password, 
+user_mail_info = [
+  user_data['user'][0]['gmail_account'],
+  user_data['user'][0]['gmail_account_password'],
+  user_data['user'][0]['user_email'],
   ]
+spare_mail_info = [
+  "siliboco68@gmail.com",
+  "akkcxweqzdplcymh",
+  "gifopeho@kmail.li",
+]
+
 pcmax_datas = user_data["jmail"]
 post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
@@ -33,6 +38,7 @@ def jmail_debug(headless):
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   
   while True:
+    mail_info = random.choice([user_mail_info, spare_mail_info])
     start_loop_time = time.time()
     now = datetime.now()
     if drivers == {}:
