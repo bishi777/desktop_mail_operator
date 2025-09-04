@@ -731,6 +731,7 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
       time.sleep(0.5)
       match_users = driver.find_elements(By.CLASS_NAME, 'list_box')
       if len(match_users):
+        print("いいかも返し")
         match_users[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
@@ -777,7 +778,9 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
       # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.3)  
     now = datetime.now().strftime('%m-%d %H:%M:%S')
+    print(f"いいかも　まじ送信{maji_soushin}  {now}")
     if maji_soushin:
+      print("いいかも返しまじ送信")
       maji =  driver.find_element(By.ID, value="majiBtn")
       maji.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -786,6 +789,7 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
       link_OK.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
     else:
+      print("いいかも返しメッセージ送信")
       driver.find_element(By.ID, 'send3').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.7)
