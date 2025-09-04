@@ -28,7 +28,6 @@ spare_mail_info = [
   "akkcxweqzdplcymh",
   "gifopeho@kmail.li",
 ]
-mail_info = random.choice([user_mail_info, spare_mail_info])
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
@@ -40,6 +39,7 @@ report_dict = {}
 send_flug = False
 
 while True:
+  mail_info = random.choice([user_mail_info, spare_mail_info])
   start_loop_time = time.time()
   now = datetime.now()
   for idx, handle in enumerate(handles): 
