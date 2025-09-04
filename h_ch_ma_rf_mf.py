@@ -38,16 +38,21 @@ drivers = {}
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
-mail_info = None
+
 last_reset_hour = None  
 send_flug = False
 
 if mailaddress and gmail_password and receiving_address:
-  mail_info = [
+  user_mail_info = [
     receiving_address, mailaddress, gmail_password, 
   ]
+spare_mail_info = [
+  "gifopeho@kmail.li",
+  "siliboco68@gmail.com",
+  "akkcxweqzdplcymh",
+]
 try:
-  drivers = happymail.start_the_drivers_login(mail_info, first_half, headless, profile_path, True)
+  drivers = happymail.start_the_drivers_login(spare_mail_info, first_half, headless, profile_path, True)
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
   matching_daily_limit = 5
@@ -61,6 +66,7 @@ try:
     report_dict[i["name"]] = [0, send_flug]
 
   while True:
+    mail_info = random.choice([user_mail_info, spare_mail_info])
     start_loop_time = time.time()
     if drivers == {}:
       break
