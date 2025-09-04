@@ -43,6 +43,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 import mimetypes
 import difflib
+from PIL import Image
 
 def replace_name_if_diff(text1, text2):
     matcher = difflib.SequenceMatcher(None, text1, text2)
@@ -1112,3 +1113,31 @@ def safe_execute(driver, action, *args, **kwargs):
       return None
   print(f"[エラー] 最大試行回数 ({MAX_RETRIES}) に達したためスキップします")
   return None
+
+def compress_image(input_path, output_path=None, max_width=1280, quality=65):
+    """
+    PNGなどのスクショをJPEGへ変換しつつ圧縮。
+    - max_width を超える場合はアスペクト比を保って縮小
+    - quality は 50〜70 くらいが目安
+    戻り値: 出力ファイルのパス
+    """
+    if output_path is None:
+        base, _ = os.path.splitext(input_path)
+        output_path = base + "_compressed.jpg"
+
+    # 画像を開く
+    with Image.open(input_path) as im:
+        # JPEG用にRGBへ
+        if im.mode != "RGB":
+            im = im.convert("RGB")
+
+        # リサイズ（横幅基準）
+        w, h = im.size
+        if w > max_width:
+            new_h = int(h * (max_width / w))
+            im = im.resize((max_width, new_h), Image.LANCZOS)
+
+        # 圧縮保存（最小限のサイズにしたいなら optimize=True / progressive=True）
+        im.save(output_path, format="JPEG", quality=quality, optimize=True, progressive=True)
+
+    return output_path

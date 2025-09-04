@@ -24,7 +24,7 @@ import shutil
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
 import uuid
-
+from PIL import Image
 
 def catch_warning(driver, wait):
   loader = driver.find_elements(By.ID, value="loader")
@@ -486,15 +486,20 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                   time.sleep(2)
                   catch_warning(driver, wait)
                   # スクショして送信
-                  driver.save_screenshot("screenshot2.png")
+                  driver.save_screenshot("screenshot.png")
+                  # 圧縮（JPEG化＋リサイズ＋品質調整）
+                  compressed_path = func.compress_image("screenshot.png")  # 例: screenshot2_compressed.jpg ができる
                   title = f"{name}jmail おじさんメッセージ"
                   text = send_by_user_message   
                   # メール送信
                   if mail_info:
-                    func.send_mail(text, mail_info, title,  "screenshot2.png")
-                  # 送信後にスクショ削除
-                  if os.path.exists("screenshot2.png"):
-                    os.remove("screenshot2.png")
+                    func.send_mail(text, mail_info, title,  compressed_path)
+                  for p in ["screenshot.png", compressed_path]:
+                    try:
+                      if os.path.exists(p):
+                        os.remove(p)
+                    except Exception as e:
+                      print(f"⚠️ 後処理で削除失敗: {p} -> {e}")
                   break
             # メール一覧に戻る　message_back
             back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
