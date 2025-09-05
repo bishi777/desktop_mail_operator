@@ -17,11 +17,10 @@ user_mail_info = [
   user_data['user'][0]['gmail_account_password'],
   ]
 spare_mail_info = [
-  "siliboco68@gmail.com",
   "gifopeho@kmail.li",
+  "siliboco68@gmail.com",
   "akkcxweqzdplcymh",
 ]
-
 pcmax_datas = user_data["jmail"]
 post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
