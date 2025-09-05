@@ -127,7 +127,7 @@ def start_jmail_drivers(jmail_list, headless, base_path):
       driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "mail_address":i["mail_address"]}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "mail_address":i["mail_address"], "gmail_password":i["gmail_password"]}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
