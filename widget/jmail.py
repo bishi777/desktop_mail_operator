@@ -186,9 +186,10 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
   interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
   # 未読メールをチェック
   sended_mail = False
-  for interacting_user_cnt in range(len(interacting_users)):
+  while len(interacting_users):
+  # for interacting_user_cnt in range(len(interacting_users)):
     # interacting_userリストを取得
-    interacting_user_name = interacting_users[interacting_user_cnt].text
+    interacting_user_name = interacting_users[0].text
     if "未読" in interacting_user_name:
       interacting_user_name = interacting_user_name.replace("未読", "")
     if "退会" in interacting_user_name:
