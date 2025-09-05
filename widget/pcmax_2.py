@@ -857,18 +857,25 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-      for pressed_type in pressed_types:
-        user_n = (pressed_type.get_dom_attribute("data-va5")
-          or pressed_type.get_dom_attribute("data-go2"))
-        # print(user_n)
-        if user_name in user_n:
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
-          time.sleep(1.5)
-          user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
-          # print(user_link.get_attribute("href"))
-          driver.get(user_link.get_attribute("href"))
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.2)
+      for idx in range(len(pressed_types)):
+        try:
+          pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
+          pressed_type = pressed_types[idx]
+          user_n = (pressed_type.get_dom_attribute("data-va5")
+                    or pressed_type.get_dom_attribute("data-go2"))
+          if user_n and user_name in user_n:  # Noneチェックを追加
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
+            time.sleep(1.5)
+            user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
+            href = user_link.get_attribute("href")
+            if href:
+              driver.get(href)
+              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+              time.sleep(0.2)
+            break
+        except Exception as e:
+          print(f"⚠️ 要素処理エラー: {e}")
+          print(traceback.format_exc())
           break
       try:
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
@@ -882,9 +889,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         img_path = f"{name}_error.png"
         print(user_name)
         print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(traceback.format_exc())
         
-
-
         driver.save_screenshot(img_path)
         func.send_error(
             chara=name,
