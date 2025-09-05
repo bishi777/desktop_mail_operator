@@ -405,9 +405,9 @@ def check_top_image(name,driver):
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail,
                mail_info):
-  mailserver_address = mail_info[0]
-  mailserver_password = mail_info[1]
-  receiving_address = mail_info[2]
+  mailserver_address = mail_info[1]
+  mailserver_password = mail_info[2]
+  receiving_address = mail_info[0]
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   return_list = []
@@ -647,6 +647,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           except Exception as e:
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
+            print(mail_info)
           return_list.append(return_message)
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
