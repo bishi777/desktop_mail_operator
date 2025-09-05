@@ -861,11 +861,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           pressed_type = pressed_types[idx]
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))
+          print(user_n)
           if user_n and user_name in user_n:  # Noneチェックを追加
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
             time.sleep(1.5)
             user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
             href = user_link.get_attribute("href")
+            print(777)
+            print(href)
             if href:
               driver.get(href)
               wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
