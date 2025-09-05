@@ -19,14 +19,14 @@ arg1 = sys.argv[1] if len(sys.argv) > 1 else None
 user_data = func.get_user_data()
 wait_time = 1.5
 user_mail_info = [
+  user_data['user'][0]['user_email'],
   user_data['user'][0]['gmail_account'],
   user_data['user'][0]['gmail_account_password'],
-  user_data['user'][0]['user_email'],
   ]
 spare_mail_info = [
+  "ryapya694@ruru.be",
   "siliboco68@gmail.com",
   "akkcxweqzdplcymh",
-  "gifopeho@kmail.li",
 ]
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
@@ -37,6 +37,8 @@ wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 report_dict = {}
 send_flug = False
+
+
 
 while True:
   mail_info = random.choice([user_mail_info, spare_mail_info])
@@ -190,6 +192,8 @@ while True:
               except Exception as e:
                 print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
                 traceback.print_exc()   
+                print('~~~~~~~~~')
+                print(mail_info)
           else:
             send_flug = True
          

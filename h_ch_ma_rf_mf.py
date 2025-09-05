@@ -47,7 +47,7 @@ if mailaddress and gmail_password and receiving_address:
     receiving_address, mailaddress, gmail_password, 
   ]
 spare_mail_info = [
-  "gifopeho@kmail.li",
+  "ryapya694@ruru.be",  
   "siliboco68@gmail.com",
   "akkcxweqzdplcymh",
 ]
