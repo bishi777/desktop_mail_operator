@@ -149,9 +149,13 @@ def jmail_debug(headless):
         repost_flug = True
 
     elapsed_time = time.time() - start_loop_time
+    wait_cnt = 0
     while elapsed_time < 600:
       time.sleep(20)
       elapsed_time = time.time() - start_loop_time
+      if wait_cnt % 3 == 0:
+        print(f"待機中~~ {elapsed_time} ")
+      wait_cnt += 1
       print(f"待機中~~ {elapsed_time} ")
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
     elapsed_time = time.time() - start_loop_time
