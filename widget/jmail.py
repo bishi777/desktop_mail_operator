@@ -393,7 +393,17 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           back[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
+        message_tab = driver.find_element(By.CLASS_NAME, value="message_tab")
+        link_message_tabs = message_tab.find_elements(By.TAG_NAME, value="a")
+        for link_message_tab in link_message_tabs:
+          if "未読" in link_message_tab.text:
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", link_message_tab)
+            link_message_tab.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+            break
         interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")  
+        
   pager = driver.find_elements(By.CLASS_NAME, value="pager")
   if len(pager):
     pager_link = pager[0].find_elements(By.TAG_NAME, value="a")
