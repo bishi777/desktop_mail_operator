@@ -156,7 +156,6 @@ def jmail_debug(headless):
       if wait_cnt % 3 == 0:
         print(f"待機中~~ {elapsed_time} ")
       wait_cnt += 1
-      print(f"待機中~~ {elapsed_time} ")
     print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
     elapsed_time = time.time() - start_loop_time
     minutes, seconds = divmod(int(elapsed_time), 60)
