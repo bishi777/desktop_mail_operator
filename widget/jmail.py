@@ -309,9 +309,9 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
               print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
               return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
               func.send_mail(
-                f"{name}jmail",
-                mail_info, 
                 return_message, 
+                mail_info, 
+                f"{name}jmail",
                 )
               print("捨てメアドに、送信しました")
               image_path = ""
@@ -321,9 +321,9 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
             print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
             return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
             func.send_mail(
-              f"{name}jmail",
-              mail_info, 
               return_message, 
+              mail_info, 
+              f"{name}jmail",
               )
             print("捨てメアドに、送信しました")
             image_path = ""
@@ -523,9 +523,9 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                 print(f"{name}   {login_id}  {password} : {interacting_user_name}  ;;;;{send_by_user_message}")
                 return_message = f"{name}jmail,{login_id}:{password}\n{interacting_user_name}「{send_by_user_message}」"
                 func.send_mail(
-                  f"{name}jmail",
-                  mail_info, 
                   return_message, 
+                  mail_info, 
+                  f"{name}jmail",
                   )
                 print("捨てメアドに、送信しました")
                 image_path = ""
