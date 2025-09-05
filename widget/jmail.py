@@ -1286,6 +1286,7 @@ def post_set(post_title, post_contents, driver, wait):
   time.sleep(1)
 
 def change_areas(area, driver, wait):
+  catch_warning(driver, wait)
   setting_icon = driver.find_elements(By.CLASS_NAME, value="setting-off")
   setting_icon[0].click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1294,6 +1295,7 @@ def change_areas(area, driver, wait):
   driver.find_element(By.ID, value="settingmenu-list").find_element(By.XPATH, "//*[contains(text(), 'マイプロフ')]").click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
+  catch_warning(driver, wait)
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, value="state_id"))
   time.sleep(1.5)
   select = Select(driver.find_element(By.ID, value="state_id"))
@@ -1304,7 +1306,6 @@ def change_areas(area, driver, wait):
   time.sleep(1)
 
 def re_post(data, post_areas, driver,wait):
-  
   post_title = data["post_title"]
   post_contents = data["post_contents"]
   if not post_title:
