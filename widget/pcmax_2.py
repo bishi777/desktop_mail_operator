@@ -442,13 +442,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       driver.find_element(By.CLASS_NAME, "btn2").click()
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
-      received_mail = received_elems[-1].text if received_elems else ""
-      received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@").replace("\n", "")
-      email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-      email_list = re.findall(email_pattern, received_mail)
+      for received_message in received_elems:
+        received_message = received_message[-1].text if received_message else ""
+        received_mail = received_message.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@").replace("\n", "")
+        email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+        email_list = re.findall(email_pattern, received_mail)
       user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
       print(len(sent_by_me))
-      
       # DEBUG
       # if True:
       if email_list:
