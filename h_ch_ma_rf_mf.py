@@ -173,10 +173,13 @@ try:
             happymail_new_list.append(top_image_check)  
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    wait_cnt = 0
     while elapsed_time < 720:
       time.sleep(30)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
-      print(f"待機中~~ {elapsed_time} ")
+      if wait_cnt % 2 == 0:
+        print(f"待機中~~ {elapsed_time} ")
+      wait_cnt += 1
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
