@@ -127,7 +127,7 @@ def start_jmail_drivers(jmail_list, headless, base_path):
       driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "conditions_message":i["second_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"],"second_message":i["second_message"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "mail_address":i["mail_address"], "gmail_password":i["gmail_password"]}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "second_message":i["second_message"],"conditions_message":i["conditions_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "mail_address":i["mail_address"], "gmail_password":i["gmail_password"]}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
@@ -146,6 +146,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
   password = jmail_info['password']
   fst_message = jmail_info['fst_message']
   second_message = jmail_info['second_message']
+  condition_message = jmail_info['conditions_message']
   submitted_users = jmail_info['submitted_users']
   mail_img = jmail_info['chara_image']
   mail_address_image = jmail_info['mail_address_image']
@@ -272,6 +273,22 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
               time.sleep(2)
             except Exception:
               pass
+          else:
+            # アド内条件
+            site = "Jメール"
+            try:
+              func.normalize_text(condition_message)
+              func.send_conditional(interacting_user_name, mail_info[0], mail_info[1], mail_info[2], condition_message, site)
+              print("アドレス内1stメールを送信しました")
+            except Exception:
+              print(f"{name} アドレス内1stメールの送信に失敗しました")
+              error = traceback.format_exc()
+              traceback.print_exc()
+              print(mail_info)
+              print(condition_message)
+              func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{mail_info}\n\n{error}",
+                                    )
+            send_message = ""
         else:
           # 掲示板からきたか判定
           color_variations_03 = driver.find_elements(By.CLASS_NAME, value="color_variations_03")
@@ -281,8 +298,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                 print(f"{interacting_user_name}さんは掲示板から来た")
                 from_mypost = True
                 break
-        # 相手からのメッセージが何通目か確認する
-        if not sended_mail:
+          # 相手からのメッセージが何通目か確認する
           send_by_me = driver.find_elements(By.CLASS_NAME, value="balloon_right")
           my_length = len(send_by_me)
           if my_length == 0:
@@ -495,6 +511,22 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                   time.sleep(2)
                 except Exception:
                   pass
+              else:
+                # アド内条件
+                site = "Jメール"
+                try:
+                  func.normalize_text(condition_message)
+                  func.send_conditional(interacting_user_name, mail_info[0], mail_info[1], mail_info[2], condition_message, site)
+                  print("アドレス内1stメールを送信しました")
+                except Exception:
+                  print(f"{name} アドレス内1stメールの送信に失敗しました")
+                  error = traceback.format_exc()
+                  traceback.print_exc()
+                  print(mail_info)
+                  print(condition_message)
+                  func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{mail_info}\n\n{error}",
+                                        )
+                send_message = ""                        
             else:
               # 掲示板からきたか判定
               color_variations_03 = driver.find_elements(By.CLASS_NAME, value="color_variations_03")

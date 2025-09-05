@@ -410,7 +410,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   receiving_address = mail_info[0]
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
-  return_list = []
   new_message_flag = get_header_menu(driver, "メッセージ")
   if not new_message_flag:
     return
@@ -610,7 +609,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           except Exception as e:
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
-          return_list.append(return_message)
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
             time.sleep(1)
@@ -648,7 +646,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
             print(mail_info)
-          return_list.append(return_message)
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
             time.sleep(1)
