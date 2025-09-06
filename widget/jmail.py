@@ -279,7 +279,8 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
             site = "Jメール"
             try:
               func.normalize_text(condition_message)
-              func.send_conditional(interacting_user_name, mail_info[0], mail_info[1], mail_info[2], condition_message, site)
+              # 2345
+              func.send_conditional(interacting_user_name, email_list, gmail_address, gmail_password, condition_message, site)
               print("アドレス内1stメールを送信しました")
             except Exception:
               print(f"{name} アドレス内1stメールの送信に失敗しました")
@@ -517,7 +518,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                 site = "Jメール"
                 try:
                   func.normalize_text(condition_message)
-                  func.send_conditional(interacting_user_name, mail_info[0], mail_info[1], mail_info[2], condition_message, site)
+                  func.send_conditional(interacting_user_name, email_list, gmail_address, gmail_password, condition_message, site)
                   print("アドレス内1stメールを送信しました")
                 except Exception:
                   print(f"{name} アドレス内1stメールの送信に失敗しました")
