@@ -200,14 +200,14 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       interacting_user_name = interacting_user_name.replace("　", "")
     # 未読、退会以外でNEWのアイコンも存在してそう
     # NEWアイコンがあるかチェック
-    new_icon = interacting_users[interacting_user_cnt].find_elements(By.TAG_NAME, value="img")
-    if "テラ" in interacting_users[interacting_user_cnt].text or len(new_icon):
+    new_icon = interacting_users[0].find_elements(By.TAG_NAME, value="img")
+    if "テラ" in interacting_users[0].text or len(new_icon):
       submitted_users.append(interacting_user_name)
-    if "未読" in interacting_users[interacting_user_cnt].text or len(new_icon):
+    if "未読" in interacting_users[0].text or len(new_icon):
     # deug
     # if True:
       # 時間を取得　
-      parent_usr_info = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+      parent_usr_info = interacting_users[0].find_element(By.XPATH, "./..")
       parent_usr_info = parent_usr_info.find_element(By.XPATH, "./..")
       next_element = parent_usr_info.find_element(By.XPATH, value="following-sibling::*[1]")
       current_year = datetime.now().year
@@ -221,7 +221,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       # print(interacting_user_name)
 
       # 年齢を取得
-      age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[interacting_user_cnt]
+      age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
       match = re.search(r"\d+～\d+", age_element.text)
       if match:
         age_range = match.group()
@@ -241,7 +241,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         send_message = ""
         ojisan_flag = False
         # リンクを取得
-        link_element = interacting_users[interacting_user_cnt].find_element(By.XPATH, "./..")
+        link_element = interacting_users[0].find_element(By.XPATH, "./..")
         driver.get(link_element.get_attribute("href"))
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
