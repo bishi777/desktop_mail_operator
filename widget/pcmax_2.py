@@ -865,6 +865,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           
           if user_n and user_name in user_n:  # Noneチェックを追加
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1.5)
             pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
             pressed_type = pressed_types[idx]
