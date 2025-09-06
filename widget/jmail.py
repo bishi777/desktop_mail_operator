@@ -254,26 +254,27 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         if email_list:
           print(f"メールアドレスが見つかりました: {email_list}")
           if name == "つむぎ" or "icloud.com" in received_mail:
-            # print("icloud.comが含まれています")
-            icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
-            try:
-              # 返信するをクリック
-              res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
-              res_do[1].click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(2)
-              # メッセージを入力　name=comment
-              text_area = driver.find_elements(By.NAME, value="comment")
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area[0], send_message)
-              time.sleep(4)
-              
-              send_button = driver.find_elements(By.NAME, value="sendbutton")
-              send_button[0].click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(2)
-            except Exception:
-              pass
+            print("icloud.comが含まれています")
+            if gmail_address:
+              icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
+              try:
+                # 返信するをクリック
+                res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
+                res_do[1].click()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+                # メッセージを入力　name=comment
+                text_area = driver.find_elements(By.NAME, value="comment")
+                script = "arguments[0].value = arguments[1];"
+                driver.execute_script(script, text_area[0], icloud_text)
+                time.sleep(4)
+                
+                send_button = driver.find_elements(By.NAME, value="sendbutton")
+                send_button[0].click()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+              except Exception:
+                pass
           else:
             # アド内条件
             site = "Jメール"
