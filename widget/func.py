@@ -288,7 +288,6 @@ def timer(fnc, seconds, h_cnt, p_cnt):
       time.sleep(10)
   return True
 
-
 def send_conditional(user_name, user_address, mailaddress, password, text, site):
   subject = f'{site}でやり取りしてた{user_name}さんでしょうか？'
   text = text

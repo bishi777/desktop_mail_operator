@@ -142,8 +142,7 @@ def jmail_debug(headless):
     elapsed_time = time.time() - start_loop_time
     minutes, seconds = divmod(int(elapsed_time), 60)
     print(f"タイム: {minutes}分{seconds}秒")  
-    
-    
+     
 if __name__ == '__main__':
   headless = False
   jmail_debug(headless)

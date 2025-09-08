@@ -604,7 +604,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
           return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
           try:
-            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  "pcmax新着")
+            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
             print("通知メールを送信しました")
           except Exception as e:
             print(f"{name} 通知メールの送信に失敗しました")

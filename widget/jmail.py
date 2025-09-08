@@ -140,7 +140,6 @@ def start_jmail_drivers(jmail_list, headless, base_path):
     print("エラーが発生しました:", e)
     traceback.print_exc()
 
-
 def check_mail(name, jmail_info, driver, wait, mail_info):
   login_id = jmail_info['login_id']
   password = jmail_info['password']
