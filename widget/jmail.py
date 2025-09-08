@@ -114,8 +114,8 @@ def start_jmail_drivers(jmail_list, headless, base_path):
   try:
     for i in jmail_list:
       name = i["name"]
-      if name != "えりか":
-        continue
+      # if name != "えりか":
+      #   continue
       profile_path = os.path.join(base_path, f"{i['name']}_{uuid.uuid4().hex}")
 
       # profile_path = os.path.join(base_path, i["name"])
@@ -127,7 +127,7 @@ def start_jmail_drivers(jmail_list, headless, base_path):
       driver,wait = func.get_multi_driver(profile_path, headless, user_agent)
       
       login_flug = login_jmail(driver, wait, i["login_id"], i["password"])
-      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "second_message":i["second_message"],"conditions_message":i["conditions_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "mail_address":i["mail_address"], "gmail_password":i["gmail_password"]}
+      drivers[i["name"]] = {"name":i["name"], "login_id":i["login_id"], "password":i["password"], "post_title":i["post_title"], "post_contents":i["post_contents"],"driver": driver, "wait": wait, "fst_message": i["fst_message"], "return_foot_message":i["return_foot_message"], "second_message":i["second_message"],"conditions_message":i["conditions_message"], "mail_img":i["chara_image"], "submitted_users":i["submitted_users"], "chara_image":i["chara_image"], "mail_address_image":i["mail_address_image"], "submitted_users":i["submitted_users"], "young_submitted_users":i["young_submitted_users"], "mail_address":i["mail_address"], "gmail_password":i["gmail_password"]}
     return drivers
   except KeyboardInterrupt:
     # Ctrl+C が押された場合
@@ -151,6 +151,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
   mail_img = jmail_info['chara_image']
   mail_address_image = jmail_info['mail_address_image']
   submitted_users = jmail_info['submitted_users']
+  young_submitted_users = jmail_info['young_submitted_users']
   gmail_address = jmail_info['mail_address']
   gmail_password = jmail_info['gmail_password']
   from_mypost = False
@@ -236,8 +237,12 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       # if True:
       if elapsed_time >= timedelta(minutes=4):
         print("4分以上経過しています。")
-        if interacting_user_name not in submitted_users:
-          submitted_users.append(interacting_user_name)
+        if young_flag:
+          if interacting_user_name not in young_submitted_users:
+            young_submitted_users.append(interacting_user_name)
+        else:
+          if interacting_user_name not in submitted_users:
+            submitted_users.append(interacting_user_name)
         send_message = ""
         ojisan_flag = False
         # リンクを取得
@@ -631,7 +636,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         pager = driver.find_elements(By.CLASS_NAME, value="pager")
         if len(pager):
           pager_link = pager[0].find_elements(By.TAG_NAME, value="a")
-  return submitted_users      
+  return young_submitted_users, submitted_users      
   
 
 # # sqlite version

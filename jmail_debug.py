@@ -27,8 +27,6 @@ base_path = "chrome_profiles/j_footprint"
 api_url = "https://meruopetyan.com/api/update-submitted-users/"
 # api_url = "http://127.0.0.1:8000/api/update-submitted-users/"
 
-
-
 def jmail_debug(headless):
   repost_flug = True
   user_data = func.get_user_data()
@@ -48,7 +46,7 @@ def jmail_debug(headless):
       driver = drivers[name]["driver"]
       wait = drivers[name]["wait"]
       try:
-        submitted_users = jmail.check_mail(name,data, driver, wait, mail_info)
+        young_submitted_users, submitted_users  = jmail.check_mail(name,data, driver, wait, mail_info)
       except TimeoutException as e:
         print("新着メールチェックTimeoutException")
         driver.refresh()
@@ -91,7 +89,8 @@ def jmail_debug(headless):
       payload = {
         "login_id": drivers[name]["login_id"],
         "password": drivers[name]["password"],
-        "submitted_users": submitted_users
+        "submitted_users": submitted_users,
+        "young_submitted_users": young_submitted_users,
       }
       try:
         response = requests.post(api_url, json=payload)
@@ -103,7 +102,7 @@ def jmail_debug(headless):
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
     
-    if (8 <= now.hour <= 9) or (20 <= now.hour <= 21):
+    if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
       if repost_flug:
         if chara_name_list:
           repost_chara = chara_name_list.pop()
