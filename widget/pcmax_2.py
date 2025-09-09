@@ -855,25 +855,40 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
+      print(888)
+      print(f"len(pressed_types) = {len(pressed_types)}")
+      if not len(pressed_types):
+        print(f"pressed_typesが取得できません {user_name}")
+        driver.refresh()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
+        print("*****************************")
+        print(len(pressed_types))
+        print("*****************************")
+        
       for idx in range(len(pressed_types)):
         try:
           pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
           pressed_type = pressed_types[idx]
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))
+          print(777)
           print(user_n)
-          
-          if user_n and user_name in user_n:  # Noneチェックを追加
+          print(f"idx = {idx}")
+          print(f"len(pressed_types) = {len(pressed_types)}")
+          if user_n and user_name in user_n: 
+            print(666) # Noneチェックを追加
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1.5)
             pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
             pressed_type = pressed_types[idx]
-            print(777)
+            print("pressed_type.get_attribute('outerHTML')")
             print(pressed_type.get_attribute("outerHTML"))
             user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
             href = user_link.get_attribute("href")
-            print(777)
+            print("ユーザー　href")
             print(href)
             if href:
               driver.get(href)
