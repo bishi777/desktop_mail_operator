@@ -361,11 +361,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")      
           # if len(send_message):
           send_me_length = len(send_message)
-          # sent_text_element = send_message[-1]            
-          img = send_message[0].find_elements(By.TAG_NAME, value="img")
-          if len(img):
-            print("画像あり")
-            send_me_length -= 1
+          # sent_text_element = send_message[-1]
+          if len(send_message):      
+            img = send_message[0].find_elements(By.TAG_NAME, value="img")
+            if len(img):
+              print("画像あり")
+              send_me_length -= 1
             # print(send_message[-2].text)
             # sent_text_element = send_message[-2]
           # script = """
