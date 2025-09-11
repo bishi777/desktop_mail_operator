@@ -875,6 +875,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
                     or pressed_type.get_dom_attribute("data-go2"))
           print(777)
           print(user_n)
+          print("-------")
+          print(user_name)
           print(f"idx = {idx}")
           print(f"len(pressed_types) = {len(pressed_types)}")
           if user_n and user_name in user_n: 
