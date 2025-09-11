@@ -171,11 +171,12 @@ while True:
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
           try:
-            print("足跡返し開始")
+            print(f"足跡返し開始 {name} 現在{report_dict[name]}件")
             if send_cnt > 0:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)   
             report_dict[name] = report_dict[name] + rf_cnt
-            print("足跡返し完了")
+            print(f"足跡返し完了 {rf_cnt}件追加 {name} 　合計{report_dict[name]}件")
+            
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
