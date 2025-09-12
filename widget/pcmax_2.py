@@ -857,6 +857,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       print(888)
       print(f"len(pressed_types) = {len(pressed_types)}")
+      print(user_name)
       if not len(pressed_types):
         print(f"pressed_typesが取得できません {user_name}")
         driver.refresh()
@@ -871,9 +872,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         try:
           pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
           pressed_type = pressed_types[idx]
+          print(777)
+          print(pressed_type.get_attribute("outerHTML"))
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))
-          print(777)
+          
           print(user_n)
           print("-------")
           print(user_name)
