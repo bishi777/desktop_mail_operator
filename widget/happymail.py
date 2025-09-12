@@ -235,8 +235,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     # driver起動,ログイン
     # mohu = 0
     for i in happymail_list:
-      print(777)
-      print(i["name"])
+      
       # mohu += 1
       # if mohu > 4:
       #   continue
@@ -365,8 +364,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # if len(send_message):
           send_me_length = len(send_message)
           # sent_text_element = send_message[-1]
-          if len(send_message):      
-            img = send_message[0].find_elements(By.CLASS_NAME, value="attached_media_link")
+          print(9999)
+          print(send_me_length)
+
+          if len(send_message):
+            print(send_message[-1].get_attribute("outerHTML"))   
+            img = send_message[-1].find_elements(By.CLASS_NAME, value="attached_media_link")
             if len(img):
               print("画像あり")
               send_me_length -= 1
@@ -390,8 +393,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # return textContent;
           # """
           # text_without_children = driver.execute_script(script, sent_text_element) 
-          print(9999)
-          print(send_me_length)
+          
           if send_me_length == 0:
             send_message = fst_message.format(name=user_name) 
             print(1111111111111)
