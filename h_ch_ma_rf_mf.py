@@ -184,7 +184,7 @@ except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
   func.close_all_drivers(drivers)
-  os._exit(0)
+  sys.exit(0)
 except Exception as e:
   # 予期しないエラーが発生した場合
   func.close_all_drivers(drivers)
@@ -195,4 +195,4 @@ finally:
   # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
   # print(drivers)
   func.close_all_drivers(drivers)
-  os._exit(0)
+  sys.exit(0)

@@ -366,7 +366,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           send_me_length = len(send_message)
           # sent_text_element = send_message[-1]
           if len(send_message):      
-            img = send_message[0].find_elements(By.TAG_NAME, value="img")
+            img = send_message[0].find_elements(By.CLASS_NAME, value="attached_media_link")
             if len(img):
               print("画像あり")
               send_me_length -= 1
