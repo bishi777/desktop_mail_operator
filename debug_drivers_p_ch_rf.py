@@ -144,15 +144,6 @@ while True:
         send_cnt = 3  
         
         try:
-          # print(f"いいかもリストチェック開始 {name}")
-          iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
-          # print(f"いいかもリストチェック完了 {name}")
-          report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
-          send_cnt -= (iikamo_cnt or 0)
-        except Exception as e:
-          print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
-          traceback.print_exc()
-        try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
             func.send_mail(
@@ -170,6 +161,15 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+          try:
+            # print(f"いいかもリストチェック開始 {name}")
+            iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
+            # print(f"いいかもリストチェック完了 {name}")
+            report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
+            send_cnt -= (iikamo_cnt or 0)
+          except Exception as e:
+            print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
+            traceback.print_exc()
           try:
             print(f"足跡返し開始 {name} 現在{report_dict[name]}件")
             if send_cnt > 0:
