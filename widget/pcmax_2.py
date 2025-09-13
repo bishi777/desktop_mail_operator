@@ -813,8 +813,11 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
       
 
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img):
-  catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
+  driver.get("https://pcmax.jp/pcm/member.php")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  catch_warning_pop(name, driver)
   ashiato_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[2]
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
   time.sleep(0.5)
