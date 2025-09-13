@@ -735,13 +735,13 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
         time.sleep(1)
       else:
         return 0
-    else:
-      print("いいかもリストのページにいません")
+    
     try:
       memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
       if "もふ" in memo_edit.text:
         return 0  
     except NoSuchElementException:
+      print("ユーザー個別ページにアクセスしてない可能性があります")
       pass
     driver.find_element(By.CLASS_NAME, 'memo_open').click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
