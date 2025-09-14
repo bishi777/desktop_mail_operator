@@ -874,8 +874,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       for idx in range(len(pressed_types)):
         try:
           pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
-          pressed_type = pressed_types[idx]
           print(777)
+          print(idx)
+          print(len(pressed_types))
+          if not len(pressed_types):
+            print("pressed_typesがない")
+            time.sleep(2)
+            continue
+          pressed_type = pressed_types[idx]
+          print(666)
           print(pressed_type.get_attribute("outerHTML"))
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))

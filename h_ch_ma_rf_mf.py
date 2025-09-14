@@ -121,11 +121,13 @@ try:
                   if mail_info:
                     img_path = f"{i['name']}_ban.png"
                     driver.save_screenshot(img_path)
+                    # 圧縮（JPEG化＋リサイズ＋品質調整）
+                    compressed_path = func.compress_image(img_path)  # 例: screenshot2_compressed.jpg ができる
                     title = "メッセージ"
                     text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
               # メール送信
               if mail_info:
-                func.send_mail(text, mail_info, title, img_path)
+                func.send_mail(text, mail_info, title, compressed_path)
               else:
                 print("通知メールの送信に必要な情報が不足しています")
                 print(f"{mailaddress}   {gmail_password}  {receiving_address}")
@@ -188,6 +190,7 @@ except KeyboardInterrupt:
 except Exception as e:
   # 予期しないエラーが発生した場合
   func.close_all_drivers(drivers)
+  sys.exit(0)
   print("エラーが発生しました:", e)
   traceback.print_exc()
 finally:
