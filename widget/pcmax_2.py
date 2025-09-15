@@ -22,7 +22,7 @@ import threading
 from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 import shutil
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 
 
 def catch_warning_pop(name, driver):
@@ -893,16 +893,18 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1.5)
-            if not pressed_type:
-
-              pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
-              print(7778)
-              print(len(pressed_types))
-              pressed_type = pressed_types[idx]
-              print("~~~~~~~~~~~~~~~~~~~")
-              print(pressed_type)
-              print("~~~~~~~~~~~~~~~~~~~")
-            print(pressed_type.get_attribute("outerHTML"))
+            pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
+            try:
+              print(pressed_type.get_attribute("outerHTML"))
+            except StaleElementReferenceException:
+              print("⚠️ stale なので再取得します")
+              time.sleep(3)
+              pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
+              if idx < len(pressed_types):
+                  print(456)
+                  pressed_type = pressed_types[idx]
+                  print(pressed_type.get_attribute("outerHTML"))
+            
             user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
             href = user_link.get_attribute("href")
             print("ユーザー　href")
