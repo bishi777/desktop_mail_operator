@@ -239,7 +239,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
       # mohu += 1
       # if mohu > 4:
       #   continue
-      # if  i["name"] != "めあり":
+      # if  i["name"] != "きりこ":
       #   continue
       
       print("変更前:", func.get_current_ip())
@@ -306,6 +306,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
   
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,mail_img):
     return_list = []
+    new_mail_cnt = 0
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.7)
@@ -346,7 +347,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             minute=int(date_numbers[1])
           )
           elapsed_time = now - arrival_datetime
-          # print(f"メール到着からの経過時間{elapsed_time}")
+          print(f"メール到着からの経過時間{elapsed_time}")
           # 4分経過しているか
           # if True:
           if elapsed_time >= timedelta(minutes=4):
@@ -355,8 +356,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             for_minutes_passed = False
         if for_minutes_passed:
           print("4分以上経過しているメッセージあり")  
-          user_name = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
-          new_mail[0].click()
+          user_name = new_mail[new_mail_cnt].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
+          new_mail[new_mail_cnt].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           catch_warning_screen(driver)
@@ -549,6 +550,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")
+        else:
+          if len(new_mail):
+            new_mail_cnt += 1
+            if len(new_mail) <= new_mail_cnt:
+              break
+
     if len(return_list):
       return return_list
     else:
@@ -1143,10 +1150,26 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   from_other.click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5)
+  under_scroll_count = 0
   while return_type_counted < type_cnt:
     type_list = driver.find_element(By.ID , value="list_myself")
     type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     type_users_wait_cnt = 0
+    if len(type_users) <= user_icon_type: 
+      # print("ページの最後までスクロール")
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      under_scroll_count += 1
+      type_list = driver.find_element(By.ID , value="list_myself")
+      type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+      # print('---------')
+      # print(len(type_users))
+      # print(user_icon_type)
+      # print('---------')
+      if under_scroll_count > 3:
+        break
+  
     while len(type_users) == 0:
       time.sleep(2)
       type_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
@@ -1154,24 +1177,23 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       if type_users_wait_cnt == 3:
           return return_type_counted
     if len(type_users) <= user_icon_type:
-      # print("ユーザーアイコンの範囲を超えました1111")
-      # print(f"{len(type_users)}  {user_icon_type} ")
+      print("ユーザーアイコンの範囲を超えました1111")
+      print(f"{len(type_users)}  {user_icon_type} ")
       duplication_user = True
       break
     name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
+    
     while len(mail_icon):
       # print(f'送信履歴あり {user_name} ~ skip ~ {mail_icon_cnt} {len(type_users)} ::{user_icon_type}')
       mail_icon_cnt += 1
       user_icon_type += 1
       # # メールアイコンが5つ続いたら終了
       if mail_icon_cnt == 20: 
-        # print("タイプリストで送信履歴のあるユーザーが20回続きました")
+        print("タイプリストで送信履歴のあるユーザーが20回続きました")
         return return_type_counted
-      if user_icon_type >= len(type_users):
-        # print("mohu")
-        break  # 範囲チェック
+      
       name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -1205,16 +1227,9 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # print(f"年齢チェック {user_age.text} {user_name}")
     if not re.search(r"20代|18.?19", user_age.text):
       # print("年齢が１０〜２０代ではないユーザー　スキップします")
-      user_icon_type = user_icon_type + 1
-      if len(type_users) <= user_icon_type:
-        break
+      user_icon_type += 1
       continue
 
-    if len(type_users) <= user_icon_type:
-      # print("ユーザーアイコンの範囲を超えました")
-      # print(f"{len(type_users)}  {user_icon_type} ")
-      duplication_user = True
-      break
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     if duplication_user:
@@ -1227,7 +1242,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       type_button = type_users[user_icon_type].find_elements(By.CLASS_NAME, value="type_button")
       type_button[0].click()
     return_type_counted += 1
-    # print(f"タイプ返し　~{user_name}~ {return_type_counted}件")
+    print(f"タイプ返し　~{user_name}~ {return_type_counted}件")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.6)
     type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
