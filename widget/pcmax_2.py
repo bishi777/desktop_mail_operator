@@ -857,6 +857,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
+      print(f"タイプしました　{user_name}")
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       
       if not len(pressed_types):
@@ -872,13 +873,27 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       for idx in range(len(pressed_types)):
         try:
           pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
-          
           if not len(pressed_types):
             print("pressed_typesがない")
             time.sleep(2)
             continue
           pressed_type = pressed_types[idx]
 
+          try:
+            user_n = (pressed_type.get_dom_attribute("data-va5")
+                    or pressed_type.get_dom_attribute("data-go2"))  
+            
+          except StaleElementReferenceException:
+            print("⚠️ stale なので再取得します123123")
+            time.sleep(3)
+            pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
+            if idx < len(pressed_types):
+              print(123)
+              pressed_type = pressed_types[idx]
+              user_n = (pressed_type.get_dom_attribute("data-va5")
+                  or pressed_type.get_dom_attribute("data-go2"))  
+              print(user_n)
+          
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))          
           if user_n and user_name in user_n: 
@@ -1000,7 +1015,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
       rf_cnt += 1   
-      print(f"{name} 足跡がえし マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+      print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
       user_index += 1
       catch_warning_pop(name, driver)
       back2 = driver.find_element(By.ID, value="back2")
