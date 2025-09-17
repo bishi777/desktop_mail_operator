@@ -882,7 +882,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           try:
             user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))  
-            
+            print("---888")
+            print(user_n)
+            print("---888")
           except StaleElementReferenceException:
             print("⚠️ stale なので再取得します123123")
             time.sleep(3)
