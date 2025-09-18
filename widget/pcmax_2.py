@@ -729,7 +729,7 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
       time.sleep(0.5)
       match_users = driver.find_elements(By.CLASS_NAME, 'list_box')
       if len(match_users):
-        print("いいかも返し")
+        print("いいかも返しを押しました")
         match_users[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
