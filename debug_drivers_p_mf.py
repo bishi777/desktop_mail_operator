@@ -78,7 +78,10 @@ for i in range(99999):
             print("やり取り有り　exchange_step+1")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step + exchange_step])
             time.sleep(0.4)
-            exchange = user_list[current_step + exchange_step].find_elements(By.CLASS_NAME, value="exchange")
+            if current_step + exchange_step < len(user_list):
+              exchange = user_list[current_step + exchange_step].find_elements(By.CLASS_NAME, value="exchange")
+            else:
+              break
           user_list[current_step + exchange_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"足跡付け {current_step}件 {footprint_now}")    
