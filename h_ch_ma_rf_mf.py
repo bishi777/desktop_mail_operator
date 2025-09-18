@@ -63,7 +63,7 @@ try:
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
   for i in first_half:
-    report_dict[i["name"]] = [0, send_flug]
+    report_dict[i["name"]] = [0, send_flug, []]
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info])
@@ -75,7 +75,7 @@ try:
     if now.hour == 7 and now.hour != last_reset_hour:
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
-        report_dict[i["name"]] = [0, True]
+        report_dict[i["name"]] = [0, True, []]
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
       if "アスカ" == name:
@@ -147,7 +147,10 @@ try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
               # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]       
+              report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]   
+              print(246)
+              print(return_foot_counted[5]) 
+              report_dict[name][2].extend(return_foot_counted[5])
               if total_daily_limit <= report_dict[name][0]:
                 print("マッチング返しの上限に達しました。")
                 limit_text = f"送信数：{report_dict[name][0]} \n"
