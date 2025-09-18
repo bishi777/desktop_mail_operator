@@ -78,6 +78,7 @@ for i in range(99999):
             print("やり取り有り　exchange_step+1")
             name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
             print(name)
+            time.sleep(10)
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step + exchange_step])
             time.sleep(0.4)
             if current_step + exchange_step < len(user_list):
