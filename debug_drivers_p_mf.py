@@ -73,9 +73,8 @@ for i in range(99999):
           time.sleep(0.4)
           exchange = user_list[current_step].find_elements(By.CLASS_NAME, value="exchange")
           if len(exchange):
-            # print("やり取り有り　")
-            # name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
-            # print(name)
+            name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
+            print(f"やり取り有り　{name}")
             continue       
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
