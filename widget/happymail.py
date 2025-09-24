@@ -980,7 +980,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       matching_users = active.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
       matching_users_wait_cnt += 1
       if matching_users_wait_cnt == 3:
-          return return_matching_counted,  limit_flug
+        return return_matching_counted, limit_flug, send_user_list
     name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")    
@@ -1011,7 +1011,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
           catch_warning_screen(driver)
-          return return_matching_counted, limit_flug
+          return return_matching_counted, limit_flug, send_user_list
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -1022,7 +1022,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
         user_icon = user_icon + 1
         if len(matching_users) <= user_icon:
             duplication_user = True
-            return
+            return return_matching_counted, limit_flug, send_user_list
         name_field = matching_users[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
     # マッチングユーザーをクリック
@@ -1126,7 +1126,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       if matching_daily_limit == return_matching_counted + oneday_total_match:
         print("マッチング上限に達しました")
         limit_flug = True
-        return return_matching_counted, limit_flug
+        return return_matching_counted, limit_flug, send_user_list
       driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
