@@ -939,6 +939,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       try:
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
+          print(f"{user_n} もふない")
           driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
@@ -1001,7 +1002,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       else:
         driver.find_element(By.ID, 'send3').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.7)
+      time.sleep(1.2)
       if len(driver.find_elements(By.ID, value="mailform_box")):
         if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
           print("連続防止　待機中...")
@@ -1017,14 +1018,29 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             driver.find_element(By.ID, 'send3').click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-      rf_cnt += 1   
-      print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
-      user_index += 1
-      catch_warning_pop(name, driver)
-      back2 = driver.find_element(By.ID, value="back2")
-      driver.execute_script("arguments[0].click();", back2)
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(3)
+      elif "メッセージを送信しました" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
+
+        rf_cnt += 1   
+        print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
+        user_index += 1
+        catch_warning_pop(name, driver)
+        back2 = driver.find_element(By.ID, value="back2")
+        driver.execute_script("arguments[0].click();", back2)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(3)
+      else:
+        img_path = f"{name}_returnfoot_error.png"
+        print(user_name)
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print(traceback.format_exc())
+        
+        driver.save_screenshot(img_path)
+        func.send_error(
+            chara=name,
+            error_message=f"{user_name}\n{str(e)}",
+            attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
+        )
+        
   return rf_cnt
 
 def re_post(driver,wait, post_title, post_content):
