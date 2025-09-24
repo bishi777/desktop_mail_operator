@@ -905,7 +905,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             print("---------------")
             print(pressed_type)
             print("---------------")
-            print(pressed_type.get_attribute('outerHTML'))
             
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -930,6 +929,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
               driver.get(href)
               wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
               time.sleep(0.2)
+              print("ユーザー詳細ページに来ました")
+              print(driver.current_url)
             break
         except Exception as e:
           print(f"⚠️ 要素処理エラー: {e}")
