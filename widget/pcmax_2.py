@@ -1018,16 +1018,16 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             driver.find_element(By.ID, 'send3').click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-      elif "メッセージを送信しました" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
-
-        rf_cnt += 1   
-        print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
-        user_index += 1
-        catch_warning_pop(name, driver)
-        back2 = driver.find_element(By.ID, value="back2")
-        driver.execute_script("arguments[0].click();", back2)
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(3)
+      elif len(driver.find_element(By.CLASS_NAME, value='comp_main_text')):
+        if "メッセージを送信しました" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
+          rf_cnt += 1   
+          print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
+          user_index += 1
+          catch_warning_pop(name, driver)
+          back2 = driver.find_element(By.ID, value="back2")
+          driver.execute_script("arguments[0].click();", back2)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(3)
       else:
         img_path = f"{name}_returnfoot_error.png"
         print(user_name)
