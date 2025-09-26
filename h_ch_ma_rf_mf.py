@@ -78,10 +78,10 @@ try:
         report_dict[i["name"]] = [0, True, []]
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
-      if "アスカ" == name:
-        total_daily_limit = 8
+      if "haru" == name:
+        total_daily_limit = 10
       else:
-        total_daily_limit = 7
+        total_daily_limit = 9
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
