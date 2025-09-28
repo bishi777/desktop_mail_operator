@@ -1018,10 +1018,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             driver.find_element(By.ID, 'send3').click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-      elif len(driver.find_element(By.CLASS_NAME, value='comp_main_text')):
+      elif len(driver.find_element(By.CLASS_NAME, value='comp_title')):
         print(77777777777)
-        print(driver.find_element(By.CLASS_NAME, value='comp_main_text').text)
-        if "メッセージを送信しました" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
+        print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
+        if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
           rf_cnt += 1   
           print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
           user_index += 1
