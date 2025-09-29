@@ -1018,7 +1018,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             driver.find_element(By.ID, 'send3').click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-      elif len(driver.find_element(By.CLASS_NAME, value='comp_title')):
+      elif len(driver.find_elements(By.CLASS_NAME, value='comp_title')):
         # print(77777777777)
         print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
