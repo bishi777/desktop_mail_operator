@@ -894,7 +894,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
               pressed_type = pressed_types[idx]
               user_n = (pressed_type.get_dom_attribute("data-va5")
                   or pressed_type.get_dom_attribute("data-go2"))  
-              print(user_n)
+              # print(user_n)
           
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))          
