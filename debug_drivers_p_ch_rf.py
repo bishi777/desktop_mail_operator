@@ -180,7 +180,7 @@ while True:
           except Exception as e:
             print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
             traceback.print_exc()   
-          if  now.hour % 6 == 0 or now.hour == 1:
+          if now.hour % 6 == 0:
             if send_flug:
               try:
                 func.send_mail(
@@ -197,6 +197,8 @@ while True:
                 print(mail_info)
           else:
             send_flug = True
+          
+
          
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   wait_cnt = 0

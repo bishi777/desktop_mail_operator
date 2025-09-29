@@ -857,18 +857,18 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)
-      print(f"タイプしました　{user_name}")
+      # print(f"タイプしました　{user_name}")
       pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
       
       if not len(pressed_types):
-        print(f"pressed_typesが取得できません {user_name}")
+        # print(f"pressed_typesが取得できません {user_name}")
         driver.refresh()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
         pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-        print("*****************************")
-        print(len(pressed_types))
-        print("*****************************")
+        # print("*****************************")
+        # print(len(pressed_types))
+        # print("*****************************")
         
       for idx in range(len(pressed_types)):
         try:
@@ -882,15 +882,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           try:
             user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))  
-            print("---888")
-            print(user_n)
-            print("---888")
+            # print("---888")
+            # print(user_n)
+            # print("---888")
           except StaleElementReferenceException:
             print("⚠️ stale なので再取得します123123")
             time.sleep(3)
             pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
             if idx < len(pressed_types):
-              print(123)
+              # print(123)
               pressed_type = pressed_types[idx]
               user_n = (pressed_type.get_dom_attribute("data-va5")
                   or pressed_type.get_dom_attribute("data-go2"))  
@@ -899,12 +899,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           user_n = (pressed_type.get_dom_attribute("data-va5")
                     or pressed_type.get_dom_attribute("data-go2"))          
           if user_n and user_name in user_n: 
-            print(555) # Noneチェックを追加
-            print(user_n)
-            print(f"idx = {idx}")
-            print("---------------")
-            print(pressed_type)
-            print("---------------")
+            # print(555) # Noneチェックを追加
+            # print(user_n)
+            # print(f"idx = {idx}")
+            # print("---------------")
+            # print(pressed_type)
+            # print("---------------")
             
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -923,14 +923,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             
             user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
             href = user_link.get_attribute("href")
-            print("ユーザー　href")
-            print(href)
+            # print("ユーザー　href")
+            # print(href)
             if href:
               driver.get(href)
               wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
               time.sleep(0.2)
-              print("ユーザー詳細ページに来ました")
-              print(driver.current_url)
+              # print("ユーザー詳細ページに来ました")
+              # print(driver.current_url)
             break
         except Exception as e:
           print(f"⚠️ 要素処理エラー: {e}")
@@ -954,7 +954,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         driver.save_screenshot(img_path)
         func.send_error(
             chara=name,
-            error_message=f"{user_name}\n{str(e)}",
+            error_message=f"{user_name}\n{driver.current_url}\n{str(e)}",
             attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
         )
         pass
@@ -1019,7 +1019,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
       elif len(driver.find_element(By.CLASS_NAME, value='comp_title')):
-        print(77777777777)
+        # print(77777777777)
         print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_main_text').text:
           rf_cnt += 1   
