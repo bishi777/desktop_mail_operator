@@ -365,14 +365,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # if len(send_message):
           send_me_length = len(send_message)
           # sent_text_element = send_message[-1]
-          print(9999)
-          print(send_me_length)
+          # print(send_me_length)
 
           if len(send_message):
-            print(send_message[-1].get_attribute("outerHTML"))   
+            # print(send_message[-1].get_attribute("outerHTML"))   
             img = send_message[-1].find_elements(By.CLASS_NAME, value="attached_media_link")
             if len(img):
-              print("画像あり")
+              # print("画像あり")
               send_me_length -= 1
             # print(send_message[-2].text)
             # sent_text_element = send_message[-2]
@@ -397,19 +396,16 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           
           if send_me_length == 0:
             send_message = fst_message.format(name=user_name) 
-            print(1111111111111)
-            print(user_name)
-            print(send_message)
+            # print(user_name)
+            # print(send_message)
             # 掲示板からきたか確認
             text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
             for t_f_u in text_from_users:
               if "募集から送信" in t_f_u.text:
                 if post_return_message:
                   send_message = post_return_message.format(name=user_name)    
-                  print(1111111111111)
-                  print(user_name)
-    
-                  print(send_message)     
+                  # print(user_name)
+                  # print(send_message)     
             text_area = driver.find_element(By.ID, value="text-message")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"
@@ -427,9 +423,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             send_message_clean = func.normalize_text(send_message)
             send_text_clean = func.normalize_text(send_msg_elem[-1].text)
             while send_text_clean != send_message_clean:
-              print(send_text_clean)
-              print("~~~~~~~~~~~~~~~~~~~~~")
-              print(send_message)
+              # print(send_text_clean)
+              # print("~~~~~~~~~~~~~~~~~~~~~")
+              # print(send_message)
               driver.refresh()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(5)
@@ -474,9 +470,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print(traceback.format_exc())
           elif send_me_length == 1:
             send_message = conditions_message.format(name=user_name) 
-            print(1111111111111)
-            print(user_name)
-            print(send_message)
+            # print(user_name)
+            # print(send_message)
             # 掲示板からきたか確認
             text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
             for t_f_u in text_from_users:
@@ -504,9 +499,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               send_message_clean = func.normalize_text(send_message)
               send_text_clean = func.normalize_text(send_msg_elem[-1].text)
               while send_text_clean != send_message_clean:
-                print(send_text_clean)
-                print("~~~~~~~~~~~~~~~~~~~~~")
-                print(send_message)
+                # print(send_text_clean)
+                # print("~~~~~~~~~~~~~~~~~~~~~")
+                # print(send_message)
                 driver.refresh()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 time.sleep(5)
