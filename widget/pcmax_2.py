@@ -226,7 +226,7 @@ def profile_search(driver):
         time.sleep(1)
     except NoSuchElementException:
       pass
-  年齢設定
+  # 年齢設定
   try:
     time.sleep(2)
     oldest_age_select_box = driver.find_element(By.ID, "makerItem")
