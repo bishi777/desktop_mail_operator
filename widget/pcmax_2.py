@@ -172,24 +172,35 @@ def profile_search(driver):
   }
   print("✅ プロフ検索メニューのURLかチェック")
   print(driver.current_url)
+  wait = WebDriverWait(driver, 10)
   # https://pcmax.jp/mobile/profile_reference.php
   if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
-    time.sleep(10)
-    get_header_menu(driver, "プロフ検索")
-    time.sleep(10)
-    print("✅ プロフ検索メニューのURLかチェック その２")
-    print(driver.current_url)
-    if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
-      print("❌ プロフ検索メニューのURLではありません")
-      wait = WebDriverWait(driver, 10)
-      driver.get("https://pcmax.jp/mobile/profile_reference.php")
+    if "pcmax.jp/mobile/profile_rest_reference.php" in driver.current_url:
+      print(f"❌ プロフ検索制限メニューのURLです") 
+      driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      if len(name_on_pcmax):
+        print(f"{name_on_pcmax[0].text} プロフ検索制限がかかっている可能性があります")
+      return
+    else:
       time.sleep(10)
-      print("✅ プロフ検索メニューのURLかチェック その3")
+      get_header_menu(driver, "プロフ検索")
+      time.sleep(10)
+      print("✅ プロフ検索メニューのURLかチェック その２")
       print(driver.current_url)
       if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
         print("❌ プロフ検索メニューのURLではありません")
-        return
+        wait = WebDriverWait(driver, 10)
+        driver.get("https://pcmax.jp/mobile/profile_reference.php")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(10)
+        print("✅ プロフ検索メニューのURLかチェック その3")
+        print(driver.current_url)
+        if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
+          print("❌ プロフ検索メニューのURLではありません")
+          return
   # チェックが入っている項目をリセット
   try:
     area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
@@ -216,13 +227,13 @@ def profile_search(driver):
     except NoSuchElementException:
       pass
   # 年齢設定
-  try:
-    time.sleep(2)
-    oldest_age_select_box = driver.find_element(By.ID, "makerItem")
-  except NoSuchElementException:
-    oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  random_age = f"{random.randint(29, 38)}歳"
-  oldest_age_select_box.send_keys(random_age)
+  # try:
+  #   time.sleep(2)
+  #   oldest_age_select_box = driver.find_element(By.ID, "makerItem")
+  # except NoSuchElementException:
+  #   oldest_age_select_box = driver.find_element(By.ID, "to_age")
+  # random_age = f"{random.randint(29, 38)}歳"
+  # oldest_age_select_box.send_keys(random_age)
 
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
@@ -240,7 +251,16 @@ def profile_search(driver):
     if not checkbox.is_selected():
       checkbox.click()
     time.sleep(1)
-
+  # 身長設定
+  try:
+    time.sleep(2)
+    max_height_select_box = driver.find_element(By.ID, "makerItem1")
+  
+    max_height = f"{random.randint(170, 175)}cm"
+    max_height_select_box.send_keys(max_height)
+  except NoSuchElementException:
+    print("身長設定できません")
+  time.sleep(1)
   # 検索ボタンを押す
   try:
     search_button = driver.find_element(By.ID, "image_button")
