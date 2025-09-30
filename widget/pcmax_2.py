@@ -226,14 +226,15 @@ def profile_search(driver):
         time.sleep(1)
     except NoSuchElementException:
       pass
-  # 年齢設定
-  # try:
-  #   time.sleep(2)
-  #   oldest_age_select_box = driver.find_element(By.ID, "makerItem")
-  # except NoSuchElementException:
-  #   oldest_age_select_box = driver.find_element(By.ID, "to_age")
+  年齢設定
+  try:
+    time.sleep(2)
+    oldest_age_select_box = driver.find_element(By.ID, "makerItem")
+  except NoSuchElementException:
+    oldest_age_select_box = driver.find_element(By.ID, "to_age")
   # random_age = f"{random.randint(29, 38)}歳"
-  # oldest_age_select_box.send_keys(random_age)
+  old_age = "60歳以上"
+  oldest_age_select_box.send_keys(old_age)
 
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
