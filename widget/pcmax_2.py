@@ -452,11 +452,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
     now = datetime.today()
     elapsed_time = now - arrival_datetime
+    user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
+
     # print(f"メール到着からの経過時間{elapsed_time}")
     # if True:
     if elapsed_time >= timedelta(minutes=4):
       # print("4分以上経過しています。")
-      user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
       # print(f"{user_name}さんに返信します")
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       # user_div_list[0].find_element(By.TAG_NAME, "a").click()
@@ -720,12 +721,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       # time.sleep(0.5) 
     else:
       print("４分経過していません")
+      return user_name
       break
   driver.get("https://pcmax.jp/pcm/index.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5) 
+  return None
 
-def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
+def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, unread_user):
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   iikamo_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[5]
@@ -834,7 +837,7 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img):
     
       
 
-def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img):
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user):
   wait = WebDriverWait(driver, 10)
   driver.get("https://pcmax.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -876,6 +879,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     else:
       user_name = like[0].get_attribute("data-go2")
       # user_name = "あお"
+      if unread_user and user_name in unread_user:
+        print(f"{user_name} は未読リストにいるのでスキップします")
+        user_index += 1
+        continue
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.8)

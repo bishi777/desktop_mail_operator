@@ -156,24 +156,24 @@ while True:
           traceback.print_exc()
         try:
           print("新着メールチェック開始")   
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
+          unread_user = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
-          try:
-            print(f"いいかもリストチェック開始 {name} 現在{report_dict[name]}件")
-            iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img)
-            report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
-            print(f"いいかもリストチェック完了 {name} {iikamo_cnt}件追加 　合計{report_dict[name]}件")
-            send_cnt -= (iikamo_cnt or 0)
-          except Exception as e:
-            print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
-            traceback.print_exc()
+          # try:
+          #   print(f"いいかもリストチェック開始 {name} 現在{report_dict[name]}件")
+          #   iikamo_cnt = pcmax_2.iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, unread_user)
+          #   report_dict[name] = report_dict[name] + (iikamo_cnt or 0)
+          #   print(f"いいかもリストチェック完了 {name} {iikamo_cnt}件追加 　合計{report_dict[name]}件")
+          #   send_cnt -= (iikamo_cnt or 0)
+          # except Exception as e:
+          #   print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
+          #   traceback.print_exc()
           try:
             print(f"足跡返し開始 {name} 現在{report_dict[name]}件")
             if send_cnt > 0:
-              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img)   
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img, unread_user)   
             report_dict[name] = report_dict[name] + rf_cnt
             print(f"足跡返し完了 {rf_cnt}件追加 {name} 　合計{report_dict[name]}件")
             
