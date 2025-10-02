@@ -192,14 +192,15 @@ def profile_search(driver):
       print(driver.current_url)
       if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
         print("❌ プロフ検索メニューのURLではありません")
-        wait = WebDriverWait(driver, 10)
-        driver.get("https://pcmax.jp/mobile/profile_reference.php")
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(10)
-        print("✅ プロフ検索メニューのURLかチェック その3")
         print(driver.current_url)
+        wait = WebDriverWait(driver, 10)
+        driver.get("https://pcmax.jp/pcm/member.php")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        print(f"✅ {name_on_pcmax[0].text}プロフ検索メニューのURLかチェック")
+        
         if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
-          print("❌ プロフ検索メニューのURLではありません")
           return
   # チェックが入っている項目をリセット
   try:
