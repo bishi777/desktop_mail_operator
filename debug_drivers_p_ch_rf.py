@@ -37,7 +37,7 @@ wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 report_dict = {}
 send_flug = False
-
+roll_cnt = 0
 
 
 while True:
@@ -197,9 +197,7 @@ while True:
                 print(mail_info)
           else:
             send_flug = True
-          
-
-         
+  
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   wait_cnt = 0
   while elapsed_time < 720:
@@ -212,4 +210,20 @@ while True:
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  
+  #カウント 
+  roll_cnt += 1
+  if roll_cnt % 6 == 0:
+    print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    try:
+      func.send_mail(
+        f"1時間の足跡返しの報告\n{report_dict}\n",
+        mail_info,
+        f"PCMAX 1時間の足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+      )
+      send_flug = False
+    except Exception as e:
+      print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+      traceback.print_exc()   
+      print('~~~~~~~~~')
+      print(mail_info)
+         
