@@ -71,18 +71,8 @@ try:
     if drivers == {}:
       break
     now = datetime.now()
+    print(999)
     
-    if "すい" == name:
-      # ７時と２０時、かつ直前に初期化されていない場合
-      if (now.hour == 7 or now.hour == 20) and now.hour != last_reset_hour:
-        last_reset_hour = now.hour  # 初期化済みとして記録
-        for i in first_half:
-          report_dict[i["name"]] = [0, True, []]
-    else:
-      if now.hour == 7 and now.hour != last_reset_hour:
-        last_reset_hour = now.hour  # 初期化済みとして記録
-        for i in first_half:
-          report_dict[i["name"]] = [0, True, []]
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
       if "すい" == name:
@@ -186,12 +176,32 @@ try:
     # ループの間隔を調整
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
     wait_cnt = 0
+
+    
+    # ７時と２０時、かつ直前に初期化されていない場合
+    # if (now.hour == 7 or now.hour == 20) and now.hour != last_reset_hour:
+    #   last_reset_hour = now.hour  # 初期化済みとして記録
+    #   for i in first_half:
+    #     report_dict[i["name"]] = [0, True, []]
+    if now.hour == 7 and now.hour != last_reset_hour:
+      last_reset_hour = now.hour  # 初期化済みとして記録
+      for i in first_half:
+        report_dict[i["name"]] = [0, True, []]
+    if now.hour == 20 and now.hour != last_reset_hour:
+      last_reset_hour = now.hour  # 初期化済みとして記録
+      for i in first_half:
+        if i["name"] == "すい":   
+          report_dict[i["name"]] = [0, True, []]
+   
+
     while elapsed_time < 720:
       time.sleep(30)
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
       if wait_cnt % 2 == 0:
         print(f"待機中~~ {elapsed_time} ")
       wait_cnt += 1
+
+    
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
