@@ -57,7 +57,7 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 5
   returnfoot_daily_limit = 0
-  total_daily_limit = 6
+  total_daily_limit = 9
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
@@ -71,17 +71,24 @@ try:
     if drivers == {}:
       break
     now = datetime.now()
-    # 6時、かつ直前に初期化されていない場合
-    if now.hour == 7 and now.hour != last_reset_hour:
-      last_reset_hour = now.hour  # 初期化済みとして記録
-      for i in first_half:
-        report_dict[i["name"]] = [0, True, []]
+    
+    if "すい" == name:
+      # ７時と２０時、かつ直前に初期化されていない場合
+      if (now.hour == 7 or now.hour == 20) and now.hour != last_reset_hour:
+        last_reset_hour = now.hour  # 初期化済みとして記録
+        for i in first_half:
+          report_dict[i["name"]] = [0, True, []]
+    else:
+      if now.hour == 7 and now.hour != last_reset_hour:
+        last_reset_hour = now.hour  # 初期化済みとして記録
+        for i in first_half:
+          report_dict[i["name"]] = [0, True, []]
     for name, data in drivers.items():
       print(f"現在の名前: {name}")
-      if "haru" == name:
+      if "すい" == name:
         total_daily_limit = 10
       else:
-        total_daily_limit = 9
+        total_daily_limit = 10
       happymail_new_list = []
       top_image_check = None
       happymail_new = None
@@ -140,7 +147,7 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、
-          print(f"{name}送信数 {report_dict[name][0]} / {total_daily_limit} ")
+          print(f"{name}午前中の送信数 {report_dict[name][0]} / {total_daily_limit} ")
           print(f"返しフラグ {report_dict[name][1]} ")
           if report_dict[name][0] <= total_daily_limit and report_dict[name][1] and "利用できません" not in happymail_new_list:
             try:
@@ -152,7 +159,7 @@ try:
               print(return_foot_counted[5]) 
               report_dict[name][2].extend(return_foot_counted[5])
               if total_daily_limit <= report_dict[name][0]:
-                print("マッチング返しの上限に達しました。")
+                print("午前中のマッチング返しの上限に達しました。")
                 limit_text = f"送信数：{report_dict[name][0]} \n"
                 func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
                 report_dict[name][1] = False
