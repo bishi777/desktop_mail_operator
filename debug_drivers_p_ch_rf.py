@@ -69,7 +69,7 @@ while True:
       
       if name_on_pcmax:
         name = name_on_pcmax[0].text
-        if ("haru" or "りな") != name:
+        if ("いおり" or "りな") != name:
           continue
 
       while not len(name_on_pcmax):
