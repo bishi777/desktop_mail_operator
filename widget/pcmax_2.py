@@ -191,9 +191,9 @@ def profile_search(driver):
         print(f"{name_on_pcmax[0].text} プロフ検索制限がかかっている可能性があります")
       return
     else:
-      time.sleep(10)
+      time.sleep(2)
       get_header_menu(driver, "プロフ検索")
-      time.sleep(10)
+      time.sleep(2)
       print("✅ プロフ検索メニューのURLかチェック その２")
       print(driver.current_url)
       if not ("pcmax.jp/mobile/profile_reference.php" and "linkleweb.jp/mobile/profile_reference.php") in driver.current_url:

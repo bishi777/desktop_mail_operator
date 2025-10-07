@@ -275,6 +275,11 @@ for i in range(99999):
             # スクショします
             # driver.save_screenshot("screenshot.png")
           print("150byoutaiki")
+          suspend_title = driver.find_elements(By.CLASS_NAME, "suspend_title")
+          if len(suspend_title):
+            if "利用制限" in suspend_title[0].text:
+              print("制限がかかっているため、スキップを行います")
+            break
           time.sleep(150)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
