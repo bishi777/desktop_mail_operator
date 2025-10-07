@@ -180,7 +180,7 @@ def profile_search(driver):
   wait = WebDriverWait(driver, 10)
   # https://linkleweb.jp/mobile/profile_reference.php
   # https://pcmax.jp/mobile/profile_reference.php
-  if not ("pcmax.jp/mobile/profile_reference.php" and "linkleweb.jp/mobile/profile_reference.php") in driver.current_url:
+  if not "/mobile/profile_reference.php" in driver.current_url:
     if "pcmax.jp/mobile/profile_rest_reference.php" in driver.current_url:
       print(f"❌ プロフ検索制限メニューのURLです") 
       driver.get("https://pcmax.jp/pcm/index.php")
@@ -196,7 +196,7 @@ def profile_search(driver):
       time.sleep(2)
       print("✅ プロフ検索メニューのURLかチェック その２")
       print(driver.current_url)
-      if not ("pcmax.jp/mobile/profile_reference.php" and "linkleweb.jp/mobile/profile_reference.php") in driver.current_url:
+      if not "/mobile/profile_reference.php" in driver.current_url:
         print("❌ プロフ検索メニューのURLではありません")
         print(driver.current_url)
         wait = WebDriverWait(driver, 10)
