@@ -455,17 +455,17 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   wait = WebDriverWait(driver, 10)
   new_message_flag = get_header_menu(driver, "メッセージ")
   if not new_message_flag:
-    header_box_under = driver.find_element(By.ID, "header_box_under")
-    header_box_under.find_element(By.TAG_NAME, "a").click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    # return
+    # header_box_under = driver.find_element(By.ID, "header_box_under")
+    # header_box_under.find_element(By.TAG_NAME, "a").click()
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    return
   innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
-  # for a_tag in innner1_a_tags:
-  #   if "未読" in a_tag.text:
-  #     a_tag.click()
-  #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #     time.sleep(1)
-  #     break
+  for a_tag in innner1_a_tags:
+    if "未読" in a_tag.text:
+      a_tag.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      break
   
   while True:
     catch_warning_pop(name, driver)
@@ -473,25 +473,23 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # print(len(user_div_list))
     if not user_div_list:
       break
-    # # ４分経過しているか
-    # arrival_date = user_div_list[-1].find_elements(By.CLASS_NAME, value="time")
-    # date_numbers = re.findall(r'\d+', arrival_date[0].text)
-    # # datetime型を作成
-    # current_year = datetime.now().year
-    # arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
-    # now = datetime.today()
-    # elapsed_time = now - arrival_datetime
-    # user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
-    user_name = user_div_list[4].find_element(By.CLASS_NAME, value="user_info").text
+    # ４分経過しているか
+    arrival_date = user_div_list[-1].find_elements(By.CLASS_NAME, value="time")
+    date_numbers = re.findall(r'\d+', arrival_date[0].text)
+    # datetime型を作成
+    current_year = datetime.now().year
+    arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
+    now = datetime.today()
+    elapsed_time = now - arrival_datetime
+    user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
 
     # print(f"メール到着からの経過時間{elapsed_time}")
-    if True:
-    # if elapsed_time >= timedelta(minutes=4):
+    # if True:
+    if elapsed_time >= timedelta(minutes=4):
       print("4分以上経過しています。")
       print(f"{user_name}さんに返信します")
-      user_div_list[4].find_element(By.TAG_NAME, "a").click()
 
-      # user_div_list[-1].find_element(By.TAG_NAME, "a").click()
+      user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       # user_div_list[0].find_element(By.TAG_NAME, "a").click()
