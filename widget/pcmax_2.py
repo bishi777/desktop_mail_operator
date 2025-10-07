@@ -459,7 +459,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
   for a_tag in innner1_a_tags:
     if "未読" in a_tag.text:
-
       a_tag.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -481,7 +480,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     elapsed_time = now - arrival_datetime
     user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
 
-    print(f"メール到着からの経過時間{elapsed_time}")
+    # print(f"メール到着からの経過時間{elapsed_time}")
     # if True:
     if elapsed_time >= timedelta(minutes=4):
       print("4分以上経過しています。")
@@ -515,9 +514,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"
             driver.execute_script(script, text_area, icloud_text)
-            WebDriverWait(driver, 10).until(
-                lambda d: text_area.get_attribute("value") == second_message
-            )
+           
             time.sleep(4)
             driver.find_element(By.ID, "send_n").click()
             if driver.find_elements(By.CLASS_NAME, "banned-word"):
@@ -565,10 +562,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
               driver.execute_script(script, text_area, confirmation_mail)
-              WebDriverWait(driver, 10).until(
-                  lambda d: text_area.get_attribute("value") == second_message
-              )
-              time.sleep(4)
+              t_a_v_cnt = 0
+              while not text_area_value:
+                t_a_v_cnt += 1
+                time.sleep(2)
+                text_area_value = text_area.get_attribute("value")
+                if t_a_v_cnt == 5:
+                  print("テキストエリアにconfirmation_mail入力できません")
+                  break
               driver.find_element(By.ID, "send_n").click()
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
                 time.sleep(6)
@@ -614,6 +615,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+        time.sleep(0.5)
         driver.find_element(By.ID, 'memo_send').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
@@ -622,6 +624,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         script = "arguments[0].value = arguments[1];"
         driver.execute_script(script, text_area, fst_message)
         time.sleep(1)
+        text_area_value = text_area.get_attribute("value")
+        t_a_v_cnt = 0
+        while not text_area_value:
+          t_a_v_cnt += 1
+          time.sleep(2)
+          text_area_value = text_area.get_attribute("value")
+          if t_a_v_cnt == 5:
+            print("テキストエリアにfst_message入力できません")
+            break
         if mail_img:
           my_photo_element = driver.find_element(By.ID, "my_photo")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
@@ -634,9 +645,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           # driver.find_element(By.NAME, "preview").click()
           # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           # time.sleep(0.3)  
-        WebDriverWait(driver, 10).until(
-              lambda d: text_area.get_attribute("value") == second_message
-          )
+
         driver.find_element(By.ID, "send_n").click()
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
@@ -661,10 +670,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           time.sleep(1)
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
-          time.sleep(1)
-          WebDriverWait(driver, 10).until(
-              lambda d: text_area.get_attribute("value") == second_message
-          )
+          t_a_v_cnt = 0
+          while not text_area_value:
+            t_a_v_cnt += 1
+            time.sleep(2)
+            text_area_value = text_area.get_attribute("value")
+            if t_a_v_cnt == 5:
+              print("テキストエリアにfst_message入力できません")
+              break          
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
@@ -700,7 +713,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           text_area = driver.find_element(By.ID, value="mdc")
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
-          time.sleep(2)
+          t_a_v_cnt = 0
+          while not text_area_value:
+            t_a_v_cnt += 1
+            time.sleep(2)
+            text_area_value = text_area.get_attribute("value")
+            if t_a_v_cnt == 5:
+              print("テキストエリアにsecond_message入力できません")
+              break        
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
