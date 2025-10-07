@@ -51,7 +51,7 @@ while True:
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
-    print(f"  📄 タブ{idx+1}: {driver.current_url}")
+    # print(f"  📄 タブ{idx+1}: {driver.current_url}")
     # urls = [
     #   "pcmax.jp/pcm/index.php"
     # ]
