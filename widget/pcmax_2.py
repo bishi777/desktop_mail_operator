@@ -82,6 +82,11 @@ def catch_warning_pop(name, driver):
           time.sleep(2)        
         except NoSuchElementException:
           pass
+      btn_off = driver.find_elements(By.ID, 'btn_off')
+      if len(btn_off):
+        btn_off[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)      
   except Exception:
     pass
   try:
@@ -173,8 +178,9 @@ def profile_search(driver):
   print("✅ プロフ検索メニューのURLかチェック")
   print(driver.current_url)
   wait = WebDriverWait(driver, 10)
+  # https://linkleweb.jp/mobile/profile_reference.php
   # https://pcmax.jp/mobile/profile_reference.php
-  if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
+  if not ("pcmax.jp/mobile/profile_reference.php" and "linkleweb.jp/mobile/profile_reference.php") in driver.current_url:
     if "pcmax.jp/mobile/profile_rest_reference.php" in driver.current_url:
       print(f"❌ プロフ検索制限メニューのURLです") 
       driver.get("https://pcmax.jp/pcm/index.php")
@@ -190,11 +196,13 @@ def profile_search(driver):
       time.sleep(10)
       print("✅ プロフ検索メニューのURLかチェック その２")
       print(driver.current_url)
-      if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
+      if not ("pcmax.jp/mobile/profile_reference.php" and "linkleweb.jp/mobile/profile_reference.php") in driver.current_url:
         print("❌ プロフ検索メニューのURLではありません")
         print(driver.current_url)
         wait = WebDriverWait(driver, 10)
-        driver.get("https://pcmax.jp/pcm/member.php")
+        # driver.get("https://pcmax.jp/pcm/member.php")
+        driver.get("https://linkleweb.jp/pcm/member.php")
+
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
@@ -413,7 +421,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
 
 def check_top_image(name,driver):
   wait = WebDriverWait(driver, 10)
-  driver.get("https://pcmax.jp/pcm/member.php")
+  driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   catch_warning_pop(name, driver)
@@ -435,9 +443,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   new_message_flag = get_header_menu(driver, "メッセージ")
   if not new_message_flag:
     return
-  driver.find_element(By.CLASS_NAME, "not_yet").find_element(By.TAG_NAME, "a").click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(1)
+  innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
+  for a_tag in innner1_a_tags:
+    if "未読" in a_tag.text:
+
+      a_tag.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      break
+  
   while True:
     catch_warning_pop(name, driver)
     user_div_list = driver.find_elements(By.CSS_SELECTOR, ".mail_area.clearfix")
@@ -454,12 +468,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     elapsed_time = now - arrival_datetime
     user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
 
-    # print(f"メール到着からの経過時間{elapsed_time}")
+    print(f"メール到着からの経過時間{elapsed_time}")
     # if True:
     if elapsed_time >= timedelta(minutes=4):
-      # print("4分以上経過しています。")
-      # print(f"{user_name}さんに返信します")
+      print("4分以上経過しています。")
+      print(f"{user_name}さんに返信します")
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
       # user_div_list[0].find_element(By.TAG_NAME, "a").click()
       # user_name = user_div_list[0].find_element(By.CLASS_NAME, value="user_info").text 
       driver.find_element(By.CLASS_NAME, "btn2").click()
@@ -474,6 +490,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       
       # DEBUG
       # if True:
+      time.sleep(1)
+      catch_warning_pop(name, driver)
       if email_list:
         # print(f"メールアドレスが見つかりました: {email_list}")
         if name == "つむぎ" or "icloud.com" in received_mail:
@@ -481,9 +499,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
           try:
             text_area = driver.find_element(By.ID, value="mdc")
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"
             driver.execute_script(script, text_area, icloud_text)
+            WebDriverWait(driver, 10).until(
+                lambda d: text_area.get_attribute("value") == second_message
+            )
             time.sleep(4)
+            print(6666)
             driver.find_element(By.ID, "send_n").click()
             if driver.find_elements(By.CLASS_NAME, "banned-word"):
               time.sleep(6)
@@ -527,9 +550,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           if confirmation_mail:
             try:
               text_area = driver.find_element(By.ID, value="mdc")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
               driver.execute_script(script, text_area, confirmation_mail)
+              WebDriverWait(driver, 10).until(
+                  lambda d: text_area.get_attribute("value") == second_message
+              )
               time.sleep(4)
+              print(66666666)
               driver.find_element(By.ID, "send_n").click()
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
                 time.sleep(6)
@@ -579,6 +607,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         text_area = driver.find_element(By.ID, value="mdc")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         script = "arguments[0].value = arguments[1];"
         driver.execute_script(script, text_area, fst_message)
         time.sleep(1)
@@ -594,6 +623,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           # driver.find_element(By.NAME, "preview").click()
           # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           # time.sleep(0.3)  
+        WebDriverWait(driver, 10).until(
+              lambda d: text_area.get_attribute("value") == second_message
+          )
+        print(66)
         driver.find_element(By.ID, "send_n").click()
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
@@ -614,9 +647,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           # print("2ndメールを送信します")
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+          time.sleep(1)
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
-          time.sleep(2)
+          time.sleep(1)
+          WebDriverWait(driver, 10).until(
+              lambda d: text_area.get_attribute("value") == second_message
+          )
+          print(66666666666)
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
@@ -653,6 +692,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
           time.sleep(2)
+          print(666666666666666666666666666)
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)

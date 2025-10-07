@@ -55,8 +55,8 @@ while True:
     # urls = [
     #   "pcmax.jp/pcm/index.php"
     # ]
-    if not "pcmax.jp/pcm/index.php" in driver.current_url:
-      driver.get("https://pcmax.jp/mobile/mymenu.php")
+    if not ("pcmax.jp/pcm/index.php" and"linkleweb.jp/pcm/index.php") in driver.current_url:
+      driver.get("https://linkleweb.jp/mobile/mymenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
       # print("PCMAXのマイメニューに移動しました")
@@ -117,7 +117,7 @@ while True:
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  
-      driver.get("https://pcmax.jp/pcm/index.php")
+      driver.get("https://linkleweb.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
       continue

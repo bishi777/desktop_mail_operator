@@ -61,9 +61,9 @@ for i in range(99999):
         continue
       pcmax_2.catch_warning_pop("", driver)
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
-      if "pcmax.jp/mobile/profile_rest_list.php" in driver.current_url:
+      if ("pcmax.jp/mobile/profile_rest_list.php" and "linkleweb.jp/mobile/profile_rest_list.php") in driver.current_url:
         print("プロフ検索に制限がかかっています")
-      elif "pcmax.jp/mobile/profile_list.php" in driver.current_url :
+      elif ("pcmax.jp/mobile/profile_list.php" and "linkleweb.jp/mobile/profile_list.php") in driver.current_url :
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         # やり取りあるか確認
@@ -106,19 +106,25 @@ for i in range(99999):
               func.send_mail(text, mail_info, title, img_path)
             search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
-      elif "pcmax.jp/mobile/profile_detail.php" in driver.current_url:
+      elif ("pcmax.jp/mobile/profile_detail.php" and "linkleweb.jp/mobile/profile_detail.php") in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           driver.back()
+      
+        
       else:
         print(f"現在のURL: {driver.current_url}")
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         pcmax_2.catch_warning_pop("", driver)
         print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
-        driver.get("https://pcmax.jp/pcm/index.php")   
+        if "pcmax" in driver.current_url:
+          driver.get("https://pcmax.jp/pcm/index.php")   
+        elif "linkleweb" in driver.current_url:
+          driver.get("https://linkleweb.jp/pcm/member.php")   
+
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         pcmax_2.catch_warning_pop("", driver)
-        if "https://pcmax.jp/mobile/mail" in driver.current_url:
+        if ("https://pcmax.jp/mobile/mail" and "https://linkleweb.jp/mobile/mail") in driver.current_url:
           print("メール画面にいます")
           pcmax_2.catch_warning_pop("", driver)
           pcmax_2.get_header_menu(driver, "マイメニュー")
@@ -178,7 +184,10 @@ for i in range(99999):
         time.sleep(0.5)
       if search_profile_flug:
         print("プロフ検索の再セットを行います")
-        driver.get("https://pcmax.jp/pcm/index.php")   
+        if "pcmax" in driver.current_url:
+          driver.get("https://pcmax.jp/pcm/index.php")   
+        elif "linkleweb" in driver.current_url:
+          driver.get("https://linkleweb.jp/pcm/index.php")   
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1.5)
         pcmax_2.catch_warning_pop("", driver)
@@ -243,7 +252,10 @@ for i in range(99999):
           # print("制限がかかっているため、スキップを行います")
           continue
         print("<<<<<<<<<<<<<プロフ検索再セット>>>>>>>>>>>>>>>>>>>")
-        driver.get("https://pcmax.jp/pcm/index.php")   
+        if "pcmax" in driver.current_url:
+          driver.get("https://pcmax.jp/pcm/index.php") 
+        elif "linkleweb" in driver.current_url:
+          driver.get("https://linkleweb.jp/pcm/index.php")   
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         pcmax_2.catch_warning_pop("", driver)
@@ -318,7 +330,10 @@ for i in range(99999):
         handle_to_use = handles[minute_index % len(handles)]
         driver.switch_to.window(handle_to_use)
         try:
-          driver.get("https://pcmax.jp/pcm/index.php")
+          if "pcmax" in driver.current_url:
+            driver.get("https://pcmax.jp/pcm/index.php")   
+          elif "linkleweb" in driver.current_url:
+            driver.get("https://linkleweb.jp/pcm/index.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
           pcmax_2.catch_warning_pop("", driver)          
@@ -339,7 +354,10 @@ for i in range(99999):
                 print(  f"名前: {key['name']}, タイトル: {key['post_title']}, 内容: {key['post_content']}")
               else:
                 pcmax_2.re_post(driver,wait, post_title, post_content)
-                driver.get("https://pcmax.jp/pcm/index.php")
+                if "pcmax" in driver.current_url:
+                  driver.get("https://pcmax.jp/pcm/index.php")   
+                elif "linkleweb" in driver.current_url:
+                  driver.get("https://linkleweb.jp/pcm/index.php")
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 pcmax_2.catch_warning_pop("", driver)
               pcmax_2.profile_search(driver)
