@@ -55,15 +55,23 @@ while True:
     # urls = [
     #   "pcmax.jp/pcm/index.php"
     # ]
-    if not ("pcmax.jp/pcm/index.php" and"linkleweb.jp/pcm/index.php") in driver.current_url:
-      driver.get("https://linkleweb.jp/mobile/mymenu.php")
+    if not "/pcm/index.php" in driver.current_url:
+      if "linkleweb" in driver.current_url:
+        driver.get("https://linkleweb.jp/mobile/index.php")
+      elif "pcmax" in driver.current_url:
+        driver.get("https://pcmax.jp/mobile/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
-      # print("PCMAXのマイメニューに移動しました")
+      # print("PCMAXのTOPに移動しました")
       # print(driver.current_url)
     try:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
       
+      if name_on_pcmax:
+        name = name_on_pcmax[0].text
+        if "haru" != name:
+          continue
+        
       while not len(name_on_pcmax):
         # 再ログイン処理
         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')

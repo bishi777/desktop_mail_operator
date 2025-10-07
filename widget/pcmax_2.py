@@ -187,14 +187,14 @@ def profile_search(driver):
     "神奈川県": 23,
     "千葉県": 25
   }
-  print("✅ プロフ検索メニューのURLかチェック")
-  print(driver.current_url)
+  # print("✅ プロフ検索メニューのURLかチェック")
+  # print(driver.current_url)
   wait = WebDriverWait(driver, 10)
   # https://linkleweb.jp/mobile/profile_reference.php
   # https://pcmax.jp/mobile/profile_reference.php
   if not "/mobile/profile_reference.php" in driver.current_url:
     if "pcmax.jp/mobile/profile_rest_reference.php" in driver.current_url:
-      print(f"❌ プロフ検索制限メニューのURLです") 
+      # print(f"❌ プロフ検索制限メニューのURLです") 
       driver.get("https://pcmax.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -206,11 +206,11 @@ def profile_search(driver):
       time.sleep(2)
       get_header_menu(driver, "プロフ検索")
       time.sleep(2)
-      print("✅ プロフ検索メニューのURLかチェック その２")
-      print(driver.current_url)
+      # print("✅ プロフ検索メニューのURLかチェック その２")
+      # print(driver.current_url)
       if not "/mobile/profile_reference.php" in driver.current_url:
-        print("❌ プロフ検索メニューのURLではありません")
-        print(driver.current_url)
+        # print("❌ プロフ検索メニューのURLではありません")
+        # print(driver.current_url)
         wait = WebDriverWait(driver, 10)
         if "pcmax" in driver.current_url:
           driver.get("https://pcmax.jp/pcm/index.php")
