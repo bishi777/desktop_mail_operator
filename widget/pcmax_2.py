@@ -121,6 +121,18 @@ def catch_warning_pop(name, driver):
       time.sleep(1)
   except Exception:
     pass
+  try:
+    lin_dialog = driver.find_elements(By.CLASS_NAME, 'lin_dialog')
+    if lin_dialog:
+      time.sleep(1)
+      lin_close = driver.find_elements(By.CLASS_NAME, 'lin_close')
+      if lin_close:
+        lin_close[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+  except Exception:
+    pass
+
   return warning
   
 def get_header_menu(driver, menu):
