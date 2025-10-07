@@ -519,7 +519,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
                 lambda d: text_area.get_attribute("value") == second_message
             )
             time.sleep(4)
-            print(6666)
             driver.find_element(By.ID, "send_n").click()
             if driver.find_elements(By.CLASS_NAME, "banned-word"):
               time.sleep(6)
@@ -570,7 +569,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
                   lambda d: text_area.get_attribute("value") == second_message
               )
               time.sleep(4)
-              print(66666666)
               driver.find_element(By.ID, "send_n").click()
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
                 time.sleep(6)
@@ -639,7 +637,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         WebDriverWait(driver, 10).until(
               lambda d: text_area.get_attribute("value") == second_message
           )
-        print(66)
         driver.find_element(By.ID, "send_n").click()
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
@@ -668,7 +665,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           WebDriverWait(driver, 10).until(
               lambda d: text_area.get_attribute("value") == second_message
           )
-          print(66666666666)
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
@@ -705,7 +701,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, second_message)
           time.sleep(2)
-          print(666666666666666666666666666)
           driver.find_element(By.ID, "send_n").click()
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
@@ -728,7 +723,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             driver.find_element(By.ID, "image_button2").click()
           except Exception:
             pass
-      driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
+      if "pcmax" in driver.current_url:
+        driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
+      elif "linkleweb" in driver.current_url:
+        driver.get("https://linkleweb.jp/mobile/mail_recive_list.php?receipt_status=0")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.5) 
 
