@@ -69,8 +69,8 @@ while True:
       
       if name_on_pcmax:
         name = name_on_pcmax[0].text
-        if ("いおり" or "りな") != name:
-          continue
+        # if ("いおり" or "りな") != name:
+        #   continue
 
       while not len(name_on_pcmax):
         # 再ログイン処理
