@@ -434,7 +434,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
 
 def check_top_image(name,driver):
   wait = WebDriverWait(driver, 10)
-  driver.get("https://linkleweb.jp/pcm/member.php")
+  if "pcmax" in driver.current_url:
+    driver.get("https://pcmax.jp/pcm/member.php")
+  elif "linkleweb" in driver.current_url:
+    driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   catch_warning_pop(name, driver)
