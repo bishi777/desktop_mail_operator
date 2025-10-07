@@ -774,7 +774,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       print("４分経過していません")
       return user_name
       break
-  driver.get("https://pcmax.jp/pcm/index.php")
+  if "pcmax" in driver.current_url:
+    driver.get("https://pcmax.jp/pcm/index.php")
+  elif "linkleweb" in driver.current_url:
+    driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5) 
   return None
@@ -890,7 +893,10 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
 
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user):
   wait = WebDriverWait(driver, 10)
-  driver.get("https://pcmax.jp/pcm/member.php")
+  if "pcmax" in driver.current_url:
+    driver.get("https://pcmax.jp/pcm/member.php")
+  elif "linkleweb" in driver.current_url:
+    driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   catch_warning_pop(name, driver)
