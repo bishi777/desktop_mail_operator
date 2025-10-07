@@ -181,7 +181,7 @@ while True:
           #   print(f"{name}❌ いいかもリスト  の操作でエラー: {e}")
           #   traceback.print_exc()
           try:
-            print(f"足跡返し開始 {name} 現在{report_dict[name]}件")
+            print(f"足跡返し開始 現在{report_dict[name]}件")
             if send_cnt > 0:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, send_cnt, mail_img, unread_user)   
             report_dict[name] = report_dict[name] + rf_cnt

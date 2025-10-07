@@ -553,7 +553,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             site = "リンクル(PCMAX)"
             try:
               func.normalize_text(condition_message)
-              # func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
+              func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
               print("アドレス内1stメールを送信しました")
             except Exception:
               print(f"{name} アドレス内1stメールの送信に失敗しました")
@@ -581,9 +581,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
                 if t_a_v_cnt == 5:
                   print("テキストエリアにconfirmation_mail入力できません")
                   break
+              time.sleep(3)
               driver.find_element(By.ID, "send_n").click()
               print(999)
-              time.sleep(10)
+              time.sleep(7)
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
                 time.sleep(6)
                 driver.find_element(By.ID, "send_n").click()
@@ -1145,7 +1146,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
-          print(f"{name} 足跡がえし マジ送信{maji_soushin} {user_n}  {rf_cnt}件送信  {now}")
+          print(f"{user_n} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
           user_index += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
