@@ -1025,7 +1025,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       try:
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
-          print(f"{user_n} もふない")
+          print(f"{user_n} もふあり")
           driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
