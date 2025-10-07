@@ -125,14 +125,16 @@ while True:
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  
-      driver.get("https://linkleweb.jp/pcm/index.php")
+      if "pcmax" in driver.current_url:
+        driver.get("https://pcmax.jp/pcm/index.php")
+      elif "linkleweb" in driver.current_url:
+        driver.get("https://linkleweb.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
       continue
     for index, i in enumerate(pcmax_datas):
       login_id = ""
-      # if name_on_pcmax != "えりか":
-      #   continue
+     
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = 0

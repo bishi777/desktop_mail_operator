@@ -997,7 +997,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             time.sleep(1.5)
             pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
             try:
-              print(pressed_type.get_attribute("outerHTML"))
+              pressed_type_ele = pressed_type.get_attribute("outerHTML")
+              # print(pressed_type_ele)
             except StaleElementReferenceException:
               print("⚠️ stale なので再取得します")
               time.sleep(3)
