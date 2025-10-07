@@ -63,7 +63,7 @@ for i in range(99999):
       # 〜〜〜〜〜〜〜〜〜〜〜〜ユーザーをクリック 〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       if ("pcmax.jp/mobile/profile_rest_list.php" and "linkleweb.jp/mobile/profile_rest_list.php") in driver.current_url:
         print("プロフ検索に制限がかかっています")
-      elif ("pcmax.jp/mobile/profile_list.php" and "linkleweb.jp/mobile/profile_list.php") in driver.current_url :
+      elif "/mobile/profile_list.php" in driver.current_url :
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
         # やり取りあるか確認
@@ -106,7 +106,7 @@ for i in range(99999):
               func.send_mail(text, mail_info, title, img_path)
             search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
-      elif ("pcmax.jp/mobile/profile_detail.php" and "linkleweb.jp/mobile/profile_detail.php") in driver.current_url:
+      elif  "/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           driver.back()
       
@@ -280,6 +280,7 @@ for i in range(99999):
             if "利用制限" in suspend_title[0].text:
               print("制限がかかっているため、スキップを行います")
             break
+
           time.sleep(150)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
