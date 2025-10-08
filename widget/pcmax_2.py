@@ -475,6 +475,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
   for a_tag in innner1_a_tags:
     if "未読" in a_tag.text:
+      print("✅ 未読リストをクリックします")
       a_tag.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -505,8 +506,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
-      # user_div_list[0].find_element(By.TAG_NAME, "a").click()
-      # user_name = user_div_list[0].find_element(By.CLASS_NAME, value="user_info").text 
       driver.find_element(By.CLASS_NAME, "btn2").click()
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
