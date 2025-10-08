@@ -15,7 +15,6 @@ from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 import sys
 
-arg1 = sys.argv[1] if len(sys.argv) > 1 else None
 user_data = func.get_user_data()
 wait_time = 1.5
 user_mail_info = [

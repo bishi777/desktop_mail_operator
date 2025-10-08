@@ -86,7 +86,13 @@ try:
           driver.get("https://happymail.co.jp/app/html/mbmenu.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5)
-        name = driver.find_element(By.CLASS_NAME, value="ds_user_display_name").text
+        name_ele = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+        if name_ele:
+          name = name_ele[0].text
+        else:
+          print("名前の取得に失敗しました")
+          print(driver.current_url)
+          continue
         if name == i["name"]:
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
           if "すい" == name:
