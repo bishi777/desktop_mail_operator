@@ -221,4 +221,5 @@ except Exception as e:
 finally:
   # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
   # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
+  traceback.print_exc() 
   sys.exit(0)
