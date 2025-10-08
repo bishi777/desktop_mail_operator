@@ -473,14 +473,17 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     return
   innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
-  for a_tag in innner1_a_tags:
-    if "未読" in a_tag.text:
-      print("✅ 未読リストをクリックします")
-      a_tag.click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      break
-  
+  if "linkleweb" in driver.current_url:
+    for a_tag in innner1_a_tags:
+      if "未読" in a_tag.text:
+        # print("✅ 未読リストをクリックします")
+        a_tag.click()
+        break
+  elif "pcmax" in driver.current_url:
+    not_yet = driver.find_element(By.CLASS_NAME, "not_yet").find_element(By.TAG_NAME, "a")
+    not_yet.click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
   while True:
     catch_warning_pop(name, driver)
     user_div_list = driver.find_elements(By.CSS_SELECTOR, ".mail_area.clearfix")
