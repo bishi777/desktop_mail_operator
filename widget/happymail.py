@@ -321,6 +321,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
     # 新着があった
     # if True:
       #  未読のみ表示
+      catch_warning_screen(driver)
       only_new_message = driver.find_elements(By.CLASS_NAME, value="ds_message_tab_item")[1]
       only_new_message.click()
       time.sleep(1)

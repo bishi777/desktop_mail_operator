@@ -23,7 +23,7 @@ import shutil
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from urllib3.exceptions import ReadTimeoutError
 from datetime import datetime
-
+import settings
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
@@ -33,8 +33,13 @@ n = len(happy_info)
 half = n // 2
 first_half = happy_info
 # first_half = happy_info[half:]  # 後半
-profile_path = "chrome_profiles/h_footprint"
-drivers = {}
+# profile_path = "chrome_profiles/h_footprint"
+# drivers = {}
+options = Options()
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.happymail_drivers_port}")
+driver = webdriver.Chrome(options=options)
+wait = WebDriverWait(driver, 10)
+handles = driver.window_handles
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
@@ -51,8 +56,9 @@ spare_mail_info = [
   "siliboco68@gmail.com",
   "akkcxweqzdplcymh",
 ]
+
 try:
-  drivers = happymail.start_the_drivers_login(spare_mail_info, first_half, headless, profile_path, True)
+  # drivers = happymail.start_the_drivers_login(spare_mail_info, first_half, headless, profile_path, True)
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
   matching_daily_limit = 5
@@ -62,47 +68,49 @@ try:
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
+  
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info])
     start_loop_time = time.time()
-    if drivers == {}:
-      break
-    now = datetime.now()
-    print(999)
-    
-    for name, data in drivers.items():
-      print(f"現在の名前: {name}")
-      if "すい" == name:
-        total_daily_limit = 10
-      else:
-        total_daily_limit = 10
-      happymail_new_list = []
-      top_image_check = None
-      happymail_new = None
-      driver = drivers[name]["driver"]
-      wait = drivers[name]["wait"]
-      tabs = driver.window_handles
-      login_id = drivers[name]["login_id"]
-      password = drivers[name]["password"]
-      return_foot_message = drivers[name]["return_foot_message"]
-      fst_message = drivers[name]["fst_message"]
-      post_return_message = drivers[name]["post_return_message"]
-      conditions_message = drivers[name]["conditions_message"]
-      return_foot_img = drivers[name]["mail_img"]
-      matching_cnt = 1
-      type_cnt = 1
-      return_foot_cnt = 1
-      for index, tab in enumerate(tabs):
-        driver.switch_to.window(tab) 
-        print("変更前:", func.get_current_ip())
-        func.change_tor_ip()
-        time.sleep(7)
-        print("変更後:", func.get_current_ip())
-        # print(f"現在のタブ: {index + 1},")
-        if index  == 0:
+    now = datetime.now()    
+    for idx, handle in enumerate(handles): 
+      for index, i in enumerate(first_half):
+        driver.switch_to.window(handle)
+        time.sleep(1)
+        current_url = driver.current_url
+        if not "happymail.co.jp/app/html/mbmenu.php" in current_url:
+          driver.get("https://happymail.co.jp/app/html/mbmenu.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.5)
+        name = driver.find_element(By.CLASS_NAME, value="ds_user_display_name").text
+        if name == i["name"]:
+          print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
+          if "すい" == name:
+            total_daily_limit = 10
+          else:
+            total_daily_limit = 10
+          happymail_new_list = []
+          top_image_check = None
+          happymail_new = None
+          login_id = i["login_id"]
+          password = i["password"]
+          return_foot_message = i["return_foot_message"]
+          fst_message = i["fst_message"]
+          post_return_message = i["post_return_message"]
+          conditions_message = i["second_message"]
+          return_foot_img = i["chara_image"]
+          matching_cnt = 1
+          type_cnt = 1
+          return_foot_cnt = 1
+      
+          print("変更前:", func.get_current_ip())
+          func.change_tor_ip()
+          time.sleep(6)
+          print("変更後:", func.get_current_ip())
+        
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,return_foot_img)
@@ -145,8 +153,6 @@ try:
               # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
               report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]   
-              print(246)
-              print(return_foot_counted[5]) 
               report_dict[name][2].extend(return_foot_counted[5])
               if total_daily_limit <= report_dict[name][0]:
                 print("午前中のマッチング返しの上限に達しました。")
@@ -205,17 +211,13 @@ try:
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
-  func.close_all_drivers(drivers)
   sys.exit(0)
 except Exception as e:
   # 予期しないエラーが発生した場合
-  func.close_all_drivers(drivers)
   sys.exit(0)
   print("エラーが発生しました:", e)
   traceback.print_exc()
 finally:
   # 正常終了時・エラー終了時を問わず、最後に WebDriver を閉じる
   # print('finalyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')
-  # print(drivers)
-  func.close_all_drivers(drivers)
   sys.exit(0)
