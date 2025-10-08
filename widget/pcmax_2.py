@@ -1172,7 +1172,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         driver.save_screenshot(img_path)
         func.send_error(
             chara=name,
-            error_message=f"{user_name}\n{str(e)}",
+            error_message=f"{user_name}\n送信が完了しませんでした",
             attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
         )
         
