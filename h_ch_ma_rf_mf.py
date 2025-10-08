@@ -35,9 +35,10 @@ first_half = happy_info
 # first_half = happy_info[half:]  # 後半
 # profile_path = "chrome_profiles/h_footprint"
 # drivers = {}
+service = Service(ChromeDriverManager().install())  # Chrome v141に合うDriverを取得
 options = Options()
 options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.happymail_drivers_port}")
-driver = webdriver.Chrome(options=options)
+driver = webdriver.Chrome(service=service, options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
 mailaddress = user_data['user'][0]['gmail_account']
