@@ -30,7 +30,7 @@ if mailserver_address and mailserver_password and receiving_address:
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[0]['port']}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_mf_port}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
