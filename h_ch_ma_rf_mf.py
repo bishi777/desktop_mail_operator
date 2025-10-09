@@ -95,10 +95,10 @@ try:
           continue
         if name == i["name"]:
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
-          if "すい" == name:
-            total_daily_limit = 10
-          else:
-            total_daily_limit = 10
+          # if "すい" == name:
+          #   total_daily_limit = 10
+          # else:
+          #   total_daily_limit = 10
           happymail_new_list = []
           top_image_check = None
           happymail_new = None
@@ -203,7 +203,7 @@ try:
     if now.hour == 20 and now.hour != last_reset_hour:
       last_reset_hour = now.hour  # 初期化済みとして記録
       for i in first_half:
-        if i["name"] == "すい":   
+        # if i["name"] == "すい":   
           report_dict[i["name"]] = [0, True, []]
    
 
