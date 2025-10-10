@@ -1107,7 +1107,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           driver.execute_script("arguments[0].click();", submit)
           while img_conform.is_displayed():
             time.sleep(2)
-            modal_content = driver.find_element(By.CLASS_NAME, value="modal-content")
+            modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
             if len(modal_content):
               break # modal-content お相手が年齢確認されていない為
       except Exception as e:
