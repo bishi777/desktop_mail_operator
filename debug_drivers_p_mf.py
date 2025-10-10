@@ -140,6 +140,7 @@ for i in range(99999):
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
           else:
             print("メイン写真が見つかりません")
+            pcmax_2.catch_warning_pop("", driver)
             if "linkleweb" in driver.current_url:
               print("linklewebのログイン実装に移動")
               driver.find_elements(By.CLASS_NAME, 'login')[0].click()
@@ -209,6 +210,12 @@ for i in range(99999):
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
           else:
             print("メイン写真が見つかりません")
+            pcmax_2.catch_warning_pop("", driver)
+            if "linkleweb" in driver.current_url:
+              print("linklewebのログイン実装に移動")
+              driver.find_elements(By.CLASS_NAME, 'login')[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              pcmax_2.catch_warning_pop("", driver)
             # スクショします
             # driver.save_screenshot("screenshot.png")
           print("150byoutaiki")
@@ -277,6 +284,12 @@ for i in range(99999):
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
           else:
             print("メイン写真が見つかりません")
+            pcmax_2.catch_warning_pop("", driver)
+            if "linkleweb" in driver.current_url:
+              print("linklewebのログイン実装に移動")
+              driver.find_elements(By.CLASS_NAME, 'login')[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              pcmax_2.catch_warning_pop("", driver)
             # スクショします
             # driver.save_screenshot("screenshot.png")
           print("150byoutaiki")
