@@ -1106,7 +1106,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       driver.find_element(By.CLASS_NAME, 'memo_open').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
-      driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+      memo_ele = driver.find_elements(By.ID, 'memotxt')
+      if len(memo_ele):
+        memo_ele[0].send_keys("もふ")
+      else:
+        print("メモ欄が見つかりません")
+        print(user_name)
+        print(driver.current_url)
+        
       driver.find_element(By.ID, 'memo_send').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
