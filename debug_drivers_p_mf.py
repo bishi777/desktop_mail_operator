@@ -131,15 +131,13 @@ for i in range(99999):
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         while not len(name_on_pcmax):
           # 再ログイン処理
-          main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
-          if len(main_photo):
-            login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
-            if len(login_form):
+          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')  
+          if len(login_form):
               login = login_form[0].find_elements(By.TAG_NAME, 'a')
               login[0].click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
           else:
-            print("メイン写真が見つかりません")
+            print("ログインフォームが見つかりません")
             pcmax_2.catch_warning_pop("", driver)
             if "linkleweb" in driver.current_url:
               print("linklewebのログイン実装に移動")
