@@ -422,21 +422,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
             reload_cnt = 0
             send_message_clean = func.normalize_text(send_message)
-            send_text_clean = func.normalize_text(send_msg_elem[-1].text)
-            while send_text_clean != send_message_clean:
-              # print(send_text_clean)
-              # print("~~~~~~~~~~~~~~~~~~~~~")
-              # print(send_message)
-              driver.refresh()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(5)
-              send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-              reload_cnt += 1
-              if reload_cnt == 3:
-                  driver.refresh()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(1.5)
-                  break
+            
             # 画像があれば送信 
             try:
               if mail_img:  
