@@ -16,7 +16,6 @@ from datetime import datetime
 from math import ceil
 from selenium.common.exceptions import NoSuchElementException
 
-
 user_data = func.get_user_data()
 wait_time = 1.5
 mailserver_address = user_data['user'][0]['gmail_account']

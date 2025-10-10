@@ -166,15 +166,24 @@ def get_header_menu(driver, menu):
 def imahima_on(driver,wait):
   get_header_menu(driver, "マイメニュー")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  imahima_icon = driver.find_element(By.ID, "ted")
-  if 'ted-on' in imahima_icon.get_attribute("class").split():
-    print("✅ いまヒマアイコンがオンになっています")
-  else:
-    print("❌ いまヒマアイコンがオフになっています")
-    imahima_icon.click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    print("❌ いまヒマアイコンおんにしました")
+  if "pcmax" in driver.current_url:
+    imahima_icon = driver.find_element(By.ID, "ted")
+    if 'ted-on' in imahima_icon.get_attribute("class").split():
+      print("✅ いまヒマアイコンがオンになっています")
+    else:
+      print("❌ いまヒマアイコンがオフになっています")
+      imahima_icon.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print("❌ いまヒマアイコンおんにしました")
+  elif "linkleweb" in driver.current_url:
+    imahima_icon = driver.find_element(By.ID, "my_today_free")
+    if 'free_off' in imahima_icon.get_attribute("style"):
+      print("❌ いまヒマアイコンがオフになっています")
+      imahima_icon.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print("❌ いまヒマアイコンおんにしました")
   driver.back()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 
