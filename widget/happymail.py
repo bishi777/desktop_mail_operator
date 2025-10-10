@@ -962,6 +962,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
   # if not nav_flug:
   #   return
   # 「マッチング」をクリック
+  catch_warning_screen(driver)
   from_myself = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")[2]
   from_myself.click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
