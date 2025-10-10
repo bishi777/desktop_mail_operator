@@ -248,8 +248,9 @@ for i in range(99999):
         time.sleep(7)
     except Exception as e:
       print(driver.current_url)
-      img_path = f"{name_on_pcmax[0].text}_mf.png"
-      driver.save_screenshot(img_path)
+      if len(name_on_pcmax):
+        img_path = f"{name_on_pcmax[0].text}_mf.png"
+        driver.save_screenshot(img_path)
       print(f"❌  足跡付けの操作でエラー: {e}")
       
       traceback.print_exc()  
