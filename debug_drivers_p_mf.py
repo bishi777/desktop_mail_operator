@@ -198,7 +198,7 @@ for i in range(99999):
         time.sleep(1.5)
         pcmax_2.catch_warning_pop("", driver)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません２'}")
         while not len(name_on_pcmax):
           # 再ログイン処理
           main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
@@ -272,7 +272,7 @@ for i in range(99999):
         time.sleep(0.5)
         pcmax_2.catch_warning_pop("", driver)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+        print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません３'}")
         while not len(name_on_pcmax):
           # 再ログイン処理
           main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
@@ -364,7 +364,7 @@ for i in range(99999):
           pcmax_2.imahima_on(driver, wait)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-          print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません'}")
+          print(f"名前: {name_on_pcmax[0].text if name_on_pcmax else '名前が見つかりません４'}")
           print("~~~~~~~~~~~~~~~~~~~~~~~~~~~")
           for key in pcmax_datas:
             # print(f"名前: {key['name']}")
