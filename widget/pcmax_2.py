@@ -476,10 +476,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   if "linkleweb" in driver.current_url:
     for a_tag in innner1_a_tags:
       if "未読" in a_tag.text:
-        # print("✅ 未読リストをクリックします")
+        print("✅ 未読リストをクリックしますlinkleweb")
         a_tag.click()
         break
   elif "pcmax" in driver.current_url:
+    print("✅ 未読リストをクリックしますpcmax")
     not_yet = driver.find_element(By.CLASS_NAME, "not_yet").find_element(By.TAG_NAME, "a")
     not_yet.click()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -500,7 +501,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     elapsed_time = now - arrival_datetime
     user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
 
-    # print(f"メール到着からの経過時間{elapsed_time}")
+    print(f"メール到着からの経過時間{elapsed_time}")
     # if True:
     if elapsed_time >= timedelta(minutes=4):
       print("4分以上経過しています。")
