@@ -96,7 +96,10 @@ for i in range(99999):
           if current_step > len(user_list):
             print("スクロールしてもユーザーがいなかった")
             print(driver.current_url)
-            img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+            if len(name_on_pcmax):
+              img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+            else:
+              img_path = f"profile_reset.png"
             driver.save_screenshot(img_path)
             title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
             text = f"{driver.current_url}"   
