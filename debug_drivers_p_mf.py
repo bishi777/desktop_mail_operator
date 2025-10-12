@@ -356,9 +356,9 @@ for i in range(99999):
         driver.switch_to.window(handle_to_use)
         try:
           if "pcmax" in driver.current_url:
-            driver.get("https://pcmax.jp/pcm/index.php")   
+            driver.get("https://pcmax.jp/pcm/member.php")   
           elif "linkleweb" in driver.current_url:
-            driver.get("https://linkleweb.jp/pcm/index.php")
+            driver.get("https://linkleweb.jp/pcm/member.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
           pcmax_2.catch_warning_pop("", driver)          
