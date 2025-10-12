@@ -96,11 +96,12 @@ for i in range(99999):
           if current_step > len(user_list):
             print("スクロールしてもユーザーがいなかった")
             print(driver.current_url)
-            if len(name_on_pcmax):
-              img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
-            else:
-              img_path = f"profile_reset.png"
-            driver.save_screenshot(img_path)
+            img_path = None
+            # if len(name_on_pcmax):
+            #   img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+            # else:
+            #   img_path = f"profile_reset.png"
+            # driver.save_screenshot(img_path)
             title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
             text = f"{driver.current_url}"   
             # メール送信
@@ -111,8 +112,6 @@ for i in range(99999):
       elif  "/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           driver.back()
-      
-        
       else:
         print(f"現在のURL: {driver.current_url}")
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
@@ -149,7 +148,9 @@ for i in range(99999):
             # スクショします
             # driver.save_screenshot("screenshot.png")
           print("140byoutaiki")
+          pcmax_2.catch_warning_pop("", driver)
           time.sleep(140)
+          pcmax_2.catch_warning_pop("", driver)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -218,8 +219,10 @@ for i in range(99999):
               pcmax_2.catch_warning_pop("", driver)
             # スクショします
             # driver.save_screenshot("screenshot.png")
+          pcmax_2.catch_warning_pop("", driver)
           print("150byoutaiki")
           time.sleep(150)
+          pcmax_2.catch_warning_pop("", driver)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -293,6 +296,7 @@ for i in range(99999):
               pcmax_2.catch_warning_pop("", driver)
             # スクショします
             # driver.save_screenshot("screenshot.png")
+          pcmax_2.catch_warning_pop("", driver)
           print("150byoutaiki")
           suspend_title = driver.find_elements(By.CLASS_NAME, "suspend_title")
           if len(suspend_title):
@@ -301,6 +305,8 @@ for i in range(99999):
             break
 
           time.sleep(150)
+          pcmax_2.catch_warning_pop("", driver)
+
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
