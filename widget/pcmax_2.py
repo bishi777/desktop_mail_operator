@@ -683,7 +683,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         driver.find_element(By.ID, "send_n").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-        # mailform_box
         mailform_box = driver.find_elements(By.ID, value="mailform_box")
         if len(mailform_box):
           if "連続防止" in mailform_box[0].text:
@@ -742,6 +741,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
+          mailform_box = driver.find_elements(By.ID, value="mailform_box")
           if len(mailform_box):
             if "連続防止" in mailform_box[0].text:
               print("連続防止　待機中...")
@@ -797,6 +797,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
+          mailform_box = driver.find_elements(By.ID, value="mailform_box")
           if len(mailform_box):
             if "連続防止" in mailform_box[0].text:
               print("連続防止　待機中...")
