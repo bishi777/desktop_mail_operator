@@ -519,7 +519,20 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
-      driver.find_element(By.CLASS_NAME, "btn2").click()
+      try:
+        btn2 = driver.find_element(By.CLASS_NAME, "btn2")
+      except NoSuchElementException:
+        img_path = None
+        img_path = f"{name}_btn2_none.png"
+        driver.save_screenshot(img_path)
+        title = "btn2が見つかりません"
+        text = f"{driver.current_url}"   
+        # メール送信
+        if mail_info:
+          func.send_mail(text, mail_info, title, img_path)
+        print("btn2が見つかりません")
+        return
+      btn2.click()
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       received_mail = received_elems[-1].text if received_elems else ""
