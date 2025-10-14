@@ -681,6 +681,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           # time.sleep(0.3)  
 
         driver.find_element(By.ID, "send_n").click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
         # mailform_box
         mailform_box = driver.find_elements(By.ID, value="mailform_box")
         if len(mailform_box):
@@ -734,6 +736,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("テキストエリアにfst_message入力できません")
               break          
           driver.find_element(By.ID, "send_n").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
@@ -787,6 +791,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("テキストエリアにsecond_message入力できません")
               break        
           driver.find_element(By.ID, "send_n").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
           if driver.find_elements(By.CLASS_NAME, "banned-word"):
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
