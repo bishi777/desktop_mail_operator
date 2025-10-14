@@ -586,16 +586,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
           if confirmation_mail:
-            print(777)
             try:
               text_area = driver.find_element(By.ID, value="mdc")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
               driver.execute_script(script, text_area, confirmation_mail)
-              print(666)
               text_area_value = text_area.get_attribute("value")
               t_a_v_cnt = 0
-              print(text_area_value)
+              # print(text_area_value)
               while not text_area_value:
                 t_a_v_cnt += 1
                 time.sleep(2)
@@ -683,6 +681,14 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           # time.sleep(0.3)  
 
         driver.find_element(By.ID, "send_n").click()
+        # mailform_box
+        mailform_box = driver.find_elements(By.ID, value="mailform_box")
+        if len(mailform_box):
+          if "連続防止" in mailform_box[0].text:
+            print("連続防止　待機中...")
+            time.sleep(7)
+            driver.find_element(By.ID, "send_n").click()
+            time.sleep(1)
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
           driver.find_element(By.ID, "send_n").click()
@@ -720,6 +726,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
+          if len(mailform_box):
+            if "連続防止" in mailform_box[0].text:
+              print("連続防止　待機中...")
+              time.sleep(7)
+              driver.find_element(By.ID, "send_n").click()
+              time.sleep(1)
         else:
           # print("やり取り中")
           received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
@@ -764,6 +776,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
           catch_warning_pop(name, driver)
+          if len(mailform_box):
+            if "連続防止" in mailform_box[0].text:
+              print("連続防止　待機中...")
+              time.sleep(7)
+              driver.find_element(By.ID, "send_n").click()
+              time.sleep(1)
         else:
           # print("やり取り中")
           received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
@@ -1113,7 +1131,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         print("メモ欄が見つかりません")
         print(user_name)
         print(driver.current_url)
-        
+
       driver.find_element(By.ID, 'memo_send').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
