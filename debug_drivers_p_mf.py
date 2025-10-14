@@ -114,6 +114,20 @@ for i in range(99999):
               if mail_info:
                 func.send_mail(text, mail_info, title, img_path)
               search_profile_flug = True
+            else:
+              user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+              footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+              print(f"2スクロールしてから足跡付け {current_step}件 {footprint_now}")    
+              time.sleep(0.6)
+              if current_step >= 50:
+                all_search_profile_flug = True
+          else:
+            user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+            footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"スクロールしてから足跡付け {current_step}件 {footprint_now}")    
+            time.sleep(0.6)
+            if current_step >= 50:
+              all_search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif  "/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
