@@ -687,6 +687,17 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           if "連続防止" in mailform_box[0].text:
             print("連続防止　待機中...")
             time.sleep(7)
+            driver.execute_script(script, text_area, fst_message)
+            time.sleep(1)
+            if mail_img:
+              my_photo_element = driver.find_element(By.ID, "my_photo")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+              select = Select(my_photo_element)
+              for option in select.options:
+                if mail_img in option.text:
+                  select.select_by_visible_text(option.text)
+                  time.sleep(0.7)
+                  break
             driver.find_element(By.ID, "send_n").click()
             time.sleep(1)
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
@@ -730,6 +741,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             if "連続防止" in mailform_box[0].text:
               print("連続防止　待機中...")
               time.sleep(7)
+              driver.execute_script(script, text_area, second_message)
+              time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
         else:
@@ -780,6 +793,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             if "連続防止" in mailform_box[0].text:
               print("連続防止　待機中...")
               time.sleep(7)
+              driver.execute_script(script, text_area, second_message)
+              time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
         else:
