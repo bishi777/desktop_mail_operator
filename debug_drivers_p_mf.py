@@ -86,28 +86,34 @@ for i in range(99999):
           print(current_step)
           print(len(user_list))
           driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-          # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(6)
+          time.sleep(4)
           user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
           print("スクロールした")
           print(current_step)
           print(len(user_list))
           if current_step > len(user_list):
-            print("スクロールしてもユーザーがいなかった")
-            print(driver.current_url)
-            img_path = None
-            # if len(name_on_pcmax):
-            #   img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
-            # else:
-            #   img_path = f"profile_reset.png"
-            # driver.save_screenshot(img_path)
-            title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
-            text = f"{driver.current_url}"   
-            # メール送信
-            if mail_info:
-              func.send_mail(text, mail_info, title, img_path)
-            search_profile_flug = True
+            driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(4)
+            print("もう一回スクロールした")
+            print(current_step)
+            print(len(user_list))
+            if current_step > len(user_list):
+              print("スクロールしてもユーザーがいなかった")
+              print(driver.current_url)
+              img_path = None
+              # if len(name_on_pcmax):
+              #   img_path = f"{name_on_pcmax[0].text}_profile_reset.png"
+              # else:
+              #   img_path = f"profile_reset.png"
+              # driver.save_screenshot(img_path)
+              title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
+              text = f"{driver.current_url}"   
+              # メール送信
+              if mail_info:
+                func.send_mail(text, mail_info, title, img_path)
+              search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif  "/mobile/profile_detail.php" in driver.current_url:
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
