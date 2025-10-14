@@ -33,7 +33,6 @@ options = Options()
 options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
-handles = driver.window_handles
 report_dict = {}
 send_flug = False
 roll_cnt = 0
@@ -43,6 +42,8 @@ while True:
   mail_info = random.choice([user_mail_info, spare_mail_info])
   start_loop_time = time.time()
   now = datetime.now()
+  handles = driver.window_handles
+
   for idx, handle in enumerate(handles): 
     WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
