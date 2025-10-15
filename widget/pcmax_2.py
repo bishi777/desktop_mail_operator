@@ -519,6 +519,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
+      if "/mobile/mail_recive_list.php" in driver.current_url:
+        print("受信箱URLです")
+        user_div_list = driver.find_elements(By.CSS_SELECTOR, ".mail_area.clearfix")
+        print(len(user_div_list))
+        user_div_list[-1].find_element(By.TAG_NAME, "a").click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
       try:
         btn2 = driver.find_element(By.CLASS_NAME, "btn2")
       except NoSuchElementException:
@@ -585,7 +592,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         else:
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
-            site = "リンクル(PCMAX)"
+            site = "リンクル"
             try:
               func.normalize_text(condition_message)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
