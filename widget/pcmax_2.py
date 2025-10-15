@@ -1136,6 +1136,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           print(traceback.format_exc())
           break
       try:
+        catch_warning_pop(name, driver)
         memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
         if "もふ" in memo_edit.text:
           print(f"{user_n} もふあり")
