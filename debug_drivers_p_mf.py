@@ -92,7 +92,7 @@ for i in range(99999):
           print("スクロールした")
           print(current_step)
           print(len(user_list))
-          if current_step > len(user_list):
+          if current_step >= len(user_list):
             driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(4)
