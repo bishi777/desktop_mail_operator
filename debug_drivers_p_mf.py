@@ -128,8 +128,8 @@ for i in range(99999):
               all_search_profile_flug = True
       # 〜〜〜〜〜〜〜〜〜〜〜〜〜ユーザー詳細画面から戻る〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜〜
       elif  "/mobile/profile_detail.php" in driver.current_url:
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          driver.back()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        driver.back()
       else:
         print(f"現在のURL: {driver.current_url}")
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')

@@ -406,9 +406,9 @@ def send_mail(message, mail_info, title, image_paths=None):
   smtpobj.login(mailaddress, password)
   try:
     smtpobj.send_message(msg)
-    print("✅ メール送信完了")
+    print("✅ 通知メール送信完了")
   except Exception as e:
-    print("❌ メール送信エラー:", e)
+    print("❌ 通知メール送信エラー:", e)
     if "Daily user sending limit exceeded" in str(e):
       print("⚠️ Gmail送信上限に達しました。別アカウントを使うか翌日まで待機してください。")
     else:

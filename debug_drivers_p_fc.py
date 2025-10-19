@@ -15,59 +15,62 @@ from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 import sys
 
-arg1 = sys.argv[1] if len(sys.argv) > 1 else None
 user_data = func.get_user_data()
 wait_time = 1.5
-mailserver_address = user_data['user'][0]['gmail_account']
-mailserver_password = user_data['user'][0]['gmail_account_password']
-receiving_address = user_data['user'][0]['user_email']
+user_mail_info = [
+  user_data['user'][0]['user_email'],
+  user_data['user'][0]['gmail_account'],
+  user_data['user'][0]['gmail_account_password'],
+  ]
+spare_mail_info = [
+  "ryapya694@ruru.be",
+  "siliboco68@gmail.com",
+  "akkcxweqzdplcymh",
+]
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.chrome_user_profiles[int(arg1)]['port']}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
-handles = driver.window_handles
+report_dict = {}
+send_flug = False
+roll_cnt = 0
 
-# DevTools Protocol で User-Agent を変更
-# driver.execute_cdp_cmd('Network.setUserAgentOverride', {
-#     "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1"
-# })
-# user_agent_type = "iPhone"
-# driver.refresh()
-# wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-# print(777)
-# time.sleep(1000.5)
 
-print(f"タブ数: {len(handles)}")
-roop_index = 0
 while True:
+  mail_info = random.choice([user_mail_info, spare_mail_info])
   start_loop_time = time.time()
   now = datetime.now()
-  start_time = time.time() 
+  handles = driver.window_handles
+
   for idx, handle in enumerate(handles): 
-    WebDriverWait(driver, 10).until(lambda d: handle in d.window_handles)
+    WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
-    print(f"  📄 タブ{idx+1}: {driver.current_url}")
-    skip_urls = [
-      "profile_reference.php",
-      "profile_rest_list.php",
-      "profile_list.php",
-      "profile_detail.php",
-      "profile_rest_reference.php",
-      "pcmax.jp/pcm/file.php"
-    ]
-    if any(part in driver.current_url for part in skip_urls):
-      driver.get("https://pcmax.jp/pcm/index.php")
+    login_flug = pcmax_2.catch_warning_pop("", driver)
+    if login_flug and "制限" in login_flug:
+      print("制限がかかっているため、スキップを行います")
+      continue
+    # print(f"  📄 タブ{idx+1}: {driver.current_url}")
+    # urls = [
+    #   "pcmax.jp/pcm/index.php"
+    # ]
+    if not "/pcm/index.php" in driver.current_url:
+      if "linkleweb" in driver.current_url:
+        driver.get("https://linkleweb.jp/mobile/index.php")
+      elif "pcmax" in driver.current_url:
+        driver.get("https://pcmax.jp/mobile/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)  
-
-    if driver.current_url not in ["https://pcmax.jp/pcm/member.php", "https://pcmax.jp/pcm/index.php"]:
-      continue
+      # print("PCMAXのTOPに移動しました")
+      # print(driver.current_url)
     try:
-      login_flug = pcmax_2.catch_warning_pop("", driver)
-      print(login_flug)   
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
+      if name_on_pcmax:
+        name = name_on_pcmax[0].text
+        if ("いおり" or "りな") != name:
+          continue
+
       while not len(name_on_pcmax):
         # 再ログイン処理
         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
@@ -79,17 +82,37 @@ while True:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')          
         else:
           print("メイン写真が見つかりません")
-          # スクショします
-          driver.save_screenshot("screenshot.png")
+          print(driver.current_url)
+          if "linkleweb" in driver.current_url:
+            print("linklewebのログイン実装に移動")
+            driver.find_elements(By.CLASS_NAME, 'login')[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            pcmax_2.catch_warning_pop("", driver)
+            time.sleep(130)
+          # スクショ
+          # driver.save_screenshot("screenshot.png")
         time.sleep(8.5)
         login_button = driver.find_element(By.NAME, "login")
         login_button.click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1.5)      
+        time.sleep(1.5)
+        login_flug = pcmax_2.catch_warning_pop("", driver)
+        if login_flug and "制限" in login_flug:
+          print("制限がかかっているため、スキップを行います")
+          continue    
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         re_login_cnt = 0
         while not len(name_on_pcmax):
-          time.sleep(5)
+          login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
+          if len(login_form):
+            if login_form[0].is_displayed():
+              login = login_form[0].find_elements(By.TAG_NAME, 'a')
+              login[0].click()
+              time.sleep(5)
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(150)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -99,23 +122,30 @@ while True:
           re_login_cnt += 1
           if re_login_cnt > 5:
             print("再ログイン失敗")
-            break
-          
+            break   
+        name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+        func.send_error(name_on_pcmax[0].text, f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")   
       name_on_pcmax = name_on_pcmax[0].text
-      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~")
+      now = datetime.now()
+      print(f"~~~~~~~~~~~~{name_on_pcmax}~~~~~~~~~~~~{now.strftime('%Y-%m-%d %H:%M:%S')}~~~~~~~~~~~~")  
     except Exception as e:
       print(f"~~~~~❌ ログインの操作でエラー: {e}")
       traceback.print_exc()  
-      driver.get("https://pcmax.jp/pcm/index.php")
+      if "pcmax" in driver.current_url:
+        driver.get("https://pcmax.jp/pcm/index.php")
+      elif "linkleweb" in driver.current_url:
+        driver.get("https://linkleweb.jp/pcm/index.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
       continue
+    # メイン処理
     for index, i in enumerate(pcmax_datas):
-      login_id = ""
+      login_id = ""   
       if name_on_pcmax == i['name']:
+        if name_on_pcmax not in report_dict:
+          report_dict[name_on_pcmax] = 0
+          # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
-        # if  "レイナ" != name:
-        #   continue
         login_id = i["login_id"]
         login_pass = i["password"]
         # print(f"{login_id}   {login_pass}")
@@ -124,45 +154,80 @@ while True:
         fst_message = i["fst_mail"]
         second_message = i["second_message"]
         condition_message = i["condition_message"]
+        confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
-        send_cnt = 3
+        return_foot_message = i["return_foot_message"]
+        send_cnt = 1
         
         try:
+          top_image_flug = pcmax_2.check_top_image(name,driver)
+          if top_image_flug:
+            func.send_mail(
+              f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
+              mail_info,
+              f"PCMAX トップ画像の更新 ",
+            )
+        except Exception as e:
+          print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
+          traceback.print_exc()
+        try:
           print("新着メールチェック開始")   
-          driver.refresh()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, second_message, condition_message, mailserver_address, mailserver_password, receiving_address)
-          driver.get("https://pcmax.jp/pcm/index.php")   
+          unread_user = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if 6 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+        if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+          
           try:
-            print("fst_mail送信開始")
-            if  "りな" == name:
-              print(name)
-              print(roop_index)
-              if roop_index % 5 == 0:
-                send_cnt = 4
-            if send_cnt > 0:
-              pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-              time.sleep(1.5)   
+            pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+
           except Exception as e:
-            print(f"{name}❌ fst_mail  の操作でエラー: {e}")
+            print(f"{name}❌ fstメールの操作でエラー: {e}")
             traceback.print_exc()   
-          driver.get("https://pcmax.jp/pcm/index.php")
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5)
-  elapsed_time = time.time() - start_time  # 経過時間を計算する   
+          if now.hour % 6 == 0:
+            if send_flug:
+              try:
+                func.send_mail(
+                  f"足跡返しの報告\n{report_dict}\n",
+                  mail_info,
+                  f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                )
+                send_flug = False
+                report_dict = {}
+              except Exception as e:
+                print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+                traceback.print_exc()   
+                print('~~~~~~~~~')
+                print(mail_info)
+          else:
+            send_flug = True
+  
+  elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+  wait_cnt = 0
   while elapsed_time < 720:
     time.sleep(10)
-    elapsed_time = time.time() - start_time  # 経過時間を計算する
-    print(f"待機中~~ {elapsed_time} ")
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
+    if wait_cnt % 6 == 0:
+      print(f"待機中~~ {elapsed_time} ")
+    wait_cnt += 1
   print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
-  roop_index += 1
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
   print(f"タイム: {minutes}分{seconds}秒")  
-  # driver.quit()
-  time.sleep(2)
+  #カウント 
+  roll_cnt += 1
+  if roll_cnt % 6 == 0:
+    print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    try:
+      func.send_mail(
+        f"1時間の足跡返しの報告\n{report_dict}\n",
+        mail_info,
+        f"PCMAX 1時間の足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+      )
+      send_flug = False
+    except Exception as e:
+      print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+      traceback.print_exc()   
+      print('~~~~~~~~~')
+      print(mail_info)
+         
