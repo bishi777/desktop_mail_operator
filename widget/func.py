@@ -406,7 +406,7 @@ def send_mail(message, mail_info, title, image_paths=None):
   smtpobj.login(mailaddress, password)
   try:
     smtpobj.send_message(msg)
-    print("✅ 通知メール送信完了")
+    print("通知メール送信完了")
   except Exception as e:
     print("❌ 通知メール送信エラー:", e)
     if "Daily user sending limit exceeded" in str(e):

@@ -171,13 +171,16 @@ while True:
           print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
           traceback.print_exc()
         try:
-          print("新着メールチェック開始")   
+          print("✅新着メールチェック開始")   
           unread_user = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
+          print("✅新着メールチェック終了")
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+          print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
           report_dict[name] = report_dict[name] + fm_cnt
           
           if now.hour % 6 == 0:
@@ -191,7 +194,7 @@ while True:
                 send_flug = False
                 report_dict = {}
               except Exception as e:
-                print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+                print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
                 traceback.print_exc()   
                 print('~~~~~~~~~')
                 print(mail_info)
@@ -222,7 +225,7 @@ while True:
       )
       send_flug = False
     except Exception as e:
-      print(f"{name}❌ 足跡返しの報告  の操作でエラー: {e}")
+      print(f"{name}❌ 6時間のfstmailの報告  の操作でエラー: {e}")
       traceback.print_exc()   
       print('~~~~~~~~~')
       print(mail_info)
