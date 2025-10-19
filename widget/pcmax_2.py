@@ -266,16 +266,16 @@ def profile_search(driver):
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
   youngest_age_select_box = driver.find_element(By.NAME, "from_age")
 
-  r = random.randint(0, 99)
-  if r < 70:
-    random_age = f"{random.randint(29, 34)}歳"
-    youngest_age_select_box.send_keys("18歳")
-    time.sleep(0.5)
-    oldest_age_select_box.send_keys(random_age)
-  else:
-    youngest_age_select_box.send_keys("60歳以上")
-    time.sleep(0.5)
-    oldest_age_select_box.send_keys("60歳以上")
+  # r = random.randint(0, 99)
+  # if r < 70:
+  random_age = f"{random.randint(29, 31)}歳"
+  youngest_age_select_box.send_keys("18歳")
+  time.sleep(0.5)
+  oldest_age_select_box.send_keys(random_age)
+  # else:
+  #   youngest_age_select_box.send_keys("60歳以上")
+  #   time.sleep(0.5)
+  #   oldest_age_select_box.send_keys("60歳以上")
   
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
