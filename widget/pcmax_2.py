@@ -153,11 +153,10 @@ def get_header_menu(driver, menu):
               return False
           except NoSuchElementException:
             pass
-        print(f"✅ {menu} メニューをクリックします")
+        # print(f"✅ {menu} メニューをクリックします")
         link.click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-
         return True
   except NoSuchElementException:
     pass
@@ -202,14 +201,14 @@ def profile_search(driver):
   # https://linkleweb.jp/mobile/profile_reference.php
   # https://pcmax.jp/mobile/profile_reference.php
   if not "/mobile/profile_reference.php" in driver.current_url:
-    if "pcmax.jp/mobile/profile_rest_reference.php" in driver.current_url:
-      # print(f"❌ プロフ検索制限メニューのURLです") 
-      driver.get("https://pcmax.jp/pcm/index.php")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      if len(name_on_pcmax):
-        print(f"{name_on_pcmax[0].text} プロフ検索制限がかかっている可能性があります")
+    if "/mobile/profile_rest_reference.php" in driver.current_url:
+      print(f"❌ プロフ検索制限メニューのURLです") 
+      # driver.get("https://pcmax.jp/pcm/index.php")
+      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      # time.sleep(1)
+      # name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
+      # if len(name_on_pcmax):
+      #   print(f"{name_on_pcmax[0].text} プロフ検索制限がかかっている可能性があります")
       return
     else:
       time.sleep(2)
@@ -317,139 +316,150 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
   profile_search(driver)
-  user_index = 0
   sent_cnt = 0
-  sent_user_list = []
-  while sent_cnt < send_cnt:
-    catch_warning_pop(name, driver)
-    elements = driver.find_elements(By.CLASS_NAME, 'list')
-    # ユーザーリスト結果表示その１
-    if elements:
-      print(f"プロフ制限あり")
-      break
-    # ユーザーリスト結果表示その２
-    else:
-      # print("# ユーザーリスト結果表示その２")
-      elements = driver.find_elements(By.CLASS_NAME, 'name')
-      cnt = 0
-      while not len(elements):
-        driver.refresh()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-        elements = driver.find_elements(By.CLASS_NAME, 'name')
-        cnt += 1
-        if cnt == 2:
-          return
-      sent_user = elements[0].text
-      while sent_user in sent_user_list:
-        # print(f"{sent_user}はすでに送信済みです")
-        user_index += 1
-        sent_user = elements[user_index].text
-      elements[user_index].click()
+  user_row_cnt = 0
+  try:
+    while sent_cnt < send_cnt:
       catch_warning_pop(name, driver)
-      try:
-        pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
-      except NoSuchElementException:
-        print('正常に開けません スキップします')
-        driver.back()
-        user_index += 1
-        continue
-      ng_flag = False
-      for ng_word in ng_words:
-        if ng_word in pr_area.text:
-          print('自己紹介文に危険なワードが含まれていました')
-          try:
-            driver.find_element(By.CLASS_NAME, 'btn.discline').click()
-            driver.find_element(By.ID, 'image_button2').click()
-            time.sleep(2)
-          except NoSuchElementException:
-            pass
-          user_index += 1
-          profile_search(driver)
-          ng_flag = True
-          break
-      if ng_flag:
-        continue
-      try:
-        memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-        if "もふ" in memo_edit.text:
-          time.sleep(random_wait)
-          profile_search(driver)
-          user_index += 1
-          sent_user_list.append(sent_user)
-          continue
-      except NoSuchElementException:
-        pass
-      driver.find_element(By.CLASS_NAME, 'memo_open').click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-      driver.find_element(By.ID, 'memo_send').click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      text_area = driver.find_element(By.ID, value="mail_com")
-      script = "arguments[0].value = arguments[1];"
-      driver.execute_script(script, text_area, fst_message)
-      time.sleep(1)
-      # まじ送信　
-      mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
-      pattern = r'\d+'
-      match = re.findall(pattern, mile_point_text)
-      if int(match[0]) > 20:
-        maji_soushin = True
+      elements = driver.find_elements(By.CLASS_NAME, 'list')
+      # ユーザーリスト結果表示その１
+      if elements:
+        print(f"プロフ制限あり")
+        break
+      # ユーザーリスト結果表示その２
       else:
-        maji_soushin = False
-      time.sleep(random_wait)
-      # mail_imgがあれば送付
-      if mail_img:
-        my_photo_element = driver.find_element(By.ID, "my_photo")
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
-        select = Select(my_photo_element)
-        for option in select.options:
-          if mail_img in option.text:
-            select.select_by_visible_text(option.text)
-            time.sleep(0.4)
-            break
-        # driver.find_element(By.NAME, "preview").click()
-        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(0.3)
-      now = datetime.now().strftime('%m-%d %H:%M:%S')
-      if maji_soushin:
-        maji =  driver.find_element(By.ID, value="majiBtn")
-        maji.click()
+        # print("# ユーザーリスト結果表示その２")
+        elements = driver.find_elements(By.CLASS_NAME, 'profile_card')
+        # user_name = driver.find_elements(By.CLASS_NAME, 'name')
+        reload_cnt = 0
+        while not len(elements):
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          elements = driver.find_elements(By.CLASS_NAME, 'name')
+          reload_cnt += 1
+          if reload_cnt == 2:
+            return
+        
+        exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
+        user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
+        user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
+        while len(exchange):
+          print(f"やり取り有り　{user_name}")
+          user_row_cnt += 1 
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
+          exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
+          user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
+        elements[user_row_cnt].find_element(By.CLASS_NAME, value="profile_link_btn").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
-        link_OK = driver.find_element(By.ID, value="link_OK")
-        link_OK.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
-      else:
-        driver.find_element(By.ID, 'send3').click()
+        catch_warning_pop(name, driver)
+        try:
+          pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
+        except NoSuchElementException:
+          print('正常に開けません スキップします')
+          driver.back()
+          user_row_cnt += 1
+          continue
+        ng_flag = False
+        for ng_word in ng_words:
+          if ng_word in pr_area.text:
+            print('自己紹介文に危険なワードが含まれていました')
+            try:
+              driver.find_element(By.CLASS_NAME, 'btn.discline').click()
+              driver.find_element(By.ID, 'image_button2').click()
+              time.sleep(2)
+            except NoSuchElementException:
+              pass
+            user_row_cnt += 1
+            profile_search(driver)
+            ng_flag = True
+            break
+        if ng_flag:
+          continue
+        try:
+          memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
+          if "もふ" in memo_edit.text:
+            time.sleep(random_wait)
+            profile_search(driver)
+            user_row_cnt += 1
+            continue
+        except NoSuchElementException:
+          pass
+        driver.find_element(By.CLASS_NAME, 'memo_open').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.7)
-      if len(driver.find_elements(By.ID, value="mailform_box")):
-        if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
-          print("連続防止　待機中...")
-          time.sleep(6)
-          if maji_soushin:
-            maji =  driver.find_element(By.ID, value="majiBtn")
-            maji.click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-            link_OK = driver.find_element(By.ID, value="link_OK")
-            link_OK.click()
-          else:
-            driver.find_element(By.ID, 'send3').click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-      sent_cnt += 1   
-      print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{sent_user}  {sent_cnt}件送信  {now}")
-      user_index += 1
-      catch_warning_pop(name, driver)
-      sent_user_list.append(sent_user)
-      back2 = driver.find_element(By.ID, value="back2")
-      driver.execute_script("arguments[0].click();", back2)
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(random_wait)
+        time.sleep(1)
+        driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+        driver.find_element(By.ID, 'memo_send').click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        text_area = driver.find_element(By.ID, value="mail_com")
+        script = "arguments[0].value = arguments[1];"
+        driver.execute_script(script, text_area, fst_message)
+        time.sleep(1)
+        # まじ送信　
+        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+        pattern = r'\d+'
+        match = re.findall(pattern, mile_point_text)
+        if int(match[0]) > 20:
+          maji_soushin = True
+        else:
+          maji_soushin = False
+        time.sleep(random_wait)
+        # mail_imgがあれば送付
+        if mail_img:
+          my_photo_element = driver.find_element(By.ID, "my_photo")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+          select = Select(my_photo_element)
+          for option in select.options:
+            if mail_img in option.text:
+              select.select_by_visible_text(option.text)
+              time.sleep(0.4)
+              break
+          # driver.find_element(By.NAME, "preview").click()
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.3)
+        now = datetime.now().strftime('%m-%d %H:%M:%S')
+        if maji_soushin:
+          maji =  driver.find_element(By.ID, value="majiBtn")
+          maji.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          link_OK = driver.find_element(By.ID, value="link_OK")
+          link_OK.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+        else:
+          driver.find_element(By.ID, 'send3').click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(0.7)
+        if len(driver.find_elements(By.ID, value="mailform_box")):
+          if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
+            print("連続防止　待機中...")
+            time.sleep(6)
+            if maji_soushin:
+              maji =  driver.find_element(By.ID, value="majiBtn")
+              maji.click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              link_OK = driver.find_element(By.ID, value="link_OK")
+              link_OK.click()
+            else:
+              driver.find_element(By.ID, 'send3').click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+        sent_cnt += 1   
+        print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{user_info}  {sent_cnt}件送信  {now}")
+        user_row_cnt += 1
+        catch_warning_pop(name, driver)
+        back2 = driver.find_element(By.ID, value="back2")
+        driver.execute_script("arguments[0].click();", back2)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(random_wait)
+    return sent_cnt
+  except Exception as e:
+    print(f"{name}❌ fstメールの操作でエラー: {e}")
+    traceback.print_exc()   
+    return sent_cnt
 
 def check_top_image(name,driver):
   wait = WebDriverWait(driver, 10)
@@ -1027,7 +1037,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5)
   rf_cnt = 0
-  user_index = 0
+  user_row_cnt = 0
   bottom_scroll_flug = True
   bottom_scroll_cnt = 0
   while rf_cnt < send_limit_cnt:

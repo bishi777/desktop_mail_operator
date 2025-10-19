@@ -45,7 +45,7 @@ while True:
   handles = driver.window_handles
 
   for idx, handle in enumerate(handles): 
-    WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
+    # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
     login_flug = pcmax_2.catch_warning_pop("", driver)
     if login_flug and "制限" in login_flug:
@@ -68,8 +68,8 @@ while True:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
       if name_on_pcmax:
         name = name_on_pcmax[0].text
-        if ("いおり" or "りな") != name:
-          continue
+        # if ("いおり" and "りな") != name:
+        #   continue
 
       while not len(name_on_pcmax):
         # 再ログイン処理
@@ -157,7 +157,7 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        send_cnt = 3
+        send_cnt = 2
         
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
@@ -177,20 +177,16 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+          fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          report_dict[name] = report_dict[name] + fm_cnt
           
-          try:
-            pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-
-          except Exception as e:
-            print(f"{name}❌ fstメールの操作でエラー: {e}")
-            traceback.print_exc()   
           if now.hour % 6 == 0:
             if send_flug:
               try:
                 func.send_mail(
-                  f"足跡返しの報告\n{report_dict}\n",
+                  f"PCMAX 1時間のfstmailの報告\n{report_dict}\n",
                   mail_info,
-                  f"PCMAX 足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                  f"PCMAX 1時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
                 )
                 send_flug = False
                 report_dict = {}
@@ -220,9 +216,9 @@ while True:
     print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
       func.send_mail(
-        f"1時間の足跡返しの報告\n{report_dict}\n",
+        f"PCMAX 6時間のfstmailの報告\n{report_dict}\n",
         mail_info,
-        f"PCMAX 1時間の足跡返しの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"PCMAX 6時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:
