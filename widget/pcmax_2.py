@@ -658,7 +658,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             # メール送信  
             if mail_info:
               func.send_mail(text, mail_info, title, screenshot_path)
-            return
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
           icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
