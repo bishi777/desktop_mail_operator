@@ -344,12 +344,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text  
         while len(exchange):
-          print(f"やり取り有り　{user_name}")
+          # print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
           user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
-          print(f"next_user_name: {user_name}")
         if "linkleweb" in driver.current_url:
           user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
         elif "pcmax" in driver.current_url:
@@ -453,7 +452,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1)
         sent_cnt += 1
-        print(f"fst_message マジ送信{maji_soushin}  ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
+        print(f"マジ送信{maji_soushin}  ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
         user_row_cnt += 1
         catch_warning_pop(name, driver)
         if "linkleweb" in driver.current_url:

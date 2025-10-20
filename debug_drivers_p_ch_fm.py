@@ -45,7 +45,7 @@ while True:
   handles = driver.window_handles
   print(f"タブ数:{len(handles)}")
   
-  print("<<<<<<<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+  print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
