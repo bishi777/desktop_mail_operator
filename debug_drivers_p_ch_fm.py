@@ -43,9 +43,9 @@ while True:
   start_loop_time = time.time()
   now = datetime.now()
   handles = driver.window_handles
-  print(777)
-  handles = func.sort_handles_by_name(driver, wait)
-  print(666)
+  print(f"タブ数:{len(handles)}")
+  
+  
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
