@@ -177,29 +177,35 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if 7 <= now.hour < 23 or (now.hour == 23 and now.minute <= 45):
+        if "りな" in name:
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
           print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
           report_dict[name] = report_dict[name] + fm_cnt
           
-          if now.hour % 6 == 0:
-            if send_flug:
-              try:
-                func.send_mail(
-                  f"PCMAX 1時間のfstmailの報告\n{report_dict}\n",
-                  mail_info,
-                  f"PCMAX 1時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
-                )
-                send_flug = False
-                report_dict = {}
-              except Exception as e:
-                print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
-                traceback.print_exc()   
-                print('~~~~~~~~~')
-                print(mail_info)
-          else:
-            send_flug = True
+        elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
+          print(f"✅fstメール送信開始 送信数:{send_cnt}")
+          fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
+          report_dict[name] = report_dict[name] + fm_cnt
+          
+        if now.hour % 6 == 0:
+          if send_flug:
+            try:
+              func.send_mail(
+                f"PCMAX 6時間のfstmailの報告\n{report_dict}\n",
+                mail_info,
+                f"PCMAX 6時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+              )
+              send_flug = False
+              report_dict = {}
+            except Exception as e:
+              print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
+              traceback.print_exc()   
+              print('~~~~~~~~~')
+              print(mail_info)
+        else:
+          send_flug = True
   
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   wait_cnt = 0
@@ -219,13 +225,13 @@ while True:
     print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
       func.send_mail(
-        f"PCMAX 6時間のfstmailの報告\n{report_dict}\n",
+        f"PCMAX 1時間のfstmailの報告\n{report_dict}\n",
         mail_info,
-        f"PCMAX 6時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"PCMAX 1時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:
-      print(f"{name}❌ 6時間のfstmailの報告  の操作でエラー: {e}")
+      print(f"{name}❌ 1時間のfstmailの報告  の操作でエラー: {e}")
       traceback.print_exc()   
       print('~~~~~~~~~')
       print(mail_info)
