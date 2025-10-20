@@ -347,7 +347,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
         elif "pcmax" in driver.current_url:
           user_info = user_name
-        user_area = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="conf")[0].text
+        user_area = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")
         
         while len(exchange):
           print(f"やり取り有り　{user_name}")

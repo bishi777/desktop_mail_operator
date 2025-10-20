@@ -43,7 +43,9 @@ while True:
   start_loop_time = time.time()
   now = datetime.now()
   handles = driver.window_handles
-
+  print(777)
+  handles = sort_handles_by_name(driver, wait)
+  print(666)
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
@@ -51,7 +53,7 @@ while True:
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
-    # print(f"  📄 タブ{idx+1}: {driver.current_url}")
+    print(f"  📄 タブ{idx+1}")
     # urls = [
     #   "pcmax.jp/pcm/index.php"
     # ]
