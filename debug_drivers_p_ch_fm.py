@@ -44,7 +44,7 @@ while True:
   now = datetime.now()
   handles = driver.window_handles
   print(777)
-  handles = sort_handles_by_name(driver, wait)
+  handles = func.sort_handles_by_name(driver, wait)
   print(666)
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
