@@ -355,6 +355,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
           user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
+          print(f"next_user_name: {user_name}")
         elements[user_row_cnt].find_element(By.CLASS_NAME, value="profile_link_btn").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)

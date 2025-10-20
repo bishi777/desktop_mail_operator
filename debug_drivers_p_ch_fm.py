@@ -45,7 +45,7 @@ while True:
   handles = driver.window_handles
   print(f"タブ数:{len(handles)}")
   
-  
+  print("<<<<<<<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
     driver.switch_to.window(handle)
@@ -216,12 +216,11 @@ while True:
     if wait_cnt % 6 == 0:
       print(f"待機中~~ {elapsed_time} ")
     wait_cnt += 1
-  print("🎉🎉🎉<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>🎉🎉🎉")
+  print("🎉🎉🎉<<<<<<<<<<<<<ループ終了>>>>>>>>>>>>>>>>>>>>>🎉🎉🎉")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
-  print(f"タイム: {minutes}分{seconds}秒") 
-  print("🏁🏁🏁<<<<<<<<<<<<<🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>🏁🏁🏁")
- 
+  print(f"🏁🏁🏁タイム: {minutes}分{seconds}秒　🏁🏁🏁") 
+  
   #カウント 
   roll_cnt += 1
   if roll_cnt % 6 == 0:
