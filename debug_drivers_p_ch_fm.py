@@ -66,6 +66,7 @@ while True:
       # print("PCMAXのTOPに移動しました")
       # print(driver.current_url)
     try:
+      pcmax_2.catch_warning_pop("", driver)
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
       if name_on_pcmax:
         name = name_on_pcmax[0].text

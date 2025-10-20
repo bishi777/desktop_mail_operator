@@ -342,13 +342,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
             return sent_cnt
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
-        user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
-        if "linkleweb" in driver.current_url:
-          user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
-        elif "pcmax" in driver.current_url:
-          user_info = user_name
-        user_area = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")
-        
+        user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text  
         while len(exchange):
           print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
@@ -356,6 +350,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
           user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
           print(f"next_user_name: {user_name}")
+        if "linkleweb" in driver.current_url:
+          user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
+        elif "pcmax" in driver.current_url:
+          user_info = user_name
+        user_area = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")
         elements[user_row_cnt].find_element(By.CLASS_NAME, value="profile_link_btn").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
