@@ -30,7 +30,7 @@ spare_mail_info = [
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port_2}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 report_dict = {}

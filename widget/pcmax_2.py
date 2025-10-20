@@ -149,7 +149,7 @@ def get_header_menu(driver, menu):
           try:
             new_message_badge = link.find_elements(By.CLASS_NAME, "header_pcm_badge")
             if not new_message_badge:
-              print("新着メールチェック完了")
+              # print("新着メールチェック完了")
               return False
           except NoSuchElementException:
             pass
@@ -343,11 +343,12 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
-        user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")
-        if not len(user_info):
+        if "linkleweb" in driver.current_url:
+          user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
+        elif "pcmax" in driver.current_url:
           user_info = user_name
-        else:
-          user_info = user_info[0].text
+        user_area = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="conf")[0].text
+        
         while len(exchange):
           print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
@@ -423,7 +424,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           # driver.find_element(By.NAME, "preview").click()
           # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.3)
-        now = datetime.now().strftime('%m-%d %H:%M:%S')
+        now = datetime.now().strftime('%H:%M:%S')
         if maji_soushin:
           maji =  driver.find_element(By.ID, value="majiBtn")
           maji.click()
@@ -451,8 +452,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
               driver.find_element(By.ID, 'send3').click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1)
-        sent_cnt += 1   
-        print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{user_info}  {sent_cnt}件送信  {now}")
+        sent_cnt += 1
+        print(f"fst_message マジ送信{maji_soushin}  ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
         user_row_cnt += 1
         catch_warning_pop(name, driver)
         if "linkleweb" in driver.current_url:
