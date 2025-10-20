@@ -339,7 +339,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           elements = driver.find_elements(By.CLASS_NAME, 'name')
           reload_cnt += 1
           if reload_cnt == 2:
-            return
+            return sent_cnt
         
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
