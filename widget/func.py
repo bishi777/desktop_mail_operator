@@ -89,6 +89,7 @@ def sort_handles_by_name(driver, wait, timeout=4):
                 pass
             # 名前取得（無ければ空文字）
             els = driver.find_elements(By.CLASS_NAME, "mydata_name")
+            print(els)
             name = els[0].text.strip() if els else ""
         except WebDriverException:
             name = ""

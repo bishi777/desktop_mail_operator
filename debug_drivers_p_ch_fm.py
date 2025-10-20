@@ -53,7 +53,6 @@ while True:
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
-    print(f"  📄 タブ{idx+1}")
     # urls = [
     #   "pcmax.jp/pcm/index.php"
     # ]
