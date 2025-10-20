@@ -209,7 +209,7 @@ while True:
   
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   wait_cnt = 0
-  while elapsed_time < 720:
+  while elapsed_time < 600:
     time.sleep(10)
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
     if wait_cnt % 6 == 0:

@@ -335,12 +335,12 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         while not len(elements):
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
+          time.sleep(3)
           elements = driver.find_elements(By.CLASS_NAME, 'name')
           reload_cnt += 1
           if reload_cnt == 2:
             return sent_cnt
-        
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
         user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")
@@ -455,8 +455,14 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         print(f"{name} fst_message マジ送信{maji_soushin}  ユーザー名:{user_info}  {sent_cnt}件送信  {now}")
         user_row_cnt += 1
         catch_warning_pop(name, driver)
-        back2 = driver.find_element(By.ID, value="back2")
-        driver.execute_script("arguments[0].click();", back2)
+        if "linkleweb" in driver.current_url:
+          back2 = driver.find_element(By.ID, value="back2")
+          driver.execute_script("arguments[0].click();", back2)
+        elif "pcmax" in driver.current_url:
+          driver.back()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          driver.back()    
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(random_wait)
     return sent_cnt
