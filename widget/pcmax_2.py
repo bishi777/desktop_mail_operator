@@ -343,7 +343,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
-        user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
+        user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")
+        if not len(user_info):
+          user_info = user_name
+        else:
+          user_info = user_info[0].text
         while len(exchange):
           print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
