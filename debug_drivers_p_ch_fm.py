@@ -216,10 +216,12 @@ while True:
     if wait_cnt % 6 == 0:
       print(f"待機中~~ {elapsed_time} ")
     wait_cnt += 1
-  print("🏁<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>🏁")
+  print("🎉🎉🎉<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>🎉🎉🎉")
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   minutes, seconds = divmod(int(elapsed_time), 60)
-  print(f"タイム: {minutes}分{seconds}秒")  
+  print(f"タイム: {minutes}分{seconds}秒") 
+  print("🏁🏁🏁<<<<<<<<<<<<<🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>🏁🏁🏁")
+ 
   #カウント 
   roll_cnt += 1
   if roll_cnt % 6 == 0:
