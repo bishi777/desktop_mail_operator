@@ -573,6 +573,26 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       time.sleep(1)
       catch_warning_pop(name, driver)
       if email_list:
+        # 見ちゃいや
+        if "linkleweb" in driver.current_url:
+          add_btns = driver.find_elements(By.CLASS_NAME, "add_btn")
+          for add_btn in add_btns:
+            if "見ちゃいや" in add_btn.text:
+              add_btn.click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              image_button2 = driver.find_elements(By.ID, "image_button2")
+              if len(image_button2):
+                image_button2[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              driver.back()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              driver.back()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              break
         # print(f"メールアドレスが見つかりました: {email_list}")
         if name == "つむぎ" or "icloud.com" in received_mail:
           # print("icloud.comが含まれています")
@@ -590,24 +610,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               driver.find_element(By.ID, "send_n").click()
           except Exception:
             pass
-          # みちゃいや
-          catch_warning_pop(name, driver)
-          driver.back()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
-          driver.back()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
-          icon_menu = driver.find_elements(By.ID, "icon_menu")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
-          icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
-          image_button2 = driver.find_elements(By.ID, "image_button2")
-          if len(image_button2):
-            image_button2[0].click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
+          
         else:
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
@@ -651,39 +654,38 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               time.sleep(1.5) 
             except Exception:
               pass
+          catch_warning_pop(name, driver)
           # みちゃいや
-          catch_warning_pop(name, driver)
-          driver.back()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1.5) 
-          catch_warning_pop(name, driver)
-          icon_menu = driver.find_elements(By.ID, "icon_menu")
-          if not len(icon_menu):
-            print("icon_menuが見つかりません")
-            screenshot_path = f"{name}_icon_menu_none.png"
-            driver.save_screenshot(screenshot_path)
-            title = "icon_menuが見つかりません"
-            text = f"{driver.current_url}"   
-            # メール送信  
-            if mail_info:
-              func.send_mail(text, mail_info, title, screenshot_path)
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
-          icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
-          image_button2 = driver.find_elements(By.ID, "image_button2")
-          if len(image_button2):
-            image_button2[0].click()
-          else:
-            print("みちゃいやできません")
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(0.5) 
-          time.sleep(1)
-          try:
-            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
-            driver.find_element(By.ID, "image_button2").click()
-          except Exception:
-            pass
+          if "pcmax" in driver.current_url:
+            driver.back()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.5) 
+            driver.back()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.5) 
+            icon_menu = driver.find_elements(By.ID, "icon_menu")
+            if not len(icon_menu):
+              print("icon_menuが見つかりません")
+              screenshot_path = f"{name}_icon_menu_none.png"
+              driver.save_screenshot(screenshot_path)
+              title = "icon_menuが見つかりません"
+              text = f"{driver.current_url}"   
+              # メール送信  
+              if mail_info:
+                func.send_mail(text, mail_info, title, screenshot_path)
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
+            icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.5) 
+            image_button2 = driver.find_elements(By.ID, "image_button2")
+            if len(image_button2):
+              image_button2[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.5) 
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5) 
+            catch_warning_pop(name, driver)
+            
       elif not len(sent_by_me):
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
