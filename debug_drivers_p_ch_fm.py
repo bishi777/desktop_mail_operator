@@ -189,7 +189,7 @@ while True:
         if "りな" in name:
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-          print(f"✅fstメール送信終了　トータルカウント{report_dict[name]["fst"] + fm_cnt}")
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
           report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
           try:
             print(f"✅足跡返し開始 ")
