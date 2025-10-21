@@ -368,7 +368,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         ng_flag = False
         for ng_word in ng_words:
           if ng_word in pr_area.text:
-            print('自己紹介文に危険なワードが含まれていました')
+            print(f'{user_name} 自己紹介文にNGワードが含まれていました')
             try:
               driver.find_element(By.CLASS_NAME, 'btn.discline').click()
               driver.find_element(By.ID, 'image_button2').click()
