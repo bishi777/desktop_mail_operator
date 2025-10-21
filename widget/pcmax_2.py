@@ -764,7 +764,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name) in func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
           # print("2ndメールを送信します")
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
