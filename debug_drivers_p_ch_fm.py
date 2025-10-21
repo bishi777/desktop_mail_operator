@@ -186,28 +186,34 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        
+        # if "りな" in name:
         print(f"✅fstメール送信開始 送信数:{send_cnt}")
         fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
         print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
         report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
-        # try:
-        #   print(f"✅足跡返し開始 ")
-        #   rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
-        #   report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+        try:
+          print(f"✅足跡返し開始 ")
+          rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
+          report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
 
-        #   print(f"✅足跡返し終了 　")
-        # except Exception as e:
-        #   print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
-        #   traceback.print_exc()  
-
+          print(f"✅足跡返し終了 　")
+        except Exception as e:
+          print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
+          traceback.print_exc()  
+          
+        elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
+          print(f"✅fstメール送信開始 送信数:{send_cnt}")
+          fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
+          report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
+          
         if now.hour % 3 == 0:
           if send_flug:
             try:
               func.send_mail(
-                f"PCMAX 3時間の進捗報告\n{report_dict}\n",
+                f"PCMAX 3時間のfstmailの報告\n{report_dict}\n",
                 mail_info,
-                f"PCMAX 3時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"PCMAX 3時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
               report_dict = {}
