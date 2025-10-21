@@ -14,7 +14,19 @@ import traceback
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 import sys
+import argparse
 
+def parse_port():
+    p = argparse.ArgumentParser()
+    p.add_argument("port", nargs="?", type=int, help="remote debugging port")
+    args = p.parse_args()
+    if args.port is not None:
+        return args.port
+    return getattr(settings, "pcmax_ch_port", None)
+
+PORT = parse_port()
+print(777)
+print(PORT)
 user_data = func.get_user_data()
 wait_time = 1.5
 user_mail_info = [
@@ -30,7 +42,12 @@ spare_mail_info = [
 pcmax_datas = user_data["pcmax"]
 # pcmax_datas = pcmax_datas[:9]
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
+
+if PORT is not None:
+    options.add_experimental_option("debuggerAddress", f"127.0.0.1:{PORT}")
+else:
+    print("[INFO] No remote-debugging port provided. Launching Chrome normally.")
+# options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 report_dict = {}
