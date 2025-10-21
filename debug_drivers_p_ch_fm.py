@@ -153,7 +153,7 @@ while True:
       login_id = ""   
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
-          report_dict[name_on_pcmax] = {"fst":0,"rf",0 }
+          report_dict[name_on_pcmax] = {"fst":0,"rf":0 }
           # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
