@@ -79,9 +79,8 @@ while True:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
       if name_on_pcmax:
         name = name_on_pcmax[0].text
-        # if ("いおり" and "りな") != name:
-        #   continue
-
+        if "りな" != name:
+          continue
       while not len(name_on_pcmax):
         # 再ログイン処理
         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
@@ -168,8 +167,7 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        send_cnt = 2
-        
+        send_cnt = 2   
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
@@ -189,10 +187,17 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if "りな" in name:
-          print(f"✅fstメール送信開始 送信数:{send_cnt}")
-          fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-          print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
-          report_dict[name] = report_dict[name] + fm_cnt
+          # print(f"✅fstメール送信開始 送信数:{send_cnt}")
+          # fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          # print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
+          # report_dict[name] = report_dict[name] + fm_cnt
+          try:
+            print(f"✅足跡返し開始 ")
+            pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
+            print(f"✅足跡返し終了 　")
+          except Exception as e:
+            print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
+            traceback.print_exc()  
           
         elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
           print(f"✅fstメール送信開始 送信数:{send_cnt}")

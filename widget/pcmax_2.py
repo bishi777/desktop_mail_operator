@@ -1019,10 +1019,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+    # もふ確認　memo_tab
     if bottom_scroll_flug:
-      while user_index >= len(foot_user_list):
+      while user_row_cnt >= len(foot_user_list):
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-        # driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)
         bottom_scroll_cnt += 1
@@ -1030,14 +1030,23 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         if bottom_scroll_cnt == 2:
           bottom_scroll_flug = False
           break
-    if user_index >= len(foot_user_list):
-      return rf_cnt
-    like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type1')
-    
+    if user_row_cnt >= len(foot_user_list):
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+      if user_row_cnt >= len(foot_user_list):  
+        return rf_cnt
+    memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
+    if len(memo_tab):
+      user_row_cnt += 1
+      continue
+    like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type1')
+  
     if not len(like):
-      like = foot_user_list[user_index].find_elements(By.CLASS_NAME, 'type4')
+      like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type4')
     if not len(like):
-      user_index += 1
+      user_row_cnt += 1
     # DEBUG
     # if True:
     else:
@@ -1045,7 +1054,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       # user_name = "あお"
       if unread_user and user_name in unread_user:
         print(f"{user_name} は未読リストにいるのでスキップします")
-        user_index += 1
+        user_row_cnt += 1
         continue
       like[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1138,7 +1147,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
-          user_index += 1
+          user_row_cnt += 1
           continue
       except NoSuchElementException as e:
         img_path = f"{name}_error.png"
@@ -1226,7 +1235,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
           print(f"{user_n} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
-          user_index += 1
+          user_row_cnt += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
