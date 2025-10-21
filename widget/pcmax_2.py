@@ -493,7 +493,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   mailserver_address = mail_info[1]
   mailserver_password = mail_info[2]
   receiving_address = mail_info[0]
-
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   new_message_flag = get_header_menu(driver, "メッセージ")
@@ -501,7 +500,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # header_box_under = driver.find_element(By.ID, "header_box_under")
     # header_box_under.find_element(By.TAG_NAME, "a").click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    return
+    return None,0,0,0,0
   check_first = 0
   check_second = 0
   check_more = 0
