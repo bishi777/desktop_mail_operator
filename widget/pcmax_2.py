@@ -493,6 +493,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   mailserver_address = mail_info[1]
   mailserver_password = mail_info[2]
   receiving_address = mail_info[0]
+
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   new_message_flag = get_header_menu(driver, "メッセージ")
@@ -501,6 +502,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # header_box_under.find_element(By.TAG_NAME, "a").click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     return
+  check_first = 0
+  check_second = 0
+  check_more = 0
+  gmail_condition = 0
+  user_name = None
   innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
   if "linkleweb" in driver.current_url:
     for a_tag in innner1_a_tags:
@@ -602,15 +608,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"
             driver.execute_script(script, text_area, icloud_text)
-           
             time.sleep(4)
             driver.find_element(By.ID, "send_n").click()
             if driver.find_elements(By.CLASS_NAME, "banned-word"):
               time.sleep(6)
               driver.find_element(By.ID, "send_n").click()
+            check_more += 1
+            print(f"{user_name}にicloud.com返信メールを送信しました")
           except Exception:
             pass
-          
         else:
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
@@ -618,7 +624,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             try:
               func.normalize_text(condition_message)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
-              print("アドレス内1stメールを送信しました")
+              print(f"{user_name}にアドレス内1stメールを送信しました")
+              gmail_condition += 1
             except Exception:
               print(f"{name} アドレス内1stメールの送信に失敗しました")
               error = traceback.format_exc()
@@ -754,20 +761,17 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         if driver.find_elements(By.CLASS_NAME, "banned-word"):
           time.sleep(6)
           driver.find_element(By.ID, "send_n").click()
+        check_first += 1
+        print(f"{user_name}に1stメールを送信しました")
         catch_warning_pop(name, driver)
       elif len(sent_by_me) == 1:
-        # print(777)
-        # print(sent_by_me[-1].text)
-        # print(func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text))
-        # print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
-
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
         if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
-          # print("2ndメールを送信します")
+          
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
@@ -800,6 +804,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
+          print(f"{user_name}に2ndメールを送信しました")
+          check_second += 1
         else:
           # print("やり取り中")
           received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
@@ -807,6 +813,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           try:
             func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
             print("通知メールを送信しました")
+            check_more += 1
           except Exception as e:
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
@@ -825,7 +832,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         # print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
         # print(func.normalize_text(return_foot_message))
         if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
-          # print("2ndメールを送信します")
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
           script = "arguments[0].value = arguments[1];"
@@ -856,6 +862,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
+          print(f"{user_name}に2ndメールを送信しました")
+          check_second += 1
         else:
           # print("やり取り中")
           received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
@@ -863,6 +871,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           try:
             func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
             print("通知メールを送信しました")
+            check_more += 1
           except Exception as e:
             print(f"{name} 通知メールの送信に失敗しました")
             traceback.print_exc()  
@@ -881,7 +890,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       time.sleep(0.5) 
     else:
       print("４分経過していません")
-      return user_name
+      return user_name, check_first, check_second, check_more, gmail_condition
       break
   if "pcmax" in driver.current_url:
     driver.get("https://pcmax.jp/pcm/index.php")
@@ -889,7 +898,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5) 
-  return None
+  return user_name, check_first, check_second, check_more, gmail_condition
 
 def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, unread_user):
   catch_warning_pop(name, driver)

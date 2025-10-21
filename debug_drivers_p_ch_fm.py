@@ -150,10 +150,11 @@ while True:
       continue
     # メイン処理
     for index, i in enumerate(pcmax_datas):
+      
       login_id = ""   
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
-          report_dict[name_on_pcmax] = {"fst":0,"rf":0 }
+          report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
           # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
@@ -181,31 +182,31 @@ while True:
           traceback.print_exc()
         try:
           print("✅新着メールチェック開始")   
-          unread_user = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
+          unread_user, check_first, check_second, gmail_condition, check_more = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
           print("✅新着メールチェック終了")
+          report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
+          report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
+          report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
+          report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        # if "りな" in name:
-        print(f"✅fstメール送信開始 送信数:{send_cnt}")
-        fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-        print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
-        report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
-        try:
-          print(f"✅足跡返し開始 ")
-          rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
-          report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
-
-          print(f"✅足跡返し終了 　")
-        except Exception as e:
-          print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
-          traceback.print_exc()  
-        if name == "きりこ":
+        if "きりこ" in name:
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
           print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
           report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
-          
+          if index % 3 == 0:
+            try:
+              print(f"✅足跡返し開始 ")
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
+              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+
+              print(f"✅足跡返し終了 　")
+            except Exception as e:
+              print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
+              traceback.print_exc()  
+        
         elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
@@ -249,9 +250,9 @@ while True:
     print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
       func.send_mail(
-        f"PCMAX 1時間のfstmailの報告\n{report_dict}\n",
+        f"PCMAX 1時間の進捗報告\n{report_dict}\n",
         mail_info,
-        f"PCMAX 1時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:
