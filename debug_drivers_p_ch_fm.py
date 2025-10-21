@@ -202,7 +202,7 @@ while True:
         elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-          print(f"✅fstメール送信終了　トータルカウント{report_dict[name][fst] + fm_cnt}")
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
           report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
           
         if now.hour % 6 == 0:
