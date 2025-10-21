@@ -399,7 +399,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         time.sleep(1)
         text_area = driver.find_element(By.ID, value="mail_com")
         script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, fst_message)
+        driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         # まじ送信　
         mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
@@ -535,7 +535,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     if elapsed_time >= timedelta(minutes=4):
       print("4分以上経過しています。")
       print(f"{user_name}さんに返信します")
-
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -704,7 +703,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, fst_message)
+        driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         text_area_value = text_area.get_attribute("value")
         t_a_v_cnt = 0
@@ -765,7 +764,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        if func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name) in func.normalize_text(sent_by_me[-1].text):
           # print("2ndメールを送信します")
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
@@ -823,7 +822,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         # print("------------------------------")
         # print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
         # print(func.normalize_text(return_foot_message))
-        if func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text):
+        if func.normalize_text(fst_message.format(name=user_name) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name) in func.normalize_text(sent_by_me[-1].text):
           # print("2ndメールを送信します")
           # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
@@ -878,47 +877,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         driver.get("https://linkleweb.jp/mobile/mail_recive_list.php?receipt_status=0")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.5) 
-
-        
-      #   sent_texts = [s.text for s in sent_by_me]
-      #   for send_text in sent_texts:
-      #     print(777)
-      #     print(func.normalize_text(send_text))
-      #     if func.normalize_text(second_message) == func.normalize_text(send_text) or len(sent_by_me) > 1:
-      #       print("やり取り中")
-      #       received_mail = driver.find_elements(By.CLASS_NAME, "left_balloon")[-1].text
-      #       return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
-      #       try:
-      #         func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  "pcmax新着")
-      #         print("通知メールを送信しました")
-      #       except Exception as e:
-      #         print(f"{name} 通知メールの送信に失敗しました")
-      #         traceback.print_exc()  
-      #       return_list.append(return_message)
-      #       no_history_second_mail = True
-      #       try:
-      #         driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
-      #         time.sleep(1)
-      #         driver.find_element(By.ID, "image_button2").click()
-      #       except Exception:
-      #         pass
-      #       break
-      #   if not no_history_second_mail:
-      #     print("2ndメールを送信します")
-      #     print(len(sent_by_me))
-      #     print(no_history_second_mail)
-      #     text_area = driver.find_element(By.ID, value="mdc")
-      #     script = "arguments[0].value = arguments[1];"
-      #     driver.execute_script(script, text_area, second_message)
-      #     time.sleep(2)
-      #     driver.find_element(By.ID, "send_n").click()
-      #     if driver.find_elements(By.CLASS_NAME, "banned-word"):
-      #       time.sleep(6)
-      #       driver.find_element(By.ID, "send_n").click()
-      #     catch_warning_pop(name, driver)
-      # driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
-      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      # time.sleep(0.5) 
     else:
       print("４分経過していません")
       return user_name

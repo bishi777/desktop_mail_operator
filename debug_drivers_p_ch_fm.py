@@ -25,8 +25,6 @@ def parse_port():
     return getattr(settings, "pcmax_ch_port", None)
 
 PORT = parse_port()
-print(777)
-print(PORT)
 user_data = func.get_user_data()
 wait_time = 1.5
 user_mail_info = [
@@ -47,13 +45,11 @@ if PORT is not None:
     options.add_experimental_option("debuggerAddress", f"127.0.0.1:{PORT}")
 else:
     print("[INFO] No remote-debugging port provided. Launching Chrome normally.")
-# options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.pcmax_ch_port}")
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 report_dict = {}
 send_flug = False
 roll_cnt = 0
-
 
 while True:
   mail_info = random.choice([user_mail_info, spare_mail_info])
@@ -61,7 +57,6 @@ while True:
   now = datetime.now()
   handles = driver.window_handles
   print(f"タブ数:{len(handles)}")
-  
   print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
@@ -70,9 +65,6 @@ while True:
     if login_flug and "制限" in login_flug:
       print("制限がかかっているため、スキップを行います")
       continue
-    # urls = [
-    #   "pcmax.jp/pcm/index.php"
-    # ]
     if not "/pcm/index.php" in driver.current_url:
       if "linkleweb" in driver.current_url:
         driver.get("https://linkleweb.jp/mobile/index.php")
