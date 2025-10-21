@@ -153,7 +153,7 @@ while True:
       login_id = ""   
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
-          report_dict[name_on_pcmax] = 0
+          report_dict[name_on_pcmax] = {"fst":0,"rf",0 }
           # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
@@ -187,10 +187,10 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if "りな" in name:
-          # print(f"✅fstメール送信開始 送信数:{send_cnt}")
-          # fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-          # print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
-          # report_dict[name] = report_dict[name] + fm_cnt
+          print(f"✅fstメール送信開始 送信数:{send_cnt}")
+          fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name][fst] + fm_cnt}")
+          report_dict[name][fst] = report_dict[name][fst] + fm_cnt
           try:
             print(f"✅足跡返し開始 ")
             pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
@@ -202,8 +202,8 @@ while True:
         elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
           print(f"✅fstメール送信開始 送信数:{send_cnt}")
           fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-          print(f"✅fstメール送信終了　トータルカウント{report_dict[name] + fm_cnt}")
-          report_dict[name] = report_dict[name] + fm_cnt
+          print(f"✅fstメール送信終了　トータルカウント{report_dict[name][fst] + fm_cnt}")
+          report_dict[name][fst] = report_dict[name][fst] + fm_cnt
           
         if now.hour % 6 == 0:
           if send_flug:
