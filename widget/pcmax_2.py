@@ -562,7 +562,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         if mail_info:
           func.send_mail(text, mail_info, title, img_path)
         print("btn2が見つかりません")
-        return
+        return user_name, check_first, check_second, check_more, gmail_condition
       btn2.click()
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
