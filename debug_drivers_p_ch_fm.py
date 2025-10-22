@@ -210,14 +210,14 @@ while True:
         print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
         report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
         
-        if now.hour % 4 == 0:
+        if now.hour % 6 == 0:
           if send_flug:
             try:
               body = func.format_progress_mail(report_dict, now)
               func.send_mail(
                 body,
                 mail_info,
-                f"PCMAX 4時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"PCMAX 6時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
               report_dict = {}

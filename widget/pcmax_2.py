@@ -247,15 +247,16 @@ def profile_search(driver):
       time.sleep(1)
   except NoSuchElementException:
     pass
-  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  for area, area_id in random_areas.items():
-    try:
-      checkbox = driver.find_element(By.ID, str(area_id))
-      if not checkbox.is_selected():
-        checkbox.click()
-        time.sleep(1)
-    except NoSuchElementException:
-      pass
+  # 地域設定（ランダムで２つ選択）
+  # random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+  # for area, area_id in random_areas.items():
+  #   try:
+  #     checkbox = driver.find_element(By.ID, str(area_id))
+  #     if not checkbox.is_selected():
+  #       checkbox.click()
+  #       time.sleep(1)
+  #   except NoSuchElementException:
+  #     pass
   # 年齢設定
   
   try:
@@ -663,9 +664,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           catch_warning_pop(name, driver)
           # みちゃいや
           if "pcmax" in driver.current_url:
-            driver.back()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(0.5) 
             driver.back()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(0.5) 
