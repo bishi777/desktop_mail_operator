@@ -213,10 +213,11 @@ while True:
         if now.hour % 4 == 0:
           if send_flug:
             try:
+              body = func.format_progress_mail(report_dict, now)
               func.send_mail(
-                f"PCMAX 4時間のfstmailの報告\n{report_dict}\n",
+                body,
                 mail_info,
-                f"PCMAX 4時間のfstmailの報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"PCMAX 4時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
               report_dict = {}
@@ -243,19 +244,19 @@ while True:
   
   #カウント 
   roll_cnt += 1
-  # if roll_cnt % 6 == 0:
-  #   print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
-  #   try:
-  #     body = func.format_progress_mail(report_dict, now)
-  #     func.send_mail(
-  #         body,
-  #         mail_info,
-  #         f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
-  #     )
-  #     send_flug = False
-  #   except Exception as e:
-  #     print(f"{name}❌ 1時間のfstmailの報告  の操作でエラー: {e}")
-  #     traceback.print_exc()   
-  #     print('~~~~~~~~~')
-  #     print(mail_info)
+  if roll_cnt % 6 == 0:
+    print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    try:
+      body = func.format_progress_mail(report_dict, now)
+      func.send_mail(
+          body,
+          mail_info,
+          f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+      )
+      send_flug = False
+    except Exception as e:
+      print(f"{name}❌ 1時間のfstmailの報告  の操作でエラー: {e}")
+      traceback.print_exc()   
+      print('~~~~~~~~~')
+      print(mail_info)
          
