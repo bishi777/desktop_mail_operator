@@ -44,6 +44,8 @@ from email import encoders
 import mimetypes
 import difflib
 from PIL import Image
+import traceback
+from datetime import datetime
 
 def format_progress_mail(report_dict: dict, now: datetime) -> str:
     """
