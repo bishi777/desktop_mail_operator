@@ -249,10 +249,11 @@ while True:
   if roll_cnt % 6 == 0:
     print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
+      body = func.format_progress_mail(report_dict, now)
       func.send_mail(
-        f"PCMAX 1時間の進捗報告\n{report_dict}\n",
-        mail_info,
-        f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+          body,
+          mail_info,
+          f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:

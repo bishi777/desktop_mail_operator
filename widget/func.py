@@ -45,6 +45,73 @@ import mimetypes
 import difflib
 from PIL import Image
 
+def format_progress_mail(report_dict: dict, now: datetime) -> str:
+    """
+    report_dict 例:
+      {'りな': {'fst': 8, 'rf': 0, 'check_first': 0, 'check_second': 2,
+                'gmail_condition': 1, 'check_more': 0}, ...}
+    """
+    def get(d, k, default=0):
+        if isinstance(d, dict):
+            v = d.get(k, default)
+            try:
+                return int(v)
+            except (TypeError, ValueError):
+                return default
+        # 旧仕様: report_dict[name] が int の場合は fst とみなす
+        return int(d) if k == "fst" and isinstance(d, int) else default
+
+    keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
+    labels = {
+        "fst": "FST",
+        "rf": "RF",
+        "check_first": "1stChk",
+        "check_second": "2ndChk",
+        "gmail_condition": "Gmail条件",
+        "check_more": "More",
+    }
+
+    # 合計
+    totals = {k: 0 for k in keys}
+    for v in report_dict.values():
+        for k in keys:
+            totals[k] += get(v, k)
+
+    lines = []
+    header_time = now.strftime('%Y-%m-%d %H:%M:%S')
+    lines.append(f"PCMAX 1時間の進捗報告 {header_time}")
+    lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    lines.append("📊 概要（合計）")
+    lines.append(f"- {labels['fst']}: {totals['fst']} / {labels['rf']}: {totals['rf']}")
+    lines.append(f"- {labels['check_first']}: {totals['check_first']} / {labels['check_second']}: {totals['check_second']}")
+    lines.append(f"- {labels['gmail_condition']}: {totals['gmail_condition']} / {labels['check_more']}: {totals['check_more']}")
+    lines.append("")
+
+    def ja_key(s: str) -> str:
+        s = unicodedata.normalize("NFKC", s)
+        t = []
+        for ch in s:
+            code = ord(ch)
+            t.append(chr(code - 0x60) if 0x30A1 <= code <= 0x30F6 else ch)  # カタカナ→ひらがな
+        return "".join(t)
+
+    lines.append("👤 キャラ別")
+    for name in sorted(report_dict.keys(), key=ja_key):
+        v = report_dict[name]
+        fst  = get(v, "fst")
+        rf   = get(v, "rf")
+        c1   = get(v, "check_first")
+        c2   = get(v, "check_second")
+        gml  = get(v, "gmail_condition")
+        more = get(v, "check_more")
+
+        lines.append(
+            f"・{name}  |  {labels['fst']} {fst} / {labels['rf']} {rf}  |  "
+            f"{labels['check_first']} {c1} / {labels['check_second']} {c2}  |  "
+            f"{labels['gmail_condition']} {gml} / {labels['check_more']} {more}"
+        )
+    lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+    return "\n".join(lines)
 
 def get_driver(headless):
   options = Options()
