@@ -150,7 +150,6 @@ while True:
       continue
     # メイン処理
     for idex, i in enumerate(pcmax_datas):
-      
       login_id = ""   
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
@@ -193,9 +192,11 @@ while True:
           traceback.print_exc()  
         
         if "きりこ" in name:
-          if idex % 3 == 0:
+          print(f"7777  {roll_cnt}")
+          if roll_cnt % 3 == 0:
             try:
-              print(f"✅足跡返し開始 ")
+
+              print(f"✅足跡返し開始  {roll_cnt}")
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
               report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
 

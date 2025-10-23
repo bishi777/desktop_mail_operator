@@ -8,6 +8,7 @@ import subprocess
 from widget import func
 import os
 import settings
+import traceback
 
 user_data = func.get_user_data()
 pcmax_datas = user_data["pcmax"]
@@ -18,7 +19,8 @@ for i in pcmax_datas:
   login_pass = i["password"]
   # Appium Safari Options 設定
   options = SafariOptions()
-  options.set_capability("safariInitialUrl", "https://pcmax.jp/pcm/?ad_id=unknown")
+  options.set_capability("safariInitialUrl", "https://linkleweb.jp/pcm/login.php")
+  # options.set_capability("safariInitialUrl", "https://pcmax.jp/pcm/?ad_id=unknown")
   options.set_capability("platformName", "iOS")
   options.set_capability("platformVersion", "18.5")
   options.set_capability("udid", settings.udid)
@@ -52,6 +54,8 @@ for i in pcmax_datas:
     time.sleep(5)
   except Exception as e:
     print(f"{name} ❌ ログイン処理でエラー:", e)
+    traceback.print_exc()
+
   finally:
     # Appiumセッション終了
     driver.quit()
