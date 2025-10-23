@@ -369,7 +369,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         catch_warning_pop(name, driver)
         print(f"~~~~~ユーザー名:{user_info}  確認中...~~~~~~")
         if user_name is None:
-          print("ユーザー名取得できずスキップします")
+          print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名取得できずスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
           func.send_error_mail(f"{name} ユーザー名取得できずスキップします")
           return
         try:
