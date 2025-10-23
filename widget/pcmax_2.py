@@ -367,7 +367,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         catch_warning_pop(name, driver)
-        print(f"ユーザー名:{user_info} {user_area} プロフ確認中...")
+        print(f"~~~~~ユーザー名:{user_info}  確認中...~~~~~~")
         if user_name is None:
           print("ユーザー名取得できずスキップします")
           func.send_error_mail(f"{name} ユーザー名取得できずスキップします")
