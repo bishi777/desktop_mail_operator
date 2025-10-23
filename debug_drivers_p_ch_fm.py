@@ -193,7 +193,7 @@ while True:
           traceback.print_exc()  
         
         if "きりこ" in name:
-          if index % 3 == 0:
+          if idex % 3 == 0:
             try:
               print(f"✅足跡返し開始 ")
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   

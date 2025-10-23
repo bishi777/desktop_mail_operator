@@ -268,7 +268,7 @@ def profile_search(driver):
 
   # r = random.randint(0, 99)
   # if r < 70:
-  random_age = f"{random.randint(29, 31)}歳"
+  random_age = f"{random.randint(26, 28)}歳"
   youngest_age_select_box.send_keys("18歳")
   time.sleep(0.5)
   oldest_age_select_box.send_keys(random_age)
@@ -277,6 +277,14 @@ def profile_search(driver):
   #   time.sleep(0.5)
   #   oldest_age_select_box.send_keys("60歳以上")
   
+  # 検索カテゴリのチェック（セックスフレンド）
+  try:
+    purpose_id13 = driver.find_element(By.ID, "purpose_id13")
+  except NoSuchElementException:
+    print("セックスフレンドのチェックボックスが見つかりません")
+  if not purpose_id13.is_selected():
+    purpose_id13.click()
+  time.sleep(0.5)
   # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
   exclusion_ids = [
     ("10120", "except12"),
@@ -284,7 +292,6 @@ def profile_search(driver):
     ("10190", "except19"),
     ("10200", "except20"),
   ]
-
   for primary_id, fallback_id in exclusion_ids:
     try:
       checkbox = driver.find_element(By.ID, primary_id)
@@ -298,7 +305,7 @@ def profile_search(driver):
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
   
-    max_height = f"{random.randint(170, 175)}cm"
+    max_height = f"{random.randint(165, 170)}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
