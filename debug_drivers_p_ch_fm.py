@@ -167,7 +167,10 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        send_cnt = 2   
+        if roll_cnt % 2 == 0:
+          send_cnt = 3
+        else:
+          send_cnt = 2  
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
