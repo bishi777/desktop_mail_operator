@@ -585,7 +585,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
       user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
-      # print(len(sent_by_me))
+      print(len(sent_by_me))
+      
       
       # DEBUG
       # if True:
