@@ -50,6 +50,8 @@ wait = WebDriverWait(driver, 10)
 report_dict = {}
 send_flug = False
 roll_cnt = 0
+start_time = datetime.now()
+
 
 while True:
   mail_info = random.choice([user_mail_info, spare_mail_info])
@@ -249,13 +251,13 @@ while True:
   #カウント 
   roll_cnt += 1
   if roll_cnt % 6 == 0:
-    print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🔄 {roll_cnt}回目のループ完了 {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
       body = func.format_progress_mail(report_dict, now)
       func.send_mail(
           body,
           mail_info,
-          f"PCMAX 1時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+          f"PCMAX の進捗報告 {start_time.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:
