@@ -268,7 +268,8 @@ def profile_search(driver):
 
   # r = random.randint(0, 99)
   # if r < 70:
-  random_age = f"{random.randint(26, 28)}歳"
+  value = random.choice([24, 25, 26, 27, 28, 29])
+  random_age = f"{value}歳"
   youngest_age_select_box.send_keys("18歳")
   time.sleep(0.5)
   oldest_age_select_box.send_keys(random_age)
@@ -304,8 +305,8 @@ def profile_search(driver):
   try:
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
-  
-    max_height = f"{random.randint(165, 170)}cm"
+    value = random.choice([160, 165, 170])
+    max_height = f"{value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
@@ -1250,7 +1251,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
       elif len(driver.find_elements(By.CLASS_NAME, value='comp_title')):
-        # print(77777777777)
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   

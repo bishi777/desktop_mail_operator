@@ -105,7 +105,6 @@ def jmail_debug(headless):
     if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
       if repost_flug:
         if chara_name_list:
-          print(777)
           print(chara_name_list)
           repost_chara = chara_name_list.pop()
           print(chara_name_list)
