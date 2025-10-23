@@ -457,6 +457,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                           time.sleep(1.5)
                           break
+                  except Exception:
+                    pass
             
               # みちゃいや
               plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
