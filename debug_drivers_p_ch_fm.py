@@ -210,12 +210,16 @@ while True:
         #       print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
         #       traceback.print_exc()  
         
-        # elif 6 <= now.hour < 22 or (now.hour == 22 and now.minute <= 45):
-        print(f"✅fstメール送信開始 送信数:{send_cnt}")
-        fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
-        print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
-        report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
-        
+        # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
+        elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
+          try:
+            print(f"✅fstメール送信開始 送信数:{send_cnt}")
+            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+            print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
+            report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
+          except Exception as e:
+            print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
+            traceback.print_exc()      
         if now.hour % 6 == 0:
           if send_flug:
             try:
@@ -223,7 +227,7 @@ while True:
               func.send_mail(
                 body,
                 mail_info,
-                f"PCMAX 6時間の進捗報告 {now.strftime('%Y-%m-%d %H:%M:%S')}",
+                f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
               report_dict = {}
@@ -251,13 +255,13 @@ while True:
   #カウント 
   roll_cnt += 1
   if roll_cnt % 6 == 0:
-    print(f"🔄 {roll_cnt}回目のループ完了 {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
       body = func.format_progress_mail(report_dict, now)
       func.send_mail(
           body,
           mail_info,
-          f"PCMAX の進捗報告 {start_time.strftime('%Y-%m-%d %H:%M:%S')}",
+          f"PCMAX の進捗報告 開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
       )
       send_flug = False
     except Exception as e:
