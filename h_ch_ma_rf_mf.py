@@ -107,8 +107,12 @@ try:
           return_foot_message = i["return_foot_message"]
           fst_message = i["fst_message"]
           post_return_message = i["post_return_message"]
-          conditions_message = i["second_message"]
+          second_message = i["second_message"]
+          conditions_message = i["condition_message"]
+          confirmation_mail = i["confirmation_mail"]
           return_foot_img = i["chara_image"]
+          gmail_address = i["mail_address"]
+          gmail_password = i["gmail_password"]
           matching_cnt = 1
           type_cnt = 1
           return_foot_cnt = 1
@@ -120,7 +124,7 @@ try:
         
           # 新着メールチェック
           try:
-            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,return_foot_img)
+            happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password)
             if happymail_new:
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:

@@ -124,7 +124,7 @@ def nav_item_click(nav_name, driver, wait):
         parent_elem = nav.find_element(By.XPATH, "..")
         new_message = nav.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
-          return "新着メールなし"      
+          return "新着メールなし"   
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -304,7 +304,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, conditions_message,mail_img):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password):
     return_list = []
     new_mail_cnt = 0
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
@@ -349,24 +349,22 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           )
           elapsed_time = now - arrival_datetime
           print(f"メール到着からの経過時間{elapsed_time}")
-          # 4分経過しているか
-          # if True:
+          # 4分経過しているか   
           if elapsed_time >= timedelta(minutes=4):
             for_minutes_passed = True
           else:
             for_minutes_passed = False
+        # if True:
         if for_minutes_passed:
           print("4分以上経過しているメッセージあり")  
           user_name = new_mail[new_mail_cnt].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
           new_mail[new_mail_cnt].click()
+          # new_mail[1].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           catch_warning_screen(driver)
           send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")      
-          # if len(send_message):
           send_me_length = len(send_message)
-          # sent_text_element = send_message[-1]
-          # print(send_me_length)
           received_elem = driver.find_elements(By.CLASS_NAME, "message__block--receive")
           if len(received_elem):
             received_message = received_elem[-1].text
@@ -374,7 +372,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
             email_list = re.findall(email_pattern, received_message)
             if email_list:
-              if "icloud.com" in received_mail:
+              if "icloud.com" in received_message:
                 print("icloud.comが含まれています")
                 icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
                 try:
@@ -417,13 +415,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     func.normalize_text(conditions_message)
                     func.send_conditional(user_name, user_address, gmail_address, gmail_password, conditions_message, site)
                     print(f"{user_name}にアドレス内1stメールを送信しました")
-                    gmail_condition += 1
                   except Exception:
                     print(f"{name} アドレス内1stメールの送信に失敗しました")
                     error = traceback.format_exc()
                     traceback.print_exc()
                     print(f"user_address:{user_address}  gmail_address:{gmail_address} gmail_password:{gmail_password}")
-                    print(condition_message)
+                    print(conditions_message)
                     func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                           )
                 if confirmation_mail:
@@ -575,7 +572,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print("画像の送信に失敗しました", e)
               print(traceback.format_exc())
           elif send_me_length == 1:
-            send_message = conditions_message.format(name=user_name) 
+            send_message = second_message.format(name=user_name) 
             # print(user_name)
             # print(send_message)
             # 掲示板からきたか確認
@@ -617,7 +614,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     driver.refresh()
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(1.5)
-                    break
+                    break       
+          else:
+            print('やり取りしてます')
+            receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
+            return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
+            return_list.append(return_message) 
             # みちゃいや
             plus_icon_parent = driver.find_elements(By.CLASS_NAME, value="message__form__action")
             plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
@@ -639,14 +641,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               if len(mityaiya_send):
                 mityaiya_send[0].click()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(1)      
-          else:
-            print('やり取りしてます')
-            
-            receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
-            return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
-            return_list.append(return_message) 
-
+                time.sleep(1)   
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
