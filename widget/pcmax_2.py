@@ -584,10 +584,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@").replace("\n", "")
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
-      user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
-      print(len(sent_by_me))
-      
-      
+      # print(len(sent_by_me))
       # DEBUG
       # if True:
       time.sleep(1)
@@ -614,7 +611,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               time.sleep(1)
               break
         # print(f"メールアドレスが見つかりました: {email_list}")
-        if name == "つむぎ" or "icloud.com" in received_mail:
+        if "icloud.com" in received_mail:
           # print("icloud.comが含まれています")
           icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
           try:
@@ -723,6 +720,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         script = "arguments[0].value = arguments[1];"
+        if user_name is None:
+          print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
+          func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",
+                                    )
+          return
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         text_area_value = text_area.get_attribute("value")
