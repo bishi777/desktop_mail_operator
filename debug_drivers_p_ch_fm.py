@@ -167,7 +167,7 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        if roll_cnt % 2 == 0:
+        if roll_cnt != 0 and roll_cnt % 2 == 0:
           send_cnt = 3
         else:
           send_cnt = 2  
