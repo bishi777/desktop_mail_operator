@@ -118,7 +118,6 @@ try:
           return_foot_cnt = 1
           print(666)
           print(conditions_message)
-      
           print("変更前:", func.get_current_ip())
           func.change_tor_ip()
           time.sleep(6)
