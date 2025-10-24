@@ -354,6 +354,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         while len(exchange):
           # print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
+          if user_row_cnt >= len(elements):
+            driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+            elements = driver.find_elements(By.CLASS_NAME, 'profile_card')
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
           user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
