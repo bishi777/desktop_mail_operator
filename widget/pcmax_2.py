@@ -795,13 +795,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         print("~~~~~~~~~受信メールを送信チェック中~~~~~~~~~")
         print(func.normalize_text(sent_by_me[-1].text))
         print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
-        if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
-          
+        if "いいかも！ありがとう" in func.normalize_text(sent_by_me[-1].text):
+          send_message = fst_message.format(name=user_name)
+        elif func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
+          send_message = second_message
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
           time.sleep(1)
           script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, second_message)
+          driver.execute_script(script, text_area, send_message)
           t_a_v_cnt = 0
           text_area_value = text_area.get_attribute("value")
           while not text_area_value:
@@ -809,7 +811,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(2)
             text_area_value = text_area.get_attribute("value")
             if t_a_v_cnt == 5:
-              print("テキストエリアにfst_message入力できません")
+              print("テキストエリアにsend_message入力できません")
               break          
           driver.find_element(By.ID, "send_n").click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -824,7 +826,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, second_message)
+              driver.execute_script(script, text_area, send_message)
               time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
