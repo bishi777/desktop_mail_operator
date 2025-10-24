@@ -247,16 +247,16 @@ def profile_search(driver):
       time.sleep(1)
   except NoSuchElementException:
     pass
-  # 地域設定（ランダムで２つ選択）
-  random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  for area, area_id in random_areas.items():
-    try:
-      checkbox = driver.find_element(By.ID, str(area_id))
-      if not checkbox.is_selected():
-        checkbox.click()
-        time.sleep(1)
-    except NoSuchElementException:
-      pass
+  # # 地域設定（ランダムで２つ選択）
+  # random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+  # for area, area_id in random_areas.items():
+  #   try:
+  #     checkbox = driver.find_element(By.ID, str(area_id))
+  #     if not checkbox.is_selected():
+  #       checkbox.click()
+  #       time.sleep(1)
+  #   except NoSuchElementException:
+  #     pass
   # 年齢設定
   try:
     time.sleep(2)
@@ -267,7 +267,7 @@ def profile_search(driver):
 
   # r = random.randint(0, 99)
   # if r < 70:
-  value = random.choice([24, 25, 26, 27, 28, 29])
+  value = random.choice([26, 27, 28, 29, 30])
   random_age = f"{value}歳"
   youngest_age_select_box.send_keys("18歳")
   time.sleep(0.5)
