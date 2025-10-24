@@ -307,8 +307,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password):
     return_list = []
     new_mail_cnt = 0
-    print(555)
-    print(conditions_message)
+    
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.7)
@@ -414,7 +413,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   user_address = func.normalize_text(user_address)
                   site = "ハッピーメール"
                   try:
-                    func.normalize_text(conditions_message)
+                    print(555)
+                    print(conditions_message)
                     func.send_conditional(user_name, user_address, gmail_address, gmail_password, conditions_message, site)
                     print(f"{user_name}にアドレス内1stメールを送信しました")
                   except Exception:

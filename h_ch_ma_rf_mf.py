@@ -95,8 +95,9 @@ try:
           continue
         if name == i["name"]:
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
-          # if "すい" == name:
-          #   total_daily_limit = 10
+          if "きりこ" != name:
+            total_daily_limit = 10
+            continue
           # else:
           #   total_daily_limit = 10
           happymail_new_list = []
@@ -116,8 +117,6 @@ try:
           matching_cnt = 1
           type_cnt = 1
           return_foot_cnt = 1
-          print(666)
-          print(conditions_message)
           print("変更前:", func.get_current_ip())
           func.change_tor_ip()
           time.sleep(6)
