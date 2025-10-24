@@ -793,9 +793,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
+        print("~~~~~~~~~受信メールを送信チェック中~~~~~~~~~")
+        print(func.normalize_text(sent_by_me[-1].text))
+        print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
         if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
           
-          # print(len(sent_by_me))
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
           time.sleep(1)
