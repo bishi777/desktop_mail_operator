@@ -326,6 +326,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
   profile_search(driver)
   sent_cnt = 0
   user_row_cnt = 0
+  no_pr_area_cnt = 0
   try:
     while sent_cnt < send_cnt:
       catch_warning_pop(name, driver)
@@ -376,12 +377,16 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名取得できずスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
           func.send_error_mail(f"{name} ユーザー名取得できずスキップします")
           return
+        
         try:
           pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
         except NoSuchElementException:
           print('正常に開けません スキップします')
           driver.back()
           user_row_cnt += 1
+          no_pr_area_cnt += 1
+          if no_pr_area_cnt > 4:
+            break
           continue
         ng_flag = False
         for ng_word in ng_words:
