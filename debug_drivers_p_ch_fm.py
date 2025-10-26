@@ -48,9 +48,11 @@ else:
 driver = webdriver.Chrome(options=options)
 wait = WebDriverWait(driver, 10)
 report_dict = {}
+one_hour_report_dict = {}
 send_flug = False
 roll_cnt = 0
 start_time = datetime.now()
+
 
 
 while True:
@@ -156,6 +158,7 @@ while True:
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
+          one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
           # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
@@ -192,6 +195,10 @@ while True:
           report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
           report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
           report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
+          one_hour_report_dict[name]["check_first"] = on_hour_report_dict[name]["check_first"] + check_first
+          one_hour_report_dict[name]["check_second"] = on_hour_report_dict[name]["check_second"] + check_second
+          one_hour_report_dict[name]["gmail_condition"] = on_hour_report_dict[name]["gmail_condition"] + gmail_condition
+          one_hour_report_dict[name]["check_more"] = on_hour_report_dict[name]["check_more"] + check_more
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
@@ -217,6 +224,7 @@ while True:
             fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
             print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
             report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
+            one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
           except Exception as e:
             print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
             traceback.print_exc()      
@@ -257,13 +265,14 @@ while True:
   if roll_cnt % 6 == 0:
     print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
     try:
-      body = func.format_progress_mail(report_dict, now)
+      body = func.format_progress_mail(one_hour_report_dict, now)
       func.send_mail(
           body,
           mail_info,
-          f"PCMAX の進捗報告 開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
+          f"PCMAX 1時間の進捗報告",
       )
       send_flug = False
+      one_hour_report_dict = {}
     except Exception as e:
       print(f"{name}❌ 1時間のfstmailの報告  の操作でエラー: {e}")
       traceback.print_exc()   
