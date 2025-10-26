@@ -158,8 +158,8 @@ while True:
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
+        if name_on_pcmax not in one_hour_report_dict:
           one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
-          # print(f"{report_dict[name_on_pcmax]}")
         name = i["name"]
         login_id = i["login_id"]
         login_pass = i["password"]
