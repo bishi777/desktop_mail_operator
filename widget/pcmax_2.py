@@ -761,8 +761,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         script = "arguments[0].value = arguments[1];"
         if user_name is None:
           print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
-          func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",
-                                    )
+          func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
+          return
+        if "name" in fst_message.format(name=user_name):
+          print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
+          func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
           return
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
