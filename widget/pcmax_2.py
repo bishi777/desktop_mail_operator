@@ -396,6 +396,9 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
           pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
         except NoSuchElementException:
           print('正常に開けません スキップします')
+          print(driver.current_url)
+          print(f"user_row_cnt {user_row_cnt}  len(elements) {len(elements)}")
+
           driver.back()
           user_row_cnt += 1
           no_pr_area_cnt += 1
@@ -439,11 +442,14 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         # まじ送信　
-        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
-        pattern = r'\d+'
-        match = re.findall(pattern, mile_point_text)
-        if int(match[0]) > 20:
-          maji_soushin = True
+        mile_point_text = driver.find_elements(By.CLASS_NAME, value="side_point_pcm_data").text
+        if len(mile_point_text):
+          pattern = r'\d+'
+          match = re.findall(pattern, mile_point_text[0])
+          if int(match[0]) > 20:
+            maji_soushin = True
+          else:
+            maji_soushin = False
         else:
           maji_soushin = False
         time.sleep(random_wait)
