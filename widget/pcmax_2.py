@@ -193,7 +193,9 @@ def profile_search(driver):
     "栃木県": 20,
     "群馬県": 21,
     "神奈川県": 23,
-    "千葉県": 25
+    "千葉県": 25,
+    "埼玉県": 24,
+
   }
   # print("✅ プロフ検索メニューのURLかチェック")
   # print(driver.current_url)
@@ -247,7 +249,16 @@ def profile_search(driver):
       time.sleep(1)
   except NoSuchElementException:
     pass
-  # # 地域設定（ランダムで２つ選択）
+  # 地域設定（ランダムで１つ選択）
+  area, area_id = random.choice(list(area_id_dict.items()))
+  try:
+    checkbox = driver.find_element(By.ID, str(area_id))
+    if not checkbox.is_selected():
+        checkbox.click()
+        time.sleep(1)
+  except NoSuchElementException:
+    pass
+  # 地域設定（ランダムで２つ選択）
   # random_areas = dict(random.sample(list(area_id_dict.items()), 2))
   # for area, area_id in random_areas.items():
   #   try:
