@@ -195,10 +195,10 @@ while True:
           report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
           report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
           report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
-          one_hour_report_dict[name]["check_first"] = on_hour_report_dict[name]["check_first"] + check_first
-          one_hour_report_dict[name]["check_second"] = on_hour_report_dict[name]["check_second"] + check_second
-          one_hour_report_dict[name]["gmail_condition"] = on_hour_report_dict[name]["gmail_condition"] + gmail_condition
-          one_hour_report_dict[name]["check_more"] = on_hour_report_dict[name]["check_more"] + check_more
+          one_hour_report_dict[name]["check_first"] = one_hour_report_dict[name]["check_first"] + check_first
+          one_hour_report_dict[name]["check_second"] = one_hour_report_dict[name]["check_second"] + check_second
+          one_hour_report_dict[name]["gmail_condition"] = one_hour_report_dict[name]["gmail_condition"] + gmail_condition
+          one_hour_report_dict[name]["check_more"] = one_hour_report_dict[name]["check_more"] + check_more
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
