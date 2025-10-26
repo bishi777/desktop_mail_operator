@@ -442,10 +442,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img):
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         # まじ送信　
-        mile_point_text = driver.find_elements(By.CLASS_NAME, value="side_point_pcm_data").text
+        mile_point_text = driver.find_elements(By.CLASS_NAME, value="side_point_pcm_data")
         if len(mile_point_text):
           pattern = r'\d+'
-          match = re.findall(pattern, mile_point_text[0])
+          match = re.findall(pattern, mile_point_text[0].text)
           if int(match[0]) > 20:
             maji_soushin = True
           else:
