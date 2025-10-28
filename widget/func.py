@@ -45,13 +45,64 @@ import mimetypes
 import difflib
 from PIL import Image
 import traceback
-from datetime import datetime
+from datetime import datetime, date
+import unicodedata
+
+def _format_check_date(v) -> str:
+    """check_date を“分まで”で整形。None→'-'。dateは日付のみ。"""
+    if v is None:
+        return "-"
+    if isinstance(v, datetime):
+        return v.strftime("%Y-%m-%d %H:%M")
+    if isinstance(v, date):
+        return v.strftime("%Y-%m-%d")
+    if isinstance(v, int):
+        # UNIX秒 or ミリ秒を想定
+        try:
+            if v > 10**11:  # ms
+                return datetime.fromtimestamp(v / 1000).strftime("%Y-%m-%d %H:%M")
+            if v >= 10**9:  # sec
+                return datetime.fromtimestamp(v).strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            pass
+        return str(v)
+    if isinstance(v, str):
+        s = v.strip()
+        # 代表的な書式を試す（分までで揃える）
+        for fmt in (
+            "%Y-%m-%d %H:%M:%S", "%Y/%m/%d %H:%M:%S",
+            "%Y-%m-%d %H:%M",    "%Y/%m/%d %H:%M",
+            "%Y-%m-%d",          "%Y/%m/%d",
+            "%m/%d %H:%M",
+        ):
+            try:
+                dt = datetime.strptime(s, fmt)
+                if fmt == "%m/%d %H:%M":
+                    dt = dt.replace(year=datetime.now().year)
+                return dt.strftime("%Y-%m-%d %H:%M" if "H" in fmt else "%Y-%m-%d")
+            except Exception:
+                continue
+        # ISO 8601 っぽい文字列にも対応
+        try:
+            dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+            return dt.strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            pass
+        return s
+    return str(v)
+
 
 def format_progress_mail(report_dict: dict, now: datetime) -> str:
     """
     report_dict 例:
-      {'りな': {'fst': 8, 'rf': 0, 'check_first': 0, 'check_second': 2,
-                'gmail_condition': 1, 'check_more': 0}, ...}
+      {
+        'りな': {
+          'fst': 8, 'rf': 0, 'check_first': 0, 'check_second': 2,
+          'gmail_condition': 1, 'check_more': 0, 'check_date': None|datetime|date|int|str
+        },
+        ...
+      }
+    旧仕様（report_dict[name] が int）の場合は fst として扱う。
     """
     def get(d, k, default=0):
         if isinstance(d, dict):
@@ -60,8 +111,8 @@ def format_progress_mail(report_dict: dict, now: datetime) -> str:
                 return int(v)
             except (TypeError, ValueError):
                 return default
-        # 旧仕様: report_dict[name] が int の場合は fst とみなす
-        return int(d) if k == "fst" and isinstance(d, int) else default
+        # 旧仕様: report_dict[name] が int の時、fst とみなす
+        return int(d) if (k == "fst" and isinstance(d, int)) else default
 
     keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
     labels = {
@@ -71,49 +122,56 @@ def format_progress_mail(report_dict: dict, now: datetime) -> str:
         "check_second": "2ndChk",
         "gmail_condition": "Gmail条件",
         "check_more": "More",
+        "check_date": "最終チェック",
     }
 
-    # 合計
+    # 合計（check_date は集計対象外）
     totals = {k: 0 for k in keys}
     for v in report_dict.values():
         for k in keys:
             totals[k] += get(v, k)
 
-    lines = []
     header_time = now.strftime('%Y-%m-%d %H:%M:%S')
-    lines.append(f"PCMAX 1時間の進捗報告 {header_time}")
-    lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    lines.append("📊 概要（合計）")
-    lines.append(f"- {labels['fst']}: {totals['fst']} / {labels['rf']}: {totals['rf']}")
-    lines.append(f"- {labels['check_first']}: {totals['check_first']} / {labels['check_second']}: {totals['check_second']}")
-    lines.append(f"- {labels['gmail_condition']}: {totals['gmail_condition']} / {labels['check_more']}: {totals['check_more']}")
-    lines.append("")
+    lines = [
+        f"PCMAX 1時間の進捗報告 {header_time}",
+        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        "📊 概要（合計）",
+        f"- {labels['fst']}: {totals['fst']} / {labels['rf']}: {totals['rf']}",
+        f"- {labels['check_first']}: {totals['check_first']} / {labels['check_second']}: {totals['check_second']}",
+        f"- {labels['gmail_condition']}: {totals['gmail_condition']} / {labels['check_more']}: {totals['check_more']}",
+        "",
+    ]
 
     def ja_key(s: str) -> str:
-        s = unicodedata.normalize("NFKC", s)
+        s = unicodedata.normalize("NFKC", s or "")
+        # カタカナ→ひらがな（簡易）
         t = []
         for ch in s:
             code = ord(ch)
-            t.append(chr(code - 0x60) if 0x30A1 <= code <= 0x30F6 else ch)  # カタカナ→ひらがな
+            t.append(chr(code - 0x60) if 0x30A1 <= code <= 0x30F6 else ch)
         return "".join(t)
 
     lines.append("👤 キャラ別")
     for name in sorted(report_dict.keys(), key=ja_key):
         v = report_dict[name]
-        fst  = get(v, "fst")
-        rf   = get(v, "rf")
-        c1   = get(v, "check_first")
-        c2   = get(v, "check_second")
-        gml  = get(v, "gmail_condition")
-        more = get(v, "check_more")
+        fst   = get(v, "fst")
+        rf    = get(v, "rf")
+        c1    = get(v, "check_first")
+        c2    = get(v, "check_second")
+        gml   = get(v, "gmail_condition")
+        more  = get(v, "check_more")
+        cdate = _format_check_date(v.get("check_date") if isinstance(v, dict) else None)
 
         lines.append(
             f"・{name}  |  {labels['fst']} {fst} / {labels['rf']} {rf}  |  "
             f"{labels['check_first']} {c1} / {labels['check_second']} {c2}  |  "
-            f"{labels['gmail_condition']} {gml} / {labels['check_more']} {more}"
+            f"{labels['gmail_condition']} {gml} / {labels['check_more']} {more}  |  "
+            f"{labels['check_date']} {cdate}"
         )
+
     lines.append("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     return "\n".join(lines)
+
 
 def get_driver(headless):
   options = Options()

@@ -652,8 +652,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               time.sleep(1)
               break
         # print(f"メールアドレスが見つかりました: {email_list}")
-        if "icloud.com" in received_mail:
-          # print("icloud.comが含まれています")
+        if "icloud" in received_mail:
+          # print("icloudが含まれています")
           icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
           try:
             text_area = driver.find_element(By.ID, value="mdc")
@@ -1250,10 +1250,16 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(1)
       text_area = driver.find_element(By.ID, value="mail_com")
       script = "arguments[0].value = arguments[1];"
-      driver.execute_script(script, text_area, return_foot_message)
+      if not user_n:
+        print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_n}>>>>>>>>>>>>>>>>>>>>>>>")
+        return rf_cnt
+      driver.execute_script(script, text_area, return_foot_message.format(name=user_n))
       time.sleep(1)  
       # まじ送信　
-      mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+      if "pcmax" in driver.current_url:
+        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+      elif "linkleweb" in driver.current_url:
+        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_mile_pcm_data").text
       pattern = r'\d+'
       match = re.findall(pattern, mile_point_text)
       if int(match[0]) > 20:

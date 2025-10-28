@@ -52,6 +52,7 @@ one_hour_report_dict = {}
 send_flug = False
 roll_cnt = 0
 start_time = datetime.now()
+active_chara_list = []
 
 
 
@@ -61,6 +62,7 @@ while True:
   now = datetime.now()
   handles = driver.window_handles
   print(f"タブ数:{len(handles)}")
+  print(active_chara_list)
   print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
@@ -156,6 +158,9 @@ while True:
     for idex, i in enumerate(pcmax_datas):
       login_id = ""   
       if name_on_pcmax == i['name']:
+        # もしactive_chara_listに重複してなかったら追加する
+        if name_on_pcmax not in active_chara_list:
+          active_chara_list.append(name_on_pcmax)
         if name_on_pcmax not in report_dict:
           report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
         if name_on_pcmax not in one_hour_report_dict:
@@ -231,7 +236,22 @@ while True:
             one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
           except Exception as e:
             print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
-            traceback.print_exc()      
+            traceback.print_exc()  
+          if roll_cnt != 0 and roll_cnt % 6 == 0:   
+          # if True:
+            if name == "さな":
+              print(f"✅rfメール送信開始 送信数:2") 
+              try:
+                rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+                report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+                one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
+                print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+              except Exception as e:
+                print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
+                traceback.print_exc()
+        if roll_cnt % 10 == 0:
+          print(f"✅イマヒマオン開始 {name}")
+          # pcmax_2.imahima_on(name, driver)
         if now.hour % 6 == 0:
           if send_flug:
             try:
@@ -250,7 +270,7 @@ while True:
               print(mail_info)
         else:
           send_flug = True
-  
+
   elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
   wait_cnt = 0
   while elapsed_time < 600:
