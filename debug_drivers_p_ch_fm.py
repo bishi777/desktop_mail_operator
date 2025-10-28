@@ -50,7 +50,7 @@ wait = WebDriverWait(driver, 10)
 report_dict = {}
 one_hour_report_dict = {}
 send_flug = False
-roll_cnt = 0
+roll_cnt = 1
 start_time = datetime.now()
 active_chara_list = []
 
@@ -177,7 +177,7 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        if roll_cnt != 0 and roll_cnt % 2 == 0:
+        if roll_cnt % 2 == 0:
           send_cnt = 3
         else:
           send_cnt = 2  
@@ -237,7 +237,7 @@ while True:
           except Exception as e:
             print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
             traceback.print_exc()  
-          if roll_cnt != 0 and roll_cnt % 6 == 0:   
+          if roll_cnt % 6 == 0:   
           # if True:
             if name == "さな":
               print(f"✅rfメール送信開始 送信数:2") 

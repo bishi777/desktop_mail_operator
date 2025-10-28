@@ -625,7 +625,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@").replace("\n", "")
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
       email_list = re.findall(email_pattern, received_mail)
-      print(f"~sent_by_me~ {len(sent_by_me)}")
+      # print(f"~sent_by_me~ {len(sent_by_me)}")
       # DEBUG
       # if True:
       time.sleep(1)
@@ -748,7 +748,19 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        # print("1stメールを送信します")
+        print("1stメールを送信します")
+        print(f"~~~~~ユーザー名:{user_name}  確認中...~~~~~~")
+        print(fst_message.format(name=user_name))
+        if user_name is None:
+          print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
+          func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
+          return user_name, check_first, check_second, check_more, gmail_condition, check_date
+        if "name" in fst_message.format(name=user_name):
+          print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
+          func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
+          return user_name, check_first, check_second, check_more, gmail_condition, check_date
+        func.send_mail(f"{user_name}に1stメールを送信します\n{fst_message.format(name=user_name)}", mail_info, f"{name} 1stメール送信user_name確認")
+        
         # print(len(sent_by_me))
         driver.find_element(By.CLASS_NAME, 'memo_open').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -761,14 +773,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         script = "arguments[0].value = arguments[1];"
-        if user_name is None:
-          print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
-          func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
-          return user_name, check_first, check_second, check_more, gmail_condition, check_date
-        if "name" in fst_message.format(name=user_name):
-          print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
-          func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
-          return user_name, check_first, check_second, check_more, gmail_condition, check_date
+        
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         text_area_value = text_area.get_attribute("value")
@@ -789,9 +794,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               select.select_by_visible_text(option.text)
               time.sleep(0.7)
               break
-          # driver.find_element(By.NAME, "preview").click()
-          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          # time.sleep(0.3)  
+         
 
         driver.find_element(By.ID, "send_n").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -827,9 +830,9 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        print("~~~~~~~~~受信メールを送信チェック中~~~~~~~~~")
-        print(func.normalize_text(sent_by_me[-1].text))
-        print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
+        # print("~~~~~~~~~受信メールを送信チェック中~~~~~~~~~")
+        # print(func.normalize_text(sent_by_me[-1].text))
+        # print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
         if "いいかも！ありがとう" in func.normalize_text(sent_by_me[-1].text):
           send_message = fst_message.format(name=user_name)
         elif func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
