@@ -2478,8 +2478,7 @@ def check_new_mail(happy_info, driver, wait):
         time.sleep(2)
         new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")
   if len(return_list):
-    print(666)
-    print(return_list)
+    
     return return_list
   else:
     return None

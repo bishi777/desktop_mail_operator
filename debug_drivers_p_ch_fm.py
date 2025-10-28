@@ -157,9 +157,9 @@ while True:
       login_id = ""   
       if name_on_pcmax == i['name']:
         if name_on_pcmax not in report_dict:
-          report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
+          report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
         if name_on_pcmax not in one_hour_report_dict:
-          one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0}
+          one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
         name = i["name"]
         login_id = i["login_id"]
         login_pass = i["password"]
@@ -189,16 +189,20 @@ while True:
           traceback.print_exc()
         try:
           print("✅新着メールチェック開始")   
-          unread_user, check_first, check_second, gmail_condition, check_more = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
+          unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
           print("✅新着メールチェック終了")
           report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
           report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
           report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
           report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
+          if check_date:
+            report_dict[name]["check_date"] = check_date
+            one_hour_report_dict[name]["check_date"] = check_date
           one_hour_report_dict[name]["check_first"] = one_hour_report_dict[name]["check_first"] + check_first
           one_hour_report_dict[name]["check_second"] = one_hour_report_dict[name]["check_second"] + check_second
           one_hour_report_dict[name]["gmail_condition"] = one_hour_report_dict[name]["gmail_condition"] + gmail_condition
           one_hour_report_dict[name]["check_more"] = one_hour_report_dict[name]["check_more"] + check_more
+
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  

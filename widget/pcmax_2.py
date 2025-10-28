@@ -536,6 +536,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   mailserver_address = mail_info[1]
   mailserver_password = mail_info[2]
   receiving_address = mail_info[0]
+  check_date = None
   catch_warning_pop(name, driver)
   wait = WebDriverWait(driver, 10)
   new_message_flag = get_header_menu(driver, "メッセージ")
@@ -543,7 +544,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # header_box_under = driver.find_element(By.ID, "header_box_under")
     # header_box_under.find_element(By.TAG_NAME, "a").click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    return None,0,0,0,0
+    return None,0,0,0,0, None
   check_first = 0
   check_second = 0
   check_more = 0
@@ -574,6 +575,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # datetime型を作成
     current_year = datetime.now().year
     arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
+    check_date = arrival_datetime
     now = datetime.today()
     elapsed_time = now - arrival_datetime
     user_name = user_div_list[-1].find_element(By.CLASS_NAME, value="user_info").text
@@ -610,13 +612,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           if mail_info:
             func.send_mail(text, mail_info, title, img_path)
           print("btn2が見つかりません")
-          return user_name, check_first, check_second, check_more, gmail_condition
+          return user_name, check_first, check_second, check_more, gmail_condition, check_date
       try:
         user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
       except Exception as e:
         print(f"{name}: 新着チェック　　ユーザー名取得できません\n {e}")
         func.send_error_mail(f"{name} ユーザー名取得できません\n{traceback.format_exc()}")
-        return
+        return user_name, check_first, check_second, check_more, gmail_condition, check_date
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       received_mail = received_elems[-1].text if received_elems else ""
@@ -762,11 +764,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         if user_name is None:
           print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
           func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
-          return
+          return user_name, check_first, check_second, check_more, gmail_condition, check_date
         if "name" in fst_message.format(name=user_name):
           print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
           func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
-          return
+          return user_name, check_first, check_second, check_more, gmail_condition, check_date
         driver.execute_script(script, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         text_area_value = text_area.get_attribute("value")
@@ -949,7 +951,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       time.sleep(0.5) 
     else:
       print("４分経過していません")
-      return user_name, check_first, check_second, check_more, gmail_condition
+      return user_name, check_first, check_second, check_more, gmail_condition, check_date
       break
   if "pcmax" in driver.current_url:
     driver.get("https://pcmax.jp/pcm/index.php")
@@ -957,7 +959,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     driver.get("https://linkleweb.jp/pcm/member.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5) 
-  return user_name, check_first, check_second, check_more, gmail_condition
+  return user_name, check_first, check_second, check_more, gmail_condition, check_date
 
 def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, unread_user):
   catch_warning_pop(name, driver)
