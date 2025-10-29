@@ -53,7 +53,7 @@ send_flug = False
 roll_cnt = 1
 start_time = datetime.now()
 active_chara_list = []
-
+list_copy_flug = True
 
 
 while True:
@@ -63,6 +63,10 @@ while True:
   handles = driver.window_handles
   print(f"タブ数:{len(handles)}")
   print(active_chara_list)
+  if len(active_chara_list):
+    if list_copy_flug:
+      mohu_list = active_chara_list.copy()
+      list_copy_flug = False
   print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
   for idx, handle in enumerate(handles): 
     # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
@@ -158,7 +162,6 @@ while True:
     for idex, i in enumerate(pcmax_datas):
       login_id = ""   
       if name_on_pcmax == i['name']:
-        # もしactive_chara_listに重複してなかったら追加する
         if name_on_pcmax not in active_chara_list:
           active_chara_list.append(name_on_pcmax)
         if name_on_pcmax not in report_dict:
@@ -181,6 +184,10 @@ while True:
           send_cnt = 3
         else:
           send_cnt = 2  
+        if "ジョーじょ" == name:
+          iikamo_cnt = 1
+        else:
+          iikamo_cnt = 0
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
@@ -230,7 +237,7 @@ while True:
         if 6 <= now.hour < 23:
           try:
             print(f"✅fstメール送信開始 送信数:{send_cnt}")
-            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img)
+            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, 0, mail_img, 2)
             print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
             report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
             one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
