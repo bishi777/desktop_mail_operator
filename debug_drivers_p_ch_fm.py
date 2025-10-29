@@ -219,22 +219,22 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         
-        # if "きりこ" in name:
-        #   print(f"7777  {roll_cnt}")
-        #   if roll_cnt % 3 == 0:
-        #     try:
+        if "きりこ" in name:
+          print(f"7777  {roll_cnt}")
+          if roll_cnt % 3 == 0:
+            try:
 
-        #       print(f"✅足跡返し開始  {roll_cnt}")
-        #       rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 1, mail_img, unread_user)   
-        #       report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+              print(f"✅足跡返し開始  {roll_cnt}")
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user)   
+              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
 
-        #       print(f"✅足跡返し終了 　")
-        #     except Exception as e:
-        #       print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
-        #       traceback.print_exc()  
+              print(f"✅足跡返し終了 　")
+            except Exception as e:
+              print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
+              traceback.print_exc()  
         
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
-        if 6 <= now.hour < 23:
+        elif 6 <= now.hour < 23:
           try:
             print(f"✅fstメール送信開始 送信数:{send_cnt}")
             fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt)
