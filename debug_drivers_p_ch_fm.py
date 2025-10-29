@@ -237,7 +237,7 @@ while True:
         if 6 <= now.hour < 23:
           try:
             print(f"✅fstメール送信開始 送信数:{send_cnt}")
-            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, 0, mail_img, 2)
+            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt)
             print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
             report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
             one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
