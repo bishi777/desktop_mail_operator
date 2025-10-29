@@ -15,6 +15,8 @@ pcmax_datas = user_data["pcmax"]
 
 for i in pcmax_datas:
   name = i["name"]
+  if "haru" != name:
+    continue
   login_id = i["login_id"]
   login_pass = i["password"]
   # Appium Safari Options 設定
@@ -33,7 +35,8 @@ for i in pcmax_datas:
 
   try:
     wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
-    time.sleep(1)
+    print(777)
+    time.sleep(10)
     # 「ログイン（登録済みの方）」ボタンをクリック
     login_form = driver.find_element(By.CLASS_NAME, 'login-sub')
     login_link = login_form.find_element(By.TAG_NAME, 'a')
