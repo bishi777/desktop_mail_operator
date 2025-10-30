@@ -341,7 +341,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
-  # profile_search(driver)
+  profile_search(driver)
   sent_cnt = 0
   iikamo_cnted = 0
   user_row_cnt = 0
@@ -349,7 +349,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   # two_message_users = ["もんちー", "あつき"]
   two_message_users = []
   try:
+    print(777)
+    print(sent_cnt < send_cnt)
     while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
+      print(666)
       catch_warning_pop(name, driver)
       elements = driver.find_elements(By.CLASS_NAME, 'list')
       # ユーザーリスト結果表示その１
@@ -398,7 +401,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
         # print(f"~~~~~ユーザー名:{user_info}  確認中...~~~~~~")
         if user_name is None:
           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名取得できずスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
-          func.send_error_mail(f"{name} ユーザー名取得できずスキップします")
+          func.send_mail(f"{name} ユーザー名取得できずスキップします")
           return sent_cnt
         try:
           pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
@@ -622,7 +625,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
                 print("連続防止　待機中...")
                 time.sleep(7)
                 text_area = driver.find_element(By.ID, value="mdc")
-                driver.execute_script(script, text_area, fst_message)
+                driver.execute_script(script, text_area, fst_message.format(name=user_name))
                 time.sleep(1)
                 if mail_img:
                   my_photo_element = driver.find_element(By.ID, "my_photo")
@@ -932,8 +935,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               select.select_by_visible_text(option.text)
               time.sleep(0.7)
               break
-         
-
         driver.find_element(By.ID, "send_n").click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
@@ -943,7 +944,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("連続防止　待機中...")
             time.sleep(7)
             text_area = driver.find_element(By.ID, value="mdc")
-            driver.execute_script(script, text_area, fst_message)
+            driver.execute_script(script, text_area, fst_message.format(name=user_name))
             time.sleep(1)
             if mail_img:
               my_photo_element = driver.find_element(By.ID, "my_photo")
