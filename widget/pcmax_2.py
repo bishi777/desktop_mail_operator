@@ -349,10 +349,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   # two_message_users = ["もんちー", "あつき"]
   two_message_users = []
   try:
-    print(777)
-    print(sent_cnt < send_cnt)
     while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
-      print(666)
       catch_warning_pop(name, driver)
       elements = driver.find_elements(By.CLASS_NAME, 'list')
       # ユーザーリスト結果表示その１
@@ -592,7 +589,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
               print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
               func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
               return user_name, check_first, check_second, check_more, gmail_condition, check_date
-            func.send_mail(f"{user_name}に1stメールを送信します\n{fst_message.format(name=user_name)}", mail_info, f"{name} 1stメール送信user_name確認")
             text_area = driver.find_element(By.ID, value="mdc")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"
@@ -900,7 +896,6 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
           func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
           return user_name, check_first, check_second, check_more, gmail_condition, check_date
-        func.send_mail(f"{user_name}に1stメールを送信します\n{fst_message.format(name=user_name)}", mail_info, f"{name} 1stメール送信user_name確認")
         
         # print(len(sent_by_me))
         driver.find_element(By.CLASS_NAME, 'memo_open').click()
