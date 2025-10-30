@@ -348,10 +348,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   no_pr_area_cnt = 0
   # two_message_users = ["もんちー", "あつき"]
   two_message_users = []
-
   try:
-    while 1 == 2:
-    # while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
+    while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
       catch_warning_pop(name, driver)
       elements = driver.find_elements(By.CLASS_NAME, 'list')
       # ユーザーリスト結果表示その１
