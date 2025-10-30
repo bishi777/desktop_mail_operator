@@ -57,6 +57,7 @@ list_copy_flug = True
 
 
 while True:
+  two_messages_chara = ["えりか", "さな", "すい", "ハル", "haru"]
   mail_info = random.choice([user_mail_info, spare_mail_info])
   start_loop_time = time.time()
   now = datetime.now()
@@ -218,7 +219,10 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        
+        if name in two_messages_chara:
+          two_messages_flug = True
+        else:
+          two_messages_flug = False
         if "きりこ" in name:
           print(f"7777  {roll_cnt}")
           if roll_cnt % 3 == 0:
@@ -232,12 +236,11 @@ while True:
             except Exception as e:
               print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
               traceback.print_exc()  
-        
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
         elif 6 <= now.hour < 23:
           try:
             print(f"✅fstメール送信開始 送信数:{send_cnt}")
-            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt)
+            fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info)
             print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
             report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
             one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt

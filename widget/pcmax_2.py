@@ -94,12 +94,16 @@ def catch_warning_pop(name, driver):
       try:
         check1 = driver.find_element(By.ID, 'check1')
         if not check1.is_selected():
-            check1.click()
+          check1.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)      
       except NoSuchElementException:
         pass
       ng_dialog_btns = driver.find_elements(By.CLASS_NAME, 'ng_dialog_btn')
       if ng_dialog_btns:
         ng_dialog_btns[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)      
   except Exception:
     pass
   
@@ -109,7 +113,7 @@ def catch_warning_pop(name, driver):
       time.sleep(1)
       driver.find_elements(By.CLASS_NAME, 'tuto_dialog')[0].find_elements(By.TAG_NAME, 'span')[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
+      time.sleep(2)
   except Exception:
     pass
   try:
@@ -118,7 +122,7 @@ def catch_warning_pop(name, driver):
       time.sleep(1)
       driver.refresh()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
+      time.sleep(2)
   except Exception:
     pass
   try:
@@ -129,7 +133,7 @@ def catch_warning_pop(name, driver):
       if lin_close:
         lin_close[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+        time.sleep(2)
   except Exception:
     pass
 
@@ -332,19 +336,22 @@ def profile_search(driver):
   search_button.click()
 
 
-def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt):
+def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
-  profile_search(driver)
+  # profile_search(driver)
   sent_cnt = 0
   iikamo_cnted = 0
   user_row_cnt = 0
   no_pr_area_cnt = 0
-  
+  # two_message_users = ["もんちー", "あつき"]
+  two_message_users = []
+
   try:
-    while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
+    while 1 == 2:
+    # while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
       catch_warning_pop(name, driver)
       elements = driver.find_elements(By.CLASS_NAME, 'list')
       # ユーザーリスト結果表示その１
@@ -365,6 +372,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt):
           reload_cnt += 1
           if reload_cnt == 2:
             return sent_cnt
+        # https://pcmax.jp/mobile/profile_list.php?condition=690345149ea3c
+        user_profile_list_url = driver.current_url
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text  
@@ -392,15 +401,13 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt):
         if user_name is None:
           print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名取得できずスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
           func.send_error_mail(f"{name} ユーザー名取得できずスキップします")
-          return
-        
+          return sent_cnt
         try:
           pr_area = driver.find_element(By.CLASS_NAME, 'pr_area')
         except NoSuchElementException:
           print('正常に開けません スキップします')
           print(driver.current_url)
           print(f"user_row_cnt {user_row_cnt}  len(elements) {len(elements)}")
-
           driver.back()
           user_row_cnt += 1
           no_pr_area_cnt += 1
@@ -423,7 +430,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt):
             break
         if ng_flag:
           continue
-        
         time.sleep(1)
         if not (sent_cnt < send_cnt):
           # type1 いいかも
@@ -533,26 +539,121 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt):
                 driver.find_element(By.ID, 'send3').click()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 time.sleep(1)
+          catch_warning_pop(name, driver)
+          if two_messages_flug:
+            two_message_users.append(user_name)
+          
+          back2 = driver.find_element(By.ID, value="back2")
+          driver.execute_script("arguments[0].click();", back2)
           sent_cnt += 1
           print(f"マジ送信{maji_soushin}  ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
-          user_row_cnt += 1
-          catch_warning_pop(name, driver)
-          if "linkleweb" in driver.current_url:
-            back2 = driver.find_element(By.ID, value="back2")
-            driver.execute_script("arguments[0].click();", back2)
-          elif "pcmax" in driver.current_url:
-            driver.back()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-            driver.back()    
+          user_row_cnt += 1  
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(random_wait)
+        driver.get(user_profile_list_url)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+    if two_messages_flug:
+      header = driver.find_element(By.ID, "header_box_under")
+      links = header.find_elements(By.TAG_NAME, "a")
+      for link in links:
+        if "メッセージ" in link.text:
+          link.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          break
+      inner = driver.find_elements(By.CLASS_NAME, "inner")
+      a_btns = inner[0].find_elements(By.TAG_NAME, "a")
+      for a_btn in a_btns:
+        if "送信" in a_btn.text:
+          a_btn.click() 
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          break
+      for two_message_user in two_message_users:
+        mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")
+        for mail_detail in mail_details:
+          user_info = mail_detail.find_element(By.CLASS_NAME, "user_info")
+          if two_message_user in user_info.text:
+            # driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_info)
+            mail_detail.find_element(By.TAG_NAME, "a").click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            print(f"two_message_user 1stメールを送信します")
+            print(f"~~~~~ユーザー名:{two_message_user}  確認中...~~~~~~")
+            # print(fst_message.format(name=two_message_user))
+            user_name = two_message_user
+            if user_name is None:
+              print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
+              func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
+              return user_name, check_first, check_second, check_more, gmail_condition, check_date
+            if "name" in fst_message.format(name=user_name):
+              print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
+              func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
+              return user_name, check_first, check_second, check_more, gmail_condition, check_date
+            func.send_mail(f"{user_name}に1stメールを送信します\n{fst_message.format(name=user_name)}", mail_info, f"{name} 1stメール送信user_name確認")
+            text_area = driver.find_element(By.ID, value="mdc")
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+            script = "arguments[0].value = arguments[1];"
+            driver.execute_script(script, text_area, fst_message.format(name=user_name))
+            time.sleep(1)
+            text_area_value = text_area.get_attribute("value")
+            t_a_v_cnt = 0
+            while not text_area_value:
+              t_a_v_cnt += 1
+              time.sleep(2)
+              text_area_value = text_area.get_attribute("value")
+              if t_a_v_cnt == 5:
+                print("テキストエリアにfst_message入力できません")
+                break
+            if mail_img:
+              my_photo_element = driver.find_element(By.ID, "my_photo")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+              select = Select(my_photo_element)
+              for option in select.options:
+                if mail_img in option.text:
+                  select.select_by_visible_text(option.text)
+                  time.sleep(0.7)
+                  break
+            driver.find_element(By.ID, "send_n").click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            mailform_box = driver.find_elements(By.ID, value="mailform_box")
+            if len(mailform_box):
+              if "連続防止" in mailform_box[0].text:
+                print("連続防止　待機中...")
+                time.sleep(7)
+                text_area = driver.find_element(By.ID, value="mdc")
+                driver.execute_script(script, text_area, fst_message)
+                time.sleep(1)
+                if mail_img:
+                  my_photo_element = driver.find_element(By.ID, "my_photo")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+                  select = Select(my_photo_element)
+                  for option in select.options:
+                    if mail_img in option.text:
+                      select.select_by_visible_text(option.text)
+                      time.sleep(0.7)
+                      break
+                driver.find_element(By.ID, "send_n").click()
+                time.sleep(1)
+            if driver.find_elements(By.CLASS_NAME, "banned-word"):
+              time.sleep(6)
+              driver.find_element(By.ID, "send_n").click()
+            print(f"{user_name}に1stメールを送信しました")
+            catch_warning_pop(name, driver)
+            driver.get("https://pcmax.jp/mobile/mail_recive_send_list.php")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            print(777)
+            mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")  
+            break       
+  except: 
+    print("fst送信のエラー")
+    traceback.print_exc()
+  finally:
     return sent_cnt
-  except Exception as e:
-    print(f"{name}❌ fstメールの操作でエラー: {e}")
-    traceback.print_exc()   
-    return sent_cnt
-
+  
 def check_top_image(name,driver):
   wait = WebDriverWait(driver, 10)
   if "pcmax" in driver.current_url:
