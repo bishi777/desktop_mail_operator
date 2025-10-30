@@ -226,7 +226,7 @@ while True:
           traceback.print_exc()  
       
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
-        elif 6 <= now.hour < 23:
+        if 6 <= now.hour < 23:
           try:
             print(f"✅fstメール送信開始 送信数:{send_cnt}")
             fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info)
