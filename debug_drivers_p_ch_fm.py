@@ -170,6 +170,11 @@ while True:
         if name_on_pcmax not in one_hour_report_dict:
           one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
         name = i["name"]
+        if name in two_messages_chara:
+          two_messages_flug = True
+          print(f"******{name}は2通メール送信対象キャラです******")
+        else:
+          two_messages_flug = False
         login_id = i["login_id"]
         login_pass = i["password"]
         # print(f"{login_id}   {login_pass}")
@@ -185,7 +190,7 @@ while True:
           send_cnt = 3
         else:
           send_cnt = 2  
-        if "ジョーじょ" == name:
+        if name == "さな":
           iikamo_cnt = 1
         else:
           iikamo_cnt = 0
@@ -219,23 +224,7 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if name in two_messages_chara:
-          two_messages_flug = True
-        else:
-          two_messages_flug = False
-        if "きりこ" in name:
-          print(f"7777  {roll_cnt}")
-          if roll_cnt % 3 == 0:
-            try:
-
-              print(f"✅足跡返し開始  {roll_cnt}")
-              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user)   
-              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
-
-              print(f"✅足跡返し終了 　")
-            except Exception as e:
-              print(f"{name}❌ 足跡返し  の操作でエラー: {e}")
-              traceback.print_exc()  
+      
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
         elif 6 <= now.hour < 23:
           try:
@@ -248,17 +237,15 @@ while True:
             print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
             traceback.print_exc()  
           if roll_cnt % 6 == 0:   
-          # if True:
-            if name == "さな":
-              print(f"✅rfメール送信開始 送信数:2") 
-              try:
-                rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
-                report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
-                one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-                print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
-              except Exception as e:
-                print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
-                traceback.print_exc()
+            print(f"✅rfメール送信開始 送信数:2") 
+            try:
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+              one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
+              print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+            except Exception as e:
+              print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
+              traceback.print_exc()
         if roll_cnt % 10 == 0:
           print(f"✅イマヒマオン開始 {name}")
           # pcmax_2.imahima_on(name, driver)
