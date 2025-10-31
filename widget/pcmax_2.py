@@ -335,7 +335,6 @@ def profile_search(driver):
     search_button = driver.find_element(By.ID, "search1")
   search_button.click()
 
-
 def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
