@@ -280,8 +280,8 @@ while True:
             except Exception as e:
               print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
               traceback.print_exc()
-        if roll_cnt % 10 == 0:
-          print(f"✅イマヒマオン開始 {name}")
+        # if roll_cnt % 10 == 0:
+        #   print(f"✅イマヒマオン開始 {name}")
           # pcmax_2.imahima_on(name, driver)
         if now.hour % 6 == 0:
           if send_flug:
