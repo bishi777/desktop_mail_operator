@@ -1076,7 +1076,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, second_message.)
+              driver.execute_script(script, text_area, second_message)
               time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
