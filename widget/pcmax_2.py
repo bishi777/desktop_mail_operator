@@ -372,6 +372,14 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             return sent_cnt
         # https://pcmax.jp/mobile/profile_list.php?condition=690345149ea3c
         user_profile_list_url = driver.current_url
+        if user_row_cnt >= len(elements):
+          # 下までスクロールする
+          driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(3)
+          elements = driver.find_elements(By.CLASS_NAME, 'name')
+          if user_row_cnt >= len(elements):  
+            return sent_cnt
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
         user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text  
@@ -577,8 +585,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             mail_detail.find_element(By.TAG_NAME, "a").click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-            print(f"two_message_user 1stメールを送信します")
-            print(f"~~~~~ユーザー名:{two_message_user}  確認中...~~~~~~")
+            # print(f"two_message_user 1stメールを送信します")
+            # print(f"~~~~~ユーザー名:{two_message_user}  確認中...~~~~~~")
             # print(fst_message.format(name=two_message_user))
             user_name = two_message_user
             if user_name is None:
@@ -637,12 +645,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             if driver.find_elements(By.CLASS_NAME, "banned-word"):
               time.sleep(6)
               driver.find_element(By.ID, "send_n").click()
-            print(f"{user_name}に1stメールを送信しました")
+            print(f"{user_name}にtwo_m用の1stメールを送信しました")
             catch_warning_pop(name, driver)
             driver.get("https://pcmax.jp/mobile/mail_recive_send_list.php")
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
-            print(777)
             mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")  
             break       
   except: 
