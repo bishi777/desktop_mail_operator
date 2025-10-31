@@ -46,7 +46,6 @@ while True:
     else:
       options.set_capability("safariInitialUrl", "https://pcmax.jp/pcm/file.php?f=login_form")
     options.set_capability("platformName", "iOS")
-    options.set_capability("platformVersion", "18.5")
     options.set_capability("udid", settings.udid)
     options.set_capability("browserName", "Safari")
     options.set_capability("automationName", "XCUITest")

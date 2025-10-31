@@ -400,6 +400,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             elements = driver.find_elements(By.CLASS_NAME, 'profile_card')
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
+          user_name_ele = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")
           if len(user_name_ele):
             user_name = user_name_ele[0].text
           else:
@@ -558,7 +559,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           catch_warning_pop(name, driver)
           if two_messages_flug:
             two_message_users.append(user_name)
-          
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
           sent_cnt += 1
@@ -590,6 +590,9 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
         mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")
         for mail_detail in mail_details:
           user_info = mail_detail.find_element(By.CLASS_NAME, "user_info")
+          # print(f"~~~~~two_message_user:{two_message_user}~~~~~~")
+          # print(f"user_info.text:{user_info.text}~~~~~~")
+          # print(two_message_user in user_info.text)
           if two_message_user in user_info.text:
             # driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_info)
             mail_detail.find_element(By.TAG_NAME, "a").click()

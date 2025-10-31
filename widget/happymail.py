@@ -335,27 +335,19 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       #新着がある間はループ
       while len(new_mail):
       # while True:
-        date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
-        date_numbers = re.findall(r'\d+', date[0].text)
-        if not len(date_numbers):
-          for_minutes_passed = True
-        else:
-          now = datetime.today()
-          arrival_datetime = datetime(
-            year=now.year,
-            month=now.month,
-            day=now.day,
-            hour=int(date_numbers[0]),
-            minute=int(date_numbers[1])
-          )
-          elapsed_time = now - arrival_datetime
-          print(f"メール到着からの経過時間{elapsed_time}")
-          # 4分経過しているか   
-          if elapsed_time >= timedelta(minutes=4):
+        date_elems = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date")
+        text = date_elems[0].text if date_elems else ""
+        now = datetime.now()
+
+        arrival_datetime = func.parse_arrival_datetime(text, now)
+        if arrival_datetime is None:
+            # 取れないときは安全側に倒す（4分経過扱い）
             for_minutes_passed = True
-          else:
-            for_minutes_passed = False
-        # if True:
+        else:
+            elapsed_time = now - arrival_datetime
+            print(f"メール到着からの経過時間{elapsed_time}")
+            for_minutes_passed = elapsed_time >= timedelta(minutes=4)
+
         if for_minutes_passed:
           print("4分以上経過しているメッセージあり")  
           user_name = new_mail[new_mail_cnt].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
