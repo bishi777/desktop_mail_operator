@@ -16,6 +16,24 @@ from datetime import datetime
 import sys
 import argparse
 
+def reset_metrics_keep_check_date(d: dict) -> dict:
+    """
+    既存の report 辞書を走査して、check_date は維持しつつ
+    それ以外のカウンタを 0 にリセットした新辞書を返す。
+    旧仕様（値が int のみ）にも耐性あり。
+    """
+    metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
+    new_d = {}
+    for name, v in (d or {}).items():
+        if isinstance(v, dict):
+            cd = v.get("check_date", None)
+        else:
+            # 旧仕様: v が int の場合は fst の値、check_date は無し
+            cd = None
+        new_d[name] = {k: 0 for k in metric_keys}
+        new_d[name]["check_date"] = cd
+    return new_d
+
 def parse_port():
     p = argparse.ArgumentParser()
     p.add_argument("port", nargs="?", type=int, help="remote debugging port")
@@ -259,7 +277,7 @@ while True:
                 f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
-              report_dict = {}
+              report_dict = reset_metrics_keep_check_date(report_dict)
             except Exception as e:
               print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
               traceback.print_exc()   
