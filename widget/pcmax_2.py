@@ -322,7 +322,7 @@ def profile_search(driver):
   try:
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
-    value = random.choice([160, 165, 170])
+    value = random.choice([165, 170, 175])
     max_height = f"{value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
