@@ -831,8 +831,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             user_address = func.normalize_text(user_address)
             site = "リンクル"
             try:
-              func.normalize_text(condition_message)
-              func.send_conditional(user_name, user_address, gmail_address, gmail_password, condition_message, site)
+              send_text =func.normalize_text(condition_message).format(name=user_name)
+              func.send_conditional(user_name, user_address, gmail_address, gmail_password, send_text, site)
               print(f"{user_name}にアドレス内1stメールを送信しました")
               gmail_condition += 1
             except Exception:
@@ -840,7 +840,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               error = traceback.format_exc()
               traceback.print_exc()
               print(f"user_address:{user_address}  gmail_address:{gmail_address} gmail_password:{gmail_password}")
-              print(condition_message)
+              print(condition_message.format(name=user_name))
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
           if confirmation_mail:
@@ -1076,7 +1076,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, second_message)
+              driver.execute_script(script, text_area, second_message.)
               time.sleep(1)
               driver.find_element(By.ID, "send_n").click()
               time.sleep(1)
