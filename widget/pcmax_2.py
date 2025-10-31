@@ -658,7 +658,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
               driver.find_element(By.ID, "send_n").click()
             print(f"{user_name}にtwo_m用の1stメールを送信しました")
             catch_warning_pop(name, driver)
-            driver.get("https://pcmax.jp/mobile/mail_recive_send_list.php")
+            if "pcmax" in driver.current_url: 
+              driver.get("https://pcmax.jp/mobile/mail_recive_send_list.php")
+            elif "linkleweb" in driver.current_url:
+              driver.get("https://linkleweb.jp/mobile/mail_recive_send_list.php")
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
             mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")  

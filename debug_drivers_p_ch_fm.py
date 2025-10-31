@@ -208,6 +208,7 @@ while True:
           send_cnt = 3
         else:
           send_cnt = 2  
+        send_cnt = 0
         if name == "さな":
           iikamo_cnt = 1
         else:
