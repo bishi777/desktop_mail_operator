@@ -386,7 +386,11 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             return sent_cnt
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
-        user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text  
+        user_name_ele = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")
+        if len(user_name_ele):
+          user_name = user_name_ele[0].text
+        else:
+          user_name = None
         while len(exchange):
           # print(f"やり取り有り　{user_name}")
           user_row_cnt += 1 
@@ -397,7 +401,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             elements = driver.find_elements(By.CLASS_NAME, 'profile_card')
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
           exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")    
-          user_name = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="name")[0].text
+          if len(user_name_ele):
+            user_name = user_name_ele[0].text
+          else:
+            user_name = None
         if "linkleweb" in driver.current_url:
           user_info = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="user_info")[0].text
         elif "pcmax" in driver.current_url:
