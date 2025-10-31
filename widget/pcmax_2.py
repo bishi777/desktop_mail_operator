@@ -831,7 +831,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             user_address = func.normalize_text(user_address)
             site = "リンクル"
             try:
-              send_text =func.normalize_text(condition_message).format(name=user_name)
+              send_text =condition_message.format(name=user_name)
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, send_text, site)
               print(f"{user_name}にアドレス内1stメールを送信しました")
               gmail_condition += 1
