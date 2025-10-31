@@ -77,7 +77,15 @@ def catch_warning_pop(name, driver, wait):
         return None
     else:
       print(f"{name}に警告画面が出ている可能性があります")
-      return f"{name}に警告画面が出ている可能性があります"
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      warning = driver.find_elements(By.CLASS_NAME, value="caution-title")
+      warning2 = driver.find_elements(By.CLASS_NAME, value="suspend-title")
+      warning3 = driver.find_elements(By.CLASS_NAME, value="mail-setting-title")
+      number_lock = driver.find_elements(By.ID, value="content_header2")
+      if len(warning) or len(warning2) or len(warning3) or len(number_lock):
+          return f"{name}に警告画面が出ている可能性があります"
 
 
 def login(name, login_id, login_pass, driver, wait):
@@ -136,7 +144,9 @@ def nav_item_click(name, nav_item, driver, wait):
           return "new_message"
       driver.execute_script("arguments[0].click();", nav_text_elem)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
+      time.sleep(2)
+      print(999999)
+      print(driver.current_url)
       return None
 
 def re_login(driver, wait):
@@ -668,13 +678,13 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
   login_id = chara_data["login_id"]
   login_pass = chara_data["password"]
   wait_time = random.uniform(3, 6)
-  login_flug = login(name, login_id, login_pass, driver, wait)
-  if login_flug:
-    print(login_flug)
-    return
-  warning_flug = catch_warning_pop(name, driver, wait)
-  if warning_flug:
-    return
+  # login_flug = login(name, login_id, login_pass, driver, wait)
+  # if login_flug:
+  #   print(login_flug)
+  #   return
+  # warning_flug = catch_warning_pop(name, driver, wait)
+  # if warning_flug:
+  #   return
   nav_item_click(name, "プロフ検索", driver, wait)
   # 検索条件を設定
   search_elem = driver.find_element(By.ID, value="search1")
@@ -682,6 +692,8 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   # /////////////////////////詳細検索画面/////////////////////////
+  if "linkle" in driver.current_url:
+    print("詳細検索画面")
   select_area = driver.find_elements(By.CLASS_NAME, value="pref-select-link")
   reset_area = driver.find_elements(By.CLASS_NAME, value="reference_btn")
   user_sort_list = [
@@ -732,7 +744,8 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
       reset_area_orange = driver.find_elements(By.CLASS_NAME, value="btn-orange")
       reset_area_orange[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
+      time.sleep(10)
+      func.click_when_visible(driver, wait, (By.ID, "link_OK"))
       ok_button = driver.find_element(By.ID, value="link_OK")
       ok_button.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -811,6 +824,9 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
       last_height = new_height
     # 履歴あり、なしの設定
     mail_history = driver.find_elements(By.CLASS_NAME, value="thumbnail-c")
+    WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, "thumbnail-c")))
+    # 必要なら scrollIntoView
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", mail_history)
     check_flag = driver.find_element(By.ID, value="opt3") 
     is_checked = check_flag.is_selected()
     while not is_checked:

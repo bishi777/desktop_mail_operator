@@ -47,6 +47,74 @@ from PIL import Image
 import traceback
 from datetime import datetime, date
 import unicodedata
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import (
+    TimeoutException, StaleElementReferenceException,
+    ElementClickInterceptedException, ElementNotInteractableException
+)
+from selenium.webdriver.common.action_chains import ActionChains
+
+def wait_overlay_gone(driver, wait, timeout=10):
+    """ ローディング/モーダル系の被り物が消えるまで待つ（候補を総当り） """
+    overlay_css = [
+        ".loading", ".loader", ".modal-backdrop", ".overlay", ".blocking",
+        '[aria-busy="true"]', '[aria-hidden="false"][role="dialog"]'
+    ]
+    for css in overlay_css:
+        try:
+            wait.until(EC.invisibility_of_element_located((By.CSS_SELECTOR, css)))
+        except TimeoutException:
+            pass  # 無ければスキップ
+
+def is_really_visible(driver, el):
+    """ CSS的に可視かつ画面内にあるかの実チェック """
+    try:
+        return bool(driver.execute_script("""
+            const el = arguments[0];
+            if (!el) return false;
+            const style = window.getComputedStyle(el);
+            if (style.visibility === 'hidden' || style.display === 'none' || parseFloat(style.opacity) === 0) return false;
+            const rect = el.getBoundingClientRect();
+            const inView = rect.width > 0 && rect.height > 0 &&
+                           rect.bottom > 0 && rect.right > 0 &&
+                           rect.top < (window.innerHeight || document.documentElement.clientHeight) &&
+                           rect.left < (window.innerWidth  || document.documentElement.clientWidth);
+            return inView;
+        """, el))
+    except StaleElementReferenceException:
+        return False
+
+def click_when_visible(driver, wait, locator, timeout=15, y_offset=-80):
+    """
+    1) presence → 2) visibility → 3) clickability → 4) スクロール → 5) クリック
+    必要なら JS click にフォールバック
+    """
+    # 1) presence
+    el = wait.until(EC.presence_of_element_located(locator))
+    # 2) overlay消滅 & 可視化待ち
+    wait_overlay_gone(driver, wait)
+    wait.until(lambda d: is_really_visible(d, el))
+    # 3) clickability（refetchで locatorを使う）
+    wait.until(EC.element_to_be_clickable(locator))
+    el = driver.find_element(*locator)  # 念のため取り直し
+
+    # 4) スクロールしてヘッダー被りを避ける
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", el)
+    if y_offset:
+        driver.execute_script(f"window.scrollBy(0, {y_offset});")
+
+    # 5) クリック（通常→Actions→JSの順にフォールバック）
+    try:
+        el.click()
+        return el
+    except (ElementClickInterceptedException, ElementNotInteractableException):
+        try:
+            ActionChains(driver).move_to_element(el).click().perform()
+            return el
+        except Exception:
+            driver.execute_script("arguments[0].click();", el)
+            return el
+
 
 def _format_check_date(v) -> str:
     """check_date を“分まで”で整形。None→'-'。dateは日付のみ。"""
