@@ -373,7 +373,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             return sent_cnt
         # https://pcmax.jp/mobile/profile_list.php?condition=690345149ea3c
         user_profile_list_url = driver.current_url
-
         if user_row_cnt >= len(elements):
           # 下までスクロールする
           driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
