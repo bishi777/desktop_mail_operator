@@ -348,6 +348,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   no_pr_area_cnt = 0
   # two_message_users = ["もんちー", "あつき"]
   two_message_users = []
+  fm_user_list_scroll_cnt = 0
   try:
     while (sent_cnt < send_cnt) or (iikamo_cnted < iikamo_cnt):
       catch_warning_pop(name, driver)
@@ -372,13 +373,15 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             return sent_cnt
         # https://pcmax.jp/mobile/profile_list.php?condition=690345149ea3c
         user_profile_list_url = driver.current_url
+
         if user_row_cnt >= len(elements):
           # 下までスクロールする
           driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(3)
           elements = driver.find_elements(By.CLASS_NAME, 'name')
-          if user_row_cnt >= len(elements):  
+          fm_user_list_scroll_cnt += 1
+          if fm_user_list_scroll_cnt > 3:
             return sent_cnt
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elements[user_row_cnt])
         exchange = elements[user_row_cnt].find_elements(By.CLASS_NAME, value="exchange")
