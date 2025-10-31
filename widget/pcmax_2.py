@@ -285,7 +285,7 @@ def profile_search(driver):
 
   # r = random.randint(0, 99)
   # if r < 70:
-  value = random.choice([26, 27, 28, 29, 30])
+  value = random.choice([28, 29, 30])
   random_age = f"{value}歳"
   youngest_age_select_box.send_keys("18歳")
   time.sleep(0.5)
