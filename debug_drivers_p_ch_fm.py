@@ -15,6 +15,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 import sys
 import argparse
+import re
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
     """
@@ -280,9 +281,33 @@ while True:
             except Exception as e:
               print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
               traceback.print_exc()
-        # if roll_cnt % 10 == 0:
-        #   print(f"✅イマヒマオン開始 {name}")
-          # pcmax_2.imahima_on(name, driver)
+          if roll_cnt % 6 == 0:
+            print(f"✅check_date取得開始 {name}")
+            try:
+              header = driver.find_element(By.ID, "header_box_under")
+              links = header.find_elements(By.TAG_NAME, "a")
+              for link in links:
+                if "メッセージ" in link.text:    
+                  link.click()
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  time.sleep(1)
+                  break
+              inner = driver.find_elements(By.CLASS_NAME, "inner")
+              a_btns = inner[0].find_elements(By.TAG_NAME, "a")
+              for a_btn in a_btns:
+                if "受信" in a_btn.text:
+                  a_btn.click() 
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  time.sleep(1)
+                  break
+              user_div_list = driver.find_element(By.CSS_SELECTOR, ".mail_area.clearfix")
+              arrival_date = user_div_list.find_elements(By.CLASS_NAME, value="time")
+              date_numbers = re.findall(r'\d+', arrival_date[0].text)
+              report_dict[name]["check_date"] = f"{date_numbers[0]}-{date_numbers[1]} {date_numbers[2]}:{date_numbers[3]}"
+              pcmax_2.imahima_on(driver, wait)
+            except Exception as e:
+              print(f"{name}❌ check_date取得  の操作でエラー: {e}")
+              traceback.print_exc()
         if now.hour % 6 == 0:
           if send_flug:
             try:

@@ -23,6 +23,7 @@ from apscheduler.schedulers.blocking import BlockingScheduler
 from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 import shutil
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+import re
 
 
 def catch_warning_pop(name, driver):
@@ -499,6 +500,14 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           driver.find_element(By.ID, 'memo_send').click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
+          prof_ditail_user_name = driver.find_element(By.CLASS_NAME, value="li_content")
+          if user_name not in prof_ditail_user_name.text:
+            print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名不一致のためスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
+            print(f"期待:{user_name}  取得:{prof_ditail_user_name.text}")
+            func.send_mail(f"{name} ユーザー名不一致のためスキップします\n期待:{user_name}\n取得:{prof_ditail_user_name.text}")
+            driver.back()
+            user_row_cnt += 1
+            continue
           text_area = driver.find_element(By.ID, value="mail_com")
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, fst_message.format(name=user_name))
@@ -774,10 +783,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           print("btn2が見つかりません")
           return user_name, check_first, check_second, check_more, gmail_condition, check_date
       try:
+        # user_name = driver.find_element(By.CLASS_NAME, "user_name").text
         user_name = driver.find_element(By.CLASS_NAME, "title").find_element(By.TAG_NAME, "a").text
       except Exception as e:
         print(f"{name}: 新着チェック　　ユーザー名取得できません\n {e}")
-        func.send_error_mail(f"{name} ユーザー名取得できません\n{traceback.format_exc()}")
+        func.send_error(f"{name} ユーザー名取得できません\n{traceback.format_exc()}")
         return user_name, check_first, check_second, check_more, gmail_condition, check_date
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
