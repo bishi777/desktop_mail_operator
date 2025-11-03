@@ -256,6 +256,7 @@ while True:
             traceback.print_exc()
           try:
             print("足跡付け開始")
+            pcmax_2.make_footprint(name, driver, footprint_count=9)
           except Exception as e:
             print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
             traceback.print_exc()

@@ -191,7 +191,7 @@ def imahima_on(driver,wait):
   driver.back()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 
-def profile_search(driver):
+def profile_search(driver, random_robability, youngest_age, oldest_age, max_height):
   get_header_menu(driver, "プロフ検索")
   area_id_dict = {
     "静岡県": 27,
@@ -200,32 +200,19 @@ def profile_search(driver):
     "神奈川県": 23,
     "千葉県": 25,
     "埼玉県": 24,
-
   }
-  # print("✅ プロフ検索メニューのURLかチェック")
-  # print(driver.current_url)
   wait = WebDriverWait(driver, 10)
-  # https://linkleweb.jp/mobile/profile_reference.php
-  # https://pcmax.jp/mobile/profile_reference.php
   if not "/mobile/profile_reference.php" in driver.current_url:
     if "/mobile/profile_rest_reference.php" in driver.current_url:
       print(f"❌ プロフ検索制限メニューのURLです") 
-      # driver.get("https://pcmax.jp/pcm/index.php")
-      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      # time.sleep(1)
-      # name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-      # if len(name_on_pcmax):
-      #   print(f"{name_on_pcmax[0].text} プロフ検索制限がかかっている可能性があります")
       return
     else:
       time.sleep(2)
       get_header_menu(driver, "プロフ検索")
       time.sleep(2)
-      # print("✅ プロフ検索メニューのURLかチェック その２")
-      # print(driver.current_url)
       if not "/mobile/profile_reference.php" in driver.current_url:
-        # print("❌ プロフ検索メニューのURLではありません")
-        # print(driver.current_url)
+        print("❌ プロフ検索メニューのURLではありません")
+        print(driver.current_url)
         wait = WebDriverWait(driver, 10)
         if "pcmax" in driver.current_url:
           driver.get("https://pcmax.jp/pcm/index.php")
@@ -234,8 +221,7 @@ def profile_search(driver):
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        print(f"✅ {name_on_pcmax[0].text}プロフ検索メニューのURLかチェック")
-        
+        print(f"✅ {name_on_pcmax[0].text}プロフ検索メニューのURLかチェック") 
         if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
           return
   # チェックが入っている項目をリセット
@@ -255,27 +241,28 @@ def profile_search(driver):
   except NoSuchElementException:
     pass
   r = random.randint(0, 99)
-  if r < 50:
-    # 地域設定（ランダムで１つ選択）
-    area, area_id = random.choice(list(area_id_dict.items()))
-    try:
-      checkbox = driver.find_element(By.ID, str(area_id))
-      if not checkbox.is_selected():
+  if random_robability == 1:
+    if r < 50:
+      # 地域設定（ランダムで１つ選択）
+      area, area_id = random.choice(list(area_id_dict.items()))
+      try:
+        checkbox = driver.find_element(By.ID, str(area_id))
+        if not checkbox.is_selected():
+            checkbox.click()
+            time.sleep(1)
+      except NoSuchElementException:
+        pass
+  if random_robability == 2:
+    # 地域設定（ランダムで２つ選択）
+    random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+    for area, area_id in random_areas.items():
+      try:
+        checkbox = driver.find_element(By.ID, str(area_id))
+        if not checkbox.is_selected():
           checkbox.click()
           time.sleep(1)
-    except NoSuchElementException:
-      pass
-  # else:
-  #   # 地域設定（ランダムで２つ選択）
-  #   random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-  #   for area, area_id in random_areas.items():
-  #     try:
-  #       checkbox = driver.find_element(By.ID, str(area_id))
-  #       if not checkbox.is_selected():
-  #         checkbox.click()
-  #         time.sleep(1)
-  #     except NoSuchElementException:
-  #       pass
+      except NoSuchElementException:
+        pass
   # 年齢設定
   try:
     time.sleep(2)
@@ -283,18 +270,12 @@ def profile_search(driver):
   except NoSuchElementException:
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
   youngest_age_select_box = driver.find_element(By.NAME, "from_age")
-
-  # r = random.randint(0, 99)
-  # if r < 70:
-  value = random.choice([28, 29, 30])
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", youngest_age_select_box)
+  value = random.choice(oldest_age)
   random_age = f"{value}歳"
-  youngest_age_select_box.send_keys("18歳")
+  youngest_age_select_box.send_keys(f"{youngest_age}歳")
   time.sleep(0.5)
   oldest_age_select_box.send_keys(random_age)
-  # else:
-  #   youngest_age_select_box.send_keys("60歳以上")
-  #   time.sleep(0.5)
-  #   oldest_age_select_box.send_keys("60歳以上")
   
   # 検索カテゴリのチェック（セックスフレンド）
   try:
@@ -323,12 +304,13 @@ def profile_search(driver):
   try:
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
-    value = random.choice([165, 170, 175])
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
+    value = random.choice(max_height)
     max_height = f"{value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
-  time.sleep(1)
+  time.sleep(0.5)
   # 検索ボタンを押す
   try:
     search_button = driver.find_element(By.ID, "image_button")
@@ -341,7 +323,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
-  profile_search(driver)
+  profile_search(driver, 1, 18, [28,29,30], [165,170,175])
   sent_cnt = 0
   iikamo_cnted = 0
   user_row_cnt = 0
@@ -443,7 +425,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             except NoSuchElementException:
               pass
             user_row_cnt += 1
-            profile_search(driver)
+            profile_search(driver, 1, 18, [28,29,30], [165,170,175])
             ng_flag = True
             break
         if ng_flag:
@@ -488,7 +470,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
             if "もふ" in memo_edit.text:
               time.sleep(random_wait)
-              profile_search(driver)
+              profile_search(driver, 1, 18, [28,29,30], [165,170,175])
+
               user_row_cnt += 1
               continue
           except NoSuchElementException:
@@ -1269,22 +1252,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         time.sleep(3)
         bottom_scroll_cnt += 1
         foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-        if bottom_scroll_cnt == 2:
+        if bottom_scroll_cnt == 4:
           bottom_scroll_flug = False
-          break
-    if user_row_cnt >= len(foot_user_list):
-      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(3)
-      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      if user_row_cnt >= len(foot_user_list):  
-        return rf_cnt
+          return rf_cnt
     memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
     if len(memo_tab):
       user_row_cnt += 1
       continue
     like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type1')
-  
     if not len(like):
       like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type4')
     if not len(like):
@@ -1588,3 +1563,68 @@ def re_post(driver,wait, post_title, post_content):
     else:
       print("30分経過していません")
       return
+
+def make_footprint(name, driver, footprint_count=9):
+  current_step = 0
+  wait = WebDriverWait(driver, 10)
+  random_wait = random.uniform(0.2, 4)
+  profile_search(driver, 2, 18, [27,28,29,30,34,60], [165,170,175])
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+  # やり取りあるか確認
+  while current_step < footprint_count:
+    if current_step < len(user_list):
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
+      time.sleep(0.4)
+      exchange = user_list[current_step].find_elements(By.CLASS_NAME, value="exchange")
+      if len(exchange):
+        name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
+        print(f"やり取り有り　{name}")
+        current_step += 1
+        continue       
+      user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+      footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+      current_step += 1  
+      print(f"足跡付け {current_step}件 {footprint_now}")  
+      time.sleep(random_wait) 
+    else:
+      print("足跡付けのユーザーがいません")
+      print(current_step)
+      print(len(user_list))
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(4)
+      user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+      print("スクロールした")
+      print(current_step)
+      print(len(user_list))
+      if current_step >= len(user_list):
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(4)
+        print("もう一回スクロールした")
+        print(current_step)
+        print(len(user_list))
+        if current_step > len(user_list):
+          print("スクロールしてもユーザーがいなかった")
+          print(driver.current_url)
+          img_path = f"{name}_scroll_no_user.png"
+          driver.save_screenshot(img_path)
+          # 圧縮（JPEG化＋リサイズ＋品質調整）
+          img_path = func.compress_image(img_path)
+          title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
+          text = f"{driver.current_url}"   
+          # メール送信
+          if mail_info:
+            func.send_mail(text, mail_info, title, img_path)
+          search_profile_flug = True
+        else:
+          user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+          footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+          print(f"2スクロールしてから足跡付け {current_step}件 {footprint_now}")    
+          time.sleep(0.6)
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.8)
+    user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+
