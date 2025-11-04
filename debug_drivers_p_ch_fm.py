@@ -73,7 +73,7 @@ roll_cnt = 1
 start_time = datetime.now()
 active_chara_list = []
 list_copy_flug = True
-two_messages_chara = ["えりか", "さな", "すい", "ハル", "haru", "ひろみ", "ゆかり", "りな"]
+two_messages_chara = ["えりか", "さな", "すい",  "ひろみ", "ゆかり", "りな"]
 
 
 while True:

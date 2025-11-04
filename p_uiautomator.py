@@ -35,8 +35,8 @@ while True:
   for i in pcmax_datas:
     name = i["name"]
     
-    if name not in ("ゆかり", "いおり"):
-      continue
+    # if name not in ("ゆかり", "いおり"):
+    #   continue
     login_id = i["login_id"]
     login_pass = i["password"]
     # Appium Safari Options 設定
