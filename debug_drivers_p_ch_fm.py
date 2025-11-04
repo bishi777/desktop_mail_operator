@@ -73,8 +73,6 @@ roll_cnt = 1
 start_time = datetime.now()
 active_chara_list = []
 list_copy_flug = True
-two_messages_chara = ["えりか", "さな", "すい",  "ひろみ", "ゆかり", "りな"]
-
 
 while True:
   mail_info = random.choice([user_mail_info, spare_mail_info])
@@ -189,11 +187,6 @@ while True:
         if name_on_pcmax not in one_hour_report_dict:
           one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
         name = i["name"]
-        if name in two_messages_chara:
-          two_messages_flug = True
-          print(f"******{name}は2通メール送信対象キャラです******")
-        else:
-          two_messages_flug = False
         login_id = i["login_id"]
         login_pass = i["password"]
         # print(f"{login_id}   {login_pass}")
@@ -205,6 +198,9 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
+        two_messages_flug = i["two_messages_flug"]
+        if two_messages_flug:
+          print(f"******{name}は2通メール送信対象キャラです******")
         if roll_cnt % 2 == 0:
           send_cnt = 3
         else:
