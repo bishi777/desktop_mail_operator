@@ -73,7 +73,7 @@ roll_cnt = 1
 start_time = datetime.now()
 active_chara_list = []
 list_copy_flug = True
-two_messages_chara = ["えりか", "さな", "すい", "ハル", "haru"]
+two_messages_chara = ["えりか", "さな", "すい", "ハル", "haru", "ひろみ", "ゆかり", "りな"]
 
 
 while True:
@@ -209,10 +209,11 @@ while True:
           send_cnt = 3
         else:
           send_cnt = 2  
-        if name == "さな":
-          iikamo_cnt = 1
-        else:
-          iikamo_cnt = 0
+        # if name == "さな":
+        #   iikamo_cnt = 1
+        # else:
+        #   iikamo_cnt = 0
+        iikamo_cnt = 1
         try:
           top_image_flug = pcmax_2.check_top_image(name,driver)
           if top_image_flug:
