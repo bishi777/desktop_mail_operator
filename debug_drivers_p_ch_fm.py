@@ -198,7 +198,7 @@ while True:
         confirmation_mail = i["confirmation_mail"]
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
-        two_messages_flug = i["two_messages_flug"]
+        two_messages_flug = i["two_message_flug"]
         if two_messages_flug:
           print(f"******{name}は2通メール送信対象キャラです******")
         if roll_cnt % 2 == 0:
