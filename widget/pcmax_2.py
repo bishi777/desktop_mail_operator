@@ -1571,8 +1571,9 @@ def make_footprint(name, driver, footprint_count=9):
   profile_search(driver, 2, 18, [27,28,29,30,34,60], [165,170,175])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+  ft_cnt = 0
   # やり取りあるか確認
-  while current_step < footprint_count:
+  while ft_cnt < footprint_count:
     if current_step < len(user_list):
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
       time.sleep(0.4)
@@ -1585,7 +1586,8 @@ def make_footprint(name, driver, footprint_count=9):
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
       footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
       current_step += 1  
-      print(f"足跡付け {current_step}件 {footprint_now}")  
+      ft_cnt += 1
+      print(f"足跡付け {ft_cnt}件 {footprint_now}")  
       time.sleep(random_wait) 
     else:
       print("足跡付けのユーザーがいません")

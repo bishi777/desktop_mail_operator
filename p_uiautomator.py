@@ -12,7 +12,7 @@ import traceback
 
 user_data = func.get_user_data()
 pcmax_datas = user_data["pcmax"]
-linkle_chara = ["haru", "きりこ",]
+linkle_chara = []
 # 地域選択（3つまで選択可能）
 select_areas = [
     "東京都",
@@ -60,7 +60,6 @@ while True:
       wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
       time.sleep(1)
       # 「ログイン（登録済みの方）」ボタンをクリック
-      
       login_form = driver.find_element(By.ID, 'login_id')
       login_form.send_keys(login_id)
       time.sleep(1)
