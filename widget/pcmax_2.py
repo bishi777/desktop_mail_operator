@@ -938,9 +938,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        print("1stメールを送信します")
-        print(f"~~~~~ユーザー名:{user_name}  確認中...~~~~~~")
-        print(fst_message.format(name=user_name))
+        print("1stメールをユーザー名:{user_name} に送信します")
+        # print(fst_message.format(name=user_name))
         if user_name is None:
           print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
           func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
