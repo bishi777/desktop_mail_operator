@@ -241,6 +241,8 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if "きりこ" == name:
+          iikamo_count = 2
+          footprint_count = 14
           print("きりこはfstメール送信をスキップします")
           print(f"✅rfメール送信開始 送信数:2") 
           try:
@@ -253,7 +255,7 @@ while True:
             traceback.print_exc()
           try:
             print("足跡付け開始")
-            pcmax_2.make_footprint(name, driver, footprint_count=9)
+            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
           except Exception as e:
             print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
             traceback.print_exc()

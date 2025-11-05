@@ -1252,7 +1252,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         time.sleep(3)
         bottom_scroll_cnt += 1
         foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-        if bottom_scroll_cnt == 4:
+        if bottom_scroll_cnt == 3:
           bottom_scroll_flug = False
           return rf_cnt
     memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
@@ -1564,10 +1564,10 @@ def re_post(driver,wait, post_title, post_content):
       print("30分経過していません")
       return
 
-def make_footprint(name, driver, footprint_count=9):
+def make_footprint(name, driver, footprint_count, iikamo_count):
   current_step = 0
   wait = WebDriverWait(driver, 10)
-  random_wait = random.uniform(0.2, 4)
+  random_wait = random.uniform(0.1, 3.4)
   profile_search(driver, 2, 18, [27,28,29,30,34,60], [165,170,175])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
@@ -1577,17 +1577,46 @@ def make_footprint(name, driver, footprint_count=9):
     if current_step < len(user_list):
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
       time.sleep(0.4)
+      user_list_url = driver.current_url
       exchange = user_list[current_step].find_elements(By.CLASS_NAME, value="exchange")
+      user_name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
       if len(exchange):
-        name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
-        print(f"やり取り有り　{name}")
+        print(f"やり取り有り　{user_name}")
         current_step += 1
-        continue       
+        continue   
+      if "linkleweb" in driver.current_url:
+        user_info = user_list[current_step].find_elements(By.CLASS_NAME, value="user_info")[0].text
+      elif "pcmax" in driver.current_url:
+        user_info = user_name
+      user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")    
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+      if iikamo_count > 0:
+        # type1 いいかも
+        # type4 いいかもありがとう
+        # type5 いいかもありがとう済み
+        arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
+        iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+        if len(arleady_iikamo):
+          print(f"いいかも済み  ユーザー名:{user_name} {user_area} ")
+        elif len(iikamo):
+          print("いいかも")
+          iikamo[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          print(f"いいかも  ユーザー名:{user_info} {user_area} ")
+        elif len(iikamo_arigatou):
+          print("いいかもありがとう")
+          iikamo_arigatou[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
       footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
-      print(f"足跡付け {ft_cnt}件 {footprint_now}")  
+      print(f"足跡付け {ft_cnt}件 ユーザー名:{user_info} {user_area} {footprint_now}")  
       time.sleep(random_wait) 
     else:
       print("足跡付けのユーザーがいません")
@@ -1610,22 +1639,13 @@ def make_footprint(name, driver, footprint_count=9):
         if current_step > len(user_list):
           print("スクロールしてもユーザーがいなかった")
           print(driver.current_url)
-          img_path = f"{name}_scroll_no_user.png"
-          driver.save_screenshot(img_path)
-          # 圧縮（JPEG化＋リサイズ＋品質調整）
-          img_path = func.compress_image(img_path)
-          title = "pcmax足あと付けスクロールしてもユーザーがいなかった"
-          text = f"{driver.current_url}"   
-          # メール送信
-          if mail_info:
-            func.send_mail(text, mail_info, title, img_path)
-          search_profile_flug = True
+          
         else:
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"2スクロールしてから足跡付け {current_step}件 {footprint_now}")    
           time.sleep(0.6)
-    driver.back()
+    driver.get(user_list_url)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.8)
     user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
