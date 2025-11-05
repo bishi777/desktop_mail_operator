@@ -191,7 +191,7 @@ def imahima_on(driver,wait):
   driver.back()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 
-def profile_search(driver, random_robability, youngest_age, oldest_age, max_height):
+def profile_search(driver, search_edit):
   get_header_menu(driver, "プロフ検索")
   area_id_dict = {
     "静岡県": 27,
@@ -241,9 +241,10 @@ def profile_search(driver, random_robability, youngest_age, oldest_age, max_heig
   except NoSuchElementException:
     pass
   r = random.randint(0, 99)
-  if random_robability == 1:
+  # 地域設定（ランダムで１つ選択）
+  if search_edit["area_flug"] == 1:
     if r < 50:
-      # 地域設定（ランダムで１つ選択）
+      
       area, area_id = random.choice(list(area_id_dict.items()))
       try:
         checkbox = driver.find_element(By.ID, str(area_id))
@@ -252,8 +253,8 @@ def profile_search(driver, random_robability, youngest_age, oldest_age, max_heig
             time.sleep(1)
       except NoSuchElementException:
         pass
-  if random_robability == 2:
-    # 地域設定（ランダムで２つ選択）
+  # 地域設定（ランダムで２つ選択）
+  if search_edit["area_flug"] == 2:
     random_areas = dict(random.sample(list(area_id_dict.items()), 2))
     for area, area_id in random_areas.items():
       try:
@@ -271,23 +272,36 @@ def profile_search(driver, random_robability, youngest_age, oldest_age, max_heig
     oldest_age_select_box = driver.find_element(By.ID, "to_age")
   youngest_age_select_box = driver.find_element(By.NAME, "from_age")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", youngest_age_select_box)
-  value = random.choice(oldest_age)
-  random_age = f"{value}歳"
-  youngest_age_select_box.send_keys(f"{youngest_age}歳")
+  old_value = random.choice(search_edit["o_age"])
+  old_age = f"{old_value}歳"
+  young_value = random.choice(search_edit["y_age"])
+  young_age = f"{young_value}歳"
+  print(f"{young_age} 〜 {old_age} で検索します")
+  youngest_age_select_box.send_keys(young_age)
   time.sleep(0.5)
-  oldest_age_select_box.send_keys(random_age)
-  
-  # 検索カテゴリのチェック（セックスフレンド）
-  try:
-    purpose_id13 = driver.find_element(By.ID, "purpose_id13")
-  except NoSuchElementException:
-    print("セックスフレンドのチェックボックスが見つかりません")
-  if purpose_id13.is_selected():
-    purpose_id13.click()
+  oldest_age_select_box.send_keys(old_age)
   time.sleep(0.5)
-  # 除外カテゴリのチェック（不倫・浮気、アブノーマル、同性愛、写真・動画撮影）
+  # 検索対象
+  labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "label")
+  for label in labels:
+    if label.text.replace(" ", "") in search_edit["search_target"]:
+      checkbox = label.find_element(By.TAG_NAME, "input")
+      if not checkbox.is_selected():
+        checkbox.click()
+      time.sleep(0.5)
+  # 検索する項目
+  # try:
+  #   purpose_id13 = driver.find_element(By.ID, "purpose_id13")
+  # except NoSuchElementException:
+  #   print("セックスフレンドのチェックボックスが見つかりません")
+  # if purpose_id13.is_selected():
+  #   purpose_id13.click()
+  # time.sleep(0.5)
+
+  # 検索から外す項目
   exclusion_ids = [
     ("10120", "except12"),
+    ("", "except14"),
     ("10160", "except16"),
     ("10190", "except19"),
     ("10200", "except20"),
@@ -305,11 +319,25 @@ def profile_search(driver, random_robability, youngest_age, oldest_age, max_heig
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
-    value = random.choice(max_height)
+    value = random.choice(search_edit["m_height"])
     max_height = f"{value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
+  time.sleep(0.5)
+  # 体型
+  body_type_labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[6].find_elements(By.TAG_NAME, "label")
+  for label in body_type_labels:
+    if label.text.replace(" ", "") in search_edit["search_body_type"]:
+      checkbox = label.find_element(By.TAG_NAME, "input")
+      if not checkbox.is_selected():
+        checkbox.click()
+      time.sleep(0.5)
+  # 年収
+  annual_income_select_box = driver.find_element(By.ID, "sa1")
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", annual_income_select_box)
+  value = random.choice(search_edit["annual_income"])
+  annual_income_select_box.send_keys(value)
   time.sleep(0.5)
   # 検索ボタンを押す
   try:
@@ -317,13 +345,22 @@ def profile_search(driver, random_robability, youngest_age, oldest_age, max_heig
   except NoSuchElementException:
     search_button = driver.find_element(By.ID, "search1")
   search_button.click()
-
 def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
   random_wait = random.uniform(3, 5)
   ng_words = ["業者", "通報"]
-  profile_search(driver, 1, 18, [28,29,30], [165,170,175])
+  search_edit = {
+    "y_age": [18],
+    "o_age": [28,29,30],
+    "m_height": [165,170,175],
+    "area_flug": 1,
+    "search_target": ["プロフィール写真あり", "送信歴無し"],
+    "exclude_words": ["セックスフレンド", "不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
+    "search_body_type": [ "スリム", "やや細め", "普通", "ふくよか", "太め" ],
+    "annual_income":["200万円未満", "200万円以上〜400万円未満", ]
+  }
+  profile_search(driver, search_edit)
   sent_cnt = 0
   iikamo_cnted = 0
   user_row_cnt = 0
@@ -1568,7 +1605,17 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   current_step = 0
   wait = WebDriverWait(driver, 10)
   random_wait = random.uniform(0.1, 3.4)
-  profile_search(driver, 2, 18, [27,28,29,30,34,60], [165,170,175])
+  search_edit = {
+    "y_age": [18],
+    "o_age": [28,29,30],
+    "m_height": [165,170,175],
+    "area_flug": 2,
+    "search_target": ["送信歴無し"],
+    "exclude_words": ["不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
+    "search_body_type": ["スリム", "やや細め", "普通", "ふくよか", "太め" ],
+    "annual_income":["200万円未満", "200万円以上〜400万円未満", "指定なし"]
+  }
+  profile_search(driver, search_edit)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
   ft_cnt = 0
@@ -1600,14 +1647,12 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         if len(arleady_iikamo):
           print(f"いいかも済み  ユーザー名:{user_name} {user_area} ")
         elif len(iikamo):
-          print("いいかも")
           iikamo[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.7)
           iikamo_count -= 1
           print(f"いいかも  ユーザー名:{user_info} {user_area} ")
         elif len(iikamo_arigatou):
-          print("いいかもありがとう")
           iikamo_arigatou[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.7)
@@ -1639,7 +1684,6 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         if current_step > len(user_list):
           print("スクロールしてもユーザーがいなかった")
           print(driver.current_url)
-          
         else:
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
