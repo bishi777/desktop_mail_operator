@@ -244,7 +244,6 @@ def profile_search(driver, search_edit):
   # 地域設定（ランダムで１つ選択）
   if search_edit["area_flug"] == 1:
     if r < 50:
-      
       area, area_id = random.choice(list(area_id_dict.items()))
       try:
         checkbox = driver.find_element(By.ID, str(area_id))
@@ -276,7 +275,7 @@ def profile_search(driver, search_edit):
   old_age = f"{old_value}歳"
   young_value = random.choice(search_edit["y_age"])
   young_age = f"{young_value}歳"
-  print(f"{young_age} 〜 {old_age} で検索します")
+  # print(f"{young_age} 〜 {old_age} で検索します")
   youngest_age_select_box.send_keys(young_age)
   time.sleep(0.5)
   oldest_age_select_box.send_keys(old_age)
@@ -462,7 +461,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             except NoSuchElementException:
               pass
             user_row_cnt += 1
-            profile_search(driver, 1, 18, [28,29,30], [165,170,175])
+            profile_search(driver, search_edit)
             ng_flag = True
             break
         if ng_flag:
@@ -483,7 +482,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             time.sleep(0.7)
             continue
           elif len(iikamo):
-            print("いいかも")
             iikamo[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(0.7)
@@ -491,7 +489,6 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             user_row_cnt += 1
             print(f"いいかも  ユーザー名:{user_info} {user_area} {iikamo_cnted}件  ")
           elif len(iikamo_arigatou):
-            print("いいかもありがとう")
             iikamo_arigatou[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(0.7)
@@ -507,7 +504,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
             if "もふ" in memo_edit.text:
               time.sleep(random_wait)
-              profile_search(driver, 1, 18, [28,29,30], [165,170,175])
+              profile_search(driver, search_edit)
 
               user_row_cnt += 1
               continue
