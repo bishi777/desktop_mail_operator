@@ -253,7 +253,6 @@ while True:
           except Exception as e:
             print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
             traceback.print_exc()
-          time.sleep(2222)
           try:
             print("足跡付け開始")
             pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
