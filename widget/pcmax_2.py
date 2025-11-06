@@ -935,7 +935,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        print("1stメールをユーザー名:{user_name} に送信します")
+        # print('1stメールをユーザー名:{user_name}に送信します')
         # print(fst_message.format(name=user_name))
         if user_name is None:
           print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
@@ -1277,6 +1277,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+    user_list_url = driver.current_url
     # もふ確認　memo_tab
     if bottom_scroll_flug:
       while user_row_cnt >= len(foot_user_list):
@@ -1292,222 +1293,168 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if len(memo_tab):
       user_row_cnt += 1
       continue
-    like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type1')
-    if not len(like):
-      like = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type4')
-    if not len(like):
+    user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+    if unread_user and user_name in unread_user:
+      print(f"{user_name} は未読リストにいるのでスキップします")
       user_row_cnt += 1
-    # DEBUG
-    # if True:
-    else:
-      user_name = like[0].get_attribute("data-go2")
-      # user_name = "あお"
-      if unread_user and user_name in unread_user:
-        print(f"{user_name} は未読リストにいるのでスキップします")
-        user_row_cnt += 1
-        continue
-      like[0].click()
+      continue
+    foot_user_list[user_row_cnt].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
+    if user_name not in ditail_page_user_name:
+      print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")
+      func.send_error(name, f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}\n",                            )
+      driver.back()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.8)
-      # print(f"タイプしました　{user_name}")
-      pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-      
-      if not len(pressed_types):
-        # print(f"pressed_typesが取得できません {user_name}")
-        driver.refresh()
+      time.sleep(1)
+      user_row_cnt += 1
+      continue
+    arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
+    iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+    iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+    if len(arleady_iikamo):
+      print(f"いいかも済み  ユーザー名:{user_name}  ")
+    elif len(iikamo):
+      iikamo[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      print(f"いいかも  ユーザー名:{user_name} ")
+    elif len(iikamo_arigatou):
+      iikamo_arigatou[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      print(f"いいかもありがとう  ユーザー名:{user_name} ")
+    try:
+      catch_warning_pop(name, driver)
+      memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
+      if "もふ" in memo_edit.text:
+        print(f"{user_name} もふあり")
+        driver.back()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
-        pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-        # print("*****************************")
-        # print(len(pressed_types))
-        # print("*****************************")
-        
-      for idx in range(len(pressed_types)):
-        try:
-          pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
-          if not len(pressed_types):
-            print("pressed_typesがない")
-            time.sleep(2)
-            continue
-          pressed_type = pressed_types[idx]
-
-          try:
-            user_n = (pressed_type.get_dom_attribute("data-va5")
-                    or pressed_type.get_dom_attribute("data-go2"))  
-            # print("---888")
-            # print(user_n)
-            # print("---888")
-          except StaleElementReferenceException:
-            print("⚠️ stale なので再取得します123123")
-            time.sleep(3)
-            pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-            if idx < len(pressed_types):
-              # print(123)
-              pressed_type = pressed_types[idx]
-              user_n = (pressed_type.get_dom_attribute("data-va5")
-                  or pressed_type.get_dom_attribute("data-go2"))  
-              # print(user_n)
-          
-          user_n = (pressed_type.get_dom_attribute("data-va5")
-                    or pressed_type.get_dom_attribute("data-go2"))          
-          if user_n and user_name in user_n: 
-            # print(555) # Noneチェックを追加
-            # print(user_n)
-            # print(f"idx = {idx}")
-            # print("---------------")
-            # print(pressed_type)
-            # print("---------------")
-            
-            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pressed_type)
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5)
-            pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')  # 毎回 fresh に再取得
-            try:
-              pressed_type_ele = pressed_type.get_attribute("outerHTML")
-              # print(pressed_type_ele)
-            except StaleElementReferenceException:
-              print("⚠️ stale なので再取得します")
-              time.sleep(3)
-              pressed_types = driver.find_elements(By.CLASS_NAME, 'ano')
-              if idx < len(pressed_types):
-                  print(456)
-                  pressed_type = pressed_types[idx]
-                  print(pressed_type.get_attribute("outerHTML"))
-            
-            user_link = pressed_type.find_element(By.XPATH, "following-sibling::*[1]")
-            href = user_link.get_attribute("href")
-            # print("ユーザー　href")
-            # print(href)
-            if href:
-              driver.get(href)
-              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-              time.sleep(0.2)
-              # print("ユーザー詳細ページに来ました")
-              # print(driver.current_url)
-            break
-        except Exception as e:
-          print(f"⚠️ 要素処理エラー: {e}")
-          print(traceback.format_exc())
+        user_row_cnt += 1
+        continue
+    except NoSuchElementException as e:
+      img_path = f"{name}_error.png"
+      print(user_name)
+      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+      print(traceback.format_exc())
+      
+      driver.save_screenshot(img_path)
+      func.send_error(
+          chara=name,
+          error_message=f"{user_name}\n{driver.current_url}\n{str(e)}",
+          attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
+      )
+      pass
+    memo_ele = driver.find_elements(By.CSS_SELECTOR, '.side_btn.memo_open')
+    memo_ele[0].click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+    driver.find_element(By.ID, 'memo_send').click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    if "pcmax" in driver.current_url:
+      text_area = driver.find_elements(By.ID, value="mail_com")
+    elif "linkleweb" in driver.current_url:
+      text_area = driver.find_elements(By.ID, value="comme")
+    script = "arguments[0].value = arguments[1];"
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+    time.sleep(0.5)
+    driver.execute_script(script, text_area[0], return_foot_message.format(name=user_name))
+    time.sleep(0.5)  
+    # まじ送信　
+    if "pcmax" in driver.current_url:
+      mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
+    elif "linkleweb" in driver.current_url:
+      mile_point_text = driver.find_element(By.CLASS_NAME, value="side_mile_pcm_data").text
+    pattern = r'\d+'
+    match = re.findall(pattern, mile_point_text)
+    if int(match[0]) > 20:
+      maji_soushin = True
+    else:
+      maji_soushin = False
+    time.sleep(4)
+    if mail_img:
+      my_photo_element = driver.find_element(By.ID, "my_photo")
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+      select = Select(my_photo_element)
+      for option in select.options:
+        if mail_img in option.text:
+          select.select_by_visible_text(option.text)
+          time.sleep(0.4)
           break
-      try:
-        catch_warning_pop(name, driver)
-        memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-        if "もふ" in memo_edit.text:
-          print(f"{user_n} もふあり")
-          driver.back()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          user_row_cnt += 1
-          continue
-      except NoSuchElementException as e:
-        img_path = f"{name}_error.png"
-        print(user_name)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(traceback.format_exc())
-        
-        driver.save_screenshot(img_path)
-        func.send_error(
-            chara=name,
-            error_message=f"{user_name}\n{driver.current_url}\n{str(e)}",
-            attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
-        )
-        pass
-      driver.find_element(By.CLASS_NAME, 'memo_open').click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      memo_ele = driver.find_elements(By.ID, 'memotxt')
-      if len(memo_ele):
-        memo_ele[0].send_keys("もふ")
-      else:
-        print("メモ欄が見つかりません")
-        print(user_name)
-        print(driver.current_url)
-
-      driver.find_element(By.ID, 'memo_send').click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      text_area = driver.find_element(By.ID, value="mail_com")
-      script = "arguments[0].value = arguments[1];"
-      if not user_n:
-        print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_n}>>>>>>>>>>>>>>>>>>>>>>>")
-        return rf_cnt
-      driver.execute_script(script, text_area, return_foot_message.format(name=user_n))
-      time.sleep(1)  
-      # まじ送信　
+      # driver.find_element(By.NAME, "preview").click()
+      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.3)  
+    now = datetime.now().strftime('%m-%d %H:%M:%S')
+    if maji_soushin:
       if "pcmax" in driver.current_url:
-        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
-      elif "linkleweb" in driver.current_url:
-        mile_point_text = driver.find_element(By.CLASS_NAME, value="side_mile_pcm_data").text
-      pattern = r'\d+'
-      match = re.findall(pattern, mile_point_text)
-      if int(match[0]) > 20:
-        maji_soushin = True
-      else:
-        maji_soushin = False
-      time.sleep(4)
-      if mail_img:
-        my_photo_element = driver.find_element(By.ID, "my_photo")
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
-        select = Select(my_photo_element)
-        for option in select.options:
-          if mail_img in option.text:
-            select.select_by_visible_text(option.text)
-            time.sleep(0.4)
-            break
-        # driver.find_element(By.NAME, "preview").click()
-        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(0.3)  
-      now = datetime.now().strftime('%m-%d %H:%M:%S')
-      if maji_soushin:
         maji =  driver.find_element(By.ID, value="majiBtn")
-        maji.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+      elif "linkleweb" in driver.current_url:
+        maji =  driver.find_element(By.CLASS_NAME, value="maji_btn_send")
+      maji.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      if "pcmax" in driver.current_url:
         link_OK = driver.find_element(By.ID, value="link_OK")
-        link_OK.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
-      else:
-        driver.find_element(By.ID, 'send3').click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.2)
-      if len(driver.find_elements(By.ID, value="mailform_box")):
-        if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
-          print("連続防止　待機中...")
-          time.sleep(6)
-          if maji_soushin:
-            maji =  driver.find_element(By.ID, value="majiBtn")
-            maji.click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-            link_OK = driver.find_element(By.ID, value="link_OK")
-            link_OK.click()
-          else:
-            driver.find_element(By.ID, 'send3').click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-      elif len(driver.find_elements(By.CLASS_NAME, value='comp_title')):
+      elif "linkleweb" in driver.current_url:
+        link_OK = driver.find_element(By.CSS_SELECTOR, ".majibt.yes")
+      link_OK.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+    else:
+      driver.find_element(By.ID, 'send3').click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.2)
+    if len(driver.find_elements(By.ID, value="mailform_box")):
+      if "連続防止" in driver.find_elements(By.ID, value="mailform_box")[0].text:
+        print("連続防止　待機中...")
+        time.sleep(6)
+        if maji_soushin:
+          maji =  driver.find_element(By.ID, value="majiBtn")
+          maji.click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          link_OK = driver.find_element(By.ID, value="link_OK")
+          link_OK.click()
+        else:
+          driver.find_element(By.ID, 'send3').click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+    elif "pcmax" in driver.current_url:
+      if len(driver.find_elements(By.CLASS_NAME, value='comp_title')):
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
-          print(f"{user_n} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+          print(f"{user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
           user_row_cnt += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(3)
-      else:
-        img_path = f"{name}_returnfoot_error.png"
-        print(user_name)
-        print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-        print(traceback.format_exc())
-        
-        driver.save_screenshot(img_path)
-        func.send_error(
-            chara=name,
-            error_message=f"{user_name}\n送信が完了しませんでした",
-            attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
-        )
+    elif "linkleweb" in driver.current_url:
+      time.sleep(1)
+      rf_cnt += 1   
+      print(f"{user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+      user_row_cnt += 1
+      driver.get(user_list_url)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+    else:
+      img_path = f"{name}_returnfoot_error.png"
+      print(user_name)
+      print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+      print(traceback.format_exc())
+      
+      driver.save_screenshot(img_path)
+      func.send_error(
+          chara=name,
+          error_message=f"{user_name}\n送信が完了しませんでした",
+          attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
+      )
         
   return rf_cnt
 
