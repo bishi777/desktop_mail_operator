@@ -199,6 +199,7 @@ while True:
         mail_img = i["mail_img"]
         return_foot_message = i["return_foot_message"]
         two_messages_flug = i["two_message_flug"]
+        fst_flug = i["fst_flug"]
         if two_messages_flug:
           print(f"******{name}は2通メール送信対象キャラです******")
         if roll_cnt % 2 == 0:
@@ -240,10 +241,10 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if "きりこ" == name:
+        if not fst_flug:
           iikamo_count = 2
           footprint_count = 14
-          print("きりこはfstメール送信をスキップします")
+          print(f"{name}はfstメール送信をスキップします")
           print(f"✅rfメール送信開始 送信数:2") 
           try:
             rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
