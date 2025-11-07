@@ -1302,7 +1302,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
-    if user_name not in ditail_page_user_name:
+    if user_name[:6] not in ditail_page_user_name[:6]:
       print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")
       func.send_error(name, f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}\n",                            )
       driver.back()
@@ -1363,7 +1363,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     script = "arguments[0].value = arguments[1];"
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
-    driver.execute_script(script, text_area[0], return_foot_message.format(name=user_name))
+    driver.execute_script(script, text_area[0], return_foot_message.format(name=ditail_page_user_name))
     time.sleep(0.5)  
     # まじ送信　
     if "pcmax" in driver.current_url:
