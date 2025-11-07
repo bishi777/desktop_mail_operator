@@ -1273,22 +1273,19 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   time.sleep(0.5)
   rf_cnt = 0
   user_row_cnt = 0
-  bottom_scroll_flug = True
   bottom_scroll_cnt = 0
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
-    # もふ確認　memo_tab
-    if bottom_scroll_flug:
-      while user_row_cnt >= len(foot_user_list):
-        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(3)
-        bottom_scroll_cnt += 1
-        foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-        if bottom_scroll_cnt == 3:
-          bottom_scroll_flug = False
-          return rf_cnt
+    while user_row_cnt >= len(foot_user_list):
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+      bottom_scroll_cnt += 1
+      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+      if bottom_scroll_cnt == 3:
+        return rf_cnt
+    # めもありか確認　memo_tab
     memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
     if len(memo_tab):
       user_row_cnt += 1
@@ -1298,6 +1295,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       print(f"{user_name} は未読リストにいるのでスキップします")
       user_row_cnt += 1
       continue
+    while user_row_cnt >= len(foot_user_list):
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+      bottom_scroll_cnt += 1
+      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+      if bottom_scroll_cnt == 3:
+        return rf_cnt
     foot_user_list[user_row_cnt].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
@@ -1321,9 +1326,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(0.7)
       print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
     elif len(iikamo_arigatou):
-      iikamo_arigatou[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.7)
+      # iikamo_arigatou[0].click()
+      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      # time.sleep(0.7)
       print(f"いいかもありがとう  ユーザー名:{ditail_page_user_name} ")
     try:
       catch_warning_pop(name, driver)
@@ -1561,13 +1566,13 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   profile_search(driver, search_edit)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+  user_list_url = driver.current_url
   ft_cnt = 0
   # やり取りあるか確認
   while ft_cnt < footprint_count:
     if current_step < len(user_list):
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
       time.sleep(0.4)
-      user_list_url = driver.current_url
       exchange = user_list[current_step].find_elements(By.CLASS_NAME, value="exchange")
       user_name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
       if len(exchange):
