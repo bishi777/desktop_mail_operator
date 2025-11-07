@@ -1314,17 +1314,17 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
     if len(arleady_iikamo):
-      print(f"いいかも済み  ユーザー名:{user_name}  ")
+      print(f"いいかも済み  ユーザー名:{ditail_page_user_name}  ")
     elif len(iikamo):
       iikamo[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
-      print(f"いいかも  ユーザー名:{user_name} ")
+      print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
     elif len(iikamo_arigatou):
       iikamo_arigatou[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
-      print(f"いいかもありがとう  ユーザー名:{user_name} ")
+      print(f"いいかもありがとう  ユーザー名:{ditail_page_user_name} ")
     try:
       catch_warning_pop(name, driver)
       memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
@@ -1428,7 +1428,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
-          print(f"{user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+          print(f"{ditail_page_user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
           user_row_cnt += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
@@ -1438,21 +1438,21 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     elif "linkleweb" in driver.current_url:
       time.sleep(1)
       rf_cnt += 1   
-      print(f"{user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+      print(f"{ditail_page_user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
       user_row_cnt += 1
       driver.get(user_list_url)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
     else:
       img_path = f"{name}_returnfoot_error.png"
-      print(user_name)
+      print(ditail_page_user_name)
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
       print(traceback.format_exc())
       
       driver.save_screenshot(img_path)
       func.send_error(
           chara=name,
-          error_message=f"{user_name}\n送信が完了しませんでした",
+          error_message=f"{ditail_page_user_name}\n送信が完了しませんでした",
           attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
       )
         
