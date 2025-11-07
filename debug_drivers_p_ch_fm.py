@@ -253,6 +253,7 @@ while True:
             print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
           except Exception as e:
             print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
+            print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
             traceback.print_exc()
           try:
             print("足跡付け開始")
