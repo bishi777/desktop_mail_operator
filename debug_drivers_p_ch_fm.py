@@ -285,8 +285,7 @@ while True:
               print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
               traceback.print_exc()
           
-            
-        if now.hour % 6 == 0:
+        if now.hour % 6 == 0 or now.hour == 22:
           if send_flug:
             try:
               body = func.format_progress_mail(report_dict, now)
@@ -296,7 +295,8 @@ while True:
                 f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
               )
               send_flug = False
-              report_dict = reset_metrics_keep_check_date(report_dict)
+              if now.hour == 24:
+                report_dict = reset_metrics_keep_check_date(report_dict)
             except Exception as e:
               print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
               traceback.print_exc()   
