@@ -242,25 +242,26 @@ while True:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
         if not fst_flug:
-          iikamo_count = 2
-          footprint_count = 14
-          print(f"{name}はfstメール送信をスキップします")
-          print(f"✅rfメール送信開始 送信数:2") 
-          try:
-            rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
-            report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
-            one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-            print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
-          except Exception as e:
-            print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
-            print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
-            traceback.print_exc()
-          try:
-            print("足跡付け開始")
-            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
-          except Exception as e:
-            print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
-            traceback.print_exc()
+          if 6 <= now.hour < 24:
+            iikamo_count = 2
+            footprint_count = 14
+            print(f"{name}はfstメール送信をスキップします")
+            print(f"✅rfメール送信開始 送信数:2") 
+            try:
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+              one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
+              print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+            except Exception as e:
+              print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
+              print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+              traceback.print_exc()
+            try:
+              print("足跡付け開始")
+              pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
+            except Exception as e:
+              print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+              traceback.print_exc()
 
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
         elif 6 <= now.hour < 23:
