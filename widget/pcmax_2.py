@@ -1423,7 +1423,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       # driver.find_element(By.NAME, "preview").click()
       # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.3)  
-    now = datetime.now().strftime('%m-%d %H:%M:%S')
+    now = datetime.now().strftime('%d %H:%M:%S')
     if maji_soushin:
       if "pcmax" in driver.current_url:
         maji =  driver.find_element(By.ID, value="majiBtn")
@@ -1738,7 +1738,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           iikamo_count -= 1
           iikamo_text = "いいかもありがとう"
           # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
-      footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+      footprint_now = datetime.now().strftime('%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
       print(f"足跡付け {ft_cnt}件 {iikamo_text} ユーザー名:{user_info} {user_area} {footprint_now}")  
