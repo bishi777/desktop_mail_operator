@@ -1351,7 +1351,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       iikamo[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
-      iikamo_text = f"いいかも済み"
+      iikamo_text = f"いいかも"
       # print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
     elif len(iikamo_arigatou):
       # iikamo_arigatou[0].click()
@@ -1462,7 +1462,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
-          print(f"{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+          print(f"{rf_cnt}件送信　ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
           user_row_cnt += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
@@ -1472,7 +1472,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     elif "linkleweb" in driver.current_url:
       time.sleep(1)
       rf_cnt += 1   
-      print(f"{ditail_page_user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+      print(f"{rf_cnt}件送信 ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
       user_row_cnt += 1
       driver.get(user_list_url)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1713,14 +1713,14 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         user_info = user_name
       user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")    
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+      iikamo_text = ""
       if iikamo_count > 0:
         # type1 いいかも
         # type4 いいかもありがとう
         # type5 いいかもありがとう済み
         arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
         iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
-        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
-        iikamo_text = ""
+        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')  
         if len(arleady_iikamo):
           iikamo_text = f"いいかも済み"
           # print(f"いいかも済み  ユーザー名:{user_name} {user_area} ")
