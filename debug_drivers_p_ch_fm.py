@@ -241,7 +241,8 @@ while True:
         except Exception as e:
           print(f"{name}❌ メールチェック  の操作でエラー: {e}")
           traceback.print_exc()  
-        if not fst_flug:
+        if True:
+        # if not fst_flug:
           if 6 <= now.hour < 24:
             iikamo_count = 2
             footprint_count = 14
@@ -298,7 +299,7 @@ while True:
               if now.hour == 24:
                 report_dict = reset_metrics_keep_check_date(report_dict)
             except Exception as e:
-              print(f"{name}❌ fstmailの報告  の操作でエラー: {e}")
+              print(f"{name}❌ 6時間の進捗報告  の操作でエラー: {e}")
               traceback.print_exc()   
               print('~~~~~~~~~')
               print(mail_info)
