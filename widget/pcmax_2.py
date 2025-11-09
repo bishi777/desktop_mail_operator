@@ -1334,6 +1334,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if len(arleady_iikamo):
       print(f"いいかも済み  ユーザー名:{ditail_page_user_name}  ")
     elif len(iikamo):
+      WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
       iikamo[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
