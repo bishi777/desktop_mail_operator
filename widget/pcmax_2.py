@@ -281,6 +281,15 @@ def profile_search(driver, search_edit):
   oldest_age_select_box.send_keys(old_age)
   time.sleep(0.5)
   # 検索対象
+  # チェックが入っている項目をリセット
+  try:
+    check_elements = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "input")
+    for el in check_elements:
+      if el.is_selected():
+        el.click()
+        time.sleep(0.5)
+  except NoSuchElementException:
+    pass
   labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "label")
   for label in labels:
     if label.text.replace(" ", "") in search_edit["search_target"]:
