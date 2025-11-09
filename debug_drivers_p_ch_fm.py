@@ -253,9 +253,9 @@ while True:
               one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
             except Exception as e:
-              print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
-              traceback.print_exc()
+              print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
+              print(traceback.format_exc())
             try:
               print("🐾🐾🐾🐾足跡付け開始🐾🐾🐾🐾")
               pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
