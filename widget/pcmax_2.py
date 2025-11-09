@@ -1338,19 +1338,23 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
     iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+    iikamo_text = ""
     if len(arleady_iikamo):
-      print(f"いいかも済み  ユーザー名:{ditail_page_user_name}  ")
+      iikamo_text = f"いいかも済み"
+      # print(f"いいかも済み  ユーザー名:{ditail_page_user_name}  ")
     elif len(iikamo):
       WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
       iikamo[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
-      print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
+      iikamo_text = f"いいかも済み"
+      # print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
     elif len(iikamo_arigatou):
       # iikamo_arigatou[0].click()
       # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       # time.sleep(0.7)
-      print(f"いいかもありがとう  ユーザー名:{ditail_page_user_name} ")
+      iikamo_text = f"いいかもありがとう"
+      # print(f"いいかもありがとう  ユーザー名:{ditail_page_user_name} ")
     try:
       catch_warning_pop(name, driver)
       memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
@@ -1454,7 +1458,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
-          print(f"{ditail_page_user_name} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
+          print(f"{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}   {rf_cnt}件送信  {now}")
           user_row_cnt += 1
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
@@ -1711,24 +1715,28 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
         iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
         iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+        iikamo_text = ""
         if len(arleady_iikamo):
-          print(f"いいかも済み  ユーザー名:{user_name} {user_area} ")
+          iikamo_text = f"いいかも済み"
+          # print(f"いいかも済み  ユーザー名:{user_name} {user_area} ")
         elif len(iikamo):
           iikamo[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.7)
           iikamo_count -= 1
-          print(f"いいかも  ユーザー名:{user_info} {user_area} ")
+          iikamo_text = f"いいかも"
+          # print(f"いいかも  ユーザー名:{user_info} {user_area} ")
         elif len(iikamo_arigatou):
           iikamo_arigatou[0].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.7)
           iikamo_count -= 1
-          print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
+          iikamo_text = "いいかもありがとう"
+          # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
       footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
-      print(f"足跡付け {ft_cnt}件 ユーザー名:{user_info} {user_area} {footprint_now}")  
+      print(f"足跡付け {ft_cnt}件 {iikamo_text} ユーザー名:{user_info} {user_area} {footprint_now}")  
       time.sleep(random_wait) 
     else:
       print("足跡付けのユーザーがいません")
