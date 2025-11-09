@@ -248,7 +248,7 @@ while True:
             footprint_count = 14
             print(f"✅rfメール送信開始 送信数:2") 
             try:
-              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user, two_messages_flug) 
               report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
               one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")

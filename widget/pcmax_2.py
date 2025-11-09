@@ -1256,7 +1256,8 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
     
       
 
-def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user):
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug):
+  two_message_users = []
   wait = WebDriverWait(driver, 10)
   if "pcmax" in driver.current_url:
     driver.get("https://pcmax.jp/pcm/member.php")
@@ -1316,6 +1317,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(1)
       user_row_cnt += 1
       continue
+    if two_messages_flug:
+      two_message_users.append(ditail_page_user_name)
     arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
     iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
@@ -1461,7 +1464,105 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           error_message=f"{ditail_page_user_name}\n送信が完了しませんでした",
           attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
       )
-        
+  if two_messages_flug:
+    header = driver.find_element(By.ID, "header_box_under")
+    links = header.find_elements(By.TAG_NAME, "a")
+    for link in links:
+      if "メッセージ" in link.text:
+        link.click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        break
+    inner = driver.find_elements(By.CLASS_NAME, "inner")
+    a_btns = inner[0].find_elements(By.TAG_NAME, "a")
+    for a_btn in a_btns:
+      if "送信" in a_btn.text:
+        a_btn.click() 
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        break
+    for two_message_user in two_message_users:
+      mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")
+      for mail_detail in mail_details:
+        user_info = mail_detail.find_element(By.CLASS_NAME, "user_info")
+        # print(f"~~~~~two_message_user:{two_message_user}~~~~~~")
+        # print(f"user_info.text:{user_info.text}~~~~~~")
+        # print(two_message_user in user_info.text)
+        if two_message_user in user_info.text:
+          # driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_info)
+          mail_detail.find_element(By.TAG_NAME, "a").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          # print(f"two_message_user 1stメールを送信します")
+          # print(f"~~~~~ユーザー名:{two_message_user}  確認中...~~~~~~")
+          # print(fst_message.format(name=two_message_user))
+          user_name = two_message_user
+          if user_name is None:
+            print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
+            func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
+            return user_name, check_first, check_second, check_more, gmail_condition, check_date
+          if "name" in fst_message.format(name=user_name):
+            print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
+            func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
+            return user_name, check_first, check_second, check_more, gmail_condition, check_date
+          text_area = driver.find_element(By.ID, value="mdc")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+          script = "arguments[0].value = arguments[1];"
+          driver.execute_script(script, text_area, fst_message.format(name=user_name))
+          time.sleep(1)
+          text_area_value = text_area.get_attribute("value")
+          t_a_v_cnt = 0
+          while not text_area_value:
+            t_a_v_cnt += 1
+            time.sleep(2)
+            text_area_value = text_area.get_attribute("value")
+            if t_a_v_cnt == 5:
+              print("テキストエリアにfst_message入力できません")
+              break
+          if mail_img:
+            my_photo_element = driver.find_element(By.ID, "my_photo")
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+            select = Select(my_photo_element)
+            for option in select.options:
+              if mail_img in option.text:
+                select.select_by_visible_text(option.text)
+                time.sleep(0.7)
+                break
+          driver.find_element(By.ID, "send_n").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          mailform_box = driver.find_elements(By.ID, value="mailform_box")
+          if len(mailform_box):
+            if "連続防止" in mailform_box[0].text:
+              print("連続防止　待機中...")
+              time.sleep(7)
+              text_area = driver.find_element(By.ID, value="mdc")
+              driver.execute_script(script, text_area, fst_message.format(name=user_name))
+              time.sleep(1)
+              if mail_img:
+                my_photo_element = driver.find_element(By.ID, "my_photo")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+                select = Select(my_photo_element)
+                for option in select.options:
+                  if mail_img in option.text:
+                    select.select_by_visible_text(option.text)
+                    time.sleep(0.7)
+                    break
+              driver.find_element(By.ID, "send_n").click()
+              time.sleep(1)
+          if driver.find_elements(By.CLASS_NAME, "banned-word"):
+            time.sleep(6)
+            driver.find_element(By.ID, "send_n").click()
+          print(f"{user_name}にtwo_m用の1stメールを送信しました")
+          catch_warning_pop(name, driver)
+          if "pcmax" in driver.current_url: 
+            driver.get("https://pcmax.jp/mobile/mail_recive_send_list.php")
+          elif "linkleweb" in driver.current_url:
+            driver.get("https://linkleweb.jp/mobile/mail_recive_send_list.php")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          mail_details = driver.find_elements(By.CLASS_NAME, "mail_area")  
+          break         
   return rf_cnt
 
 def re_post(driver,wait, post_title, post_content):
