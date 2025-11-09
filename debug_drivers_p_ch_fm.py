@@ -257,7 +257,7 @@ while True:
               print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
               print(traceback.format_exc())
             try:
-              print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+              print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt+1}件🐾🐾🐾🐾")
               pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
             except Exception as e:
               print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
