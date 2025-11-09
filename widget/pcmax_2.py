@@ -483,8 +483,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
           iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
           iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+          iikamo_text = ""
           if len(arleady_iikamo):
-            print(f"いいかも済み  ユーザー名:{user_info} {user_area} ")
+            iikamo_text = f"いいかも済み"
+            # print(f"いいかも済み  ユーザー名:{user_info} {user_area} ")
             user_row_cnt += 1
             driver.back()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -496,14 +498,16 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             time.sleep(0.7)
             iikamo_cnted += 1
             user_row_cnt += 1
-            print(f"いいかも  ユーザー名:{user_info} {user_area} {iikamo_cnted}件  ")
+            iikamo_text = f"いいかも"
+            # print(f"いいかも  ユーザー名:{user_info} {user_area} {iikamo_cnted}件  ")
           elif len(iikamo_arigatou):
             iikamo_arigatou[0].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(0.7)
             iikamo_cnted += 1
             user_row_cnt += 1
-            print(f"いいかもありがとう  ユーザー名:{user_info} {user_area} {iikamo_cnted}件  ")
+            iikamo_text = f"いいかもありがとう"
+            # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area} {iikamo_cnted}件  ")
           driver.back()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
@@ -597,7 +601,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
           sent_cnt += 1
-          print(f"マジ送信{maji_soushin}  ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
+          print(f"マジ送信{maji_soushin} {iikamo_text} ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
           user_row_cnt += 1  
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(random_wait)
