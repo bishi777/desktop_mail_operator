@@ -1747,9 +1747,9 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         if current_step > len(user_list):
           print("スクロールしてもユーザーがいなかった")
           print(driver.current_url)
-          driver.get(user_list_url)
+          profile_search(driver, search_edit)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
+          user_list_url = driver.current_url
         else:
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -1757,9 +1757,9 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           time.sleep(0.6)
       else:
         continue
-    
-    driver.get(user_list_url)
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.8)
+    if not user_list_url in driver.current_url:
+      driver.get(user_list_url)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
     user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
 
