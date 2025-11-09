@@ -1306,6 +1306,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     foot_user_list[user_row_cnt].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
+    catch_warning_pop(name, driver)
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
     if user_name[:6] not in ditail_page_user_name[:6]:
       print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")

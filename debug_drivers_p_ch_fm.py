@@ -246,7 +246,6 @@ while True:
           if 6 <= now.hour < 24:
             iikamo_count = 2
             footprint_count = 14
-            print(f"{name}はfstメール送信をスキップします")
             print(f"✅rfメール送信開始 送信数:2") 
             try:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
