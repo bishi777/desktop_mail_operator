@@ -107,7 +107,7 @@ while True:
       name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
       if name_on_pcmax:
         name = name_on_pcmax[0].text
-        # if "りな" != name:
+        # if "ひろみ" != name:
         #   continue
       while not len(name_on_pcmax):
         # 再ログイン処理
