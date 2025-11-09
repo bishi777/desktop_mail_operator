@@ -1317,7 +1317,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if bottom_scroll_cnt == 3:
         return rf_cnt
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", element)
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
     time.sleep(0.3)
     driver.execute_script("arguments[0].click();", foot_user_list[user_row_cnt])
     # foot_user_list[user_row_cnt].click()
