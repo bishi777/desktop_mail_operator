@@ -1748,6 +1748,9 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
           print(f"2スクロールしてから足跡付け {current_step}件 {footprint_now}")    
           time.sleep(0.6)
+      else:
+        continue
+    
     driver.get(user_list_url)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.8)
