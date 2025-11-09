@@ -1356,14 +1356,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         continue
     except NoSuchElementException as e:
       img_path = f"{name}_error.png"
-      print(user_name)
+      print(ditail_page_user_name)
       print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
       print(traceback.format_exc())
       
       driver.save_screenshot(img_path)
       func.send_error(
           chara=name,
-          error_message=f"{user_name}\n{driver.current_url}\n{str(e)}",
+          error_message=f"{ditail_page_user_name}\n{driver.current_url}\n{str(e)}",
           attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
       )
       pass
