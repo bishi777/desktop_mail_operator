@@ -205,7 +205,7 @@ def profile_search(driver, search_edit):
   if not "/mobile/profile_reference.php" in driver.current_url:
     if "/mobile/profile_rest_reference.php" in driver.current_url:
       print(f"❌ プロフ検索制限メニューのURLです") 
-      return
+      return False
     else:
       time.sleep(2)
       get_header_menu(driver, "プロフ検索")
@@ -353,6 +353,7 @@ def profile_search(driver, search_edit):
   except NoSuchElementException:
     search_button = driver.find_element(By.ID, "search1")
   search_button.click()
+  return True
 def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info):
   wait = WebDriverWait(driver, 10)
   catch_warning_pop(name, driver)
@@ -368,7 +369,8 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
     "search_body_type": [ "スリム", "やや細め", "普通", "ふくよか", "太め" ],
     "annual_income":["200万円未満", "200万円以上〜400万円未満", ]
   }
-  profile_search(driver, search_edit)
+  if not profile_search(driver, search_edit):
+    return 0
   sent_cnt = 0
   iikamo_cnted = 0
   user_row_cnt = 0
@@ -1689,7 +1691,8 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     "search_body_type": ["スリム", "やや細め", "普通", "ふくよか", "太め" ],
     "annual_income":["200万円未満", "200万円以上〜400万円未満", "指定なし"]
   }
-  profile_search(driver, search_edit)
+  if not profile_search(driver, search_edit):
+    return
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
   user_list_url = driver.current_url
