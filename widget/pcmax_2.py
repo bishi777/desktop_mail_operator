@@ -1500,15 +1500,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           if user_name is None:
             print(f"<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<ユーザーネームが取得できていません {user_name}>>>>>>>>>>>>>>>>>>>>>>>")
             func.send_error(name, f"ユーザーネームが取得できていません {user_name}\n",                            )
-            return user_name, check_first, check_second, check_more, gmail_condition, check_date
-          if "name" in fst_message.format(name=user_name):
-            print(f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")
-            func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{fst_message.format(name=user_name)}")          
-            return user_name, check_first, check_second, check_more, gmail_condition, check_date
+            return rf_cnt
+          if "name" in return_foot_message.format(name=user_name):
+            print(f"ユーザー名が正しく反映されていません\n{user_name}\{return_foot_message.format(name=user_name)}")
+            func.send_error(name, f"ユーザー名が正しく反映されていません\n{user_name}\{return_foot_message.format(name=user_name)}")          
+            return rf_cnt
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
           script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, fst_message.format(name=user_name))
+          driver.execute_script(script, text_area, return_foot_message.format(name=user_name))
           time.sleep(1)
           text_area_value = text_area.get_attribute("value")
           t_a_v_cnt = 0
@@ -1537,7 +1537,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, fst_message.format(name=user_name))
+              driver.execute_script(script, text_area, return_foot_message.format(name=user_name))
               time.sleep(1)
               if mail_img:
                 my_photo_element = driver.find_element(By.ID, "my_photo")
