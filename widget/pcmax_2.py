@@ -328,7 +328,10 @@ def profile_search(driver, search_edit):
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
     value = random.choice(search_edit["m_height"])
-    max_height = f"{value}cm"
+    if value == 180:
+      max_height = "180cm以上"
+    else:
+      max_height = f"{value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
