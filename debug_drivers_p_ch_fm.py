@@ -256,13 +256,6 @@ while True:
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
               print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
               print(traceback.format_exc())
-            try:
-              print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt+1}件🐾🐾🐾🐾")
-              pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
-            except Exception as e:
-              print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
-              traceback.print_exc()
-
         # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
         elif 6 <= now.hour < 23:
           try:
@@ -284,7 +277,13 @@ while True:
             except Exception as e:
               print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
               traceback.print_exc()
-          
+        if not fst_flug:
+          try:
+            print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt+1}件🐾🐾🐾🐾")
+            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
+          except Exception as e:
+            print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+            traceback.print_exc()
         if now.hour % 6 == 0 or now.hour == 22:
           if send_flug:
             try:
