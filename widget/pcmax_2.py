@@ -1299,7 +1299,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(3)
       bottom_scroll_cnt += 1
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      if bottom_scroll_cnt == 3:
+      if bottom_scroll_cnt == 2:
         return rf_cnt
     # めもありか確認　memo_tab
     memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
@@ -1713,6 +1713,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         user_info = user_name
       user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")    
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
+      catch_warning_pop(name, driver)
       iikamo_text = ""
       if iikamo_count > 0:
         # type1 いいかも
@@ -1741,28 +1742,28 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
       footprint_now = datetime.now().strftime('%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
-      print(f"足跡付け {ft_cnt}件 {iikamo_text} ユーザー名:{user_info} {user_area} {footprint_now}")  
+      print(f"{ft_cnt}件 {iikamo_text} ユーザー名:{user_info} {user_area} {footprint_now}")  
       time.sleep(random_wait) 
     else:
-      print("足跡付けのユーザーがいません")
-      print(current_step)
-      print(len(user_list))
+      # print("足跡付けのユーザーがいません")
+      # print(current_step)
+      # print(len(user_list))
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(4)
       user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
-      print("スクロールした")
-      print(current_step)
-      print(len(user_list))
+      # print("スクロールした")
+      # print(current_step)
+      # print(len(user_list))
       if current_step >= len(user_list):
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(4)
-        print("もう一回スクロールした")
-        print(current_step)
-        print(len(user_list))
+        # print("もう一回スクロールした")
+        # print(current_step)
+        # print(len(user_list))
         if current_step > len(user_list):
-          print("スクロールしてもユーザーがいなかった")
+          # print("スクロールしてもユーザーがいなかった")
           print(driver.current_url)
           profile_search(driver, search_edit)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
