@@ -109,8 +109,10 @@ while True:
         name = name_on_pcmax[0].text
         # if "ひろみ" != name:
         #   continue
+      login_retry_cnt = 0
       while not len(name_on_pcmax):
         # 再ログイン処理
+        pcmax_2.catch_warning_pop("", driver)
         main_photo = driver.find_elements(By.CLASS_NAME, 'main_photo')
         if len(main_photo):
           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
@@ -140,6 +142,7 @@ while True:
           continue    
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
         re_login_cnt = 0
+        
         while not len(name_on_pcmax):
           login_form = driver.find_elements(By.CLASS_NAME, 'login-sub')   
           if len(login_form):
@@ -150,7 +153,7 @@ while True:
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(150)
+          # time.sleep(150)
           login_button = driver.find_element(By.NAME, "login")
           login_button.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -158,11 +161,14 @@ while True:
           pcmax_2.catch_warning_pop("", driver)
           name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
           re_login_cnt += 1
-          if re_login_cnt > 5:
+          if re_login_cnt > 2:
             print("再ログイン失敗")
             break   
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')
-        func.send_error(name_on_pcmax[0].text, f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")   
+        if len(name_on_pcmax):
+          func.send_error(name_on_pcmax[0].text, f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")   
+        else:
+          func.send_error("", f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")
       name_on_pcmax = name_on_pcmax[0].text
       now = datetime.now()
       print(f"~~~~~~~~~~~~{idx+1}キャラ目:{name_on_pcmax}~~~~~~~~~~~~{now.strftime('%Y-%m-%d %H:%M:%S')}~~~~~~~~~~~~")  
