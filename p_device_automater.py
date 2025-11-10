@@ -60,6 +60,7 @@ try:
       options.set_capability("xcodeSigningId", "iPhone Developer")
       options.set_capability("wdaLaunchTimeout", 300000)
       options.set_capability("wdaConnectionTimeout", 300000)
+      options.set_capability("xcodeOrgId", "2SG5GJJYNH")  # ← ここがTeam ID
       
       
       options.set_capability("autoDismissAlerts", True)   # ←自動で「閉じる」側を選ぶ
