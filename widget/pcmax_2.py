@@ -1333,10 +1333,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
         print(driver.current_url)
-        driver.save_screenshot(f"{user_name}_click_debug.png")       
+        driver.save_screenshot(f"{user_name}_click_debug.png")
+        elem = foot_user_list[user_row_cnt]
+        print(f"クリック対象: {user_name}")
+        print(f"  displayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}")
+        driver.save_screenshot(f"{user_name}_before_click.png")    
         func.send_error(
             chara=name,
-            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}",
+            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}",
             attachment_paths=f"{user_name}_click_debug.png"
         )
         break
