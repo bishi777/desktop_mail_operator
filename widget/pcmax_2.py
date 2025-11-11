@@ -1327,8 +1327,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
     foot_user_list_rtry_cnt = 0
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
-      time.sleep(2)
       foot_user_list_rtry_cnt += 1
+      for i, elem in enumerate(driver.find_elements(By.CLASS_NAME, "list_box")):
+        print(i, elem.is_displayed(), elem.location)
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
+      time.sleep(3)
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
