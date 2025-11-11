@@ -1295,19 +1295,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   now_hour = datetime.now().hour
   # 午前6時〜8時の間は7、それ以外は2
   if 6 <= now_hour < 8:
-      bottom_scroll_cnt = 7
+    bottom_scroll_cnt = 6
   else:
-      bottom_scroll_cnt = 2
+    bottom_scroll_cnt = 2
+  bottom_roll_cnt = 0
+
   while rf_cnt < send_limit_cnt:
-    # back_list = driver.find_elements(By.CLASS_NAME, "rewind")
-    # if len(back_list):
-    #   back_list[0].click()
-    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #   time.sleep(1)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-    bottom_roll_cnt = 0
     while user_row_cnt >= len(foot_user_list):
-      print(111)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
@@ -1342,37 +1337,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         return rf_cnt
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
     time.sleep(0.7)
-    # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
-    # foot_user_list_rtry_cnt = 0
     user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
-    # print(F"{user_name} {user_row_cnt}: {len(foot_user_list)}")
     if foot_user_list[user_row_cnt].is_displayed() is False:
       # print("クリックできません")
       user_row_cnt += 1
       continue
-    # while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
-    #   foot_user_list_rtry_cnt += 1
-    #   user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
-      
-    #   print(F"{user_name}::  {user_row_cnt}: {len(foot_user_list)}")
-    #   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
-    #   time.sleep(3)
-    #   foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-    #   if foot_user_list_rtry_cnt == 5:
-    #     print(f"{user_name} のリストがクリックできる状態になりません")
-
-    #     time.sleep(1000)
-    #     driver.save_screenshot(f"{user_name}_click_debug.png")
-    #     elem = foot_user_list[user_row_cnt]
-    #     print(f"クリック対象: {user_name}")
-    #     print(f"  displayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}")
-    #     driver.save_screenshot(f"{user_name}_before_click.png")    
-    #     func.send_error(
-    #         chara=name,
-    #         error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}\n{foot_user_list[user_row_cnt].get_attribute('outerHTML')}",
-    #         attachment_paths=f"{user_name}_click_debug.png"
-    #     )
-    #     break
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
     time.sleep(0.7)
     foot_user_list[user_row_cnt].click()
@@ -1517,7 +1486,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
           rf_cnt += 1   
           print(f"{rf_cnt}件送信　ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
-          print(user_row_cnt)
           user_row_cnt += 1
           unread_user.append(user_name)
           catch_warning_pop(name, driver)
