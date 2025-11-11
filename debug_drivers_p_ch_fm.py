@@ -256,6 +256,7 @@ def main_syori():
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
             except Exception as e:
               print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+              print(driver.current_url)
               print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
               print(traceback.format_exc())
           # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
