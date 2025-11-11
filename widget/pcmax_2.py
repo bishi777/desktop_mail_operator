@@ -1343,11 +1343,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
     time.sleep(0.7)
     # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
-    foot_user_list_rtry_cnt = 0
+    # foot_user_list_rtry_cnt = 0
     user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
-    print(F"{user_name} {user_row_cnt}: {len(foot_user_list)}")
+    # print(F"{user_name} {user_row_cnt}: {len(foot_user_list)}")
     if foot_user_list[user_row_cnt].is_displayed() is False:
-      print("クリックできません")
+      # print("クリックできません")
       user_row_cnt += 1
       continue
     # while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
