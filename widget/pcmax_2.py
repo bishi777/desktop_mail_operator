@@ -1357,7 +1357,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         driver.save_screenshot(f"{user_name}_before_click.png")    
         func.send_error(
             chara=name,
-            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}\n{foot_user_list[user_row_cnt].get_attribute("outerHTML")}",
+            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}\n{foot_user_list[user_row_cnt].get_attribute('outerHTML')}",
             attachment_paths=f"{user_name}_click_debug.png"
         )
         break
