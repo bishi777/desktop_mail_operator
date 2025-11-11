@@ -1326,11 +1326,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     time.sleep(0.7)
     # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
     foot_user_list_rtry_cnt = 0
-    print(F"{user_row_cnt}: {len(foot_user_list)}")
+    user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+    print(F"{user_name} {user_row_cnt}: {len(foot_user_list)}")
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       foot_user_list_rtry_cnt += 1
       user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
-      print(foot_user_list[user_row_cnt].get_attribute("outerHTML"))  
+        
       print(F"{user_name}::  {user_row_cnt}: {len(foot_user_list)}")
       time.sleep(3)
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
@@ -1343,7 +1344,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         driver.save_screenshot(f"{user_name}_before_click.png")    
         func.send_error(
             chara=name,
-            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}",
+            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}\n{foot_user_list[user_row_cnt].get_attribute("outerHTML")}",
             attachment_paths=f"{user_name}_click_debug.png"
         )
         break
