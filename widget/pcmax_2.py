@@ -1311,7 +1311,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       continue
     user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
     if unread_user and user_name in unread_user:
-      print(f"{user_name} は未読リストにいるのでスキップします")
+      # print(f"{user_name} は未読リストにいるのでスキップします")
       user_row_cnt += 1
       continue
     while user_row_cnt >= len(foot_user_list):
@@ -1328,6 +1328,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     foot_user_list_rtry_cnt = 0
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       foot_user_list_rtry_cnt += 1
+      print(777777)
+      print(user_row_cnt)
+      print(len(foot_user_list))
+      print(6666666666)
       for i, elem in enumerate(driver.find_elements(By.CLASS_NAME, "list_box")):
         print(i, elem.is_displayed(), elem.location)
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
@@ -1335,6 +1339,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
+
         print(driver.current_url)
         user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
 
@@ -1345,7 +1350,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         driver.save_screenshot(f"{user_name}_before_click.png")    
         func.send_error(
             chara=name,
-            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}",
+            error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}\ndisplayed={elem.is_displayed()}, enabled={elem.is_enabled()}, location={elem.location}, size={elem.size}\n{user_row_cnt} {len(foot_user_list)}",
             attachment_paths=f"{user_name}_click_debug.png"
         )
         break
