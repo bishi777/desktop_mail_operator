@@ -1303,13 +1303,14 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
       while not user_name == send_user:
         user_row_cnt += 1
-        user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+        
         while user_row_cnt >= len(foot_user_list):
           driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(3)
           foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-          
+        user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+        
     while user_row_cnt >= len(foot_user_list):
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
