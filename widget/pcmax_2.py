@@ -1295,6 +1295,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   send_user = ""
   while rf_cnt < send_limit_cnt:
+    print(777)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     while user_row_cnt >= len(foot_user_list):
       print(111)
