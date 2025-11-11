@@ -1293,9 +1293,22 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   rf_cnt = 0
   user_row_cnt = 0
   bottom_scroll_cnt = 0
+  send_user = ""
   while rf_cnt < send_limit_cnt:
+    print(999)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
+    if send_user:
+      user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+      while not user_name == send_user:
+        user_row_cnt += 1
+        user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+        while user_row_cnt >= len(foot_user_list):
+          driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(3)
+          foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+          
     while user_row_cnt >= len(foot_user_list):
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1495,6 +1508,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           print(user_row_cnt)
           user_row_cnt += 1
           unread_user.append(user_name)
+          send_user = user_name
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
@@ -1505,6 +1519,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       rf_cnt += 1   
       print(f"{rf_cnt}件送信 ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
       user_row_cnt += 1
+      send_user = user_name
+      unread_user.append(user_name)
       driver.get(user_list_url)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
