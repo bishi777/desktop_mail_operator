@@ -1295,10 +1295,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   send_user = ""
   while rf_cnt < send_limit_cnt:
-    print(999)
+    
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
     if send_user:
+      print(999)
       user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
       while not user_name == send_user:
         user_row_cnt += 1
