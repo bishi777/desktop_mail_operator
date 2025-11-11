@@ -1295,6 +1295,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   send_user = ""
   while rf_cnt < send_limit_cnt:
+
     back_list = driver.find_elements(By.CLASS_NAME, "rewind")
     if len(back_list):
       back_list[0].click()
@@ -1308,7 +1309,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       time.sleep(3)
       bottom_scroll_cnt += 1
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      if bottom_scroll_cnt == 2:
+      if bottom_scroll_cnt == 7:
         return rf_cnt
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
