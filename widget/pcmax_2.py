@@ -1292,8 +1292,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   time.sleep(0.5)
   rf_cnt = 0
   user_row_cnt = 0
-  bottom_scroll_cnt = 0
-  send_user = ""
+  now_hour = datetime.now().hour
+  # 午前6時〜8時の間は7、それ以外は2
+  if 6 <= now_hour < 8:
+      bottom_scroll_cnt = 7
+  else:
+      bottom_scroll_cnt = 2
   while rf_cnt < send_limit_cnt:
     # back_list = driver.find_elements(By.CLASS_NAME, "rewind")
     # if len(back_list):
@@ -1301,15 +1305,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     #   time.sleep(1)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-
+    bottom_roll_cnt = 0
     while user_row_cnt >= len(foot_user_list):
       print(111)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
-      bottom_scroll_cnt += 1
+      bottom_roll_cnt += 1
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      if bottom_scroll_cnt == 7:
+      if bottom_roll_cnt == bottom_scroll_cnt:
         return rf_cnt
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
@@ -1329,7 +1333,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       user_row_cnt += 1
       continue
     while user_row_cnt >= len(foot_user_list):
-      print(222)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
