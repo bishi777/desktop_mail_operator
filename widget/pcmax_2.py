@@ -748,7 +748,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     # header_box_under = driver.find_element(By.ID, "header_box_under")
     # header_box_under.find_element(By.TAG_NAME, "a").click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    return None,0,0,0,0, None
+    return [],0,0,0,0, None
   check_first = 0
   check_second = 0
   check_more = 0
