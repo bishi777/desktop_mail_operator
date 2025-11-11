@@ -1295,13 +1295,13 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   send_user = ""
   while rf_cnt < send_limit_cnt:
-
-    back_list = driver.find_elements(By.CLASS_NAME, "rewind")
-    if len(back_list):
-      back_list[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
+    # back_list = driver.find_elements(By.CLASS_NAME, "rewind")
+    # if len(back_list):
+    #   back_list[0].click()
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(1)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+
     while user_row_cnt >= len(foot_user_list):
       print(111)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
@@ -1325,7 +1325,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       continue
     user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
     if unread_user and user_name in unread_user:
-      # print(f"{user_name} は未読リストにいるのでスキップします")
+      print(f"{user_name} は未読リストにいるのでスキップします")
       user_row_cnt += 1
       continue
     while user_row_cnt >= len(foot_user_list):
@@ -1346,13 +1346,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       foot_user_list_rtry_cnt += 1
       user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
-        
+      
       print(F"{user_name}::  {user_row_cnt}: {len(foot_user_list)}")
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
       time.sleep(3)
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
+        
+        time.sleep(1000)
         driver.save_screenshot(f"{user_name}_click_debug.png")
         elem = foot_user_list[user_row_cnt]
         print(f"クリック対象: {user_name}")
@@ -1511,7 +1513,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           print(user_row_cnt)
           user_row_cnt += 1
           unread_user.append(user_name)
-          send_user = user_name
           catch_warning_pop(name, driver)
           back2 = driver.find_element(By.ID, value="back2")
           driver.execute_script("arguments[0].click();", back2)
@@ -1522,7 +1523,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       rf_cnt += 1   
       print(f"{rf_cnt}件送信 ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
       user_row_cnt += 1
-      send_user = user_name
       unread_user.append(user_name)
       driver.get(user_list_url)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
