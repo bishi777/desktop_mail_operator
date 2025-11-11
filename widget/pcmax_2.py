@@ -1297,6 +1297,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     while user_row_cnt >= len(foot_user_list):
+      print(111)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
@@ -1319,6 +1320,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       user_row_cnt += 1
       continue
     while user_row_cnt >= len(foot_user_list):
+      print(222)
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
