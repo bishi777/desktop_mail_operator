@@ -1326,20 +1326,22 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     time.sleep(0.7)
     # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
     foot_user_list_rtry_cnt = 0
-    while not foot_user_list[user_row_cnt].is_displayed() and foot_user_list[user_row_cnt].is_enabled():
+    while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       time.sleep(2)
       foot_user_list_rtry_cnt += 1
+      foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
         print(driver.current_url)
-        img_path = f"{user_name} クリックできない"
-        driver.save_screenshot(img_path)
+        driver.save_screenshot(f"{user_name}_click_debug.png")       
         func.send_error(
             chara=name,
             error_message=f"{user_name} のリストがクリックできる状態になりません\n{driver.current_url}",
-            attachment_paths=img_path
+            attachment_paths=f"{user_name}_click_debug.png"
         )
         break
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
+    time.sleep(0.7)
     foot_user_list[user_row_cnt].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
