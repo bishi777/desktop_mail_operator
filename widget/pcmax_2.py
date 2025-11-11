@@ -1295,7 +1295,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   bottom_scroll_cnt = 0
   send_user = ""
   while rf_cnt < send_limit_cnt:
-    print(777)
+    back_list = driver.find_elements(By.CLASS_NAME, "rewind")
+    if len(back_list):
+      back_list[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     while user_row_cnt >= len(foot_user_list):
       print(111)
@@ -1306,8 +1310,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if bottom_scroll_cnt == 2:
         return rf_cnt
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
-    time.sleep(1)
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
     # めもありか確認　memo_tab
