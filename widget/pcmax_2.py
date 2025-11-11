@@ -1329,10 +1329,13 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     print(F"{user_row_cnt}: {len(foot_user_list)}")
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       foot_user_list_rtry_cnt += 1
+
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       time.sleep(3)
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
       time.sleep(3)
+      print(888)
+      print(F"{user_row_cnt}: {len(foot_user_list)}")
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
       if foot_user_list_rtry_cnt == 5:
         print(f"{user_name} のリストがクリックできる状態になりません")
