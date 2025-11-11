@@ -1313,6 +1313,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         return rf_cnt
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
+    # 女性はスキップ
+    woman = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'woman')
+    if len(woman):
+      user_row_cnt += 1
+      continue
     # めもありか確認　memo_tab
     memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
     if len(memo_tab):
