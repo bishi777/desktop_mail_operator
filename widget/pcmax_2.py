@@ -1326,6 +1326,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     time.sleep(0.7)
     # foot_user_list[user_row_cnt]がクリックできる状態か確認したい
     foot_user_list_rtry_cnt = 0
+    print(F"{user_row_cnt}: {len(foot_user_list)}")
     while (not foot_user_list[user_row_cnt].is_displayed() or not foot_user_list[user_row_cnt].is_enabled()):
       foot_user_list_rtry_cnt += 1
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
