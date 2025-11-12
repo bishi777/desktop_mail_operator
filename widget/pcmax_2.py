@@ -1352,7 +1352,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         EC.presence_of_element_located((By.ID, "overview"))
     )
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
-    if user_name[:6] not in ditail_page_user_name[:6]:
+    
+    if user_name[:6].replace("&", "〜") not in ditail_page_user_name[:6]:
       print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")
       func.send_error(name, f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}\n",                            )
       driver.back()
