@@ -1322,7 +1322,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if len(memo_tab):
       user_row_cnt += 1
       continue
-    user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+    user_name = foot_user_list[user_row_cnt].find_element(By.TAG_NAME,"a").get_attribute('data-va5')
     if unread_user and user_name in unread_user:
       print(f"{user_name} は未読リストにいるのでスキップします")
       user_row_cnt += 1
@@ -1337,7 +1337,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         return rf_cnt
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", foot_user_list[user_row_cnt])
     time.sleep(0.7)
-    user_name = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME,"user-name").text
+    user_name = foot_user_list[user_row_cnt].find_element(By.TAG_NAME,"a").get_attribute('data-va5')
     if foot_user_list[user_row_cnt].is_displayed() is False:
       # print("クリックできません")
       user_row_cnt += 1
@@ -1352,8 +1352,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         EC.presence_of_element_located((By.ID, "overview"))
     )
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
-    
-    if user_name[:6].replace("&", "〜") not in ditail_page_user_name[:6]:
+    if user_name not in ditail_page_user_name:
       print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")
       func.send_error(name, f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}\n",                            )
       driver.back()
