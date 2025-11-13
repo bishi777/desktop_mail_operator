@@ -50,7 +50,8 @@ import unicodedata
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
     TimeoutException, StaleElementReferenceException,
-    ElementClickInterceptedException, ElementNotInteractableException
+    ElementClickInterceptedException, ElementNotInteractableException,
+    InvalidArgumentException, NoSuchElementException
 )
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -1299,3 +1300,27 @@ def compress_image(input_path, output_path=None, max_width=1280, quality=65):
         im.save(output_path, format="JPEG", quality=quality, optimize=True, progressive=True)
 
     return output_path
+
+def find_by_id(driver, element_id: str):
+    """
+    Android Chrome + Appium で By.ID が invalid locator になる問題を吸収するラッパー。
+    1. まず By.ID を試す
+    2. invalid locator の場合は CSSセレクタ #id で再トライ
+    """
+    try:
+        return driver.find_element(By.ID, element_id)
+    except InvalidArgumentException:
+        # モバイル Chrome だと ID ロケータが invalid になる場合がある
+        return driver.find_element(By.CSS_SELECTOR, f'#{element_id}')
+
+
+def find_by_name(driver, name: str):
+    """
+    Android Chrome + Appium で By.NAME が invalid locator になる問題を吸収するラッパー。
+    1. まず By.NAME を試す
+    2. invalid locator の場合は CSSセレクタ [name="..."] で再トライ
+    """
+    try:
+        return driver.find_element(By.NAME, name)
+    except InvalidArgumentException:
+        return driver.find_element(By.CSS_SELECTOR, f'[name="{name}"]')

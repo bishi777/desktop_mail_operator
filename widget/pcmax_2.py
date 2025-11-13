@@ -1131,8 +1131,12 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           check_second += 1
         else:
           # print("やり取り中")
-          received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
-          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
+
+          messages = driver.find_element(By.CLASS_NAME, "bggray").text
+          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{messages}」"
+          # received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
+          # return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
+
           try:
             func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
             print("通知メールを送信しました")

@@ -38,8 +38,6 @@ def parse_port():
         return args.port
     return getattr(settings, "pcmax_ch_port", None)
 
-
-
 def main_syori():
   PORT = parse_port()
   user_data = func.get_user_data()
@@ -85,7 +83,6 @@ def main_syori():
         list_copy_flug = False
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
     for idx, handle in enumerate(handles): 
-      # WebDriverWait(driver, 40).until(lambda d: handle in d.window_handles)
       driver.switch_to.window(handle)
       login_flug = pcmax_2.catch_warning_pop("", driver)
       if login_flug and "制限" in login_flug:
@@ -206,14 +203,14 @@ def main_syori():
           fst_flug = i["fst_flug"]
           if two_messages_flug:
             print(f"******{name}は2通メール送信対象キャラです******")
-          if roll_cnt % 2 == 0:
-            send_cnt = 3
-          else:
-            send_cnt = 2  
-          # if name == "さな":
-          #   iikamo_cnt = 1
+          # if roll_cnt % 2 == 0:
+          #   send_cnt = 3
           # else:
-          #   iikamo_cnt = 0
+          #   send_cnt = 2  
+          if name == "なお":
+            iikamo_cnt = 3
+          else:
+            iikamo_cnt = 2
           iikamo_cnt = 1
           try:
             top_image_flug = pcmax_2.check_top_image(name,driver)
@@ -245,7 +242,6 @@ def main_syori():
           except Exception as e:
             print(f"{name}❌ メールチェック  の操作でエラー: {e}")
             traceback.print_exc()  
-          iikamo_count = 2
           footprint_count = 14
           if 6 <= now.hour < 24:  
             print(f"✅rfメール送信開始 送信数:2") 
@@ -343,15 +339,14 @@ def main_syori():
           print(mail_info)
 
 if __name__ == "__main__":
-    try:
-        # ===== あなたのメイン処理 =====
-        main_syori()
+  try:
+    # ===== あなたのメイン処理 =====
+    main_syori()
 
-    except KeyboardInterrupt:
-        print("\n🛑 手動終了 (Ctrl + C) により処理を中断しました。安全に終了します。")
-        
-
-    except Exception as e:
-        print(f"\n❌ 予期せぬエラーが発生しました: {e}")
-        traceback.print_exc()
+  except KeyboardInterrupt:
+    print("\n🛑 手動終了 (Ctrl + C) により処理を中断しました。安全に終了します。")
+    
+  except Exception as e:
+    print(f"\n❌ 予期せぬエラーが発生しました: {e}")
+    traceback.print_exc()
        
