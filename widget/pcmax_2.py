@@ -1033,8 +1033,9 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           pass
         print("~~~~~~~~~こちらから送信したメッセージチェック中~~~~~~~~~")
         print(func.normalize_text(sent_by_me[-1].text))
+        # いいかも!ありがとう♪よろしくお願いします。
         # print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
-        if "いいかも！ありがとう" in func.normalize_text(sent_by_me[-1].text):
+        if "いいかも!ありがとう" in func.normalize_text(sent_by_me[-1].text):
           send_message = fst_message.format(name=user_name)
         elif func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
           send_message = second_message
