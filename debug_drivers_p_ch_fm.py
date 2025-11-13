@@ -207,11 +207,7 @@ def main_syori():
           #   send_cnt = 3
           # else:
           #   send_cnt = 2  
-          if name == "なお":
-            iikamo_cnt = 3
-          else:
-            iikamo_cnt = 2
-          iikamo_cnt = 1
+         
           try:
             top_image_flug = pcmax_2.check_top_image(name,driver)
             if top_image_flug:
@@ -277,8 +273,12 @@ def main_syori():
           #       print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
           #       traceback.print_exc()
           try:
+            if name == "なお":
+                iikamo_cnt = 3
+            else:
+                iikamo_cnt = 2
             print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt+1}件🐾🐾🐾🐾")
-            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_count)
+            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
           except Exception as e:
             print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
             traceback.print_exc()
