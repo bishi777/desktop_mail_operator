@@ -321,7 +321,9 @@ def main_syori():
     
     #カウント 
     roll_cnt += 1
-    if roll_cnt % 6 == 0:
+    if roll_cnt % 12 == 0:
+      user_data = func.get_user_data()
+      pcmax_datas = user_data["pcmax"]
       now = datetime.now()
       if 6 <= now.hour < 23:
         print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -330,12 +332,12 @@ def main_syori():
           func.send_mail(
               body,
               mail_info,
-              f"PCMAX 1時間の進捗報告",
+              f"PCMAX 2時間の進捗報告",
           )
           send_flug = False
           one_hour_report_dict = reset_metrics_keep_check_date(one_hour_report_dict)
         except Exception as e:
-          print(f"{name}❌ 1時間のfstmailの報告  の操作でエラー: {e}")
+          print(f"{name}❌ 2時間のfstmailの報告  の操作でエラー: {e}")
           traceback.print_exc()   
           print('~~~~~~~~~')
           print(mail_info)

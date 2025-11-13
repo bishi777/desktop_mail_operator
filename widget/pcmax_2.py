@@ -1031,8 +1031,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        # print("~~~~~~~~~受信メールを送信チェック中~~~~~~~~~")
-        # print(func.normalize_text(sent_by_me[-1].text))
+        print("~~~~~~~~~こちらから送信したメッセージチェック中~~~~~~~~~")
+        print(func.normalize_text(sent_by_me[-1].text))
         # print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
         if "いいかも！ありがとう" in func.normalize_text(sent_by_me[-1].text):
           send_message = fst_message.format(name=user_name)
