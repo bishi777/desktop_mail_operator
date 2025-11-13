@@ -1711,7 +1711,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   random_wait = random.uniform(0.1, 3.4)
   search_edit = {
     "y_age": [18],
-    "o_age": [28,29,30],
+    "o_age": [29,30,34],
     "m_height": [165,170,175],
     "area_flug": 2,
     "search_target": ["送信歴無し"],

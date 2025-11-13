@@ -2214,7 +2214,7 @@ def check_new_mail(happy_info, driver, wait):
     print(f"{name}のログインIDを取得できませんでした")
     return
   wait_time = random.uniform(2, 5)
-  login(name, login_id, login_pass, driver, wait)
+  # login(name, login_id, login_pass, driver, wait)
   warinig_flug = catch_warning_screen(driver)
   if warinig_flug:
     print(f"{name}:警告画面が出ている可能性があります")

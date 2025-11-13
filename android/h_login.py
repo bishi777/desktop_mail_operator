@@ -8,13 +8,17 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import InvalidArgumentException, NoSuchElementException, TimeoutException
 import time
 import traceback
-from widget import func
+from widget import func, happymail
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import (
+    StaleElementReferenceException,
+    ElementClickInterceptedException,
+)
 import settings  # Android 実機の UDID 等をここに入れておく想定
 
 # ================= 共通データ ======================
 
-user_data = func.get_user_data()
-happy_datas = user_data["happymail"]
+
 
 
 # 実機の情報（adb devices で表示されるID）
@@ -70,72 +74,87 @@ def find_by_name(driver, name: str):
 
 # ================== メイン処理 =======================
 
-def run_loop():   
-  # name = info["name"]
-  name = "き"
-  # login_id = info["login_id"]
-  # login_pass = info["password"]
-  login_id = "24363261"
-  login_pass = "Zzxxmm99"
-
-
+def run_loop(happy_info):   
+  name = happy_info["name"]
+  login_id = happy_info["login_id"]
+  login_pass = happy_info["password"]
+  print(f"{login_id} : {login_pass}")
   # print(f"=== {name} ログイン処理開始 ===")
-  print("変更前:", func.get_current_ip())
-  func.change_tor_ip()
-  time.sleep(6)
-  print("変更後:", func.get_current_ip())
+  # print("変更前:", func.get_current_ip())
+  # func.change_tor_ip()
+  # time.sleep(6)
+  # print("変更後:", func.get_current_ip())
   driver = None
+
+  driver = create_driver()
+  wait = WebDriverWait(driver, 15)
+  # Webコンテキストへ切替（※browserName=ChromeでもNATIVEのことがある）
+  switch_to_web_context(driver)
+  # ログインフォームへ遷移
+  url = "https://happymail.co.jp/login/?Log=newspa"
+  driver.get(url)
+  wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
+  # ページロード待ち
+  time.sleep(1)
+
+  # フォーム入力
+  id_form = func.find_by_id(driver, "TelNo")
+  id_form.send_keys(login_id)
+  time.sleep(1)
+  pass_form = func.find_by_id(driver, "pass_input")
+  pass_form.send_keys(login_pass)
+  time.sleep(1)   
+  send_form = func.find_by_id(driver, "login_btn")
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_form)
+  time.sleep(1)
   try:
-    driver = create_driver()
-    wait = WebDriverWait(driver, 15)
-
-    # Webコンテキストへ切替（※browserName=ChromeでもNATIVEのことがある）
-    switch_to_web_context(driver)
-
-    # ログインフォームへ遷移
-    
-    
-    url = "https://happymail.co.jp/login/?Log=newspa"
-
-    driver.get(url)
-    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
-    # ページロード待ち
-    time.sleep(1)
-
-    # フォーム入力
-    id_form = func.find_by_id(driver, "TelNo")
-    id_form.send_keys(login_id)
-    time.sleep(1)
-    pass_form = func.find_by_id(driver, "pass_input")
-    pass_form.send_keys(login_pass)
-    time.sleep(1)   
-    send_form = func.find_by_id(driver, "login_btn")
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_form)
-    time.sleep(1)
-
     send_form.click()
+    print("クリックした")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(7)
+    print(driver.current_url)
+    while ("mbmenu" in driver.current_url) is False:
+        time.sleep(5)
+        if send_form.is_displayed():
+          send_form.click()
+          print("クリックした")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(4)
+        print(driver.current_url)
+    print(f"{name} ✅ ログイン成功")
+    print(driver.current_url)
+    time.sleep(50)
+  except StaleElementReferenceException:
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
-    wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
-    print(f"{name} ✅ ログイン成功")
-    time.sleep(50)
+  # 遷移完了待 ち
+  time.sleep(3)
+  # ログイン成功判定
+  if "mbmenu" in driver.current_url:
+      print(f"{name} ✅ ログイン成功")
+  else:
+      print(f"{name} ⚠ ログイン成功URLっぽくない: {driver.current_url}")
+  # 新着メールチェック
+  happymail.check_new_mail(happy_info, driver, wait)
 
-    # 遷移完了待ち
-    time.sleep(3)
 
-    # ログイン成功判定
-    if "member.php" in driver.current_url:
-        print(f"{name} ✅ ログイン成功")
-    else:
-        print(f"{name} ⚠ ログイン成功URLっぽくない: {driver.current_url}")
-
-  except Exception as e:
-      print(f"{name} ❌ ログイン処理でエラー:", e)
-      traceback.print_exc()
-
-            
-
-        
 
 if __name__ == "__main__":
-    run_loop()
+  user_data = func.get_user_data()
+  user_mail_info = [
+    user_data['user'][0]['user_email'],
+    user_data['user'][0]['gmail_account'],
+    user_data['user'][0]['gmail_account_password'],
+    ]
+  spare_mail_info = [
+    "ryapya694@ruru.be",
+    "siliboco68@gmail.com",
+    "akkcxweqzdplcymh",
+  ]
+  happy_datas = user_data["happymail"]
+  
+  for i in happy_datas:
+     if i["name"] == "レイナ":
+        happy_info = i
+ 
+  run_loop(i)
