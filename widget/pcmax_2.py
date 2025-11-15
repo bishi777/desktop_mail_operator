@@ -1741,6 +1741,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
         user_info = user_list[current_step].find_elements(By.CLASS_NAME, value="user_info")[0].text
       elif "pcmax" in driver.current_url:
         user_info = user_name
+      user_age =  user_list[current_step].find_elements(By.CLASS_NAME, value="age")[0].text
       user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")    
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
       catch_warning_pop(name, driver)
@@ -1769,10 +1770,10 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           iikamo_count -= 1
           iikamo_text = "いいかもありがとう"
           # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
-      footprint_now = datetime.now().strftime('%d %H:%M:%S')
+      footprint_now = datetime.now().strftime('%m/%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
-      print(f"{ft_cnt}件 {iikamo_text} ユーザー名:{user_info} {user_area} {footprint_now}")  
+      print(f"{ft_cnt}件 {iikamo_text} {user_info}{user_age} {user_area} {footprint_now}")  
       time.sleep(random_wait) 
     else:
       # print("足跡付けのユーザーがいません")
