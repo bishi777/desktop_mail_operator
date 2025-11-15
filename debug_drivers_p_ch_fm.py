@@ -41,6 +41,7 @@ def parse_port():
 def main_syori():
   PORT = parse_port()
   user_data = func.get_user_data()
+  print(user_data["user"])
   wait_time = 1.5
   user_mail_info = [
     user_data['user'][0]['user_email'],
