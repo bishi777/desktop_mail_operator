@@ -178,10 +178,9 @@ def format_progress_mail(report_dict: dict, now: datetime) -> str:
         for k in keys:
             totals[k] += get(v, k)
 
-    header_time = now.strftime('%Y-%m-%d %H:%M:%S')
     lines = [
-        f"PCMAX 1時間の進捗報告 {header_time}",
-        "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
+        # f"PCMAXの進捗報告",
+        # "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━",
         "📊 概要（合計）",
         f"- {labels['fst']}: {totals['fst']} / {labels['rf']}: {totals['rf']}",
         f"- {labels['check_first']}: {totals['check_first']} / {labels['check_second']}: {totals['check_second']}",

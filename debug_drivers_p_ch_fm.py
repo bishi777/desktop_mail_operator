@@ -41,8 +41,6 @@ def parse_port():
 def main_syori():
   PORT = parse_port()
   user_data = func.get_user_data()
-  print(user_data["user"])
-  wait_time = 1.5
   user_mail_info = [
     user_data['user'][0]['user_email'],
     user_data['user'][0]['gmail_account'],
@@ -54,7 +52,6 @@ def main_syori():
     "akkcxweqzdplcymh",
   ]
   pcmax_datas = user_data["pcmax"]
-  # pcmax_datas = pcmax_datas[:9]
   options = Options()
 
   if PORT is not None:
@@ -241,14 +238,14 @@ def main_syori():
             traceback.print_exc()  
           footprint_count = 14
           if 6 <= now.hour < 24:  
-            print(f"✅rfメール送信開始 送信数:2") 
+            print(f"✅rfメール送信開始 送信上限:2") 
             try:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user, two_messages_flug) 
               report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
               one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-              print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+              print(f"✅rfメール送信終了　送信数{rf_cnt}")
             except Exception as e:
-              print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+              print(f"✅rfメール送信終了　送信数{rf_cnt}")
               print(driver.current_url)
               print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
               print(traceback.format_exc())
@@ -296,6 +293,7 @@ def main_syori():
                 send_flug = False
                 if now.hour == 24:
                   report_dict = reset_metrics_keep_check_date(report_dict)
+                  start_time = datetime.now()
               except Exception as e:
                 print(f"{name}❌ 6時間の進捗報告  の操作でエラー: {e}")
                 traceback.print_exc()   
