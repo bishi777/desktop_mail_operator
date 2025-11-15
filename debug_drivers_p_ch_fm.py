@@ -273,10 +273,11 @@ def main_syori():
           #       print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
           #       traceback.print_exc()
           try:
-            if name == "なお":
-                iikamo_cnt = 3
-            else:
-                iikamo_cnt = 2
+            # if name == "なお":
+            #     iikamo_cnt = 3
+            # else:
+            #     iikamo_cnt = 3
+            iikamo_cnt = 3
             print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
             pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
           except Exception as e:
