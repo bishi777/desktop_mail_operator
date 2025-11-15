@@ -320,8 +320,6 @@ def main_syori():
     #カウント 
     roll_cnt += 1
     if roll_cnt % 12 == 0:
-      user_data = func.get_user_data()
-      pcmax_datas = user_data["pcmax"]
       now = datetime.now()
       if 6 <= now.hour < 23:
         print(f"🔄 {roll_cnt}回目のループ完了 {now.strftime('%Y-%m-%d %H:%M:%S')}")
