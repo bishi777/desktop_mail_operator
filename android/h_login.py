@@ -23,6 +23,7 @@ import settings  # Android 実機の UDID 等をここに入れておく想定
 
 # 実機の情報（adb devices で表示されるID）
 ANDROID_UDID = "OI6LHMB082804428"
+# ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
@@ -36,9 +37,15 @@ def create_driver():
         "udid": ANDROID_UDID,
         "automationName": "UiAutomator2",
         "browserName": "Chrome",
-        "autoGrantPermissions": True,
+
         "noReset": True,
-        "appium:chromedriverAutodownload": True,
+        "appium:autoGrantPermissions": True,
+        "appium:chromedriver_autodownload": True,
+        # "appium:chromedriverAutodownload": True,
+
+        "appium:skipDeviceInitialization": True,
+        "appium:ignoreHiddenApiPolicyError": True,
+        "appium:ignoreSettingsAppInstall": True,
     }
     options = UiAutomator2Options().load_capabilities(caps)
     driver = webdriver.Remote("http://localhost:4723", options=options)
@@ -78,6 +85,12 @@ def run_loop(happy_info):
   name = happy_info["name"]
   login_id = happy_info["login_id"]
   login_pass = happy_info["password"]
+  
+  # login_id = "50036634290"
+  # login_pass = "ebbh7278"
+
+
+
   print(f"{login_id} : {login_pass}")
   # print(f"=== {name} ログイン処理開始 ===")
   # print("変更前:", func.get_current_ip())
