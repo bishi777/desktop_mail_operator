@@ -121,7 +121,7 @@ def main_syori():
               driver.find_elements(By.CLASS_NAME, 'login')[0].click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               pcmax_2.catch_warning_pop("", driver)
-              time.sleep(130)
+            time.sleep(140)
             # スクショ
             # driver.save_screenshot("screenshot.png")
           time.sleep(8.5)
