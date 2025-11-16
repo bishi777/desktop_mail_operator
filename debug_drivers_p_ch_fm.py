@@ -121,7 +121,7 @@ def main_syori():
               driver.find_elements(By.CLASS_NAME, 'login')[0].click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               pcmax_2.catch_warning_pop("", driver)
-            time.sleep(140)
+              time.sleep(140)
             # スクショ
             # driver.save_screenshot("screenshot.png")
           time.sleep(8.5)
@@ -146,7 +146,7 @@ def main_syori():
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
             driver.refresh()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            # time.sleep(150)
+            time.sleep(150)
             login_button = driver.find_element(By.NAME, "login")
             login_button.click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
