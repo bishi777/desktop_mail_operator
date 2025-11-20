@@ -285,8 +285,8 @@ def main_syori():
               iikamo_cnt = 2
               footprint_count = 7
             else:
-              iikamo_cnt = 3
-              footprint_count = 14
+              iikamo_cnt = 1
+              footprint_count = 3
 
             print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
             pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)

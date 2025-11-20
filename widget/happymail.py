@@ -36,9 +36,13 @@ from bs4 import BeautifulSoup
 # 警告画面
 def catch_warning_screen(driver):
   wait = WebDriverWait(driver, 15)
-  anno = driver.find_elements(By.CLASS_NAME, value="anno")
-  warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
-  dialog = driver.find_elements(By.ID, value="_information_dialog")
+  # anno = driver.find_elements(By.CLASS_NAME, value="anno")
+  anno = driver.find_elements(By.CSS_SELECTOR, ".anno")
+  # warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
+  warning = driver.find_elements(By.CSS_SELECTOR, ".warning screen")
+
+  # dialog = driver.find_elements(By.ID, value="_information_dialog")
+  dialog = driver.find_elements(By.CSS_SELECTOR, '#_information_dialog')
   dialog2 = driver.find_elements(By.ID, value="_information_dialog")
   dialog3 = driver.find_elements(By.ID, value="information__dialog")
   remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")

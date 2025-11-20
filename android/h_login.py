@@ -22,8 +22,8 @@ import settings  # Android 実機の UDID 等をここに入れておく想定
 
 
 # 実機の情報（adb devices で表示されるID）
-ANDROID_UDID = "OI6LHMB082804428"
-# ANDROID_UDID = "a02aca5e"
+# ANDROID_UDID = "OI6LHMB082804428"
+ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
@@ -81,30 +81,28 @@ def find_by_name(driver, name: str):
 
 # ================== メイン処理 =======================
 
-def run_loop(happy_info):   
+def run_loop(driver, wait, happy_info):   
   name = happy_info["name"]
   login_id = happy_info["login_id"]
   login_pass = happy_info["password"]
+  name = "えりか"
+  login_id = "08024749891"
+  login_pass = "ebbh1120"
   
-  # login_id = "50036634290"
-  # login_pass = "ebbh7278"
-
-
-
+  
+  print(f"=== {name} ログイン処理開始 ===")
   print(f"{login_id} : {login_pass}")
-  # print(f"=== {name} ログイン処理開始 ===")
   # print("変更前:", func.get_current_ip())
   # func.change_tor_ip()
   # time.sleep(6)
   # print("変更後:", func.get_current_ip())
-  driver = None
-
-  driver = create_driver()
-  wait = WebDriverWait(driver, 15)
+  
   # Webコンテキストへ切替（※browserName=ChromeでもNATIVEのことがある）
   switch_to_web_context(driver)
   # ログインフォームへ遷移
   url = "https://happymail.co.jp/login/?Log=newspa"
+  # "https://happymail.co.jp/sp/app/html/mbmenu.php"
+
   driver.get(url)
   wait.until(lambda d: d.execute_script("return document.readyState") == "complete")
   # ページロード待ち
@@ -122,10 +120,10 @@ def run_loop(happy_info):
   time.sleep(1)
   try:
     send_form.click()
-    print("クリックした")
+    # print("クリックした")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(7)
-    print(driver.current_url)
+    # print(driver.current_url)
     while ("mbmenu" in driver.current_url) is False:
         time.sleep(5)
         if send_form.is_displayed():
@@ -144,12 +142,12 @@ def run_loop(happy_info):
   time.sleep(3)
   # ログイン成功判定
   if "mbmenu" in driver.current_url:
-      print(f"{name} ✅ ログイン成功")
+    print(f"{name} ✅ ログイン成功")
+    return True
   else:
-      print(f"{name} ⚠ ログイン成功URLっぽくない: {driver.current_url}")
-  # 新着メールチェック
-  happymail.check_new_mail(happy_info, driver, wait)
-
+    print(f"{name} ⚠ ログイン成功URLっぽくない: {driver.current_url}")
+    return False
+  
 
 
 if __name__ == "__main__":
@@ -164,10 +162,13 @@ if __name__ == "__main__":
     "siliboco68@gmail.com",
     "akkcxweqzdplcymh",
   ]
+
+  driver = create_driver()
+  wait = WebDriverWait(driver, 15)
   happy_datas = user_data["happymail"]
   
   for i in happy_datas:
      if i["name"] == "レイナ":
         happy_info = i
  
-  run_loop(i)
+  run_loop(driver, wait,i)
