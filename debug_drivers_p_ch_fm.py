@@ -267,14 +267,14 @@ def main_syori():
                 traceback.print_exc()
           if 6 <= now.hour < 24:  
             if name == "さな":
+              iikamo_cnt = 3
+              footprint_count = 14
+              returnfoot_cnt = 2
+            else:
               iikamo_cnt = 2
               footprint_count = 7
               returnfoot_cnt = 2
-            else:
-              iikamo_cnt = 1
-              footprint_count = 3
-              returnfoot_cnt = 1
-            print(f"✅rfメール送信開始 送信上限:2") 
+            print(f"✅rfメール送信開始 送信上限:{returnfoot_cnt}") 
             try:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
               report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
