@@ -128,10 +128,10 @@ def run_loop(driver, wait, happy_info):
         time.sleep(5)
         if send_form.is_displayed():
           send_form.click()
-          print("クリックした")
+          # print("クリックした")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(4)
-        print(driver.current_url)
+        # print(driver.current_url)
     print(f"{name} ✅ ログイン成功")
     print(driver.current_url)
     time.sleep(50)

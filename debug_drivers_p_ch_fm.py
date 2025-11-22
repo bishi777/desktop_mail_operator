@@ -265,15 +265,15 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
                 traceback.print_exc()
+          if name == "さな":
+            iikamo_cnt = 3
+            footprint_count = 14
+            returnfoot_cnt = 2
+          else:
+            iikamo_cnt = 2
+            footprint_count = 7
+            returnfoot_cnt = 2
           if 6 <= now.hour < 24:  
-            if name == "さな":
-              iikamo_cnt = 3
-              footprint_count = 14
-              returnfoot_cnt = 2
-            else:
-              iikamo_cnt = 2
-              footprint_count = 7
-              returnfoot_cnt = 2
             print(f"✅rfメール送信開始 送信上限:{returnfoot_cnt}") 
             try:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 

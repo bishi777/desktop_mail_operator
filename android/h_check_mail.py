@@ -5,18 +5,22 @@ from appium.options.android import UiAutomator2Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import InvalidArgumentException, NoSuchElementException, TimeoutException
 import time
 import traceback
 from widget import func, happymail
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import (
-    StaleElementReferenceException,
-    ElementClickInterceptedException,
+  StaleElementReferenceException,
+  ElementClickInterceptedException,
+  InvalidArgumentException,
+  NoSuchElementException,
+  TimeoutException,
 )
+
 import settings  # Android 実機の UDID 等をここに入れておく想定
 import h_login
-# ================= 共通データ ======================
+
+
 
 
 
@@ -66,18 +70,7 @@ def switch_to_web_context(driver, timeout=15):
         time.sleep(0.5)
     raise TimeoutException("Web コンテキストが見つかりませんでした")
 
-def find_by_name(driver, name: str):
-    """
-    Android Chrome + Appium で By.NAME が invalid locator になる問題を吸収するラッパー
 
-    1. 通常どおり By.NAME を試す
-    2. invalid locator の場合は CSSセレクタ [name="..."] で再トライ
-    """
-    try:
-        return driver.find_element(By.NAME, name)
-    except InvalidArgumentException:
-        # モバイル Chrome だと NAME ロケータが invalid になる場合がある
-        return driver.find_element(By.CSS_SELECTOR, f'[name="{name}"]')
 
 # ================== メイン処理 =======================
 
@@ -111,20 +104,24 @@ def run_loop(happy_info):
   wait = WebDriverWait(driver, 15)
   # Webコンテキストへ切替（※browserName=ChromeでもNATIVEのことがある）
   switch_to_web_context(driver)
-  
   # ★ 引数の順番に注意：driver, wait, happy_info
   login_ok = h_login.run_loop(driver, wait, happy_info)
   if not login_ok:
     print("ログインに失敗したので処理を中止します")
     return
-
-  # 新着メールチェック
-  print("新着チェック")
-  happymail.check_new_mail(happy_info, driver, wait)
-  print("新着チェック完了")
-  print("足跡返し")
-  happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot)
-
+  while True:
+    # 新着メールチェック
+    print("新着チェック")
+    happymail.check_new_mail(happy_info, driver, wait)
+    print("新着チェック完了")
+    print("足跡返し")
+    happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot)
+    # 足跡付け
+    try:
+      happymail.mutidriver_make_footprints(name, login_id, login_pass, driver, wait)
+   
+    except Exception as e:
+      print(traceback.format_exc())
 
 if __name__ == "__main__":
   user_data = func.get_user_data()

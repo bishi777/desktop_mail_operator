@@ -16,33 +16,112 @@ import sqlite3
 import re
 from datetime import datetime, timedelta
 import difflib
-from selenium.common.exceptions import NoSuchElementException
-from selenium.common.exceptions import ElementClickInterceptedException, NoSuchElementException
 import base64
 import json
 from selenium.webdriver.support import expected_conditions as EC
 import base64
 import requests
 from selenium.common.exceptions import WebDriverException
-from selenium.common.exceptions import TimeoutException
 import gc
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 from twocaptcha import TwoCaptcha
 import shutil
 from bs4 import BeautifulSoup
+from selenium.webdriver.remote.webdriver import WebDriver
+from selenium.webdriver.remote.webelement import WebElement
+from selenium.common.exceptions import (
+  StaleElementReferenceException,
+  ElementClickInterceptedException,
+  InvalidArgumentException,
+  NoSuchElementException,
+  TimeoutException,
+)
+
+# 元のメソッドを退避
+_original_find_element = WebDriver.find_element
+_original_find_elements = WebDriver.find_elements
+_original_we_find_element = WebElement.find_element
+_original_we_find_elements = WebElement.find_elements
+
+def _fix_locator(by, value):
+    """
+    Appium + Android Chrome で invalid locator になりがちなパターンを
+    CSS セレクタなどに変換する
+    """
+    # CLASS_NAME → CSS
+    if by == By.CLASS_NAME:
+        # "warning screen" みたいにスペース区切りの場合、
+        # class="warning screen" → .warning.screen に変換
+        classes = value.split()
+        css = "." + ".".join(classes)
+        return By.CSS_SELECTOR, css
+
+    # ID → CSS
+    if by == By.ID:
+        return By.CSS_SELECTOR, f"#{value}"
+
+    # NAME → CSS
+    if by == By.NAME:
+        return By.CSS_SELECTOR, f'[name="{value}"]'
+
+    # 他はそのまま
+    return by, value
+
+
+def _patched_find_element(self, by=By.ID, value=None):
+    try:
+        return _original_find_element(self, by, value)
+    except InvalidArgumentException:
+        new_by, new_value = _fix_locator(by, value)
+        if (new_by, new_value) == (by, value):
+            # 変換できないならそのまま投げ直す
+            raise
+        # 変換したロケータでもう一度トライ
+        return _original_find_element(self, new_by, new_value)
+
+
+def _patched_find_elements(self, by=By.ID, value=None):
+    try:
+        return _original_find_elements(self, by, value)
+    except InvalidArgumentException:
+        new_by, new_value = _fix_locator(by, value)
+        if (new_by, new_value) == (by, value):
+            raise
+        return _original_find_elements(self, new_by, new_value)
+
+def _patched_we_find_element(self, by=By.ID, value=None):
+    try:
+        return _original_we_find_element(self, by, value)
+    except InvalidArgumentException:
+        new_by, new_value = _fix_locator(by, value)
+        if (new_by, new_value) == (by, value):
+            raise
+        return _original_we_find_element(self, new_by, new_value)
+
+
+def _patched_we_find_elements(self, by=By.ID, value=None):
+    try:
+        return _original_we_find_elements(self, by, value)
+    except InvalidArgumentException:
+        new_by, new_value = _fix_locator(by, value)
+        if (new_by, new_value) == (by, value):
+            raise
+        return _original_we_find_elements(self, new_by, new_value)
+
+# WebDriver をモンキーパッチ
+WebDriver.find_element = _patched_find_element
+WebDriver.find_elements = _patched_find_elements
+WebElement.find_element = _patched_we_find_element
+WebElement.find_elements = _patched_we_find_elements
 
 
 # 警告画面
 def catch_warning_screen(driver):
   wait = WebDriverWait(driver, 15)
-  # anno = driver.find_elements(By.CLASS_NAME, value="anno")
-  anno = driver.find_elements(By.CSS_SELECTOR, ".anno")
-  # warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
-  warning = driver.find_elements(By.CSS_SELECTOR, ".warning screen")
-
-  # dialog = driver.find_elements(By.ID, value="_information_dialog")
-  dialog = driver.find_elements(By.CSS_SELECTOR, '#_information_dialog')
+  anno = driver.find_elements(By.CLASS_NAME, value="anno")
+  warning = driver.find_elements(By.CLASS_NAME, value="warning screen")
+  dialog = driver.find_elements(By.ID, value="_information_dialog")
   dialog2 = driver.find_elements(By.ID, value="_information_dialog")
   dialog3 = driver.find_elements(By.ID, value="information__dialog")
   remodal_image = driver.find_elements(By.CLASS_NAME, value="remodal-image")
@@ -2232,7 +2311,9 @@ def check_new_mail(happy_info, driver, wait):
         print(f"ハッピーメール、{name}のトップ画の設定がNoImageです")
         return_list.append(f"ハッピーメール、{name}のトップ画の設定がNoImageです")
   new_message_flug = nav_item_click("メッセージ", driver, wait)
-  if not new_message_flug:
+  if "新着メールなし" == new_message_flug:
+    return None
+  elif not new_message_flug:
     print(driver.current_url)
     print(f"{name} {login_id} {login_pass}  でログインします")
     login_flug = login(name, login_id, login_pass, driver, wait,)
