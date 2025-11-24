@@ -83,10 +83,10 @@ def find_by_name(driver, name: str):
 
 def run_loop(driver, wait, happy_info):   
   for i in happy_info:
-    i["name"] == "レイナ":
-    name = i["name"]
-    login_id = i["login_id"]
-    login_pass = i["password"]
+    if i["name"] == "レイナ":
+      name = i["name"]
+      login_id = i["login_id"]
+      login_pass = i["password"]
       
   
   
