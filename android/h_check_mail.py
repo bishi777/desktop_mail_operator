@@ -75,23 +75,20 @@ def switch_to_web_context(driver, timeout=15):
 # ================== メイン処理 =======================
 
 def run_loop(happy_info):   
-  for i in happy_info:
-    if i["name"] == "えりか":
-      happy_info = i
-      name = i["name"]
-      login_id = i["login_id"]
-      login_pass = i["password"]
-      return_foot_message = i["return_foot_message"]
-      return_foot_img = i["chara_image"]
-      fst_message = i["fst_message"]
+  name = happy_info["name"]
+  login_id = happy_info["login_id"]
+  login_pass = happy_info["password"]
+  return_foot_message = happy_info["return_foot_message"]
+  return_foot_img = happy_info["chara_image"]
+  fst_message = happy_info["fst_message"]
 
-    matching_cnt = 1
-    type_cnt = 1
-    return_foot_cnt = 1
-    matching_daily_limit = 10
-    daily_limit = 20
-    oneday_total_match = 0
-    oneday_total_returnfoot = 0
+  matching_cnt = 1
+  type_cnt = 1
+  return_foot_cnt = 1
+  matching_daily_limit = 10
+  daily_limit = 20
+  oneday_total_match = 0
+  oneday_total_returnfoot = 0
 
   # print(f"{login_id} : {login_pass}")
   # print(f"=== {name} ログイン処理開始 ===")
@@ -137,6 +134,8 @@ if __name__ == "__main__":
   ]
   happy_datas = user_data["happymail"]
   
-  
+  for i in happy_datas:
+     if i["name"] == "レイナ":
+        happy_info = i
  
-  run_loop(happy_datas)
+  run_loop(happy_info)
