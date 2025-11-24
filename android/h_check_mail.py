@@ -26,8 +26,8 @@ import h_login
 
 
 # 実機の情報（adb devices で表示されるID）
-# ANDROID_UDID = "OI6LHMB082804428"
-ANDROID_UDID = "a02aca5e"
+ANDROID_UDID = "OI6LHMB082804428"
+# ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
