@@ -23,7 +23,7 @@ import settings  # Android 実機の UDID 等をここに入れておく想定
 
 # 実機の情報（adb devices で表示されるID）
 ANDROID_UDID = "OI6LHMB082804428"
-# ANDROID_UDID = "a02aca5e"
+ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
@@ -83,6 +83,7 @@ def find_by_name(driver, name: str):
 
 def run_loop(driver, wait, happy_info):   
   for i in happy_info:
+    print(i)
     if i["name"] == "レイナ":
       name = i["name"]
       login_id = i["login_id"]
