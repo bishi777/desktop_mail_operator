@@ -90,12 +90,12 @@ def run_loop(happy_info):
   oneday_total_match = 0
   oneday_total_returnfoot = 0
 
-  # print(f"{login_id} : {login_pass}")
-  # print(f"=== {name} ログイン処理開始 ===")
-  # print("変更前:", func.get_current_ip())
-  # func.change_tor_ip()
-  # time.sleep(6)
-  # print("変更後:", func.get_current_ip())
+  print(f"{login_id} : {login_pass}")
+  print(f"=== {name} ログイン処理開始 ===")
+  print("変更前:", func.get_current_ip())
+  func.change_tor_ip()
+  time.sleep(6)
+  print("変更後:", func.get_current_ip())
 
   driver = create_driver()
   wait = WebDriverWait(driver, 15)
@@ -114,7 +114,9 @@ def run_loop(happy_info):
     print("足跡返し")
     happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot)
     # 足跡付け
+
     try:
+      print("足跡づけ")
       happymail.mutidriver_make_footprints(name, login_id, login_pass, driver, wait)
    
     except Exception as e:
