@@ -23,7 +23,7 @@ import settings  # Android 実機の UDID 等をここに入れておく想定
 
 # 実機の情報（adb devices で表示されるID）
 ANDROID_UDID = "OI6LHMB082804428"
-ANDROID_UDID = "a02aca5e"
+# ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
@@ -82,14 +82,14 @@ def find_by_name(driver, name: str):
 # ================== メイン処理 =======================
 
 def run_loop(driver, wait, happy_info):   
-  for i in happy_info:
-    print(i)
-    if i["name"] == "レイナ":
-      name = i["name"]
-      login_id = i["login_id"]
-      login_pass = i["password"]
-      
   
+  name = happy_info["name"]
+  login_id = happy_info["login_id"]
+  login_pass = happy_info["password"]
+  # name = "えりか"
+  # login_id = "08024749891"
+  # login_pass = "ebbh1120"
+
   
   print(f"=== {name} ログイン処理開始 ===")
   print(f"{login_id} : {login_pass}")
