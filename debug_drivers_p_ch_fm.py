@@ -304,9 +304,9 @@ def main_syori():
                   f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 )
                 send_flug = False
-                if now.hour == 24:
-                  report_dict = reset_metrics_keep_check_date(report_dict)
-                  start_time = datetime.now()
+                
+                report_dict = reset_metrics_keep_check_date(report_dict)
+                start_time = datetime.now()
               except Exception as e:
                 print(f"{name}❌ 6時間の進捗報告  の操作でエラー: {e}")
                 traceback.print_exc()   
