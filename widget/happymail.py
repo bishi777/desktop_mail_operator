@@ -1,4 +1,5 @@
 from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
@@ -204,7 +205,6 @@ def nav_item_click(nav_name, driver, wait):
   for nav in navs:
     if nav_name in nav.text:
       if nav_name == "メッセージ":
-        parent_elem = nav.find_element(By.XPATH, "..")
         new_message = nav.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
           return "新着メールなし"   
@@ -387,10 +387,9 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, android=False):
     return_list = []
     new_mail_cnt = 0
-    
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.7)
@@ -615,7 +614,24 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
             reload_cnt = 0
             send_message_clean = func.normalize_text(send_message)
-            
+            while not len(send_msg_elem):
+              if android:
+                print(777)
+                send_mail.click()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(7)
+              else:
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(3)
+                # message__block__body__text--female 
+              send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+              reload_cnt += 1
+              if reload_cnt == 3:
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(3)
+                break
             # 画像があれば送信 
             try:
               if mail_img:  
@@ -1261,6 +1277,8 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       driver.execute_script(script, text_area, fst_message)
       time.sleep(0.5)
       driver.execute_script("arguments[0].click();", text_area)
+      time.sleep(0.5)
+      text_area.send_keys("\n")
       time.sleep(0.5)
       # 送信
       send_mail = driver.find_element(By.ID, value="submitButton")
@@ -2282,7 +2300,7 @@ def send_fst_message(happy_user_list, driver, wait):
   print("fstmail end")
   
 
-def check_new_mail(happy_info, driver, wait):
+def check_new_mail(happy_info, driver, wait, android=False):
   return_list = []
   name = happy_info["name"]
   login_id = happy_info["login_id"]
@@ -2342,7 +2360,7 @@ def check_new_mail(happy_info, driver, wait):
          if len(list_load):
           list_load[0].click()
          time.sleep(2)
-     #新着がある間はループ
+    #  新着がある間はループ
      while len(new_mail):
     #  while True:
         date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
@@ -2373,7 +2391,10 @@ def check_new_mail(happy_info, driver, wait):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           catch_warning_screen(driver)
+          user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
+          user_name = user_name.text
           send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")    
+         
           if len(send_message):
             chara_img_senf_flug = send_message[-1].find_elements(By.CLASS_NAME, value="attached_photo_link")
             if len(chara_img_senf_flug):
@@ -2430,9 +2451,13 @@ def check_new_mail(happy_info, driver, wait):
                 text_area = driver.find_element(By.ID, value="text-message")
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
                 # text_area.send_keys(return_foot_message)
+                driver.execute_script("document.body.click();")
+                time.sleep(0.5)
                 script = "arguments[0].value = arguments[1];"
                 driver.execute_script(script, text_area, conditions_message)
-                # text_area.send_keys(conditions_message)
+                time.sleep(0.5)
+                text_area.send_keys("\n")
+                time.sleep(0.5)
                 # 送信
                 send_mail = driver.find_element(By.ID, value="submitButton")
                 send_mail.click()
@@ -2457,8 +2482,7 @@ def check_new_mail(happy_info, driver, wait):
                       break
               else:
                 # print('やり取りしてます')
-                user_name = driver.find_elements(By.CLASS_NAME, value="app__navbar__item--title")[1]
-                user_name = user_name.text
+                
                 receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
                 return_message = f"{name}happymail,{login_id}:{login_pass}\n{user_name}「{receive_contents.text}」"
                 return_list.append(return_message)
@@ -2522,10 +2546,16 @@ def check_new_mail(happy_info, driver, wait):
           else:
             text_area = driver.find_element(By.ID, value="text-message")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+            driver.execute_script("document.body.click();")
+            time.sleep(0.5)
             script = "arguments[0].value = arguments[1];"
-            driver.execute_script(script, text_area, fst_message)
+            driver.execute_script("arguments[0].click();", text_area)
+            driver.execute_script(script, text_area, fst_message.format(name=user_name))
+            time.sleep(0.5)
+            text_area.send_keys("\n")
+            time.sleep(0.5)
             # 送信
-            send_mail = driver.find_element(By.ID, value="submitButton")
+            send_mail = driver.find_element(By.CLASS_NAME, "icon-message_send")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
             send_mail.click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -2536,7 +2566,6 @@ def check_new_mail(happy_info, driver, wait):
               driver.refresh()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(wait_time)
-              # message__block__body__text--female 
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt += 1
               if reload_cnt == 3:

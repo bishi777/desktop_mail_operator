@@ -93,7 +93,10 @@ try:
           print("名前の取得に失敗しました")
           print(driver.current_url)
           continue
-        if name == i["name"]:
+        # if name == i["name"]:
+        if True:
+          login_id = "50036634290"
+          password = "ebbh7278"
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
           # if "きりこ" != name:
           #   total_daily_limit = 10
@@ -117,10 +120,10 @@ try:
           matching_cnt = 1
           type_cnt = 1
           return_foot_cnt = 1
-          print("変更前:", func.get_current_ip())
-          func.change_tor_ip()
-          time.sleep(6)
-          print("変更後:", func.get_current_ip())
+          # print("変更前:", func.get_current_ip())
+          # func.change_tor_ip()
+          # time.sleep(6)
+          # print("変更後:", func.get_current_ip())
         
           # 新着メールチェック
           try:

@@ -22,8 +22,8 @@ import settings  # Android 実機の UDID 等をここに入れておく想定
 
 
 # 実機の情報（adb devices で表示されるID）
-ANDROID_UDID = "OI6LHMB082804428"
-# ANDROID_UDID = "a02aca5e"
+# ANDROID_UDID = "OI6LHMB082804428"
+ANDROID_UDID = "a02aca5e"
 
 # ================ ユーティリティ =====================
 
@@ -41,15 +41,23 @@ def create_driver():
         "noReset": True,
         "appium:autoGrantPermissions": True,
         "appium:chromedriver_autodownload": True,
-        # "appium:chromedriverAutodownload": True,
 
         "appium:skipDeviceInitialization": True,
         "appium:ignoreHiddenApiPolicyError": True,
         "appium:ignoreSettingsAppInstall": True,
+
+        # ★★★ 通知を最初からブロックする設定 ★★★
+        "appium:chromeOptions": {
+            "prefs": {
+                "profile.default_content_setting_values.notifications": 2
+            }
+        },
     }
+
     options = UiAutomator2Options().load_capabilities(caps)
     driver = webdriver.Remote("http://localhost:4723", options=options)
     return driver
+
 
 def switch_to_web_context(driver, timeout=15):
     """
@@ -169,7 +177,7 @@ if __name__ == "__main__":
   happy_datas = user_data["happymail"]
   
   for i in happy_datas:
-     if i["name"] == "レイナ":
+     if i["name"] == "えりか":
         happy_info = i
  
   run_loop(driver, wait,i)

@@ -75,6 +75,7 @@ def switch_to_web_context(driver, timeout=15):
 # ================== メイン処理 =======================
 
 def run_loop(happy_info):   
+  android_flug = True
   name = happy_info["name"]
   login_id = happy_info["login_id"]
   login_pass = happy_info["password"]
@@ -92,10 +93,10 @@ def run_loop(happy_info):
 
   print(f"{login_id} : {login_pass}")
   print(f"=== {name} ログイン処理開始 ===")
-  print("変更前:", func.get_current_ip())
-  func.change_tor_ip()
-  time.sleep(6)
-  print("変更後:", func.get_current_ip())
+  # print("変更前:", func.get_current_ip())
+  # func.change_tor_ip()
+  # time.sleep(6)
+  # print("変更後:", func.get_current_ip())
 
   driver = create_driver()
   wait = WebDriverWait(driver, 15)
@@ -107,20 +108,31 @@ def run_loop(happy_info):
     print("ログインに失敗したので処理を中止します")
     return
   while True:
+    start_loop_time = time.time()
+
     # 新着メールチェック
     print("新着チェック")
-    happymail.check_new_mail(happy_info, driver, wait)
+    happymail.check_new_mail(happy_info, driver, wait, android_flug)
     print("新着チェック完了")
     print("足跡返し")
     happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot)
     # 足跡付け
-
     try:
       print("足跡づけ")
       happymail.mutidriver_make_footprints(name, login_id, login_pass, driver, wait)
    
     except Exception as e:
       print(traceback.format_exc())
+    # ループの間隔を調整
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    wait_cnt = 0
+
+    while elapsed_time < 600:
+      time.sleep(30)
+      elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
+      if wait_cnt % 2 == 0:
+        print(f"待機中~~ {elapsed_time} ")
+      wait_cnt += 1
 
 if __name__ == "__main__":
   user_data = func.get_user_data()
