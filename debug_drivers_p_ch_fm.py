@@ -51,6 +51,12 @@ def main_syori():
     "siliboco68@gmail.com",
     "akkcxweqzdplcymh",
   ]
+  spare_mail_info_2 = [
+    "ryapya694@ruru.be",
+    "dzukichan59@gmail.com",
+    "ybiuwxdkntidojjh",
+  ]
+
   pcmax_datas = user_data["pcmax"]
   options = Options()
 
@@ -69,7 +75,7 @@ def main_syori():
   list_copy_flug = True
 
   while True:
-    mail_info = random.choice([user_mail_info, spare_mail_info])
+    mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
     start_loop_time = time.time()
     now = datetime.now()
     handles = driver.window_handles
@@ -265,14 +271,14 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
                 traceback.print_exc()
-          if name == "さな":
+          if name == "777":
             iikamo_cnt = 3
             footprint_count = 14
             returnfoot_cnt = 2
           else:
-            iikamo_cnt = 2
-            footprint_count = 7
-            returnfoot_cnt = 2
+            iikamo_cnt = 1
+            footprint_count = 4
+            returnfoot_cnt = 1
           if 6 <= now.hour < 24:  
             print(f"✅rfメール送信開始 送信上限:{returnfoot_cnt}") 
             try:
