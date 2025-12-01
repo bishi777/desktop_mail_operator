@@ -88,6 +88,8 @@ def main_syori():
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
     for idx, handle in enumerate(handles): 
       driver.switch_to.window(handle)
+      if "pcmax" not in driver.current_url and "linkleweb" not in driver.current_url:
+        continue
       login_flug = pcmax_2.catch_warning_pop("", driver)
       if login_flug and "制限" in login_flug:
         print("制限がかかっているため、スキップを行います")
