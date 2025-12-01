@@ -276,9 +276,9 @@ def main_syori():
             footprint_count = 14
             returnfoot_cnt = 2
           else:
-            iikamo_cnt = 1
-            footprint_count = 4
-            returnfoot_cnt = 1
+            iikamo_cnt = 2
+            footprint_count = 7
+            returnfoot_cnt = 2
           if 6 <= now.hour < 24:  
             print(f"✅rfメール送信開始 送信上限:{returnfoot_cnt}") 
             try:
