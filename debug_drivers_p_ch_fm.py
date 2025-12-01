@@ -53,10 +53,10 @@ def main_syori():
   ]
   spare_mail_info_2 = [
     "ryapya694@ruru.be",
-    "dzukichan59@gmail.com",
-    "ybiuwxdkntidojjh",
+    "misuzu414510@gmail.com",
+    "xdcwqbnhosxnvtbp",
   ]
-
+  
   pcmax_datas = user_data["pcmax"]
   options = Options()
 
