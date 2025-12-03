@@ -232,7 +232,7 @@ def main_syori():
           try:
             print("✅新着メールチェック開始")   
             unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
-            print("✅新着メールチェック終了")
+            print("新着メールチェック終了✅")
             report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
             report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
             report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
@@ -264,12 +264,12 @@ def main_syori():
               print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
               traceback.print_exc()  
             if roll_cnt % 6 == 0:   
-              print(f"✅rfメール送信開始 送信数:2") 
+              print(f"🏃‍♀️rfメール送信開始 送信数:2") 
               try:
                 rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
                 report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
                 one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-                print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}")
+                print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}🏃‍♀️")
               except Exception as e:
                 print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
                 traceback.print_exc()
@@ -282,14 +282,14 @@ def main_syori():
             footprint_count = 7
             returnfoot_cnt = 2
           if 6 <= now.hour < 24:  
-            print(f"✅rfメール送信開始 送信上限:{returnfoot_cnt}") 
+            print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
             try:
               rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
               report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
               one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-              print(f"✅rfメール送信終了　送信数{rf_cnt}")
+              print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
             except Exception as e:
-              print(f"✅rfメール送信終了　送信数{rf_cnt}")
+              print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
               print(driver.current_url)
               print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
               print(traceback.format_exc())

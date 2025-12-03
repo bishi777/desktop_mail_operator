@@ -826,10 +826,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         return [user_name], check_first, check_second, check_more, gmail_condition, check_date
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
-      received_mail = received_elems[-1].text if received_elems else ""
-      received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
+      email_list = None
       email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-      email_list = re.findall(email_pattern, received_mail)
+      received_mail = ""
+      for received_mail in received_elems:
+        received_mail = received_mail.text 
+        received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
+        email_list = re.findall(email_pattern, received_mail)
       # print(f"~sent_by_me~ {len(sent_by_me)}")
       # DEBUG
       # if True:
