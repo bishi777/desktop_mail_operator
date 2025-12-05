@@ -172,7 +172,7 @@ def main_syori():
             func.send_error("", f"リンクルチェックメール、足跡がえしの処理中に再ログインしました")
         name_on_pcmax = name_on_pcmax[0].text
         now = datetime.now()
-        print(f"~~~~~~~~~~~~{idx+1}キャラ目:{name_on_pcmax}~~~~~~~~~~~~{now.strftime('%Y-%m-%d %H:%M:%S')}~~~~~~~~~~~~")  
+        print(f"~~~~~~~~~~~{idx+1}キャラ目:{name_on_pcmax}~~~~~{now.strftime('%m-%d %H:%M:%S')}~~~~~~~~~~")  
       except Exception as e:
         print(f"~~~~~❌ ログインの操作でエラー: {e}")
         traceback.print_exc()  
