@@ -481,6 +481,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
         if ng_flag:
           continue
         time.sleep(1)
+        iikamo_text = ""
         if not (sent_cnt < send_cnt):
           # type1 いいかも
           # type4 いいかもありがとう
@@ -488,7 +489,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
           iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
           iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
-          iikamo_text = ""
+          
           if len(arleady_iikamo):
             iikamo_text = f"いいかも済み"
             # print(f"いいかも済み  ユーザー名:{user_info} {user_area} ")
