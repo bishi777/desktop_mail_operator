@@ -247,16 +247,17 @@ def main_syori():
           except Exception as e:
             print(f"{name}❌ メールチェック  の操作でエラー: {e}")
             traceback.print_exc()  
-          if 6 <= now.hour < 24:  
-            if name == "777":
-              iikamo_cnt = 3
-              footprint_count = 14
-              returnfoot_cnt = 2
-            else:
-              iikamo_cnt = 2
-              footprint_count = 7
-              returnfoot_cnt = 2
-            if fst_flug:
+          
+          if name == "777":
+            iikamo_cnt = 3
+            footprint_count = 14
+            returnfoot_cnt = 2
+          else:
+            iikamo_cnt = 2
+            footprint_count = 7
+            returnfoot_cnt = 2
+          if fst_flug:
+            if 6 <= now.hour < 24:  
               # roll_cntが0の時
               if roll_cnt % 2 == 0:
                 send_cnt = 3
@@ -281,7 +282,8 @@ def main_syori():
                 except Exception as e:
                   print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
                   traceback.print_exc()
-            else:
+          else:
+            if 6 <= now.hour < 24:  
               print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
               try:
                 rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
@@ -293,14 +295,12 @@ def main_syori():
                 print(driver.current_url)
                 print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                 print(traceback.format_exc())
-            # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
-            # elif 6 <= now.hour < 23:
-          try:
-            print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-            pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
-          except Exception as e:
-            print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
-            traceback.print_exc()
+            try:
+              print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+              pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+            except Exception as e:
+              print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+              traceback.print_exc()
           if now.hour % 6 == 0 or now.hour == 22:
             if send_flug:
               try:
@@ -311,7 +311,6 @@ def main_syori():
                   f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
                 )
                 send_flug = False
-                
                 report_dict = reset_metrics_keep_check_date(report_dict)
                 start_time = datetime.now()
               except Exception as e:
