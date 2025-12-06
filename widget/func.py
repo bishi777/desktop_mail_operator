@@ -1170,12 +1170,29 @@ def change_tor_ip():
   time.sleep(5)  # 新しい回線が張られるのを待つ
   
 def get_current_ip():
-  session = requests.session()
-  session.proxies = {
-      'http': 'socks5h://127.0.0.1:9050',
-      'https': 'socks5h://127.0.0.1:9050'
-  }
-  return session.get("http://httpbin.org/ip").text
+    session = requests.Session()
+
+    # プロキシ設定
+    session.proxies = {
+        'http': 'socks5h://127.0.0.1:9050',
+        'https': 'socks5h://127.0.0.1:9050'
+    }
+
+    try:
+        # プロキシ経由で試す
+        return session.get("http://httpbin.org/ip", timeout=5).text
+    except Exception as e:
+        print("⚠️ プロキシ経由での接続に失敗:", e)
+        print("➡️ 代わりに直アクセスします。")
+
+        # プロキシを無効化して再チャレンジ
+        session.proxies = {"http": None, "https": None}
+
+        try:
+            return session.get("http://httpbin.org/ip", timeout=5).text
+        except Exception as e2:
+            print("❌ 直アクセスも失敗:", e2)
+            return "UNKNOWN"
 
 def resolve_reCAPTCHA(login_url, site_key):
   API_KEY = "1bc4af1c018d3882d89bae813594befb"  
