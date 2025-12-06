@@ -244,58 +244,57 @@ def main_syori():
             one_hour_report_dict[name]["check_second"] = one_hour_report_dict[name]["check_second"] + check_second
             one_hour_report_dict[name]["gmail_condition"] = one_hour_report_dict[name]["gmail_condition"] + gmail_condition
             one_hour_report_dict[name]["check_more"] = one_hour_report_dict[name]["check_more"] + check_more
-
           except Exception as e:
             print(f"{name}❌ メールチェック  の操作でエラー: {e}")
             traceback.print_exc()  
-          if fst_flug:
-            # roll_cntが0の時
-            if roll_cnt % 2 == 0:
-              send_cnt = 3
+          if 6 <= now.hour < 24:  
+            if name == "777":
+              iikamo_cnt = 3
+              footprint_count = 14
+              returnfoot_cnt = 2
             else:
-              send_cnt = 2
-            try:
-              print(f"✅fstメール送信開始 送信数:{send_cnt}")
-              fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info)
-              print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
-              report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
-              one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
-            except Exception as e:
-              print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
-              traceback.print_exc()  
-            if roll_cnt % 6 == 0:   
-              print(f"🏃‍♀️rfメール送信開始 送信数:2") 
+              iikamo_cnt = 2
+              footprint_count = 7
+              returnfoot_cnt = 2
+            if fst_flug:
+              # roll_cntが0の時
+              if roll_cnt % 2 == 0:
+                send_cnt = 3
+              else:
+                send_cnt = 2
               try:
-                rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+                print(f"✅fstメール送信開始 送信数:{send_cnt}")
+                fm_cnt = pcmax_2.set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info)
+                print(f"✅fstメール送信終了　トータルカウント{report_dict[name]['fst'] + fm_cnt}")
+                report_dict[name]["fst"] = report_dict[name]["fst"] + fm_cnt
+                one_hour_report_dict[name]["fst"] = one_hour_report_dict[name]["fst"] + fm_cnt
+              except Exception as e:
+                print(f"{name}❌ fstメール送信  の操作でエラー: {e}")
+                traceback.print_exc()  
+              if roll_cnt % 6 == 0:   
+                print(f"🏃‍♀️rfメール送信開始 送信数:2") 
+                try:
+                  rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, 2, mail_img, unread_user) 
+                  report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
+                  one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
+                  print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}🏃‍♀️")
+                except Exception as e:
+                  print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
+                  traceback.print_exc()
+            else:
+              print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
+              try:
+                rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
                 report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
                 one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-                print(f"✅rfメール送信終了　トータルカウント{report_dict[name]['rf']}🏃‍♀️")
+                print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
               except Exception as e:
-                print(f"{name}❌ rfメール送信  の操作でエラー: {e}")
-                traceback.print_exc()
-          if name == "777":
-            iikamo_cnt = 3
-            footprint_count = 14
-            returnfoot_cnt = 2
-          else:
-            iikamo_cnt = 2
-            footprint_count = 7
-            returnfoot_cnt = 2
-          if 6 <= now.hour < 24:  
-            print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
-            try:
-              rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
-              report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
-              one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
-              print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
-            except Exception as e:
-              print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
-              print(driver.current_url)
-              print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
-              print(traceback.format_exc())
-          # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
-          # elif 6 <= now.hour < 23:
-          
+                print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
+                print(driver.current_url)
+                print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
+                print(traceback.format_exc())
+            # elif 6 <= now.hour < 23 or (now.hour == 22 and now.minute <= 45):
+            # elif 6 <= now.hour < 23:
           try:
             print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
             pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
