@@ -1419,10 +1419,10 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # 年齢チェック
     user_age = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_age")
     # print(f"年齢チェック {user_age.text} {user_name}")
-    if not re.search(r"20代|18.?19", user_age.text):
-      # print("年齢が１０〜２０代ではないユーザー　スキップします")
-      user_icon_type += 1
-      continue
+    # if not re.search(r"20代|18.?19", user_age.text):
+    #   # print("年齢が１０〜２０代ではないユーザー　スキップします")
+    #   user_icon_type += 1
+    #   continue
 
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
