@@ -1346,6 +1346,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   time.sleep(0.5)
   under_scroll_count = 0
   while return_type_counted < type_cnt:
+    print(777)
     type_list = driver.find_element(By.ID , value="list_myself")
     type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     type_users_wait_cnt = 0
