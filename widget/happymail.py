@@ -1357,7 +1357,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       time.sleep(1)
       under_scroll_count += 1
       type_list = driver.find_element(By.ID , value="list_myself")
-      type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+      type_users = type_list.find_elements(By.CLASS_NAME, value="type_list_outer")
       # print('---------')
       # print(len(type_users))
       # print(user_icon_type)
