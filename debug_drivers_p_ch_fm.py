@@ -287,6 +287,7 @@ def main_syori():
           else:
             if 6 <= now.hour < 24:  
               print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
+              rf_cnt = 0
               try:
                 rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug) 
                 report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
