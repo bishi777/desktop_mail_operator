@@ -61,10 +61,10 @@ try:
   # drivers = happymail.start_the_drivers_login(spare_mail_info, first_half, headless, profile_path, True)
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
-  matching_daily_limit = 5
+  matching_daily_limit = 77
   returnfoot_daily_limit = 0
   # total_daily_limit = 10
-  oneday_total_match = 0
+  oneday_total_match = 0 #初期化
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}

@@ -1485,7 +1485,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
   type_counted = 0
   try:
     type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
-    # print(f"タイプ返し総数 {type_counted}")
+    print(f"タイプ返し総数 {type_counted}")
   except Exception as e:  
     print("タイプ返しエラー")
     print(traceback.format_exc())
@@ -1494,7 +1494,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     matching_counted = 0
     matching_limit_flug = True
     try:
-      # print(f"マッチングリストチェック...")
+      print(f"マッチングリストチェック...")
       matching_counted, matching_limit_flug, send_users= return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt, matching_daily_limit, oneday_total_match)     
     except Exception as e:   
       print("マッチング返しエラー")
