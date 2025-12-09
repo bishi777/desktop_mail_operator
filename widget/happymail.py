@@ -1814,7 +1814,7 @@ def set_mutidriver_make_footprints(driver,wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
   
-def mutidriver_make_footprints(name,login_id, password, driver,wait):
+def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, type_cnt):
   wait_time = random.uniform(0.25, 0.75)
   warning = catch_warning_screen(driver)
   bottom_scroll_cnt = 0
@@ -1824,7 +1824,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
   # print(driver.current_url)
   mail_icon_cnt = 0
   user_icon = 0
-  num = random.randint(6,12)
+  # num = random.randint(8)
   nav_flug = nav_item_click("プロフ検索", driver, wait)
   if not nav_flug:
     print(driver.current_url)
@@ -1840,7 +1840,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     print(driver.current_url)
     nav_flug = nav_item_click("プロフ検索", driver, wait)
     return
-  for i in range(num):
+  for i in range(mf_cnt):
     catch_warning_screen(driver)
     # 並びの表示を設定
     active_tab = driver.find_elements(By.CLASS_NAME, value="active")
@@ -1914,6 +1914,21 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
+    # type
+    if type_cnt > 0:
+      type_button = driver.find_elements(By.ID, value="btn-type")
+      type_loop_cnt = 0
+      while not len(type_button):
+        time.sleep(4)
+        type_button = driver.find_elements(By.CLASS_NAME, value="btn-type")
+        type_loop_cnt += 1
+        if type_loop_cnt == 4:
+          break
+      if len(type_button):
+        driver.execute_script("arguments[0].click();", type_button[0])
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(4)
+        type_cnt -= 1
     now = datetime.now().strftime('%m-%d %H:%M:%S')
     print(f'{name}:足跡付け,  {user_name}  {now}')
     driver.find_element(By.CLASS_NAME, value="ds_link_back").click()

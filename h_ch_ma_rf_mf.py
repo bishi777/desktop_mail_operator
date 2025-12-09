@@ -68,7 +68,8 @@ try:
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
-  
+  mf_cnt = 8
+  type_cnt = 2
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
 
@@ -92,10 +93,8 @@ try:
           print("名前の取得に失敗しました")
           print(driver.current_url)
           continue
-        # if name == i["name"]:
-        if True:
-          login_id = "50036634290"
-          password = "ebbh7278"
+        if name == i["name"]:
+        # if True:
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
           # if "きりこ" != name:
           #   total_daily_limit = 10
@@ -179,7 +178,7 @@ try:
               func.send_error(f"マッチング返し{name}", traceback.format_exc())
           # 足跡付け
           try:
-            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait)
+            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, type_cnt)
           except NoSuchWindowException:
             print(f"NoSuchWindowExceptionエラーが出ました, {e}")
             pass
