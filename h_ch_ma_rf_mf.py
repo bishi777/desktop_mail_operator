@@ -45,7 +45,7 @@ gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
 
 last_reset_hour = None  
-send_flug = False
+send_flug = True
 
 if mailaddress and gmail_password and receiving_address:
   user_mail_info = [
