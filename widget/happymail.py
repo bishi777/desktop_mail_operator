@@ -1914,7 +1914,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
-    # type
+    type_flug = False
     if type_cnt > 0:
       type_button = driver.find_elements(By.ID, value="btn-type")
       type_loop_cnt = 0
@@ -1929,8 +1929,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(4)
         type_cnt -= 1
+        type_flug = True
     now = datetime.now().strftime('%m-%d %H:%M:%S')
-    print(f'{name}:足跡付け,  {user_name}  {now}')
+    if type_flug:
+      print(f'{name}:足跡付け＋タイプ付け  {user_name}  {now}')
+    else:
+      print(f'{name}:足跡付け,  {user_name}  {now}')
     driver.find_element(By.CLASS_NAME, value="ds_link_back").click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)

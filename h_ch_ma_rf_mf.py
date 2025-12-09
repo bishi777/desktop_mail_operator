@@ -69,7 +69,7 @@ try:
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
   mf_cnt = 8
-  type_cnt = 2
+  mf_type_cnt = 2
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
 
@@ -178,7 +178,7 @@ try:
               func.send_error(f"マッチング返し{name}", traceback.format_exc())
           # 足跡付け
           try:
-            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, type_cnt)
+            happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
           except NoSuchWindowException:
             print(f"NoSuchWindowExceptionエラーが出ました, {e}")
             pass
