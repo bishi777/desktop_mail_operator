@@ -1364,7 +1364,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       # print('---------')
       if under_scroll_count > 3:
         break
-  
+    print(1111)
     while len(type_users) == 0:
       time.sleep(2)
       type_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
@@ -1379,7 +1379,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     name_field = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_name")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
-    
+    print(111)
     while len(mail_icon):
       # print(f'送信履歴あり {user_name} ~ skip ~ {mail_icon_cnt} {len(type_users)} ::{user_icon_type}')
       mail_icon_cnt += 1
@@ -1408,6 +1408,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         print("ユーザーネーム取得に失敗しました")
         break  
     # ユーザー重複チェック
+    print(11)
     if len(user_name_list):
       while user_name in user_name_list:
         # print('重複ユーザー')
@@ -1424,7 +1425,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     #   # print("年齢が１０〜２０代ではないユーザー　スキップします")
     #   user_icon_type += 1
     #   continue
-
+    print(1)
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     if duplication_user:
