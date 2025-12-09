@@ -1893,7 +1893,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       # print(f"✅ {user_name} 確認済み")
       user_icon += 1
       while len(login_users) <= user_icon:
-        print("************************")
+        # print("************************")
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)

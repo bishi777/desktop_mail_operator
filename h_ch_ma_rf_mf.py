@@ -63,7 +63,7 @@ try:
   return_foot_counted = 0
   matching_daily_limit = 5
   returnfoot_daily_limit = 0
-  total_daily_limit = 9
+  # total_daily_limit = 10
   oneday_total_match = 0
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
@@ -157,20 +157,20 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、
-          print(f"{name}午前中の送信数 {report_dict[name][0]} / {total_daily_limit} ")
+          print(f"{name}の送信数 {report_dict[name][0]} ")
           print(f"返しフラグ {report_dict[name][1]} ")
-          if report_dict[name][0] <= total_daily_limit and report_dict[name][1] and "利用できません" not in happymail_new_list:
+          if report_dict[name][1] and "利用できません" not in happymail_new_list:
             try:
               return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot)
               # print(return_foot_counted)
               # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
               report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]   
               report_dict[name][2].extend(return_foot_counted[5])
-              if total_daily_limit <= report_dict[name][0]:
-                print("午前中のマッチング返しの上限に達しました。")
-                limit_text = f"送信数：{report_dict[name][0]} \n"
-                func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
-                report_dict[name][1] = False
+              # if total_daily_limit <= report_dict[name][0]:
+              #   print("午前中のマッチング返しの上限に達しました。")
+              #   limit_text = f"送信数：{report_dict[name][0]} \n"
+              #   func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
+              #   report_dict[name][1] = False
                 
             except Exception as e:
               print(f"マッチング返し{name}")
