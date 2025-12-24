@@ -115,6 +115,11 @@ def catch_warning_pop(name, driver):
       driver.find_elements(By.CLASS_NAME, 'tuto_dialog')[0].find_elements(By.TAG_NAME, 'span')[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
+    if tuto_pop:
+      time.sleep(1)
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
   except Exception:
     pass
   try:
@@ -1724,6 +1729,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     "search_body_type": ["スリム", "やや細め", "普通", "ふくよか", "太め" ],
     "annual_income":["200万円未満", "200万円以上〜400万円未満", "指定なし"]
   }
+  catch_warning_pop(name, driver)
   if not profile_search(driver, search_edit):
     return
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')

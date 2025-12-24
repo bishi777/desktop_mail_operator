@@ -12,7 +12,9 @@ import traceback
 
 user_data = func.get_user_data()
 pcmax_datas = user_data["pcmax"]
-linkle_chara = ["きりこ"]
+linkle_chara = [
+  # "きりこ"
+  ]
 # 地域選択（3つまで選択可能）
 select_areas = [
     "東京都",
