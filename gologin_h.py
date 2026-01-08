@@ -137,59 +137,59 @@ def main():
                 
 
                 #### 新着メールチェック ###
-                # try:
-                #     happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password)
-                #     if happymail_new:
-                #         happymail_new_list.extend(happymail_new)
-                #     if happymail_new_list:
-                #         title = f"happy新着 {name}"
-                #         text = ""
-                #         img_path = None
-                #         for new_mail in happymail_new_list:
-                #             text = text + new_mail + ",\n"
-                #         if "警告" in text or "NoImage" in text or "利用" in text :
-                #             if mail_info:
-                #                 img_path = f"{i['name']}_ban.png"
-                #                 driver.save_screenshot(img_path)
-                #                 # 圧縮（JPEG化＋リサイズ＋品質調整）
-                #                 img_path = func.compress_image(img_path)  # 例: screenshot2_compressed.jpg ができる
-                #                 title = "メッセージ"
-                #                 text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
-                #         # メール送信
-                #         if mail_info:
-                #             func.send_mail(text, mail_info, title, img_path)
-                #         else:
-                #             print("通知メールの送信に必要な情報が不足しています")
-                #             print(f"{mailaddress}   {gmail_password}  {receiving_address}")
-                #     print(f"{name} ✅ 新着メールチェック完了")
-                # except NoSuchWindowException:
-                #     pass
-                # except ReadTimeoutError as e:
-                #     print("🔴 ページの読み込みがタイムアウトしました:", e)
-                #     driver.refresh()
-                #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                # except Exception as e:
-                #     print(traceback.format_exc())
-                # time.sleep(1)
+                try:
+                    happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password)
+                    if happymail_new:
+                        happymail_new_list.extend(happymail_new)
+                    if happymail_new_list:
+                        title = f"happy新着 {name}"
+                        text = ""
+                        img_path = None
+                        for new_mail in happymail_new_list:
+                            text = text + new_mail + ",\n"
+                        if "警告" in text or "NoImage" in text or "利用" in text :
+                            if mail_info:
+                                img_path = f"{i['name']}_ban.png"
+                                driver.save_screenshot(img_path)
+                                # 圧縮（JPEG化＋リサイズ＋品質調整）
+                                img_path = func.compress_image(img_path)  # 例: screenshot2_compressed.jpg ができる
+                                title = "メッセージ"
+                                text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
+                        # メール送信
+                        if mail_info:
+                            func.send_mail(text, mail_info, title, img_path)
+                        else:
+                            print("通知メールの送信に必要な情報が不足しています")
+                            print(f"{mailaddress}   {gmail_password}  {receiving_address}")
+                    print(f"{name} ✅ 新着メールチェック完了")
+                except NoSuchWindowException:
+                    pass
+                except ReadTimeoutError as e:
+                    print("🔴 ページの読み込みがタイムアウトしました:", e)
+                    driver.refresh()
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                except Exception as e:
+                    print(traceback.format_exc())
+                time.sleep(1)
                 ### マッチング、足跡返し
                 now = datetime.now()
-                # if 6 <= now.hour < 22:
-                #     try:
-                #         if loop_cnt % 2 == 0:
-                #             send_cnt = 2
-                #         else:
-                #             send_cnt = 1
-                #         return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, 2, 3, 2, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
-                #         # print(return_foot_counted) 
-                #     except NoSuchWindowException:
-                #         pass
-                #     except ReadTimeoutError as e:
-                #         print("🔴 ページの読み込みがタイムアウトしました:", e)
-                #         driver.refresh()
-                #         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                #     except Exception as e:
-                #         print(traceback.format_exc())
-                #     time.sleep(1)
+                if 6 <= now.hour < 22:
+                    try:
+                        if loop_cnt % 2 == 0:
+                            send_cnt = 2
+                        else:
+                            send_cnt = 1
+                        return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, 2, 3, 2, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
+                        # print(return_foot_counted) 
+                    except NoSuchWindowException:
+                        pass
+                    except ReadTimeoutError as e:
+                        print("🔴 ページの読み込みがタイムアウトしました:", e)
+                        driver.refresh()
+                        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    except Exception as e:
+                        print(traceback.format_exc())
+                    time.sleep(1)
                 ### 足跡付け ###
                 try:
                     mf_cnt = 7
