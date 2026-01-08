@@ -133,20 +133,21 @@ def main():
     # ==========================
     # happymail メインループ
     # ==========================
-    for profile_name, port in targets.items():
-        print(f"[OK] profile={profile_name} port={port}")
+    for loop_cnt in range(99999):
+        for profile_name, port in targets.items():
+            print(f"[OK] profile={profile_name} port={port}")
 
-        driver = None
+            driver = None
 
-        for loop_cnt in range(99999):
+        
             start_loop_time = time.time()
 
             try:
                 driver = attach_driver(port)
                 wait = WebDriverWait(driver, 10)
 
-                print("[INFO] title:", driver.title)
-                print("[INFO] current_url:", driver.current_url)
+                print("title:", driver.title)
+                print("current_url:", driver.current_url)
 
                 happymail.catch_warning_screen(driver)
 
@@ -217,9 +218,11 @@ def main():
             except Exception:
                 print(traceback.format_exc())
 
-            # 12分待機
-            while time.time() - start_loop_time < 720:
-                time.sleep(30)
+        # 12分待機
+        while time.time() - start_loop_time < 720:
+            print(" 次のループまで待機中...")
+            time.sleep(30)
+
 
 
 if __name__ == "__main__":
