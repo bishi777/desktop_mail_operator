@@ -1,31 +1,66 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+test_gologin.py
+起動済みの GoLogin(Orbita) プロファイルに attach して happymail 処理を実行する
+"""
+
 import sys
-import subprocess
-import re
 import time
-from typing import Dict, List
+import random
+import traceback
+import re
+import subprocess
+from datetime import datetime
+from typing import Dict
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchWindowException, WebDriverException
+from urllib3.exceptions import ReadTimeoutError
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
+from widget import happymail, func
+
+
+# ==========================
+# 既存設定（そのまま）
+# ==========================
+user_data = func.get_user_data()
+happy_info = user_data["happymail"]
+
+mailaddress = user_data['user'][0]['gmail_account']
+gmail_password = user_data['user'][0]['gmail_account_password']
+receiving_address = user_data['user'][0]['user_email']
+
+user_mail_info = [
+    receiving_address, mailaddress, gmail_password,
+] if mailaddress and gmail_password and receiving_address else None
+
+spare_mail_info = [
+    "ryapya694@ruru.be",
+    "siliboco68@gmail.com",
+    "akkcxweqzdplcymh",
+]
+
+matching_daily_limit = 77
+returnfoot_daily_limit = 77
+oneday_total_match = 77
+oneday_total_returnfoot = 77
 
 CHROMEDRIVER_VERSION = "141.0.7390.54"
 
 
-# ===============================
-# 起動中の GoLogin プロファイル一覧取得
-# ===============================
+# ==========================
+# 起動中プロファイル取得
+# ==========================
 def get_running_profiles() -> Dict[str, int]:
     """
-    戻り値:
-      {
-        "デバック": 33045,
-        "えりか": 33102,
-        ...
-      }
+    return:
+      { profile_name: remote_debugging_port }
     """
     cmd = ["bash", "-lc", "ps -axww -o command="]
     out = subprocess.check_output(cmd, text=True, errors="ignore")
@@ -40,80 +75,151 @@ def get_running_profiles() -> Dict[str, int]:
         m_port = re.search(r"--remote-debugging-port=(\d+)", line)
 
         if m_profile and m_port:
-            profile = m_profile.group(1)
-            port = int(m_port.group(1))
-            profiles[profile] = port
+            profiles[m_profile.group(1)] = int(m_port.group(1))
 
     return profiles
 
 
-# ===============================
-# Selenium attach
-# ===============================
+# ==========================
+# attach
+# ==========================
 def attach_driver(port: int) -> webdriver.Chrome:
-    debugger_address = f"127.0.0.1:{port}"
-
-    options = Options()
-    options.add_experimental_option("debuggerAddress", debugger_address)
+    opts = Options()
+    opts.add_experimental_option(
+        "debuggerAddress", f"127.0.0.1:{port}"
+    )
 
     service = Service(
         ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
     )
-    return webdriver.Chrome(service=service, options=options)
+
+    return webdriver.Chrome(service=service, options=opts)
 
 
-# ===============================
+# ==========================
 # main
-# ===============================
+# ==========================
 def main():
-    # 引数（プロファイル名）取得
-    target_profiles: List[str] = sys.argv[1:]
+    # ← ここが変更点：位置引数（複数可）
+    target_names = sys.argv[1:]  # [] or ["デバック", "レイナ"]
 
     running_profiles = get_running_profiles()
 
     if not running_profiles:
-        print("[ERROR] 起動中の GoLogin プロファイルが見つかりません")
+        print("[ERROR] 起動中の GoLogin プロファイルがありません")
         sys.exit(1)
 
-    # 対象プロファイル決定
-    if target_profiles:
+    # 対象決定
+    if target_names:
         targets = {
             name: running_profiles[name]
-            for name in target_profiles
+            for name in target_names
             if name in running_profiles
         }
 
-        not_found = set(target_profiles) - set(targets.keys())
-        for name in not_found:
-            print(f"[WARN] プロファイル未起動: {name}")
+        for name in target_names:
+            if name not in running_profiles:
+                print(f"[WARN] 未起動プロファイル: {name}")
 
         if not targets:
-            print("[ERROR] 指定したプロファイルが1つも起動していません")
+            print("[ERROR] 指定プロファイルは全て未起動")
             sys.exit(1)
     else:
-        # 引数なし → 全部
+        # 引数なし → 全プロファイル
         targets = running_profiles
 
-    print(f"[INFO] 操作対象プロファイル数: {len(targets)}")
+    print(f"[INFO] 実行対象プロファイル数: {len(targets)}")
 
-    # ===============================
-    # 各プロファイルを操作
-    # ===============================
-    for profile, port in targets.items():
-        print(f"[OK] profile={profile} port={port}")
+    # ==========================
+    # happymail メインループ
+    # ==========================
+    for profile_name, port in targets.items():
+        print(f"[OK] profile={profile_name} port={port}")
 
-        try:
-            driver = attach_driver(port)
-            print("[INFO] title:", driver.title)
-            print("[INFO] current_url:", driver.current_url)
+        driver = None
 
-            # 🔽 ここに既存の happymail 処理をそのまま入れてOK
-            # driver.get("https://happymail.co.jp/app/html/mbmenu.php")
+        for loop_cnt in range(99999):
+            start_loop_time = time.time()
 
-            time.sleep(1)
+            try:
+                driver = attach_driver(port)
+                wait = WebDriverWait(driver, 10)
 
-        except Exception as e:
-            print(f"[ERROR] profile={profile}", e)
+                print("[INFO] title:", driver.title)
+                print("[INFO] current_url:", driver.current_url)
+
+                happymail.catch_warning_screen(driver)
+
+                if "mbmenu.php" not in driver.current_url:
+                    driver.get("https://happymail.co.jp/app/html/mbmenu.php")
+                    wait.until(
+                        lambda d: d.execute_script(
+                            "return document.readyState"
+                        ) == "complete"
+                    )
+
+                ds_user_display_name = driver.find_element(
+                    By.CLASS_NAME, "ds_user_display_name"
+                ).text
+
+                for i in happy_info:
+                    if i["name"] != ds_user_display_name:
+                        continue
+
+                    name = i["name"]
+                    print(f"Processing user: {name}")
+
+                    # ===== 以降 happymail 既存処理（完全そのまま） =====
+                    happymail.multidrivers_checkmail(
+                        name, driver, wait,
+                        i["login_id"], i["password"],
+                        i["return_foot_message"],
+                        i["fst_message"],
+                        i["post_return_message"],
+                        i["second_message"],
+                        i["condition_message"],
+                        i["confirmation_mail"],
+                        i["chara_image"],
+                        i["mail_address"],
+                        i["gmail_password"]
+                    )
+
+                    if 6 <= datetime.now().hour < 22:
+                        happymail.return_footpoint(
+                            name, driver, wait,
+                            i["return_foot_message"],
+                            2, 3, 2,
+                            i["chara_image"],
+                            i["fst_message"],
+                            matching_daily_limit,
+                            returnfoot_daily_limit,
+                            oneday_total_match,
+                            oneday_total_returnfoot,
+                            1
+                        )
+
+                    happymail.mutidriver_make_footprints(
+                        name,
+                        i["login_id"],
+                        i["password"],
+                        driver,
+                        wait,
+                        7,
+                        1
+                    )
+
+            except (NoSuchWindowException, ReadTimeoutError):
+                pass
+            except WebDriverException as e:
+                print("[ERROR] WebDriverException:", e)
+                time.sleep(3)
+                continue
+            except Exception:
+                print(traceback.format_exc())
+
+            # 12分待機
+            while time.time() - start_loop_time < 720:
+                time.sleep(30)
 
 
 if __name__ == "__main__":
