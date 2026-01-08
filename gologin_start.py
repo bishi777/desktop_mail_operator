@@ -6,11 +6,14 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
+import os
 
 # =====================
 # 設定
 # =====================
 TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTI2OTRjMjExODY3MzExN2Y3M2ZjMjYiLCJ0eXBlIjoiZGV2Iiwiand0aWQiOiI2OTI2YTJhNjZhMWI0NGE3OTEzM2NlYzcifQ.F8VKng9UTpAyVE7maKDSbaiFFCfoRGim2qQhyIlQME4"
+if not TOKEN:
+    raise RuntimeError("GOLOGIN_TOKEN が設定されていません")
 
 API_URL = "https://api.gologin.com/browser/v2"
 HEADERS = {
@@ -18,16 +21,17 @@ HEADERS = {
 }
 
 # =====================
-# 引数処理
+# 引数処理（複数位置引数）
 # =====================
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    "--profile",
-    help="起動するGoLoginプロファイル名（省略時は全プロファイル）"
+    "profiles",
+    nargs="*",   # ← 複数受け取り
+    help="起動するGoLoginプロファイル名（複数指定可 / 省略時は全プロファイル）"
 )
 args = parser.parse_args()
 
-target_profile_name = args.profile  # None or str
+target_profile_names = args.profiles  # [] or ["デバック", "えりか"]
 
 # =====================
 # プロファイル一覧取得
@@ -37,26 +41,25 @@ res.raise_for_status()
 data = res.json()
 
 profiles = data.get("profiles", [])
-
 if not profiles:
     print("プロファイルが見つかりません")
     exit()
 
 # =====================
-# 起動対象プロファイル選別
+# 起動対象フィルタ
 # =====================
-if target_profile_name:
+if target_profile_names:
     profiles = [
         p for p in profiles
-        if p["name"] == target_profile_name
+        if p["name"] in target_profile_names
     ]
 
     if not profiles:
-        print(f"指定されたプロファイルが見つかりません: {target_profile_name}")
+        print(f"指定されたプロファイルが見つかりません: {target_profile_names}")
         exit()
 
 # =====================
-# プロファイル起動
+# 起動処理
 # =====================
 for p in profiles:
     print(f"[START] profile={p['name']}")
@@ -64,9 +67,7 @@ for p in profiles:
     gl = GoLogin({
         "token": TOKEN,
         "profile_id": p["id"],
-        "extra_params": [
-            "--log-level=3"
-        ]
+        "extra_params": ["--log-level=3"]
     })
 
     debugger_address = gl.start()
@@ -90,7 +91,3 @@ for p in profiles:
 
     driver.get("https://happymail.co.jp/login/")
     time.sleep(3)
-
-    # ※ 必要に応じてここで操作処理を書く
-    # driver.qui
-    # gl.stop()
