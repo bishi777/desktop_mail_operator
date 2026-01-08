@@ -24,6 +24,9 @@ for p in data["profiles"]:
     gl = GoLogin({
         "token": TOKEN,
         "profile_id": p["id"],
+        "extra_params": [
+            "--log-level=3"
+        ]
         # "port": 35000,  # 固定したい場合（競合するなら別ポート）
     })
 
@@ -37,7 +40,7 @@ for p in data["profiles"]:
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
 
-    driver.get("https://example.com")
+    driver.get("https://happymail.co.jp/login/")
     time.sleep(3)
 
 # driver.quit()

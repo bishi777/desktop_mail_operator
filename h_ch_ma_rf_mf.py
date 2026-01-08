@@ -64,7 +64,7 @@ try:
   matching_daily_limit = 77
   returnfoot_daily_limit = 0
   # total_daily_limit = 10
-  oneday_total_match = 0 #初期化
+  # oneday_total_match = 0 
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
