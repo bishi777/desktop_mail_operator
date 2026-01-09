@@ -184,7 +184,10 @@ def main():
                         i["mail_address"],
                         i["gmail_password"]
                     )
-
+                    if loop_cnt % 10 == 0:
+                        send_cnt = 2
+                    elif loop_cnt % 5 == 0:
+                        send_cnt = 1
                     if 6 <= datetime.now().hour < 22:
                         happymail.return_footpoint(
                             name, driver, wait,
@@ -196,7 +199,7 @@ def main():
                             returnfoot_daily_limit,
                             oneday_total_match,
                             oneday_total_returnfoot,
-                            1
+                            send_cnt,
                         )
 
                     happymail.mutidriver_make_footprints(
