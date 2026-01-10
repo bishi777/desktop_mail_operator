@@ -7,10 +7,12 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import os
-
+import settings
 # =====================
 # 設定
 # =====================
+CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
+
 TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI2OTI2OTRjMjExODY3MzExN2Y3M2ZjMjYiLCJ0eXBlIjoiZGV2Iiwiand0aWQiOiI2OTI2YTJhNjZhMWI0NGE3OTEzM2NlYzcifQ.F8VKng9UTpAyVE7maKDSbaiFFCfoRGim2qQhyIlQME4"
 if not TOKEN:
     raise RuntimeError("GOLOGIN_TOKEN が設定されていません")
@@ -80,7 +82,7 @@ for p in profiles:
 
     service = Service(
         ChromeDriverManager(
-            driver_version="141.0.7390.54"
+            driver_version=CHROMEDRIVER_VERSION
         ).install()
     )
 
