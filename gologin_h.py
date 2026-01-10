@@ -22,7 +22,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-
+import settings
 from widget import happymail, func
 
 
@@ -51,7 +51,7 @@ returnfoot_daily_limit = 77
 oneday_total_match = 77
 oneday_total_returnfoot = 77
 
-CHROMEDRIVER_VERSION = "141.0.7390.54"
+CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
 
 
 # ==========================
@@ -149,8 +149,6 @@ def main():
                 wait = waits[profile_name]
                 # driver = attach_driver(port)
                 # wait = WebDriverWait(driver, 10)
-
-                
 
                 happymail.catch_warning_screen(driver)
 
