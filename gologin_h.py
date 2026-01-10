@@ -5,7 +5,7 @@
 test_gologin.py
 起動済みの GoLogin(Orbita) プロファイルに attach して happymail 処理を実行する
 """
-
+import os
 import sys
 import time
 import random
