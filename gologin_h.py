@@ -24,9 +24,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 from widget import happymail, func
-import os
-def kill_zombie_chromedriver():
-    os.system("pkill -f chromedriver")
+
 
 # ==========================
 # 既存設定（そのまま）
@@ -102,64 +100,68 @@ def attach_driver(port: int) -> webdriver.Chrome:
 # main
 # ==========================
 def main():
-    # ← ここが変更点：位置引数（複数可）
-    target_names = sys.argv[1:]  # [] or ["デバック", "レイナ"]
-
+    target_names = sys.argv[1:]
     running_profiles = get_running_profiles()
 
     if not running_profiles:
         print("[ERROR] 起動中の GoLogin プロファイルがありません")
         sys.exit(1)
 
-    # 対象決定
     if target_names:
         targets = {
             name: running_profiles[name]
             for name in target_names
             if name in running_profiles
         }
-
-        for name in target_names:
-            if name not in running_profiles:
-                print(f"[WARN] 未起動プロファイル: {name}")
-
-        if not targets:
-            print("[ERROR] 指定プロファイルは全て未起動")
-            sys.exit(1)
     else:
-        # 引数なし → 全プロファイル
         targets = running_profiles
 
     print(f"[INFO] 実行対象プロファイル数: {len(targets)}")
-    kill_zombie_chromedriver()
-    driver = attach_driver(port)
 
     # ==========================
-    # happymail メインループ
+    # driver をプロファイルごとに1回 attach
     # ==========================
-    for loop_cnt in range(99999):
-        for profile_name, port in targets.items():
-            print(f"[OK] profile={profile_name} port={port}")
+    drivers = {}
 
-            driver = None
+    for profile_name, port in targets.items():
+        try:
+            print(f"[ATTACH] {profile_name} port={port}")
+            driver = attach_driver(port)
+            wait = WebDriverWait(driver, 10)
+            drivers[profile_name] = {
+                "driver": driver,
+                "wait": wait,
+                "port": port
+            }
+        except Exception:
+            print(f"[ERROR] attach失敗: {profile_name}")
+            print(traceback.format_exc())
 
-        
-            start_loop_time = time.time()
+    # ==========================
+    # 無限ループ（1周＝全プロファイル1回ずつ）
+    # ==========================
+    loop_cnt = 0
+
+    while True:
+        loop_cnt += 1
+        print(f"\n[LOOP] ===== {loop_cnt} 周目 =====")
+
+        start_loop_time = time.time()
+
+        for profile_name, ctx in drivers.items():
+            driver = ctx["driver"]
+            wait = ctx["wait"]
+            port = ctx["port"]
+
+            print(f"[RUN] profile={profile_name}")
 
             try:
-                wait = WebDriverWait(driver, 10)
-
-                # print("title:", driver.title)
-                # print("current_url:", driver.current_url)
-
                 happymail.catch_warning_screen(driver)
 
                 if "mbmenu.php" not in driver.current_url:
                     driver.get("https://happymail.co.jp/app/html/mbmenu.php")
                     wait.until(
-                        lambda d: d.execute_script(
-                            "return document.readyState"
-                        ) == "complete"
+                        lambda d: d.execute_script("return document.readyState") == "complete"
                     )
 
                 ds_user_display_name = driver.find_element(
@@ -171,9 +173,7 @@ def main():
                         continue
 
                     name = i["name"]
-                    # print(f"Processing user: {name}")
 
-                    # ===== 以降 happymail 既存処理（完全そのまま） =====
                     happymail.multidrivers_checkmail(
                         name, driver, wait,
                         i["login_id"], i["password"],
@@ -187,7 +187,7 @@ def main():
                         i["mail_address"],
                         i["gmail_password"]
                     )
-                    
+
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 10 == 0:
                             send_cnt = 2
@@ -220,19 +220,31 @@ def main():
                         1
                     )
 
-            except (NoSuchWindowException, ReadTimeoutError):
-                pass
             except WebDriverException as e:
-                print("[ERROR] WebDriverException:", e)
+                print(f"[ERROR] {profile_name} WebDriverException")
+                print(e)
+
+                # 再 attach（このプロファイルだけ）
+                try:
+                    driver.quit()
+                except Exception:
+                    pass
+
                 time.sleep(3)
-                continue
+                new_driver = attach_driver(port)
+                drivers[profile_name]["driver"] = new_driver
+                drivers[profile_name]["wait"] = WebDriverWait(new_driver, 10)
+
             except Exception:
                 print(traceback.format_exc())
 
-        # 12分待機
+        # ==========================
+        # 全プロファイル終わったら待機
+        # ==========================
         while time.time() - start_loop_time < 720:
             print(" 次のループまで待機中...")
             time.sleep(30)
+
 
 
 
