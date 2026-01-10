@@ -24,7 +24,56 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import settings
 from widget import happymail, func
+import subprocess
+import re
+from typing import Optional
 
+
+def get_orbita_chrome_version() -> Optional[str]:
+    """
+    Orbita の Chromium バージョンを取得する
+    return: "141.0.7390.54" or None
+    """
+    try:
+        cmd = [
+            "bash", "-lc",
+            "ls ~/.gologin/browser | grep orbita-browser | tail -n 1"
+        ]
+        folder = subprocess.check_output(cmd, text=True).strip()
+
+        orbita_path = (
+            f"~/.gologin/browser/{folder}/"
+            "Orbita-Browser.app/Contents/MacOS/Orbita"
+        )
+
+        out = subprocess.check_output(
+            ["bash", "-lc", f"{orbita_path} --version"],
+            text=True,
+            errors="ignore"
+        )
+
+        m = re.search(r"Chromium\s+([\d\.]+)", out)
+        if m:
+            return m.group(1)
+
+    except Exception:
+        pass
+
+    return None
+def check_chromedriver_version():
+    orbita_version = get_orbita_chrome_version()
+
+    if not orbita_version:
+        print("[WARN] Orbita の Chrome バージョンを取得できませんでした")
+        return
+
+    if orbita_version != settings.gologin_chrome_version:
+        print("⚠️ [VERSION MISMATCH]")
+        print(f"  Orbita Chrome : {orbita_version}")
+        print(f"  settings      : {settings.gologin_chrome_version}")
+        print("  👉 chromedriver が attach 失敗する可能性があります")
+    else:
+        print(f"[OK] Chrome version matched: {orbita_version}")
 
 # ==========================
 # 既存設定（そのまま）
@@ -96,6 +145,7 @@ def attach_driver(port: int) -> webdriver.Chrome:
 # main
 # ==========================
 def main():
+    check_chromedriver_version()
     target_names = sys.argv[1:]
     running_profiles = get_running_profiles()
 
