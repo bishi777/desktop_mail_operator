@@ -150,9 +150,7 @@ def attach_driver(port: int):
         settings.chromedriver_path,
     )
 
-    service = Service(executable_path=chromedriver_path)
-
-    return webdriver.Chrome(service=service, options=opts)
+    return webdriver.Chrome(options=opts)
 
 
 # ==========================
