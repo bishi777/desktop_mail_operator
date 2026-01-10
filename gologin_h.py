@@ -29,37 +29,43 @@ import re
 from typing import Optional
 
 
-def get_orbita_chrome_version() -> Optional[str]:
-    """
-    Orbita の Chromium バージョンを取得する
-    return: "141.0.7390.54" or None
-    """
+def get_orbita_chrome_version():
+    import os, subprocess, re
+
+    base = os.path.expanduser("~/.gologin/browser")
+
+    folders = []
+    for f in os.listdir(base):
+        path = os.path.join(base, f)
+        if (
+            f.startswith("orbita-browser-")
+            and os.path.isdir(path)
+            and not f.endswith(".tar.gz")
+        ):
+            folders.append(f)
+
+    if not folders:
+        return None
+
+    folders.sort(reverse=True)
+    folder = folders[0]
+
+    orbita = os.path.join(
+        base,
+        folder,
+        "Orbita-Browser.app/Contents/MacOS/Orbita"
+    )
+
     try:
-        cmd = [
-            "bash", "-lc",
-            "ls ~/.gologin/browser | grep orbita-browser | tail -n 1"
-        ]
-        folder = subprocess.check_output(cmd, text=True).strip()
-
-        orbita_path = (
-            f"~/.gologin/browser/{folder}/"
-            "Orbita-Browser.app/Contents/MacOS/Orbita"
-        )
-
-        out = subprocess.check_output(
-            ["bash", "-lc", f"{orbita_path} --version"],
-            text=True,
-            errors="ignore"
-        )
-
+        out = subprocess.check_output([orbita, "--version"], text=True)
         m = re.search(r"Chromium\s+([\d\.]+)", out)
         if m:
             return m.group(1)
-
     except Exception:
         pass
 
     return None
+
 def check_chromedriver_version():
     orbita_version = get_orbita_chrome_version()
 
@@ -132,13 +138,21 @@ def get_running_profiles() -> Dict[str, int]:
 # ==========================
 # attach
 # ==========================
-def attach_driver(port: int) -> webdriver.Chrome:
+
+
+def attach_driver(port: int):
     opts = Options()
-    opts.add_experimental_option(
-        "debuggerAddress", f"127.0.0.1:{port}"
+    opts.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
+
+    # ★ 環境変数 or settings で切替
+    chromedriver_path = os.environ.get(
+        "GOLOGIN_CHROMEDRIVER",
+        "/Users/bishi16/.wdm/drivers/chromedriver/mac64/141.0.7390.54/chromedriver-mac-arm64/chromedriver"
     )
 
-    return webdriver.Chrome(options=opts)
+    service = Service(executable_path=chromedriver_path)
+
+    return webdriver.Chrome(service=service, options=opts)
 
 
 # ==========================
