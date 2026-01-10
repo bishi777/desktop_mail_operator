@@ -5,7 +5,7 @@
 test_gologin.py
 起動済みの GoLogin(Orbita) プロファイルに attach して happymail 処理を実行する
 """
-import os
+
 import sys
 import time
 import random
@@ -22,64 +22,9 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-import settings
+
 from widget import happymail, func
-import subprocess
-import re
-from typing import Optional
 
-
-def get_orbita_chrome_version():
-    import os, subprocess, re
-
-    base = os.path.expanduser("~/.gologin/browser")
-
-    folders = []
-    for f in os.listdir(base):
-        path = os.path.join(base, f)
-        if (
-            f.startswith("orbita-browser-")
-            and os.path.isdir(path)
-            and not f.endswith(".tar.gz")
-        ):
-            folders.append(f)
-
-    if not folders:
-        return None
-
-    folders.sort(reverse=True)
-    folder = folders[0]
-
-    orbita = os.path.join(
-        base,
-        folder,
-        "Orbita-Browser.app/Contents/MacOS/Orbita"
-    )
-
-    try:
-        out = subprocess.check_output([orbita, "--version"], text=True)
-        m = re.search(r"Chromium\s+([\d\.]+)", out)
-        if m:
-            return m.group(1)
-    except Exception:
-        pass
-
-    return None
-
-def check_chromedriver_version():
-    orbita_version = get_orbita_chrome_version()
-
-    if not orbita_version:
-        print("[WARN] Orbita の Chrome バージョンを取得できませんでした")
-        return
-
-    if orbita_version != settings.gologin_chrome_version:
-        print("⚠️ [VERSION MISMATCH]")
-        print(f"  Orbita Chrome : {orbita_version}")
-        print(f"  settings      : {settings.gologin_chrome_version}")
-        print("  👉 chromedriver が attach 失敗する可能性があります")
-    else:
-        print(f"[OK] Chrome version matched: {orbita_version}")
 
 # ==========================
 # 既存設定（そのまま）
@@ -106,7 +51,7 @@ returnfoot_daily_limit = 77
 oneday_total_match = 77
 oneday_total_returnfoot = 77
 
-CHROMEDRIVER_VERSION = settings.gologin_chrome_version
+CHROMEDRIVER_VERSION = "141.0.7390.54"
 
 
 # ==========================
@@ -138,88 +83,90 @@ def get_running_profiles() -> Dict[str, int]:
 # ==========================
 # attach
 # ==========================
-
-
-def attach_driver(port: int):
+def attach_driver(port: int) -> webdriver.Chrome:
     opts = Options()
-    opts.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
-
-    # ★ 環境変数 or settings で切替
-    chromedriver_path = os.environ.get(
-        "GOLOGIN_CHROMEDRIVER",
-        settings.chromedriver_path,
+    opts.add_experimental_option(
+        "debuggerAddress", f"127.0.0.1:{port}"
     )
 
-    return webdriver.Chrome(options=opts)
+    service = Service(
+        ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
+    )
+
+    return webdriver.Chrome(service=service, options=opts)
 
 
 # ==========================
 # main
 # ==========================
 def main():
-    check_chromedriver_version()
-    target_names = sys.argv[1:]
+    target_names = sys.argv[1:]  # [] or ["デバック", "レイナ"]
+    drivers = {}  # profile_name -> webdriver
+    waits = {}    # 
     running_profiles = get_running_profiles()
 
     if not running_profiles:
         print("[ERROR] 起動中の GoLogin プロファイルがありません")
         sys.exit(1)
 
+    # 対象決定
     if target_names:
         targets = {
             name: running_profiles[name]
             for name in target_names
             if name in running_profiles
         }
+
+        for name in target_names:
+            if name not in running_profiles:
+                print(f"[WARN] 未起動プロファイル: {name}")
+
+        if not targets:
+            print("[ERROR] 指定プロファイルは全て未起動")
+            sys.exit(1)
     else:
+        # 引数なし → 全プロファイル
         targets = running_profiles
 
     print(f"[INFO] 実行対象プロファイル数: {len(targets)}")
 
     # ==========================
-    # driver をプロファイルごとに1回 attach
+    # happymail メインループ
     # ==========================
-    drivers = {}
+    for loop_cnt in range(99999):
+        for profile_name, port in targets.items():
+            print(f"[OK] profile={profile_name} port={port}")
 
-    for profile_name, port in targets.items():
-        try:
-            print(f"[ATTACH] {profile_name} port={port}")
-            driver = attach_driver(port)
-            wait = WebDriverWait(driver, 10)
-            drivers[profile_name] = {
-                "driver": driver,
-                "wait": wait,
-                "port": port
-            }
-        except Exception:
-            print(f"[ERROR] attach失敗: {profile_name}")
-            print(traceback.format_exc())
+            
 
-    # ==========================
-    # 無限ループ（1周＝全プロファイル1回ずつ）
-    # ==========================
-    loop_cnt = 0
-
-    while True:
-        loop_cnt += 1
-        print(f"\n[LOOP] ===== {loop_cnt} 周目 =====")
-
-        start_loop_time = time.time()
-
-        for profile_name, ctx in drivers.items():
-            driver = ctx["driver"]
-            wait = ctx["wait"]
-            port = ctx["port"]
-
-            print(f"[RUN] profile={profile_name}")
+        
+            start_loop_time = time.time()
 
             try:
+                # ===== attach は1回だけ =====
+                if profile_name not in drivers or drivers[profile_name] is None:
+                    print(f"[ATTACH] {profile_name} port={port}")
+                    driver = attach_driver(port)
+                    drivers[profile_name] = driver
+                    waits[profile_name] = WebDriverWait(driver, 10)
+                else:
+                    driver = drivers[profile_name]
+
+                wait = waits[profile_name]
+                # driver = attach_driver(port)
+                # wait = WebDriverWait(driver, 10)
+
+                print("title:", driver.title)
+                print("current_url:", driver.current_url)
+
                 happymail.catch_warning_screen(driver)
 
                 if "mbmenu.php" not in driver.current_url:
                     driver.get("https://happymail.co.jp/app/html/mbmenu.php")
                     wait.until(
-                        lambda d: d.execute_script("return document.readyState") == "complete"
+                        lambda d: d.execute_script(
+                            "return document.readyState"
+                        ) == "complete"
                     )
 
                 ds_user_display_name = driver.find_element(
@@ -231,7 +178,9 @@ def main():
                         continue
 
                     name = i["name"]
+                    print(f"Processing user: {name}")
 
+                    # ===== 以降 happymail 既存処理（完全そのまま） =====
                     happymail.multidrivers_checkmail(
                         name, driver, wait,
                         i["login_id"], i["password"],
@@ -245,7 +194,7 @@ def main():
                         i["mail_address"],
                         i["gmail_password"]
                     )
-
+                    
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 10 == 0:
                             send_cnt = 2
@@ -278,31 +227,19 @@ def main():
                         1
                     )
 
+            except (NoSuchWindowException, ReadTimeoutError):
+                pass
             except WebDriverException as e:
-                print(f"[ERROR] {profile_name} WebDriverException")
-                print(e)
-
-                # 再 attach（このプロファイルだけ）
-                try:
-                    driver.quit()
-                except Exception:
-                    pass
-
+                print("[ERROR] WebDriverException:", e)
                 time.sleep(3)
-                new_driver = attach_driver(port)
-                drivers[profile_name]["driver"] = new_driver
-                drivers[profile_name]["wait"] = WebDriverWait(new_driver, 10)
-
+                continue
             except Exception:
                 print(traceback.format_exc())
 
-        # ==========================
-        # 全プロファイル終わったら待機
-        # ==========================
+        # 12分待機
         while time.time() - start_loop_time < 720:
             print(" 次のループまで待機中...")
             time.sleep(30)
-
 
 
 
