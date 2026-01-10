@@ -418,7 +418,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       only_new_message = driver.find_elements(By.CLASS_NAME, value="ds_message_tab_item")[1]
       only_new_message.click()
       time.sleep(1)
-      new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini")  
+      new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini") 
+       
       if not len(new_mail):
         list_load = driver.find_elements(By.ID, value="load_bL")
         if len(list_load):

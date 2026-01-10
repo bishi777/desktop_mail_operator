@@ -134,14 +134,8 @@ def main():
     # happymail メインループ
     # ==========================
     for loop_cnt in range(99999):
-        for profile_name, port in targets.items():
-            print(f"[OK] profile={profile_name} port={port}")
-
-            
-
-        
+        for profile_name, port in targets.items():        
             start_loop_time = time.time()
-
             try:
                 # ===== attach は1回だけ =====
                 if profile_name not in drivers or drivers[profile_name] is None:
@@ -156,8 +150,7 @@ def main():
                 # driver = attach_driver(port)
                 # wait = WebDriverWait(driver, 10)
 
-                print("title:", driver.title)
-                print("current_url:", driver.current_url)
+                
 
                 happymail.catch_warning_screen(driver)
 
