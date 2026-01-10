@@ -147,7 +147,7 @@ def attach_driver(port: int):
     # ★ 環境変数 or settings で切替
     chromedriver_path = os.environ.get(
         "GOLOGIN_CHROMEDRIVER",
-        "/Users/bishi16/.wdm/drivers/chromedriver/mac64/141.0.7390.54/chromedriver-mac-arm64/chromedriver"
+        settings.chromedriver_path,
     )
 
     service = Service(executable_path=chromedriver_path)
