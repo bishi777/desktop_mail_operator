@@ -89,11 +89,7 @@ def attach_driver(port: int) -> webdriver.Chrome:
         "debuggerAddress", f"127.0.0.1:{port}"
     )
 
-    service = Service(
-        ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
-    )
-
-    return webdriver.Chrome(service=service, options=opts)
+    return webdriver.Chrome(options=opts)
 
 
 # ==========================
