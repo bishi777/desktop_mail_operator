@@ -24,7 +24,9 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 
 from widget import happymail, func
-
+import os
+def kill_zombie_chromedriver():
+    os.system("pkill -f chromedriver")
 
 # ==========================
 # 既存設定（そのまま）
@@ -129,6 +131,8 @@ def main():
         targets = running_profiles
 
     print(f"[INFO] 実行対象プロファイル数: {len(targets)}")
+    kill_zombie_chromedriver()
+    driver = attach_driver(port)
 
     # ==========================
     # happymail メインループ
@@ -143,11 +147,10 @@ def main():
             start_loop_time = time.time()
 
             try:
-                driver = attach_driver(port)
                 wait = WebDriverWait(driver, 10)
 
-                print("title:", driver.title)
-                print("current_url:", driver.current_url)
+                # print("title:", driver.title)
+                # print("current_url:", driver.current_url)
 
                 happymail.catch_warning_screen(driver)
 
@@ -168,7 +171,7 @@ def main():
                         continue
 
                     name = i["name"]
-                    print(f"Processing user: {name}")
+                    # print(f"Processing user: {name}")
 
                     # ===== 以降 happymail 既存処理（完全そのまま） =====
                     happymail.multidrivers_checkmail(

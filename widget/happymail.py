@@ -430,15 +430,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
         date_elems = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date")
         text = date_elems[0].text if date_elems else ""
         now = datetime.now()
-        print(666)
-        print(f"メッセージ日時テキスト: {text}")
+        # print(f"メッセージ日時テキスト: {text}")
         arrival_datetime = func.parse_arrival_datetime(text, now)
         if arrival_datetime is None:
             # 取れないときは安全側に倒す（4分経過扱い）
             for_minutes_passed = True
         else:
             elapsed_time = now - arrival_datetime
-            print(f"メール到着からの経過時間{elapsed_time}")
+            # print(f"メール到着からの経過時間{elapsed_time}")
             for_minutes_passed = elapsed_time >= timedelta(minutes=4)
 
         if for_minutes_passed:
@@ -1430,7 +1429,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
         user_name = name_field.text
     # 年齢チェック
     user_age = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_age")
-    print(f"年齢チェック {user_age.text} {user_name}")
+    # print(f"年齢チェック {user_age.text} {user_name}")
     if not re.search(r"20代|18.?19", user_age.text):
       # print("年齢が１０〜２０代ではないユーザー　スキップします")
       user_icon_type += 1
