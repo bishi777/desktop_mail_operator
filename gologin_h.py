@@ -83,30 +83,19 @@ def get_running_profiles() -> Dict[str, int]:
 # ==========================
 # attach
 # ==========================
+
+
 def attach_driver(port: int) -> webdriver.Chrome:
     opts = Options()
     opts.add_experimental_option(
         "debuggerAddress", f"127.0.0.1:{port}"
     )
-    service = Service(executable_path=settings.CHROMEDRIVER_PATH)
 
-    return webdriver.Chrome(
-        service=service,
-        options=opts
+    service = Service(
+        ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
     )
-    
 
-# def attach_driver(port: int) -> webdriver.Chrome:
-#     opts = Options()
-#     opts.add_experimental_option(
-#         "debuggerAddress", f"127.0.0.1:{port}"
-#     )
-
-#     service = Service(
-#         ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
-#     )
-
-#     return webdriver.Chrome(service=service, options=opts)
+    return webdriver.Chrome(service=service, options=opts)
 
 
 # ==========================

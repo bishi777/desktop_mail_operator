@@ -63,13 +63,6 @@ if target_profile_names:
 # =====================
 # 起動処理
 # =====================
-chromedriver_path = ChromeDriverManager(
-    driver_version=CHROMEDRIVER_VERSION
-).install()
-
-service = Service(chromedriver_path)
-service.start = lambda: None  # ← 常に起動させない
-
 for p in profiles:
     print(f"[START] profile={p['name']}")
 
@@ -92,7 +85,6 @@ for p in profiles:
             driver_version=CHROMEDRIVER_VERSION
         ).install()
     )
-    service.start = lambda: None
 
     driver = webdriver.Chrome(
         service=service,
