@@ -2415,6 +2415,8 @@ def check_new_mail(happy_info, driver, wait, android=False):
           list_load[0].click()
          time.sleep(2)
     #  新着がある間はループ
+     print(7777)
+     print(f"新着メール数:{len(new_mail)} ")
      while len(new_mail):
     #  while True:
         date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
