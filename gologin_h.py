@@ -88,9 +88,13 @@ def attach_driver(port: int) -> webdriver.Chrome:
     opts.add_experimental_option(
         "debuggerAddress", f"127.0.0.1:{port}"
     )
+    service = Service(executable_path=settings.CHROMEDRIVER_PATH)
 
-    # attach の場合、Service は使わない
-    return webdriver.Chrome(options=opts)
+    return webdriver.Chrome(
+        service=service,
+        options=opts
+    )
+    
 
 # def attach_driver(port: int) -> webdriver.Chrome:
 #     opts = Options()
