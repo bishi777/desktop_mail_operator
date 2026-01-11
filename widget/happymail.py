@@ -428,7 +428,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       only_new_message.click()
       time.sleep(1)
       new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini") 
-       
+      print(777)
+      print(f"新着メール数:{len(new_mail)} ")
       if not len(new_mail):
         list_load = driver.find_elements(By.ID, value="load_bL")
         if len(list_load):
@@ -636,7 +637,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             send_message_clean = func.normalize_text(send_message)
             while not len(send_msg_elem):
               if android:
-                print(777)
                 send_mail.click()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 time.sleep(7)
@@ -2415,8 +2415,7 @@ def check_new_mail(happy_info, driver, wait, android=False):
           list_load[0].click()
          time.sleep(2)
     #  新着がある間はループ
-     print(7777)
-     print(f"新着メール数:{len(new_mail)} ")
+     
      while len(new_mail):
     #  while True:
         date = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date") 
