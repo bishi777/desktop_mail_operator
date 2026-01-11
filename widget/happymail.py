@@ -221,16 +221,17 @@ def nav_item_click(nav_name, driver, wait):
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)    
-      if driver.current_url not in (
-          "https://happymail.co.jp/app/html/message_list.php",
-          "https://happymail.co.jp/sp/app/html/message_list.php",
-      ):    
-        catch_warning_screen(driver)
-        driver.execute_script("arguments[0].click();", nav_link[0])
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)    
-      return True
+      time.sleep(2) 
+      if nav_name == "メッセージ":   
+        if driver.current_url not in (
+            "https://happymail.co.jp/app/html/message_list.php",
+            "https://happymail.co.jp/sp/app/html/message_list.php",
+        ):    
+          catch_warning_screen(driver)
+          driver.execute_script("arguments[0].click();", nav_link[0])
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)    
+        return True
   return False
 
 def login(name, happymail_id, happymail_pass, driver, wait,):
