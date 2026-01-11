@@ -222,6 +222,11 @@ def nav_item_click(nav_name, driver, wait):
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)    
+      if driver.current_url != "https://happymail.co.jp/app/html/message_list.php": 
+        catch_warning_screen(driver)
+        driver.execute_script("arguments[0].click();", nav_link[0])
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)    
       return True
   return False
 
@@ -400,9 +405,10 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
 def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, android=False):
     return_list = []
     new_mail_cnt = 0
-    driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.7)
+    if driver.current_url != "https://happymail.co.jp/sp/app/html/mbmenu.php":
+      driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
     ban_flug = catch_warning_screen(driver)
     if isinstance(ban_flug, str) and "利用できません" in ban_flug:
       return "この登録は利用できません"
