@@ -427,6 +427,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       catch_warning_screen(driver)
       only_new_message = driver.find_elements(By.CLASS_NAME, value="ds_message_tab_item")[1]
       only_new_message.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini") 
       print(777)
