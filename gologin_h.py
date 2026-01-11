@@ -220,20 +220,13 @@ def main():
                         1
                     )
 
-            except (NoSuchWindowException, ReadTimeoutError):
-                pass
+            
             except WebDriverException as e:
                 tb = e.__traceback__
                 last = traceback.extract_tb(tb)[-1]
 
-                filename = last.filename
-                lineno = last.lineno
-                code = linecache.getline(filename, lineno).strip()
-
                 print("[ERROR]", e)
-                print(f"File: {filename}")
-                print(f"Line: {lineno}")
-                print(f"Code: {code}")
+                traceback.print_exc()
                 continue
             except Exception:
                 print(traceback.format_exc())
