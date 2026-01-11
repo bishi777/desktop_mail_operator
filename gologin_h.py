@@ -89,11 +89,20 @@ def attach_driver(port: int) -> webdriver.Chrome:
         "debuggerAddress", f"127.0.0.1:{port}"
     )
 
-    service = Service(
-        ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
-    )
+    # attach の場合、Service は使わない
+    return webdriver.Chrome(options=opts)
 
-    return webdriver.Chrome(service=service, options=opts)
+# def attach_driver(port: int) -> webdriver.Chrome:
+#     opts = Options()
+#     opts.add_experimental_option(
+#         "debuggerAddress", f"127.0.0.1:{port}"
+#     )
+
+#     service = Service(
+#         ChromeDriverManager(driver_version=CHROMEDRIVER_VERSION).install()
+#     )
+
+#     return webdriver.Chrome(service=service, options=opts)
 
 
 # ==========================
@@ -222,7 +231,12 @@ def main():
                 pass
             except WebDriverException as e:
                 print("[ERROR] WebDriverException:", e)
-                time.sleep(3)
+                time.sleep(1)
+                if "invalid session id" in str(e) or "not connected to DevTools" in str(e):
+                    print(f"[REATTACH] {profile_name}")
+                    drivers[profile_name] = None
+                    time.sleep(2)
+                    
                 continue
             except Exception:
                 print(traceback.format_exc())
