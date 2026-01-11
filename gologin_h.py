@@ -155,7 +155,7 @@ def main():
                 happymail.catch_warning_screen(driver)
 
                 if "mbmenu.php" not in driver.current_url:
-                    driver.get("https://happymail.co.jp/app/html/mbmenu.php")
+                    driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
                     wait.until(
                         lambda d: d.execute_script(
                             "return document.readyState"

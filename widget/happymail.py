@@ -222,7 +222,10 @@ def nav_item_click(nav_name, driver, wait):
       driver.execute_script("arguments[0].click();", nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)    
-      if driver.current_url != "https://happymail.co.jp/app/html/message_list.php": 
+      if driver.current_url not in (
+          "https://happymail.co.jp/app/html/message_list.php",
+          "https://happymail.co.jp/sp/app/html/message_list.php",
+      ):    
         catch_warning_screen(driver)
         driver.execute_script("arguments[0].click();", nav_link[0])
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
