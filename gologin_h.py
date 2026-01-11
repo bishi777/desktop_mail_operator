@@ -24,7 +24,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 import settings
 from widget import happymail, func
-
+import linecache
 
 # ==========================
 # 既存設定（そのまま）
@@ -223,13 +223,17 @@ def main():
             except (NoSuchWindowException, ReadTimeoutError):
                 pass
             except WebDriverException as e:
-                print("[ERROR] WebDriverException:", e)
-                time.sleep(1)
-                if "invalid session id" in str(e) or "not connected to DevTools" in str(e):
-                    print(f"[REATTACH] {profile_name}")
-                    drivers[profile_name] = None
-                    time.sleep(2)
-                    
+                tb = e.__traceback__
+                last = traceback.extract_tb(tb)[-1]
+
+                filename = last.filename
+                lineno = last.lineno
+                code = linecache.getline(filename, lineno).strip()
+
+                print("[ERROR]", e)
+                print(f"File: {filename}")
+                print(f"Line: {lineno}")
+                print(f"Code: {code}")
                 continue
             except Exception:
                 print(traceback.format_exc())
