@@ -212,8 +212,13 @@ def nav_item_click(nav_name, driver, wait):
       print(f"ナビゲーターリストの取得に失敗しました")
       return False
   navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
-  print(len(navs))
-  print(777777777)
+  try:
+    text = navs[0].text  # ← 先に確定
+  except StaleElementReferenceException:
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    nav_list = driver.find_elements(By.ID, value='ds_nav')
+    navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
   for nav in navs:
     if nav_name in nav.text:
       if nav_name == "メッセージ":
