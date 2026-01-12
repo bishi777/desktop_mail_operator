@@ -1615,11 +1615,14 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", f_user[user_icon])
         time.sleep(0.1)
         # 年齢チェック
+
         age_elm = f_user[user_icon].find_elements(By.CLASS_NAME, value="ds_like_list_age")
         if "20代" not in age_elm[0].text and "18~19" not in age_elm[0].text:
           print("年齢が１０〜２０代ではないユーザーです")
+          print(len(f_user))
           user_icon += 1
           if len(f_user) <= user_icon:
+            print(888)
             break
           elif user_icon > 50:
             print("送信条件に当てはまらない足跡リストユーザーが50人を超えました")
