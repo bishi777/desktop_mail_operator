@@ -1699,7 +1699,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           # 送信
           send_mail = driver.find_element(By.ID, value="submitButton")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
-          # send_mail.click()
+          send_mail.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
           send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
