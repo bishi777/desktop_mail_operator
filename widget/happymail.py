@@ -1624,6 +1624,11 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           print(len(f_user))
           user_icon += 1
           if len(f_user) <= user_icon:
+            # ページの最後までスクロール
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.7)
+            f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
             print(888)
             break
           elif user_icon > 50:
