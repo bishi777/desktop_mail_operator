@@ -406,7 +406,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, android=False):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android=False):
     return_list = []
     new_mail_cnt = 0
     if driver.current_url != "https://happymail.co.jp/sp/app/html/mbmenu.php":
@@ -430,7 +430,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini") 
-      print(777)
       print(f"新着メール数:{len(new_mail)} ")
       if not len(new_mail):
         list_load = driver.find_elements(By.ID, value="load_bL")
@@ -438,6 +437,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           list_load[0].click()
         time.sleep(2)
       #新着がある間はループ
+      loop_cnt = 0
       while len(new_mail):
       # while True:
         date_elems = new_mail[0].find_elements(By.CLASS_NAME, value="ds_message_date")
@@ -766,7 +766,10 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             new_mail_cnt += 1
             if len(new_mail) <= new_mail_cnt:
               break
-
+        loop_cnt += 1
+        if loop_cnt >= return_check_cnt:
+          print("新着メール確認ループ回数上限に達しました")
+          break
     if len(return_list):
       return return_list
     else:

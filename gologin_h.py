@@ -210,15 +210,15 @@ def main():
                                 send_cnt,
                             )
 
-                    happymail.mutidriver_make_footprints(
-                        name,
-                        i["login_id"],
-                        i["password"],
-                        driver,
-                        wait,
-                        7,
-                        1
-                    )
+                        happymail.mutidriver_make_footprints(
+                            name,
+                            i["login_id"],
+                            i["password"],
+                            driver,
+                            wait,
+                            7,
+                            1
+                        )
 
             
             except WebDriverException as e:
@@ -233,7 +233,7 @@ def main():
 
         # 12分待機
         while time.time() - start_loop_time < 720:
-            print(" 次のループまで待機中...")
+            print(f" 次のループまで待機中...経過時間: {int(time.time() - start_loop_time)}秒", end="\r")
             time.sleep(30)
 
 
