@@ -1455,12 +1455,14 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     if duplication_user:
+      print(1234)
       name_field = type_users[user_icon_type+1].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
       user_name_list.append(user_name) 
       type_button = type_users[user_icon_type+1].find_elements(By.CLASS_NAME, value="type_button")
       type_button[0].click()
     else:
+      print(f"タイプ返しユーザー: {user_name}")
       type_button = type_users[user_icon_type].find_elements(By.CLASS_NAME, value="type_button")
       type_button[0].click()
     return_type_counted += 1
