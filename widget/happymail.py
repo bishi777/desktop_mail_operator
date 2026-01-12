@@ -1366,8 +1366,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   user_icon_type = 0
   #  タイプをクリック
   nav_flug = nav_item_click("タイプ", driver, wait)
-  if not nav_flug:
-    return
+  # if not nav_flug:
+  #   return
   # 「相手から」をクリック
   from_other = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")[0]
   from_other.click()
