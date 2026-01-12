@@ -214,6 +214,8 @@ def nav_item_click(nav_name, driver, wait):
   navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
   try:
     text = navs[0].text  # ← 先に確定
+    print(777)
+    print(text)
   except StaleElementReferenceException:
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
