@@ -1617,7 +1617,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         # 年齢チェック
         age_elm = f_user[user_icon].find_elements(By.CLASS_NAME, value="ds_like_list_age")
         if "20代" not in age_elm[0].text and "18~19" not in age_elm[0].text:
-          # print("年齢が１０〜２０代ではないユーザーです")
+          print("年齢が１０〜２０代ではないユーザーです")
           user_icon += 1
           if len(f_user) <= user_icon:
             break
@@ -1865,8 +1865,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
   user_icon = 0
   # num = random.randint(8)
   nav_flug = nav_item_click("プロフ検索", driver, wait)
-  if not nav_flug:
-    print(f"{name} :プロフ検索に移動できません")
+  # if not nav_flug:
+  #   print(f"{name} :プロフ検索に移動できません")
     # print(driver.current_url)
     # print(f"{name} {login_id} {password}  でログインします")
     # login_flug = login(name, login_id, password, driver, wait,)
@@ -1879,7 +1879,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     # print(f"{name}のログインに成功しました")
     # print(driver.current_url)
     # nav_flug = nav_item_click("プロフ検索", driver, wait)
-    return
+    # return
   for i in range(mf_cnt):
     catch_warning_screen(driver)
     # 並びの表示を設定
