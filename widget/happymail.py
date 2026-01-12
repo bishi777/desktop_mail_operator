@@ -212,6 +212,8 @@ def nav_item_click(nav_name, driver, wait):
       print(f"ナビゲーターリストの取得に失敗しました")
       return False
   navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
+  print(len(navs))
+  print(777777777)
   for nav in navs:
     if nav_name in nav.text:
       if nav_name == "メッセージ":

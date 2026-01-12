@@ -158,8 +158,7 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # マッチング返し、
-          if 6 <= datetime.now().hour < 22:
-            
+          if 6 <= datetime.now().hour < 22: 
             if loop_cnt ==1:
               send_cnt = 1
             elif loop_cnt % 10 == 0:
@@ -169,7 +168,7 @@ try:
             else:
               send_cnt = 0
             print(f"{loop_cnt}回目のループ処理 send_cnt: {send_cnt} ")
-            if send_cnt and report_dict[name][1]:
+            if send_cnt:
               # print(f"{name}の送信数 {report_dict[name][0]} ")
               # print(f"返しフラグ {report_dict[name][1]} ")
               if report_dict[name][1] and "利用できません" not in happymail_new_list:
