@@ -212,26 +212,12 @@ def nav_item_click(nav_name, driver, wait):
       print(f"ナビゲーターリストの取得に失敗しました")
       return False
   navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
-  try:
-    text = navs[0].text  # ← 先に確定
-    print(777)
-    print(text)
-  except StaleElementReferenceException:
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
-    nav_list = driver.find_elements(By.ID, value='ds_nav')
-    navs = nav_list[0].find_elements(By.CLASS_NAME, value="ds_nav_item")
   for nav in navs:
     if nav_name in nav.text:
       if nav_name == "メッセージ":
         new_message = nav.find_elements(By.CLASS_NAME, value="ds_red_circle")
         if not len(new_message):
           return "新着メールなし"   
-      nav_link = nav.find_elements(By.TAG_NAME, value="a")
-      driver.execute_script("arguments[0].click();", nav_link[0])
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2) 
-      if nav_name == "メッセージ":   
         if driver.current_url not in (
             "https://happymail.co.jp/app/html/message_list.php",
             "https://happymail.co.jp/sp/app/html/message_list.php",
@@ -241,6 +227,11 @@ def nav_item_click(nav_name, driver, wait):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)    
         return True
+      nav_link = nav.find_elements(By.TAG_NAME, value="a")
+      driver.execute_script("arguments[0].click();", nav_link[0])
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2) 
+      break
   return False
 
 def login(name, happymail_id, happymail_pass, driver, wait,):
