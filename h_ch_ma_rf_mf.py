@@ -176,8 +176,8 @@ try:
                   return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
                   # print(return_foot_counted)
                   # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-                  report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]   
-                  report_dict[name][2].extend(return_foot_counted[5])
+                  # report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]   
+                  # report_dict[name][2].extend(return_foot_counted[5])
                   # if total_daily_limit <= report_dict[name][0]:
                   #   print("午前中のマッチング返しの上限に達しました。")
                   #   limit_text = f"送信数：{report_dict[name][0]} \n"
@@ -185,9 +185,9 @@ try:
                   #   report_dict[name][1] = False
                     
                 except Exception as e:
-                  print(f"マッチング返し{name}")
+                  print(f"{name}")
                   print(traceback.format_exc())
-                  func.send_error(f"マッチング返し{name}", traceback.format_exc())
+                  func.send_error(f"{name}", traceback.format_exc())
             # 足跡付け
             try:
               happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
