@@ -68,7 +68,7 @@ try:
   oneday_total_returnfoot = 0
   last_reset_date = (datetime.now() - timedelta(days=1)).date()
   report_dict = {}
-  mf_cnt = 8
+  mf_cnt = random.randint(5,9)
   mf_type_cnt = 2
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
@@ -230,7 +230,7 @@ try:
       if wait_cnt % 2 == 0:
         print(f"待機中~~ {elapsed_time} ")
       wait_cnt += 1
-    roop_cnt += 1
+    loop_cnt += 1
     
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
