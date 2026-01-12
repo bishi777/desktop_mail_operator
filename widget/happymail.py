@@ -417,7 +417,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
     if isinstance(ban_flug, str) and "利用できません" in ban_flug:
       return "この登録は利用できません"
     new_message_flug = nav_item_click("メッセージ", driver, wait)
-    print(f"新着メールフラグ: {new_message_flug}")
+    # print(f"新着メールフラグ: {new_message_flug}")
     if new_message_flug == "新着メールなし":
       return
     else:  
