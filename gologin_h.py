@@ -186,7 +186,8 @@ def main():
                         i["confirmation_mail"],
                         i["chara_image"],
                         i["mail_address"],
-                        i["gmail_password"]
+                        i["gmail_password"],
+                        return_check_cnt,
                     )
                     
                     if 6 <= datetime.now().hour < 22:
