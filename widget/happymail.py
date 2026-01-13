@@ -1892,6 +1892,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     # print(driver.current_url)
     # nav_flug = nav_item_click("プロフ検索", driver, wait)
     # return
+  print(f"{mf_cnt}件足あと {type_cnt}件タイプ付けします")
   for i in range(mf_cnt):
     catch_warning_screen(driver)
     # 並びの表示を設定
