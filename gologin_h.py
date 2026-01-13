@@ -50,6 +50,7 @@ matching_daily_limit = 77
 returnfoot_daily_limit = 77
 oneday_total_match = 77
 oneday_total_returnfoot = 77
+return_check_cnt = 2
 
 CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
 
