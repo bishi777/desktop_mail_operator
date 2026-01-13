@@ -189,10 +189,11 @@ def main():
                         i["gmail_password"],
                         return_check_cnt,
                     )
-                    
+                    if name  in ["りな", "いおり"]:
+                        continue
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 10 == 0:
-                            send_cnt = 2
+                            send_cnt = 1
                         elif loop_cnt % 5 == 0:
                             send_cnt = 1
                         else:
