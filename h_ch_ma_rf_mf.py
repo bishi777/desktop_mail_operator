@@ -95,6 +95,7 @@ try:
           continue
         if name == i["name"]:
         # if True:
+          
           print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
           # if "きりこ" != name:
           #   total_daily_limit = 10
@@ -157,6 +158,9 @@ try:
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           except Exception as e:
             print(traceback.format_exc())
+          # 作成して三日たってないキャラリスト
+          if name  in ["りな", "いおり"]:
+            continue
           # マッチング返し、
           if 6 <= datetime.now().hour < 22: 
             if loop_cnt ==1:
@@ -167,6 +171,8 @@ try:
               send_cnt = 1
             else:
               send_cnt = 0
+            
+              
             print(f"{loop_cnt}回目のループ処理 send_cnt: {send_cnt} ")
             if send_cnt:
               # print(f"{name}の送信数 {report_dict[name][0]} ")
