@@ -414,6 +414,11 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
       driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
+    else:
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+
     ban_flug = catch_warning_screen(driver)
     if isinstance(ban_flug, str) and "利用できません" in ban_flug:
       return "この登録は利用できません"
