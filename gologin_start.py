@@ -69,7 +69,8 @@ for p in profiles:
     gl = GoLogin({
         "token": TOKEN,
         "profile_id": p["id"],
-        "extra_params": ["--log-level=3"]
+        "extra_params": ["--log-level=3"],
+        "proxy": None,
     })
 
     debugger_address = gl.start()
