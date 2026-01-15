@@ -34,7 +34,10 @@ parser.add_argument(
 args = parser.parse_args()
 
 target_profile_names = args.profiles  # [] or ["デバック", "えりか"]
-
+# PROXY_HOST = settings.JPROXY_PROXYS[target_profile_names]["HOST"]
+# PROXY_PORT = settings.JPROXY_PROXYS[target_profile_names]["PORT"]
+# PROXY_USER =  settings.JPROXY_PROXYS[target_profile_names]["USER"]
+# PROXY_PASS = settings.JPROXY_PROXYS[target_profile_names]["PASS"]
 # =====================
 # プロファイル一覧取得
 # =====================
@@ -65,11 +68,24 @@ if target_profile_names:
 # =====================
 for p in profiles:
     print(f"[START] profile={p['name']}")
-
     gl = GoLogin({
         "token": TOKEN,
         "profile_id": p["id"],
+        "skipProxyCheck": True,
+        "setTimezone": False,
         "extra_params": ["--log-level=3"],
+        
+        
+        
+        "canvas": {
+            "mode": "noise"
+        },
+        "audioContext": {
+            "mode": "noise"
+        },
+        "webgl": {
+            "mode": "noise"
+        }
     })
 
     debugger_address = gl.start()
