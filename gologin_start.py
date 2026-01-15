@@ -70,7 +70,6 @@ for p in profiles:
         "token": TOKEN,
         "profile_id": p["id"],
         "extra_params": ["--log-level=3"],
-        "proxy": None,
     })
 
     debugger_address = gl.start()
