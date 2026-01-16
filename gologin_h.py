@@ -200,7 +200,7 @@ def main():
                             send_cnt = 1
                         else:
                             send_cnt = 0
-
+                        print(f"ループ回数: {loop_cnt} send_cnt: {send_cnt}")
                         if send_cnt:
                             happymail.return_footpoint(
                                 name, driver, wait,

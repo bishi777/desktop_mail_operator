@@ -163,10 +163,11 @@ try:
           except Exception as e:
             print(traceback.format_exc())
           # 作成して三日たってないキャラリスト
-          if name  in ["りな", "いおり"]:
-            continue
+          # if name  in ["りな", "いおり"]:
+          #   continue
           # マッチング返し、
           if 6 <= datetime.now().hour < 22: 
+            print()
             if loop_cnt ==1:
               send_cnt = 1
             elif loop_cnt % 10 == 0:
@@ -175,7 +176,6 @@ try:
               send_cnt = 1
             else:
               send_cnt = 0
-            
               
             print(f"{loop_cnt}回目のループ処理 send_cnt: {send_cnt} ")
             if send_cnt:
