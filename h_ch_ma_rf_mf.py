@@ -128,7 +128,10 @@ try:
           # 新着メールチェック
           try:
             happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password, return_check_cnt)
+            
             if happymail_new:
+              print(777)
+              print(happymail_new)
               happymail_new_list.extend(happymail_new)
             if happymail_new_list:
               title = f"happy新着 {name}"
@@ -146,6 +149,7 @@ try:
                     text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
               # メール送信
               if mail_info:
+                print(666)
                 func.send_mail(text, mail_info, title, img_path)
               else:
                 print("通知メールの送信に必要な情報が不足しています")
