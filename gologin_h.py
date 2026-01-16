@@ -175,6 +175,7 @@ def main():
                     print(f"Processing user: {name}")
 
                     # ===== 以降 happymail 既存処理（完全そのまま） =====
+                    print(f"新着メール確認")
                     happymail.multidrivers_checkmail(
                         name, driver, wait,
                         i["login_id"], i["password"],
@@ -189,8 +190,9 @@ def main():
                         i["gmail_password"],
                         return_check_cnt,
                     )
-                    if name  in ["りな", "いおり"]:
-                        continue
+                    print(f"新着メール確認 完了")
+                    # if name  in ["りな", "いおり"]:
+                    #     continue
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 10 == 0:
                             send_cnt = 1
