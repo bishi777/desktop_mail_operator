@@ -213,10 +213,10 @@ def main_syori():
           #   send_cnt = 3
           # else:
           #   send_cnt = 2  
-          print("変更前:", func.get_current_ip())
-          func.change_tor_ip()
-          time.sleep(6)
-          print("変更後:", func.get_current_ip())
+          # print("変更前:", func.get_current_ip())
+          # func.change_tor_ip()
+          # time.sleep(6)
+          # print("変更後:", func.get_current_ip())
 
           try:
             top_image_flug = pcmax_2.check_top_image(name,driver)
@@ -253,9 +253,9 @@ def main_syori():
             footprint_count = 14
             returnfoot_cnt = 2
           else:
-            iikamo_cnt = 2
-            footprint_count = 7
-            returnfoot_cnt = 2
+            iikamo_cnt = 1
+            footprint_count = random.randint(4,8)
+            returnfoot_cnt = 1
           if fst_flug:
             if 6 <= now.hour < 24:  
               # roll_cntが0の時
@@ -285,7 +285,7 @@ def main_syori():
                   print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                   print(traceback.format_exc())
           else:
-            if 6 <= now.hour < 24:  
+            if 6 <= now.hour < 23:  
               print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
               rf_cnt = 0
               try:
@@ -298,12 +298,12 @@ def main_syori():
                 print(driver.current_url)
                 print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                 print(traceback.format_exc())
-            try:
-              print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-              pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
-            except Exception as e:
-              print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
-              traceback.print_exc()
+              try:
+                print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+                pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+              except Exception as e:
+                print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+                traceback.print_exc()
           if now.hour % 6 == 0 or now.hour == 22:
             if send_flug:
               try:
