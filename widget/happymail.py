@@ -1383,6 +1383,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     type_list = driver.find_element(By.ID , value="list_myself")
     type_users = type_list.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     type_users_wait_cnt = 0
+    
     if len(type_users) <= user_icon_type: 
       # print("ページの最後までスクロール")
       driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
@@ -1395,7 +1396,7 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       # print(len(type_users))
       # print(user_icon_type)
       # print('---------')
-      if under_scroll_count > 3:
+      if under_scroll_count > 7:
         print(999)
         break
     while len(type_users) == 0:
