@@ -1114,10 +1114,10 @@ def make_footprints(driver, wait):
   if "rgba(0, 0, 0, 0)" in age26_29[0].value_of_css_property("background-color"):
     age26_29[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  age30_34 = driver.find_elements(By.XPATH, '//label[@for="CheckAge4"]')
-  if "rgba(0, 0, 0, 0)" in age30_34[0].value_of_css_property("background-color"):
-    age30_34[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  # age30_34 = driver.find_elements(By.XPATH, '//label[@for="CheckAge4"]')
+  # if "rgba(0, 0, 0, 0)" in age30_34[0].value_of_css_property("background-color"):
+  #   age30_34[0].click()
+  #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # 身長を選択
   height150 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight1"]')
   if "rgba(0, 0, 0, 0)" in height150[0].value_of_css_property("background-color"):
@@ -1139,15 +1139,21 @@ def make_footprints(driver, wait):
   if "rgba(0, 0, 0, 0)" in height169[0].value_of_css_property("background-color"):
     height169[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  height174 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight6"]')
-  if "rgba(0, 0, 0, 0)" in height174[0].value_of_css_property("background-color"):
-    height174[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  height179 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight7"]')
-  if "rgba(0, 0, 0, 0)" in height179[0].value_of_css_property("background-color"):
-    height179[0].click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  # height174 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight6"]')
+  # if "rgba(0, 0, 0, 0)" in height174[0].value_of_css_property("background-color"):
+  #   height174[0].click()
+  #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  # height179 = driver.find_elements(By.XPATH, '//label[@for="CheckHeight7"]')
+  # if "rgba(0, 0, 0, 0)" in height179[0].value_of_css_property("background-color"):
+  #   height179[0].click()
+  #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # 地域を選択
+  accordion03 = driver.find_elements(By.ID, value="accordion03")
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", accordion03[0])
+  time.sleep(0.5)
+  accordion03[0].click()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.5)
   tokyo_state = selected_state = driver.find_elements(By.XPATH, '//label[@for="CheckState-9"]')
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", tokyo_state[0])
   time.sleep(1)
@@ -1174,7 +1180,7 @@ def make_footprints(driver, wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   users = driver.find_elements(By.CLASS_NAME, value="search_list_col")
-  makefoot_cnt = random.randint(10, 15)
+  makefoot_cnt = random.randint(3, 7)
   for i in range(makefoot_cnt):
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", users[i])
     time.sleep(1)
@@ -1217,6 +1223,11 @@ def return_footprint(data, driver,wait,submitted_users):
     # NEW があるかチェック 
     # if not "New" in foot_users[i].text:
     #   continue
+    # 年齢チェック
+    age_elem = foot_users[i].find_elements(By.CLASS_NAME, 'list_subtext')[0]
+    if not "2" in age_elem.text:
+      # print(f"年齢が条件外です: {age_elem.text}")
+      continue
     # 送信済ユーザーかチェック
     foot_user_name = foot_users[i].find_element(By.CLASS_NAME, value="icon_sex_m").text
     if foot_user_name in submitted_users:
@@ -1274,8 +1285,8 @@ def return_footprint(data, driver,wait,submitted_users):
     if send_status:
       return_foot_message_cnt += 1
       print(f"jmail 足跡返し　{foot_user_name} : {return_foot_message_cnt}件送信")
-    if return_foot_message_cnt == 2:
-      print("送信上限2件に達しました")
+    if return_foot_message_cnt == 1:
+      print("送信上限1件に達しました")
       driver.refresh()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -1366,15 +1377,18 @@ def re_post(data, post_areas, driver,wait):
   print("投稿完了")
   time.sleep(15)
   # ~~~~~~~~~地域変更〜〜〜〜〜〜〜〜〜〜〜〜〜
-  for area in random.sample(post_areas, 3):
-    print(f"エリア変更：　{area}")
-    change_areas(area, driver, wait)
-    post_set(post_title, post_contents, driver, wait)
-    print("投稿完了")
-    # 間隔規制
-    time.sleep(15)
-  print("エリア変更：　東京")
-  change_areas("東京", driver, wait)
+  area_select = driver.find_element(By.ID, value="writeState")
+  select = Select(area_select)
+  select.select_by_visible_text()
+  # for area in random.sample(post_areas, 3):
+  #   print(f"エリア変更：　{area}")
+  #   change_areas(area, driver, wait)
+  #   post_set(post_title, post_contents, driver, wait)
+  #   print("投稿完了")
+  #   # 間隔規制
+  #   time.sleep(15)
+  # print("エリア変更：　東京")
+  # change_areas("東京", driver, wait)
 
 
 

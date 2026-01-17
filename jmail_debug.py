@@ -21,7 +21,6 @@ spare_mail_info = [
   "siliboco68@gmail.com",
   "akkcxweqzdplcymh",
 ]
-pcmax_datas = user_data["jmail"]
 post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
 api_url = "https://meruopetyan.com/api/update-submitted-users/"
@@ -33,7 +32,7 @@ def jmail_debug(headless):
   jmail_datas = user_data["jmail"]
   chara_name_list = [data["name"] for data in jmail_datas]
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
-  
+  loop_cnt = 0
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info])
     start_loop_time = time.time()
@@ -56,21 +55,24 @@ def jmail_debug(headless):
         print(f"❌ {name} エラー発生:", e)
         traceback.print_exc()
         continue
-      # # 足あと返し
-      # try:
-      #   jmail.return_footprint(data,driver,wait,submitted_users)
-      # except TimeoutException as e:
-      #   print(f"足跡返し　TimeoutException")
-      #   driver.refresh()
-      # 足あと付け
-      # try:
-      #   jmail.make_footprints( driver, wait)
-      # except TimeoutException as e:
-      #   print(f"足跡付け　TimeoutException")
-      #   driver.refresh()
-      #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      #   time.sleep(2)
-      
+      print(f"ループ回数: {loop_cnt} }")
+      if loop_cnt % 10 == 0: 
+        # 足あと返し
+        try:
+          jmail.return_footprint(data,driver,wait,submitted_users)
+        except TimeoutException as e:
+          print(f"足跡返し　TimeoutException")
+          driver.refresh()
+      elif loop_cnt % 5 == 0: 
+        # 足あと付け
+        try:
+          jmail.make_footprints( driver, wait)
+        except TimeoutException as e:
+          print(f"足跡付け　TimeoutException")
+          driver.refresh()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+        
       #   if repost_flug:
       #     driver.refresh()
       #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -101,37 +103,39 @@ def jmail_debug(headless):
       except requests.exceptions.RequestException as e:
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
+    # post_areasリストからランダムにエリアを１から3つ選択して荒らしい変数に入れる
     
-    if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
-      if repost_flug:
-        if chara_name_list:
-          print(chara_name_list)
-          repost_chara = chara_name_list.pop()
-          print(chara_name_list)
-          # 掲示板投稿
-          for name, data in drivers.items():
-            if name == repost_chara:            
-              print(f"📢 再投稿: {name}")
-              driver = drivers[name]["driver"]
-              wait = drivers[name]["wait"]
-              jmail.re_post(data, post_areas, driver,wait)
-              time.sleep(5)
-              driver.refresh()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(2)
-              break
+    # if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
+    # if True:
+    #   if repost_flug:
+    #     if chara_name_list:
+    #       print(chara_name_list)
+    #       repost_chara = chara_name_list.pop()
+    #       print(chara_name_list)
+    #       # 掲示板投稿
+    #       for name, data in drivers.items():
+    #         if name == repost_chara:            
+    #           print(f"📢 再投稿: {name}")
+    #           driver = drivers[name]["driver"]
+    #           wait = drivers[name]["wait"]
+    #           jmail.re_post(data, post_areas, driver,wait)
+    #           time.sleep(5)
+    #           driver.refresh()
+    #           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #           time.sleep(2)
+    #           break
           
-        else:
-          repost_flug = False
-          chara_name_list = [data["name"] for data in jmail_datas]   
-    else:
-      repost_flug = True
+    #     else:
+    #       repost_flug = False
+    #       chara_name_list = [data["name"] for data in jmail_datas]   
+    # else:
+    #   repost_flug = True
 
     
-
+    loop_cnt += 1
     elapsed_time = time.time() - start_loop_time
     wait_cnt = 0
-    while elapsed_time < 600:
+    while elapsed_time < random.randint(580,860):
       time.sleep(20)
       elapsed_time = time.time() - start_loop_time
       if wait_cnt % 3 == 0:
