@@ -55,7 +55,7 @@ def jmail_debug(headless):
         print(f"❌ {name} エラー発生:", e)
         traceback.print_exc()
         continue
-      print(f"ループ回数: {loop_cnt} }")
+      print(f"ループ回数: {loop_cnt}")
       if loop_cnt % 10 == 0: 
         # 足あと返し
         try:
@@ -104,7 +104,7 @@ def jmail_debug(headless):
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
     # post_areasリストからランダムにエリアを１から3つ選択して荒らしい変数に入れる
-    
+
     # if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
     # if True:
     #   if repost_flug:
