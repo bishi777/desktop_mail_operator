@@ -191,8 +191,8 @@ def main():
                         return_check_cnt,
                     )
                     print(f"新着メール確認 完了")
-                    # if name  in ["りな", "いおり"]:
-                    #     continue
+                    if name  in ["えりか",]:
+                        continue
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 10 == 0:
                             send_cnt = 1
@@ -221,8 +221,8 @@ def main():
                             i["password"],
                             driver,
                             wait,
-                            random.randint(5,9),
-                            random.randint(1,2)
+                            random.randint(3,9),
+                            random.randint(0,2)
                         )
 
             
@@ -236,8 +236,8 @@ def main():
             except Exception:
                 print(traceback.format_exc())
 
-        # 12分待機
-        while time.time() - start_loop_time < 720:
+        # 平均12分待機
+        while time.time() - start_loop_time < random.randint(580,860):
             print(f" 次のループまで待機中...経過時間: {int(time.time() - start_loop_time)}秒", end="\r")
             time.sleep(10)
 
