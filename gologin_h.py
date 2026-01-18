@@ -175,24 +175,23 @@ def main():
                     print(f"Processing user: {name}")
 
                     # ===== 以降 happymail 既存処理（完全そのまま） =====
-                    print(f"新着メール確認")
-                    happymail.multidrivers_checkmail(
-                        name, driver, wait,
-                        i["login_id"], i["password"],
-                        i["return_foot_message"],
-                        i["fst_message"],
-                        i["post_return_message"],
-                        i["second_message"],
-                        i["condition_message"],
-                        i["confirmation_mail"],
-                        i["chara_image"],
-                        i["mail_address"],
-                        i["gmail_password"],
-                        return_check_cnt,
-                    )
-                    print(f"新着メール確認 完了")
-                    if name  in ["えりか",]:
-                        continue
+                    if 7 <= datetime.now().hour < 23:
+                        print(f"新着メール確認")
+                        happymail.multidrivers_checkmail(
+                            name, driver, wait,
+                            i["login_id"], i["password"],
+                            i["return_foot_message"],
+                            i["fst_message"],
+                            i["post_return_message"],
+                            i["second_message"],
+                            i["condition_message"],
+                            i["confirmation_mail"],
+                            i["chara_image"],
+                            i["mail_address"],
+                            i["gmail_password"],
+                            return_check_cnt,
+                        )
+                        print(f"新着メール確認 完了")
                     if 6 <= datetime.now().hour < 22:
                         if loop_cnt % 8 == 0:
                             send_cnt = 1
