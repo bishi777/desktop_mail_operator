@@ -194,10 +194,10 @@ def main():
                     if name  in ["えりか",]:
                         continue
                     if 6 <= datetime.now().hour < 22:
-                        if loop_cnt % 10 == 0:
+                        if loop_cnt % 8 == 0:
                             send_cnt = 1
                         elif loop_cnt % 5 == 0:
-                            send_cnt = 1
+                            send_cnt = 0
                         else:
                             send_cnt = 0
                         print(f"ループ回数: {loop_cnt} send_cnt: {send_cnt}")
