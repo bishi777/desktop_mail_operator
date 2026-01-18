@@ -220,22 +220,23 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       # print(f"メール到着からの経過時間{elapsed_time}")
       # print(interacting_user_name)
 
-      # 年齢を取得
-      age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
-      match = re.search(r"\d+～\d+", age_element.text)
-      if match:
-        age_range = match.group()
-        # 「～」で分割して数値に変換
-        min_age, max_age = map(int, age_range.split("～"))
-        if max_age <= 30:
-          print("30歳以下です")
-          young_flag = True
-        else:
-          print("31歳以上です")
-          young_flag = False
+      
       # if True:
       if elapsed_time >= timedelta(minutes=4):
         print("4分以上経過しています。")
+        # 年齢を取得
+        age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
+        match = re.search(r"\d+～\d+", age_element.text)
+        if match:
+          age_range = match.group()
+          # 「～」で分割して数値に変換
+          min_age, max_age = map(int, age_range.split("～"))
+          if max_age <= 30:
+            print("30歳以下です")
+            young_flag = True
+          else:
+            print("31歳以上です")
+            young_flag = False
         if young_flag:
           if interacting_user_name not in young_submitted_users:
             young_submitted_users.append(interacting_user_name)
