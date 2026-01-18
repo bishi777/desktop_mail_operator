@@ -73,19 +73,7 @@ def jmail_debug(headless):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
         
-      #   if repost_flug:
-      #     driver.refresh()
-      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      #     time.sleep(2)
-      #     jmail.re_post(data, post_areas, driver,wait)
-      #     repost_flug = False
-      #     driver.refresh()
-      #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      #     time.sleep(2)
-      # except Exception as e:
-      #   print(f"❌ {name} エラー発生:", e)
-      #   traceback.print_exc()
-      #   continue
+        
       # 送信履歴ユーザー更新
       # print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
       payload = {
@@ -103,33 +91,32 @@ def jmail_debug(headless):
       except requests.exceptions.RequestException as e:
         print("⚠️ 通信エラー:", e)
         traceback.print_exc()  
-    # post_areasリストからランダムにエリアを１から3つ選択して荒らしい変数に入れる
 
-    # if (8 <= now.hour <= 9) or (17 <= now.hour <= 18):
+    if (7 <= now.hour <= 8):
     # if True:
-    #   if repost_flug:
-    #     if chara_name_list:
-    #       print(chara_name_list)
-    #       repost_chara = chara_name_list.pop()
-    #       print(chara_name_list)
-    #       # 掲示板投稿
-    #       for name, data in drivers.items():
-    #         if name == repost_chara:            
-    #           print(f"📢 再投稿: {name}")
-    #           driver = drivers[name]["driver"]
-    #           wait = drivers[name]["wait"]
-    #           jmail.re_post(data, post_areas, driver,wait)
-    #           time.sleep(5)
-    #           driver.refresh()
-    #           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    #           time.sleep(2)
-    #           break
+      if repost_flug:
+        if chara_name_list:
+          print(chara_name_list)
+          repost_chara = chara_name_list.pop()
+          print(chara_name_list)
+          # 掲示板投稿
+          for name, data in drivers.items():
+            if name == repost_chara:            
+              print(f"📢 再投稿: {name}")
+              driver = drivers[name]["driver"]
+              wait = drivers[name]["wait"]
+              jmail.re_post(data, post_areas, driver,wait)
+              time.sleep(5)
+              driver.refresh()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              break
           
-    #     else:
-    #       repost_flug = False
-    #       chara_name_list = [data["name"] for data in jmail_datas]   
-    # else:
-    #   repost_flug = True
+        else:
+          repost_flug = False
+          chara_name_list = [data["name"] for data in jmail_datas]   
+    else:
+      repost_flug = True
 
     
     loop_cnt += 1
