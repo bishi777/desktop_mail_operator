@@ -170,10 +170,8 @@ def main():
                 for i in happy_info:
                     if i["name"] != ds_user_display_name:
                         continue
-
                     name = i["name"]
                     print(f"Processing user: {name}")
-
                     # ===== 以降 happymail 既存処理（完全そのまま） =====
                     if 7 <= datetime.now().hour < 23:
                         print(f"新着メール確認")
