@@ -25,6 +25,7 @@ post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
 api_url = "https://meruopetyan.com/api/update-submitted-users/"
 # api_url = "http://127.0.0.1:8000/api/update-submitted-users/"
+rf_flug = True
 
 def jmail_debug(headless):
   repost_flug = True
@@ -56,14 +57,7 @@ def jmail_debug(headless):
         traceback.print_exc()
         continue
       print(f"ループ回数: {loop_cnt}")
-      if loop_cnt % 10 == 0: 
-        # 足あと返し
-        try:
-          jmail.return_footprint(data,driver,wait,submitted_users)
-        except TimeoutException as e:
-          print(f"足跡返し　TimeoutException")
-          driver.refresh()
-      elif loop_cnt % 5 == 0: 
+      if loop_cnt % 20 == 0: 
         # 足あと付け
         try:
           jmail.make_footprints( driver, wait)
@@ -72,7 +66,18 @@ def jmail_debug(headless):
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
-        
+      if  (7 <= now.hour <= 8):
+        if rf_flug:
+          # 足あと返し
+          try:
+            jmail.return_footprint(data,driver,wait,submitted_users)
+          except TimeoutException as e:
+            print(f"足跡返し　TimeoutException")
+            driver.refresh()
+          rf_flug = False
+      else:
+        rf_flug = True
+
         
       # 送信履歴ユーザー更新
       # print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
