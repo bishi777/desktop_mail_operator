@@ -107,6 +107,7 @@ def main():
     drivers = {}  # profile_name -> webdriver
     waits = {}    # 
     running_profiles = get_running_profiles()
+    execution_flag = True
 
     if not running_profiles:
         print("[ERROR] 起動中の GoLogin プロファイルがありません")
@@ -137,106 +138,119 @@ def main():
     # happymail メインループ
     # ==========================
     for loop_cnt in range(99999):
-        for profile_name, port in targets.items():        
-            start_loop_time = time.time()
-            try:
-                # ===== attach は1回だけ =====
-                if profile_name not in drivers or drivers[profile_name] is None:
-                    print(f"[ATTACH] {profile_name} port={port}")
-                    driver = attach_driver(port)
-                    drivers[profile_name] = driver
-                    waits[profile_name] = WebDriverWait(driver, 10)
-                else:
-                    driver = drivers[profile_name]
+        if 6 <= datetime.now().hour < 22: 
+            for profile_name, port in targets.items():        
+                start_loop_time = time.time()
+                try:
+                    # ===== attach は1回だけ =====
+                    if profile_name not in drivers or drivers[profile_name] is None:
+                        print(f"[ATTACH] {profile_name} port={port}")
+                        driver = attach_driver(port)
+                        drivers[profile_name] = driver
+                        waits[profile_name] = WebDriverWait(driver, 10)
+                    else:
+                        driver = drivers[profile_name]
 
-                wait = waits[profile_name]
-                # driver = attach_driver(port)
-                # wait = WebDriverWait(driver, 10)
+                    wait = waits[profile_name]
+                    # driver = attach_driver(port)
+                    # wait = WebDriverWait(driver, 10)
 
-                happymail.catch_warning_screen(driver)
+                    happymail.catch_warning_screen(driver)
 
-                if "mbmenu.php" not in driver.current_url:
-                    driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
-                    wait.until(
-                        lambda d: d.execute_script(
-                            "return document.readyState"
-                        ) == "complete"
-                    )
-
-                ds_user_display_name = driver.find_element(
-                    By.CLASS_NAME, "ds_user_display_name"
-                ).text
-
-                for i in happy_info:
-                    if i["name"] != ds_user_display_name:
-                        continue
-                    name = i["name"]
-                    print(f"Processing user: {name}")
-                    # ===== 以降 happymail 既存処理（完全そのまま） =====
-                    if 7 <= datetime.now().hour < 23:
-                        print(f"新着メール確認")
-                        happymail.multidrivers_checkmail(
-                            name, driver, wait,
-                            i["login_id"], i["password"],
-                            i["return_foot_message"],
-                            i["fst_message"],
-                            i["post_return_message"],
-                            i["second_message"],
-                            i["condition_message"],
-                            i["confirmation_mail"],
-                            i["chara_image"],
-                            i["mail_address"],
-                            i["gmail_password"],
-                            return_check_cnt,
+                    if "mbmenu.php" not in driver.current_url:
+                        driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
+                        wait.until(
+                            lambda d: d.execute_script(
+                                "return document.readyState"
+                            ) == "complete"
                         )
-                        print(f"新着メール確認 完了")
-                    if 6 <= datetime.now().hour < 22:
-                        if loop_cnt % 8 == 0:
-                            send_cnt = 1
-                        elif loop_cnt % 5 == 0:
-                            send_cnt = 0
-                        else:
-                            send_cnt = 0
-                        print(f"ループ回数: {loop_cnt} send_cnt: {send_cnt}")
-                        if send_cnt:
-                            happymail.return_footpoint(
+
+                    ds_user_display_name = driver.find_element(
+                        By.CLASS_NAME, "ds_user_display_name"
+                    ).text
+
+                    for i in happy_info:
+                        if i["name"] != ds_user_display_name:
+                            continue
+                        name = i["name"]
+                        print(f"Processing user: {name}")
+                        # ===== 以降 happymail 既存処理（完全そのまま） =====
+                        if 7 <= datetime.now().hour < 23:
+                            print(f"新着メール確認")
+                            happymail.multidrivers_checkmail(
                                 name, driver, wait,
+                                i["login_id"], i["password"],
                                 i["return_foot_message"],
-                                2, 3, 2,
-                                i["chara_image"],
                                 i["fst_message"],
-                                matching_daily_limit,
-                                returnfoot_daily_limit,
-                                oneday_total_match,
-                                oneday_total_returnfoot,
-                                send_cnt,
+                                i["post_return_message"],
+                                i["second_message"],
+                                i["condition_message"],
+                                i["confirmation_mail"],
+                                i["chara_image"],
+                                i["mail_address"],
+                                i["gmail_password"],
+                                return_check_cnt,
+                            )
+                            print(f"新着メール確認 完了")
+                        if 6 <= datetime.now().hour < 22:
+                            if loop_cnt % 8 == 0:
+                                send_cnt = 1
+                            elif loop_cnt % 5 == 0:
+                                send_cnt = 0
+                            else:
+                                send_cnt = 0
+                            print(f"ループ回数: {loop_cnt} send_cnt: {send_cnt}")
+                            if send_cnt:
+                                happymail.return_footpoint(
+                                    name, driver, wait,
+                                    i["return_foot_message"],
+                                    2, 3, 2,
+                                    i["chara_image"],
+                                    i["fst_message"],
+                                    matching_daily_limit,
+                                    returnfoot_daily_limit,
+                                    oneday_total_match,
+                                    oneday_total_returnfoot,
+                                    send_cnt,
+                                )
+
+                            happymail.mutidriver_make_footprints(
+                                name,
+                                i["login_id"],
+                                i["password"],
+                                driver,
+                                wait,
+                                random.randint(3,9),
+                                random.randint(0,2)
                             )
 
-                        happymail.mutidriver_make_footprints(
-                            name,
-                            i["login_id"],
-                            i["password"],
-                            driver,
-                            wait,
-                            random.randint(3,9),
-                            random.randint(0,2)
-                        )
+                
+                except WebDriverException as e:
+                    tb = e.__traceback__
+                    last = traceback.extract_tb(tb)[-1]
 
-            
-            except WebDriverException as e:
-                tb = e.__traceback__
-                last = traceback.extract_tb(tb)[-1]
+                    print("[ERROR]", e)
+                    traceback.print_exc()
+                    continue
+                except Exception:
+                    print(traceback.format_exc())
 
-                print("[ERROR]", e)
-                traceback.print_exc()
-                continue
-            except Exception:
-                print(traceback.format_exc())
-
-        # 平均12分待機
-        while time.time() - start_loop_time < random.randint(580,860):
-            print(f" 次のループまで待機中...経過時間: {int(time.time() - start_loop_time)}秒", end="\r")
-            time.sleep(10)
+            # 平均12分待機
+            while time.time() - start_loop_time < random.randint(580,860):
+                print(f" 次のループまで待機中...経過時間: {int(time.time() - start_loop_time)}秒", end="\r")
+                time.sleep(10)
+        else:
+            print("6時〜22時の間のみ動作します。現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+            if execution_flag:
+                execution_flag = False
+            else:
+                execution_flag = True
+            now = datetime.now()
+            # 現在時刻が6時になるまで待機
+            while not (6 <= now.hour < 22):
+                print(f"{execution_flag} 待機中~~ 現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                time.sleep(random.randint(1500, 2400))  
+                now = datetime.now()
 
 
 
