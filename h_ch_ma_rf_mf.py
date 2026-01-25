@@ -75,7 +75,8 @@ try:
     report_dict[i["name"]] = [0, send_flug, []]
   loop_cnt = 1
   while True:
-    if 6 <= datetime.now().hour < 22: 
+    # if 6 <= datetime.now().hour < 22: 
+    if False:
       if execution_flag:
         mail_info = random.choice([user_mail_info, spare_mail_info])
         start_loop_time = time.time()
@@ -252,7 +253,7 @@ try:
       now = datetime.now()
       # 現在時刻が6時になるまで待機
       while not (6 <= now.hour < 22):
-        print("待機中~~ 現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+        print(f"{execution_flag} 待機中~~ 現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
         time.sleep(random.randint(1500, 2400))  
         now = datetime.now()
 except KeyboardInterrupt:
