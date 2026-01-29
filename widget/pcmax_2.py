@@ -151,6 +151,7 @@ def catch_warning_pop(name, driver):
       print(777)
       time.sleep(1)
       apn_close = apn_dialog.find_elements(By.XPATH, './/*[text()="確認した"]')
+      print(len(apn_close))
       if apn_close:
         print(666)
         apn_close[0].click()
