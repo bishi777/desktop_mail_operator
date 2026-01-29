@@ -148,19 +148,19 @@ def catch_warning_pop(name, driver):
     if apn_dialog:
       print(777)
       # 方法1: すべての直下の子要素を取得
-      children = apn_dialog[0].find_elements(By.XPATH, "./*")
+      # children = apn_dialog[0].find_elements(By.XPATH, "./*")
 
-      # 全部出力する
-      for i, child in enumerate(children, 1):
-          print(f"子要素 {i}:")
-          print("  tag名     :", child.tag_name)
-          print("  text      :", child.text.strip())
-          print("  id        :", child.get_attribute("id") or "(なし)")
-          print("  class     :", child.get_attribute("class") or "(なし)")
-          print("  outerHTML :", child.get_attribute("outerHTML")[:100] + "..." if len(child.get_attribute("outerHTML") or "") > 100 else child.get_attribute("outerHTML"))
-          print("-" * 60)
+      # # 全部出力する
+      # for i, child in enumerate(children, 1):
+      #     print(f"子要素 {i}:")
+      #     print("  tag名     :", child.tag_name)
+      #     print("  text      :", child.text.strip())
+      #     print("  id        :", child.get_attribute("id") or "(なし)")
+      #     print("  class     :", child.get_attribute("class") or "(なし)")
+      #     print("  outerHTML :", child.get_attribute("outerHTML")[:100] + "..." if len(child.get_attribute("outerHTML") or "") > 100 else child.get_attribute("outerHTML"))
+      #     print("-" * 60)
       time.sleep(1)
-      apn_close = apn_dialog.find_elements(By.CLASS_NAME, 'apn_btn')
+      apn_close = apn_dialog[0].find_elements(By.CLASS_NAME, 'apn_btn')
       print(len(apn_close))
       print(666)
       if apn_close:
