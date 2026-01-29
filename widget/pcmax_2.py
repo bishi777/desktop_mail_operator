@@ -143,6 +143,21 @@ def catch_warning_pop(name, driver):
         time.sleep(2)
   except Exception:
     pass
+  # apn_dialog
+  try:
+    apn_dialog = driver.find_elements(By.CLASS_NAME, 'apn_dialog')
+    print(len(apn_dialog))
+    if apn_dialog:
+      print(777)
+      time.sleep(1)
+      apn_close = apn_dialog.find_elements(By.XPATH, './/*[text()="確認した"]')
+      if apn_close:
+        print(666)
+        apn_close[0].click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+  except Exception:
+    pass
 
   return warning
   

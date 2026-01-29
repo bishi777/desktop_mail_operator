@@ -32,6 +32,7 @@ def jmail_debug(headless):
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
   chara_name_list = [data["name"] for data in jmail_datas]
+  
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   loop_cnt = 0
   while True:
@@ -67,6 +68,17 @@ def jmail_debug(headless):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
       if  (7 <= now.hour <= 8):
+        if rf_flug:
+          # 足あと返し
+          try:
+            jmail.return_footprint(data,driver,wait,submitted_users)
+          except TimeoutException as e:
+            print(f"足跡返し　TimeoutException")
+            driver.refresh()
+          rf_flug = False
+      else:
+        rf_flug = True
+      if  (20 <= now.hour <= 21):
         if rf_flug:
           # 足あと返し
           try:
