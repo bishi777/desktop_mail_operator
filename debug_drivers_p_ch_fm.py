@@ -213,9 +213,9 @@ def main_syori():
           #   send_cnt = 3
           # else:
           #   send_cnt = 2  
-          print(777)
-          print(PORT)
-          print(PORT == "9223")
+          # print(777)
+          # print(PORT)
+          # print(PORT == "9223")
           if PORT == 9223:
             print("変更前:", func.get_current_ip())
             func.change_tor_ip()

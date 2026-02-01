@@ -611,11 +611,12 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(2)
                   catch_warning(driver, wait)
-                  # スクショして送信
-                  driver.save_screenshot("screenshot.png")
-                  # 圧縮（JPEG化＋リサイズ＋品質調整）
-                  compressed_path = func.compress_image("screenshot.png")  # 例: screenshot2_compressed.jpg ができる
-                  title = f"{name}jmail おじさんメッセージ"
+                  # # スクショして送信
+                  # driver.save_screenshot("screenshot.png")
+                  # # 圧縮（JPEG化＋リサイズ＋品質調整）
+                  # compressed_path = func.compress_image("screenshot.png")  # 例: screenshot2_compressed.jpg ができる
+                  compressed_path = None
+                  title = f"{name}jmail おじさんAIチャットメッセージ"
                   text = send_by_user_message   
                   # メール送信
                   if mail_info:

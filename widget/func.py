@@ -54,6 +54,7 @@ from selenium.common.exceptions import (
     InvalidArgumentException, NoSuchElementException
 )
 from selenium.webdriver.common.action_chains import ActionChains
+import google as genai
 
 def parse_arrival_datetime(text: str, now: datetime | None = None) -> datetime | None:
     if now is None:
@@ -1340,3 +1341,57 @@ def find_by_name(driver, name: str):
         return driver.find_element(By.NAME, name)
     except InvalidArgumentException:
         return driver.find_element(By.CSS_SELECTOR, f'[name="{name}"]')
+    
+
+def chat_ai(system_prompt: str, history: list, first_greeting: str, user_input: str = None):
+    """
+    Geminiを使ったチャット応答を生成する便利関数。
+    
+    - 初回呼び出し時（user_inputがNoneまたは空の場合）：first_greetingを返し、履歴を初期化
+    - 2回目以降：user_inputに基づいてGeminiに送信し、応答を返す
+    
+    Args:
+        system_prompt (str): 人格プロンプト
+        history (list): 既存の会話履歴（geminiのContentオブジェクトのリスト）
+        first_greeting (str): 初回の固定挨拶文
+        user_input (str): ユーザーの最新入力（初回時はNone可）
+    
+    Returns:
+        str: りなちゃんの応答テキスト
+        list: 更新された履歴（次回に渡す用）
+    """
+    # APIキー設定（settingsから読み込み）
+    import settings
+    genai.configure(api_key=settings.Gemini_API_KEY)
+    
+    # モデル設定
+    model = genai.GenerativeModel(
+        model_name="gemini-1.5-flash",  # または好みのモデル
+        system_instruction=system_prompt,
+        generation_config=genai.types.GenerationConfig(
+            temperature=0.85,
+            top_p=0.95,
+            max_output_tokens=1000,
+        )
+    )
+    
+    # チャットセッション開始（既存履歴を引き継ぐ）
+    chat = model.start_chat(history=history)
+    
+    # 初回判定：user_inputがNoneまたは空ならfirst_greetingを返す
+    if not user_input or user_input.strip() == "":
+        # 初回なので、first_greetingを返しつつ、履歴に「システム的な初回メッセージ」として追加しておく
+        # （これで次回以降自然に会話が続く）
+        initial_content = genai.protos.Content(
+            role="user",
+            parts=[genai.protos.Part(text="初めまして！（固定挨拶を送りました）")]
+        )
+        chat.history.append(initial_content)
+        
+        return first_greeting, chat.history  # 固定挨拶 + 更新履歴を返す
+    
+    # 通常の会話（2回目以降）
+    response = chat.send_message(user_input)
+    
+    # 応答テキストと更新された履歴を返す
+    return response.text.strip(), chat.history

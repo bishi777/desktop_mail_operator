@@ -107,5 +107,3 @@ for p in profiles:
         options=chrome_options
     )
 
-    driver.get("https://happymail.co.jp/login/")
-    time.sleep(3)

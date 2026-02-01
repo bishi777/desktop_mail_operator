@@ -60,7 +60,7 @@ while True:
     try:
         user_input = input("あなた: ").strip()
         if user_input.lower() in ["exit", "quit", "おしまい", "bye"]:
-            print("あかり: えへへ、またね♡ また呼んでね〜💕")
+            print("りな: えへへ、またね♡ また呼んでね〜💕")
             break
         
         if not user_input:
