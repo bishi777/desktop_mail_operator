@@ -185,6 +185,10 @@ def main():
               if i["name"] != ds_user_display_name:
                   continue
               # ===== 以降 pcmax 既存処理 =====
+              if ds_user_display_name not in report_dict:
+                report_dict[ds_user_display_name] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
+              if ds_user_display_name not in one_hour_report_dict:
+                one_hour_report_dict[ds_user_display_name] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
               name = i["name"]
               name = i["name"]
               login_id = i["login_id"]
