@@ -26,41 +26,6 @@ import settings
 from widget import pcmax_2, func
 import linecache
 
-# ==========================
-# 既存設定（そのまま）
-# ==========================
-user_data = func.get_user_data()
-pcmax_info = user_data["pcmax"]
-
-mailaddress = user_data['user'][0]['gmail_account']
-gmail_password = user_data['user'][0]['gmail_account_password']
-receiving_address = user_data['user'][0]['user_email']
-
-user_mail_info = [
-    receiving_address, mailaddress, gmail_password,
-] if mailaddress and gmail_password and receiving_address else None
-
-spare_mail_info = [
-    "ryapya694@ruru.be",
-    "siliboco68@gmail.com",
-    "akkcxweqzdplcymh",
-]
-spare_mail_info_2 = [
-    "ryapya694@ruru.be",
-    "misuzu414510@gmail.com",
-    "xdcwqbnhosxnvtbp",
-  ]
-
-matching_daily_limit = 77
-returnfoot_daily_limit = 77
-oneday_total_match = 77
-oneday_total_returnfoot = 77
-return_check_cnt = 2
-report_dict = {}
-one_hour_report_dict = {}
-roll_cnt = 1
-
-CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
     metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
@@ -122,6 +87,36 @@ def attach_driver(port: int) -> webdriver.Chrome:
 # main
 # ==========================
 def main():
+    CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
+    user_data = func.get_user_data()
+    pcmax_info = user_data["pcmax"]
+
+    mailaddress = user_data['user'][0]['gmail_account']
+    gmail_password = user_data['user'][0]['gmail_account_password']
+    receiving_address = user_data['user'][0]['user_email']
+
+    user_mail_info = [
+        receiving_address, mailaddress, gmail_password,
+    ] if mailaddress and gmail_password and receiving_address else None
+
+    spare_mail_info = [
+        "ryapya694@ruru.be",
+        "siliboco68@gmail.com",
+        "akkcxweqzdplcymh",
+    ]
+    spare_mail_info_2 = [
+        "ryapya694@ruru.be",
+        "misuzu414510@gmail.com",
+        "xdcwqbnhosxnvtbp",
+      ]
+    # matching_daily_limit = 77
+    # returnfoot_daily_limit = 77
+    # oneday_total_match = 77
+    # oneday_total_returnfoot = 77
+    # return_check_cnt = 2
+    report_dict = {}
+    one_hour_report_dict = {}
+    roll_cnt = 1
     target_names = sys.argv[1:]  # [] or ["デバック", "レイナ"]
     drivers = {}  # profile_name -> webdriver
     waits = {}    # 

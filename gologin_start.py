@@ -8,6 +8,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import os
 import settings
+from google import genai
 # =====================
 # 設定
 # =====================
