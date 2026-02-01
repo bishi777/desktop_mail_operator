@@ -337,6 +337,8 @@ def profile_search(driver, search_edit):
     except NoSuchElementException:
       checkbox = driver.find_element(By.ID, fallback_id)
     if not checkbox.is_selected():
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
+      time.sleep(0.5)
       checkbox.click()
     time.sleep(1)
   # 身長設定
