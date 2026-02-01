@@ -26,6 +26,7 @@ import settings
 from widget import pcmax_2, func
 import linecache
 
+CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
     metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
@@ -87,7 +88,6 @@ def attach_driver(port: int) -> webdriver.Chrome:
 # main
 # ==========================
 def main():
-    CHROMEDRIVER_VERSION = settings.GOLOGIN_CHROMEDRIVER_VERSION
     user_data = func.get_user_data()
     pcmax_info = user_data["pcmax"]
 
