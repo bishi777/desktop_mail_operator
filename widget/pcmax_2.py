@@ -1310,7 +1310,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   catch_warning_pop(name, driver)
-  ashiato_list_link = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")[2]
+  ashiato_list_link_ = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")
+  for link in ashiato_list_link_:
+    if "あしあと" in link.text:
+      ashiato_list_link = link
+      break
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
   time.sleep(0.5)
   ashiato_list_link.click()
