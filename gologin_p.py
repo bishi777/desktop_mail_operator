@@ -181,9 +181,6 @@ def main():
             if not ds_user_display_name:
                ds_user_display_name = driver.find_element(By.ID, "overview").find_elements(By.TAG_NAME, "p")
             ds_user_display_name = ds_user_display_name[0].text
-            print(777)
-            print(ds_user_display_name)
-
             for i in pcmax_info:
               if i["name"] != ds_user_display_name:
                   continue
@@ -275,6 +272,7 @@ def main():
                         print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                         print(traceback.format_exc())
                 else:
+                  now = datetime.now()
                   if 6 <= now.hour < 23:  
                     print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
                     rf_cnt = 0
