@@ -179,9 +179,7 @@ def main():
                 By.CLASS_NAME, "mydata_name"
             )
             if not ds_user_display_name:
-               ds_user_display_name = driver.find_elements(
-                By.ID, "overview"
-            )
+               ds_user_display_name = driver.find_element(By.ID, "overview").find_elements(By.TAG_NAME, "p")
             ds_user_display_name = ds_user_display_name[0].text
             print(777)
             print(ds_user_display_name)
