@@ -175,9 +175,16 @@ def main():
 
             pcmax_2.catch_warning_pop("", driver)
 
-            ds_user_display_name = driver.find_element(
+            ds_user_display_name = driver.find_elements(
                 By.CLASS_NAME, "mydata_name"
-            ).text
+            )
+            if not ds_user_display_name:
+               ds_user_display_name = driver.find_elements(
+                By.ID, "overview"
+            )
+            ds_user_display_name = ds_user_display_name[0].text
+            print(777)
+            print(ds_user_display_name)
 
             for i in pcmax_info:
               if i["name"] != ds_user_display_name:
