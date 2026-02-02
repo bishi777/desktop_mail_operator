@@ -103,11 +103,13 @@ def attach_driver(port: int) -> webdriver.Chrome:
 # main
 # ==========================
 def main():
+    chat_ai_flug = False  
     target_names = sys.argv[1:]  # [] or ["デバック", "レイナ"]
     drivers = {}  # profile_name -> webdriver
     waits = {}    # 
     running_profiles = get_running_profiles()
     execution_flag = True
+    android = False
 
     if not running_profiles:
         print("[ERROR] 起動中の GoLogin プロファイルがありません")
@@ -140,6 +142,7 @@ def main():
     for loop_cnt in range(99999):
         if 6 <= datetime.now().hour < 22: 
             if execution_flag:
+                mail_info = random.choice([user_mail_info, spare_mail_info])
                 for profile_name, port in targets.items():        
                     start_loop_time = time.time()
                     try:
@@ -175,10 +178,13 @@ def main():
                                 continue
                             name = i["name"]
                             print(f"Processing user: {name}")
+                            if "さな" in name:
+                                chat_ai_flug = True
                             # ===== 以降 happymail 既存処理（完全そのまま） =====
                             if 7 <= datetime.now().hour < 23:
                                 print(f"新着メール確認")
-                                happymail.multidrivers_checkmail(
+                                happymail_new_list = []
+                                happymail_new = happymail.multidrivers_checkmail(
                                     name, driver, wait,
                                     i["login_id"], i["password"],
                                     i["return_foot_message"],
@@ -191,9 +197,39 @@ def main():
                                     i["mail_address"],
                                     i["gmail_password"],
                                     return_check_cnt,
+                                    android,
+                                    chat_ai_flug,
+                                    i["system_prompt"],
                                 )
+                                if happymail_new:
+                                    print(777)
+                                    print(happymail_new)
+                                    happymail_new_list.extend(happymail_new)
+                                    if happymail_new_list:
+                                        title = f"happy新着 {name}"
+                                        text = ""
+                                        img_path = None
+                                        for new_mail in happymail_new_list:
+                                            text = text + new_mail + ",\n"
+                                            if "警告" in text or "NoImage" in text or "利用" in text :
+                                                if mail_info:
+                                                    img_path = f"{i['name']}_ban.png"
+                                                    driver.save_screenshot(img_path)
+                                                    # 圧縮（JPEG化＋リサイズ＋品質調整）
+                                                    img_path = func.compress_image(img_path)  # 例: screenshot2_compressed.jpg ができる
+                                                    title = "メッセージ"
+                                                    text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
+                                        # メール送信
+                                        if mail_info:
+                                            print(666)
+                                            func.send_mail(text, mail_info, title, img_path)
+                                        else:
+                                            print("通知メールの送信に必要な情報が不足しています")
+                                            print(f"{mailaddress}   {gmail_password}  {receiving_address}")
                                 print(f"新着メール確認 完了")
-                            if 6 <= datetime.now().hour < 22:
+                            if 6 <= datetime.now(
+
+                            ).hour < 22:
                                 if loop_cnt % 8 == 0:
                                     send_cnt = 1
                                 elif loop_cnt % 5 == 0:
