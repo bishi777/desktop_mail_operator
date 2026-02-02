@@ -1345,52 +1345,40 @@ def find_by_name(driver, name: str):
         return driver.find_element(By.CSS_SELECTOR, f'[name="{name}"]')
     
 
-def chat_ai(system_prompt: str, history: list, first_greeting: str, user_input: str = None):
+def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3):
     client = genai.Client(api_key=settings.Gemini_API_KEY)
 
-    # 初回
     if not user_input or user_input.strip() == "":
         history.clear()
-        history.append({
-            "role": "assistant",
-            "text": first_greeting
-        })
+        history.append({"role": "assistant", "text": first_greeting})
         return first_greeting, history
 
-    # ===== Gemini contents を構築 =====
-    contents = []
-
+    contents = [{"role": "system", "text": system_prompt}]
     for h in history:
-        contents.append({
-            "role": h["role"],  # user / assistant
-            "parts": [
-                {"text": h["text"]}
-            ]
-        })
+        contents.append({"role": h["role"], "text": h["text"]})
+    contents.append({"role": "user", "text": user_input})
 
-    # 今回のユーザー入力
-    contents.append({
-        "role": "user",
-        "parts": [
-            {"text": user_input}
-        ]
-    })
+    for attempt in range(1, max_retry + 1):
+        try:
+            response = client.models.generate_content(
+                model="models/gemini-2.0-flash",
+                contents=contents,
+            )
+            reply_text = response.text.strip()
 
-    # ===== Gemini 呼び出し =====
-    response = client.models.generate_content(
-        model="models/gemini-2.0-flash",
-        contents=contents,
-        config={
-            "system_instruction": system_prompt,
-            "temperature": 0.85,
-            "top_p": 0.95,
-            "max_output_tokens": 1000,
-        }
-    )
+            history.append({"role": "user", "text": user_input})
+            history.append({"role": "assistant", "text": reply_text})
 
-    reply_text = response.text.strip()
+            return reply_text, history
 
-    # ===== 履歴更新 =====
-    history.append({"role": "assistant", "text": reply_text})
+        except ClientError as e:
+            if e.status_code == 429:
+                print(f"⚠️ Gemini 429 (試行 {attempt}/{max_retry}) → 10秒待機")
+                time.sleep(10)
+                continue
+            else:
+                raise
 
-    return reply_text, history
+    # ここに来る = リトライ上限
+    print("❌ Gemini 429 が続いたため今回はスキップ")
+    return None, history

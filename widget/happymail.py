@@ -38,6 +38,7 @@ from selenium.common.exceptions import (
   NoSuchElementException,
   TimeoutException,
 )
+from google.genai.errors import ClientError
 
 # 元のメソッドを退避
 _original_find_element = WebDriver.find_element
@@ -787,6 +788,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               user_input = male_history[-1]
             print("AIチャット返信処理を開始します")
             ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
+            if ai_response is None:
+              print("Gemini制限中のため返信しません")
+              return
             text_area = driver.find_element(By.ID, value="text-message")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             script = "arguments[0].value = arguments[1];"  
