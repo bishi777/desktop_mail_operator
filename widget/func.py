@@ -56,6 +56,7 @@ from selenium.common.exceptions import (
 from selenium.webdriver.common.action_chains import ActionChains
 from google import genai
 import settings
+from google.genai.errors import ClientError
 
 
 def parse_arrival_datetime(text: str, now: datetime | None = None) -> datetime | None:

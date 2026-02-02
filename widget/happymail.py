@@ -38,7 +38,6 @@ from selenium.common.exceptions import (
   NoSuchElementException,
   TimeoutException,
 )
-from google.genai.errors import ClientError
 
 # 元のメソッドを退避
 _original_find_element = WebDriver.find_element
