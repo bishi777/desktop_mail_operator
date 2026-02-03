@@ -167,9 +167,12 @@ def main():
 
             wait = waits[profile_name]
             
-
+            header_title = driver.find_element(By.ID, "header_logo")
+            header_title.click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(0.7)
             pcmax_2.catch_warning_pop("", driver)
-
+            
             ds_user_display_name = driver.find_elements(
                 By.CLASS_NAME, "mydata_name"
             )
