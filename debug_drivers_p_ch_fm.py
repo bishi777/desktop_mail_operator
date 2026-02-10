@@ -208,7 +208,7 @@ def main_syori():
           return_foot_message = i["return_foot_message"]
           two_messages_flug = i["two_message_flug"]
           fst_flug = i["fst_flug"]
-          chara_prompt = i["chara_prompt"]
+          chara_prompt = i["system_prompt"]
           if two_messages_flug:
             print(f"******{name}は2通メール送信対象キャラです******")
           # if roll_cnt % 2 == 0:
