@@ -186,8 +186,8 @@ def main_syori():
       # メイン処理
       for idex, i in enumerate(pcmax_datas):
         login_id = ""   
-        # if name_on_pcmax == i['name']:
-        if name_on_pcmax == "ゴン太":
+        if name_on_pcmax == i['name']:
+        # if name_on_pcmax == "ゴン太":
           if name_on_pcmax not in active_chara_list:
             active_chara_list.append(name_on_pcmax)
           if name_on_pcmax not in report_dict:
