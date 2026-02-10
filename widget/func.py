@@ -57,6 +57,8 @@ from selenium.webdriver.common.action_chains import ActionChains
 from google import genai
 import settings
 from google.genai.errors import ClientError
+from google.genai.types import HttpOptions
+
 
 
 def parse_arrival_datetime(text: str, now: datetime | None = None) -> datetime | None:
@@ -1347,23 +1349,36 @@ def find_by_name(driver, name: str):
     
 
 def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3):
-    client = genai.Client(api_key=settings.Gemini_API_KEY)
-
+    client = genai.Client(
+        api_key=settings.Gemini_API_KEY,
+        http_options=HttpOptions(api_version="v1")
+    )
     if not user_input or user_input.strip() == "":
         history.clear()
         history.append({"role": "assistant", "text": first_greeting})
         return first_greeting, history
 
-    contents = [{"role": "system", "text": system_prompt}]
+    # ===== Gemini用：全文を1つのテキストにまとめる =====
+    prompt_parts = []
+
+    if system_prompt.strip():
+        prompt_parts.append(f"【システム指示】\n{system_prompt}")
+
     for h in history:
-        contents.append({"role": h["role"], "text": h["text"]})
-    contents.append({"role": "user", "text": user_input})
+        role = "ユーザー" if h["role"] == "user" else "アシスタント"
+        prompt_parts.append(f"{role}: {h['text']}")
+
+    prompt_parts.append(f"ユーザー: {user_input}")
+
+    full_prompt = "\n\n".join(prompt_parts)
+    # =================================================
 
     for attempt in range(1, max_retry + 1):
         try:
             response = client.models.generate_content(
-                model="models/gemini-2.0-flash",
-                contents=contents,
+                model="gemini-2.0-flash-lite-001", 
+
+                contents=full_prompt,  # ← 文字列のみ
             )
             reply_text = response.text.strip()
 
@@ -1373,13 +1388,12 @@ def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3
             return reply_text, history
 
         except ClientError as e:
-            if e.status_code == 429:
+            if e.code == 429:
                 print(f"⚠️ Gemini 429 (試行 {attempt}/{max_retry}) → 10秒待機")
                 time.sleep(10)
                 continue
             else:
                 raise
 
-    # ここに来る = リトライ上限
     print("❌ Gemini 429 が続いたため今回はスキップ")
     return None, history

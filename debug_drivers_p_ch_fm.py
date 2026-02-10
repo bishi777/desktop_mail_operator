@@ -186,7 +186,8 @@ def main_syori():
       # メイン処理
       for idex, i in enumerate(pcmax_datas):
         login_id = ""   
-        if name_on_pcmax == i['name']:
+        # if name_on_pcmax == i['name']:
+        if name_on_pcmax == "ゴン太":
           if name_on_pcmax not in active_chara_list:
             active_chara_list.append(name_on_pcmax)
           if name_on_pcmax not in report_dict:
@@ -207,6 +208,7 @@ def main_syori():
           return_foot_message = i["return_foot_message"]
           two_messages_flug = i["two_message_flug"]
           fst_flug = i["fst_flug"]
+          chara_prompt = i["chara_prompt"]
           if two_messages_flug:
             print(f"******{name}は2通メール送信対象キャラです******")
           # if roll_cnt % 2 == 0:
@@ -234,7 +236,7 @@ def main_syori():
             traceback.print_exc()
           try:
             print("✅新着メールチェック開始")   
-            unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info)
+            unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info, chara_prompt)
             print("新着メールチェック終了✅")
             report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
             report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
