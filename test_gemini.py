@@ -21,6 +21,8 @@ chara_prompt = """
 fst_message = ""
 
 print("💬 Geminiチャット開始（exitで終了）")
+text = func.normalize_ai_text("アシスタント:こんにちは！元気です。あなたは？")
+print(f"わかな: {text}")
 
 while True:
     user_input = input("あなた: ").strip()

@@ -1347,6 +1347,10 @@ def find_by_name(driver, name: str):
     except InvalidArgumentException:
         return driver.find_element(By.CSS_SELECTOR, f'[name="{name}"]')
     
+def normalize_ai_text(text):
+    text = text.removeprefix("アシスタント:")
+    return text
+
 
 def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3):
     client = genai.Client(
@@ -1381,6 +1385,8 @@ def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3
                 contents=full_prompt,  # ← 文字列のみ
             )
             reply_text = response.text.strip()
+            reply_text = normalize_ai_text(reply_text)
+
 
             history.append({"role": "user", "text": user_input})
             history.append({"role": "assistant", "text": reply_text})
