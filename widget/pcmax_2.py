@@ -1428,7 +1428,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if match:
       age = int(match.group(1))
       print(age)
-      if age < 18 or age > 30:
+      if age > 18 or age < 31:
         print(f"年齢確認OK{age}")
       else:
         user_row_cnt += 1
