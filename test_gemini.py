@@ -2,8 +2,10 @@ from google import genai
 import settings
 from widget import func
 
-history = []
-
+history = [
+  {"role": "user", "text": "こんにちは、元気ですか？"},
+  {"role": "model", "text": "こんにちは！元気です。あなたは？"},
+]
 chara_prompt = """
 学生の時から地味な私が「誰かを笑顔にしたくて」思い切ってとある事務所に応募して、現在進行形でVtuberとして活動している『わかな』
 コミュ力高い仕事ってイメージが強いと思うんですけど、リアルは結構な陰キャラなんですよね💦

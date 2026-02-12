@@ -786,6 +786,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             else:
               user_input = male_history[-1]
             print("AIチャット返信処理を開始します")
+            print(history)
+            print("-----------")
+            
             ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
             if ai_response is None:
               print("Gemini制限中のため返信しません")
