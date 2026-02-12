@@ -468,6 +468,15 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
         if for_minutes_passed:
           print("4分以上経過しているメッセージあり")  
           user_name = new_mail[new_mail_cnt].find_element(By.CLASS_NAME, value="ds_message_name__item").text 
+          # 年齢チェック
+          user_age = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_pref")
+          # print(f"年齢チェック {user_age.text} {user_name}")
+          if not re.search(r"20代|18.?19", user_age.text):
+            print("年齢が１０〜２０代ではないユーザー　AIで返信します") 
+            print(f"{user_name} {user_age.text}")
+            chat_ai_flug = True
+          else:
+            chat_ai_flug = False
           new_mail[new_mail_cnt].click()
           # new_mail[1].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
