@@ -1423,7 +1423,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       user_row_cnt += 1
       continue
     # 年齢確認
-    user_age = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'user-age').text
+    user_age = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME, 'user-age').text
     match = re.search(r'(\d+)歳', user_age)
     if match:
       age = int(match.group(1))
