@@ -1422,6 +1422,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if len(woman):
       user_row_cnt += 1
       continue
+    
+    # めもありか確認　memo_tab
+    memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
+    if len(memo_tab):
+      user_row_cnt += 1
+      continue
     # 年齢確認
     user_age = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME, 'user-age').text
     match = re.search(r'(\d+)歳', user_age)
@@ -1433,11 +1439,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       else:
         user_row_cnt += 1
         continue
-    # めもありか確認　memo_tab
-    memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
-    if len(memo_tab):
-      user_row_cnt += 1
-      continue
     user_name = foot_user_list[user_row_cnt].find_element(By.TAG_NAME,"a").get_attribute('data-va5')
     if unread_user and user_name in unread_user:
       print(f"{user_name} は未読リストにいるのでスキップします")
