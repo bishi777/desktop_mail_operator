@@ -832,20 +832,35 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   time.sleep(1.5)
                   break  
             #やり取りを通知  
-            mail_lines = []
+            # Improve formatting
+            formatted_history = []
+            formatted_history.append("==================================")
+            formatted_history.append(f"   {user_name} (相手) との履歴")
+            formatted_history.append("==================================")
+            
+            seen_messages = set() # To prevent exact duplicates if likely
+            
             for h in all_history:
                 role = h["role"]
                 text = h["text"].strip()
+                
+                # Deduplication check (simple)
+                signature = f"{role}:{text}"
+                if signature in seen_messages:
+                     continue
+                seen_messages.add(signature)
+
                 if role == "user":
-                    header = "【相手からのメッセージ】"
+                    header = f"▼ {user_name} (相手)"
                 else:  # assistant / model
-                    header = "【あなた（さな）の返信】"
-                mail_lines.append(header)
-                mail_lines.append(text)
-                mail_lines.append("")  # 空行で区切る
-            # メール本文用の文字列に再代入
-            mail_text = "\n".join(mail_lines)
-            return_message = f"{name}happymail,{login_id}:{password}\n{user_name}\n「{mail_text}」"
+                    header = f"▲ {name} (自分/AI)"
+                
+                formatted_history.append(f"\n{header}")
+                formatted_history.append("-" * 20)
+                formatted_history.append(text)
+            
+            mail_text = "\n".join(formatted_history)
+            return_message = f"{name}happymail,{login_id}:{password}\n{user_name}\n{mail_text}"
             return_list.append(return_message) 
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
