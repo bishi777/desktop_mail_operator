@@ -74,9 +74,13 @@ try:
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
   loop_cnt = 1
+  # schedulerを初期化
+  from widget.human_scheduler import HumanScheduler
+  scheduler = HumanScheduler()
+
   while True:
-    # if 6 <= datetime.now().hour < 22: 
-    if False:
+    if scheduler.is_active(): 
+    # if False:
       if execution_flag:
         mail_info = random.choice([user_mail_info, spare_mail_info])
         start_loop_time = time.time()
@@ -237,25 +241,19 @@ try:
               report_dict[i["name"]] = [0, True, []]
       
 
-        while elapsed_time < 720:
-          time.sleep(30)
+        # 待機時間をSchedulerから取得
+        sleep_duration =  scheduler.get_sleep_duration()
+        while elapsed_time < sleep_duration: # 元の720から変更
+          time.sleep(10) # 30から変更
           elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
           if wait_cnt % 2 == 0:
-            print(f"待機中~~ {elapsed_time} ")
+            print(f"待機中~~ {elapsed_time:.1f}/{sleep_duration:.1f} ")
           wait_cnt += 1
         loop_cnt += 1
     else:
-      print("6時〜22時の間のみ動作します。現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-      if execution_flag:
-        execution_flag = False
-      else:
-        execution_flag = True
-      now = datetime.now()
-      # 現在時刻が6時になるまで待機
-      while not (6 <= now.hour < 22):
-        print(f"{execution_flag} 待機中~~ 現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-        time.sleep(random.randint(1500, 2400))  
-        now = datetime.now()
+      # HumanSchedulerが非アクティブ（睡眠中または休憩中）の場合
+      # ループを回し続けるため、少し待機して再確認
+      time.sleep(60)
 except KeyboardInterrupt:
   # Ctrl+C が押された場合
   print("プログラムが Ctrl+C により中断されました。")
