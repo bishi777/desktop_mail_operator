@@ -177,10 +177,13 @@ try:
               # マッチング返し、
               if loop_cnt ==1:
                 send_cnt = 1
+                mf_cnt = 0
               elif loop_cnt % 10 == 0:
                 send_cnt = 1
+                mf_cnt = 0
               elif loop_cnt % 5 == 0:
                 send_cnt = 1
+                mf_cnt = 0
               else:
                 send_cnt = 0
                 
@@ -206,17 +209,18 @@ try:
                     print(traceback.format_exc())
                     func.send_error(f"{name}", traceback.format_exc())
               # 足跡付け
-              try:
-                happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
-              except NoSuchWindowException:
-                print(f"NoSuchWindowExceptionエラーが出ました, {e}")
-                pass
-              except ReadTimeoutError as e:
-                print("🔴 ページの読み込みがタイムアウトしました:", e)
-                driver.refresh()
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              except Exception as e:
-                print(traceback.format_exc())
+              if mf_cnt:
+                try:
+                  happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
+                except NoSuchWindowException:
+                  print(f"NoSuchWindowExceptionエラーが出ました, {e}")
+                  pass
+                except ReadTimeoutError as e:
+                  print("🔴 ページの読み込みがタイムアウトしました:", e)
+                  driver.refresh()
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                except Exception as e:
+                  print(traceback.format_exc())
             # elif index == 1:　2個目のタブの処理があれば記載
               if top_image_check:
                 happymail_new_list.append(top_image_check)  

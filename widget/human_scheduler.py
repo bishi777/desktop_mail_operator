@@ -11,14 +11,29 @@ class HumanScheduler:
 
     def _set_daily_schedule(self):
         """Sets wake and sleep times for the current day."""
-        self.wake_time = self._get_random_time(6, 9)  # 06:00 - 09:00
-        # Sleep time is for TILL the next morning, so if it's 23:00, it's 23:00 TODAY.
-        # If it's 01:00, it's 01:00 TOMORROW.
-        self.sleep_hour = random.randint(23, 26) # 23 to 02
+        # Wake time: 06:00 - 07:30
+        wake_hour = 6
+        wake_minute = random.randint(0, 59)
+        if random.choice([True, False]): # Simple 50/50 for 6:xx or 7:00-7:30 logic or just uniform
+             # Let's do uniform 6:00 to 7:30
+             total_minutes = random.randint(6 * 60, 7 * 60 + 30)
+             wake_hour = total_minutes // 60
+             wake_minute = total_minutes % 60
+        self.wake_time = time(wake_hour, wake_minute)
+
+        # Sleep time: 23:00 - 00:10 (Next day)
+        # Total minutes from 23:00 to 24:10 (24*60 + 10)
+        # 23:00 = 23*60 = 1380
+        # 00:10 (next day) = 24*60 + 10 = 1450
+        total_sleep_minutes = random.randint(1380, 1450)
+        
+        self.sleep_hour = total_sleep_minutes // 60
+        self.sleep_minute = total_sleep_minutes % 60
+        
         self.sleep_time_is_tomorrow = self.sleep_hour >= 24
         if self.sleep_time_is_tomorrow:
             self.sleep_hour -= 24
-        self.sleep_minute = random.randint(0, 59)
+            
         self.today = datetime.now().date()
         print(f"📅 New Schedule for {self.today}: Wake {self.wake_time}, Sleep {self.sleep_hour:02}:{self.sleep_minute:02}")
 
