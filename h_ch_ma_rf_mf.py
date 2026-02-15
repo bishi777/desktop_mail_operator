@@ -70,7 +70,6 @@ try:
   report_dict = {}
   mf_cnt = random.randint(5,9)
   mf_type_cnt = 2
-  execution_flag = True
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
   loop_cnt = 1
@@ -81,7 +80,7 @@ try:
   while True:
     if scheduler.is_active(): 
     # if False:
-      if execution_flag:
+      
         mail_info = random.choice([user_mail_info, spare_mail_info])
         start_loop_time = time.time()
         now = datetime.now()    
@@ -137,10 +136,7 @@ try:
               # 新着メールチェック
               try:
                 happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password, return_check_cnt)
-                
                 if happymail_new:
-                  print(777)
-                  print(happymail_new)
                   happymail_new_list.extend(happymail_new)
                 if happymail_new_list:
                   title = f"happy新着 {name}"
@@ -158,7 +154,6 @@ try:
                         text = f"ハッピーメール {i['name']}:{i['login_id']}:{i['password']}:  {text}"   
                   # メール送信
                   if mail_info:
-                    print(666)
                     func.send_mail(text, mail_info, title, img_path)
                   else:
                     print("通知メールの送信に必要な情報が不足しています")
