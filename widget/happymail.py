@@ -412,7 +412,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android, chat_ai_flug, chara_prompt,):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt,):
     return_list = []
     new_mail_cnt = 0
     loop_cnt = 0

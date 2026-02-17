@@ -108,7 +108,7 @@ def main():
     drivers = {}  # profile_name -> webdriver
     waits = {}    # 
     running_profiles = get_running_profiles()
-    execution_flag = True
+    # execution_flag = True
     android = False
 
     if not running_profiles:
@@ -141,7 +141,7 @@ def main():
     # ==========================
     for loop_cnt in range(99999):
         if 6 <= datetime.now().hour < 22: 
-            if execution_flag:
+            # if execution_flag:
                 mail_info = random.choice([user_mail_info, spare_mail_info])
                 for profile_name, port in targets.items():        
                     start_loop_time = time.time()
@@ -178,8 +178,7 @@ def main():
                                 continue
                             name = i["name"]
                             print(f"Processing user: {name}")
-                            if "さな" in name:
-                                chat_ai_flug = True
+                            
                             # ===== 以降 happymail 既存処理（完全そのまま） =====
                             if 7 <= datetime.now().hour < 23:
                                 print(f"新着メール確認")
@@ -198,7 +197,6 @@ def main():
                                     i["gmail_password"],
                                     return_check_cnt,
                                     android,
-                                    chat_ai_flug,
                                     i["system_prompt"],
                                 )
                                 if happymail_new:
@@ -280,10 +278,10 @@ def main():
                 time.sleep(3600)
         else:
             print("6時〜22時の間のみ動作します。現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-            if execution_flag:
-                execution_flag = False
-            else:
-                execution_flag = True
+            # if execution_flag:
+            #     execution_flag = False
+            # else:
+            #     execution_flag = True
             now = datetime.now()
             # 現在時刻が6時になるまで待機
             while not (6 <= now.hour < 22):
