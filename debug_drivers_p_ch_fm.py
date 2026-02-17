@@ -218,11 +218,11 @@ def main_syori():
           # print(777)
           # print(PORT)
           # print(PORT == "9223")
-          if PORT == 9223:
-            print("変更前:", func.get_current_ip())
-            func.change_tor_ip()
-            time.sleep(6)
-            print("変更後:", func.get_current_ip())
+          # if PORT == 9223:
+          #   print("変更前:", func.get_current_ip())
+          #   func.change_tor_ip()
+          #   time.sleep(6)
+          #   print("変更後:", func.get_current_ip())
           try:
             top_image_flug = pcmax_2.check_top_image(name,driver)
             if top_image_flug:
