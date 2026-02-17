@@ -274,8 +274,8 @@ def main():
                 while time.time() - start_loop_time < random.randint(580,860):
                     print(f" 次のループまで待機中...経過時間: {int(time.time() - start_loop_time)}秒", end="\r")
                     time.sleep(10)
-            else:
-                time.sleep(3600)
+            # else:
+            #     time.sleep(3600)
         else:
             print("6時〜22時の間のみ動作します。現在の時刻:", datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
             # if execution_flag:
