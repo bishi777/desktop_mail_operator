@@ -476,6 +476,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             print(f"{user_name} {user_age.text}")
             chat_ai_flug = True
           else:
+            print("年齢が10代〜20代のユーザー 定型分送信")
             chat_ai_flug = False
           new_mail[new_mail_cnt].click()
           # new_mail[1].click()
@@ -609,6 +610,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             if len(img):
               # print("画像あり")
               send_me_length -= 1
+            
             # print(send_message[-2].text)
             # sent_text_element = send_message[-2]
           # script = """
@@ -629,12 +631,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # return textContent;
           # """
           # text_without_children = driver.execute_script(script, sent_text_element) 
-          
+          print(f"{send_message} len(send_message)")
+
           if not chat_ai_flug:    
             if send_me_length == 0:
               send_message = fst_message.format(name=user_name) 
               # print(user_name)
-              # print(send_message)
               # 掲示板からきたか確認
               text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
               for t_f_u in text_from_users:
