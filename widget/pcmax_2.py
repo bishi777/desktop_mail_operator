@@ -1014,7 +1014,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(2)
             text_area_value = text_area.get_attribute("value")
             if t_a_v_cnt == 5:
-              print("テキストエリアにfst_message入力できません")
+              print("テキストエリアに入力できません")
               break
           driver.find_element(By.ID, "send_n").click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1044,6 +1044,47 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           check_first += 1
           print(f"{user_name}にチャットAIを送信しました")
           catch_warning_pop(name, driver)
+          # print("やり取り中")
+          formatted_history = []
+          formatted_history.append("==================================")
+          formatted_history.append(f"   {user_name} (相手) との履歴")
+          formatted_history.append("==================================")
+          
+          seen_messages = set() # To prevent exact duplicates if likely
+          
+          for h in all_history:
+              role = h["role"]
+              text = h["text"].strip()
+              
+              # Deduplication check (simple)
+              signature = f"{role}:{text}"
+              if signature in seen_messages:
+                    continue
+              seen_messages.add(signature)
+
+              if role == "user":
+                  header = f"▼ {user_name} (相手)"
+              else:  # assistant / model
+                  header = f"▲ {name} (自分/AI)"
+              
+              formatted_history.append(f"\n{header}")
+              formatted_history.append("-" * 20)
+              formatted_history.append(text)    
+          mail_text = "\n".join(formatted_history)
+          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{mail_text}」"
+          try:
+            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
+            print("通知メールを送信しました")
+            check_more += 1
+          except Exception as e:
+            print(f"{name} 通知メールの送信に失敗しました")
+            traceback.print_exc()  
+          try:
+            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
+            time.sleep(1)
+            driver.find_element(By.ID, "image_button2").click()
+          except Exception:
+            pass
       elif not len(sent_by_me):
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
