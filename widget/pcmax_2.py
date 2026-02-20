@@ -1044,24 +1044,19 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           check_first += 1
           print(f"{user_name}にチャットAIを送信しました")
           catch_warning_pop(name, driver)
-          # print("やり取り中")
           formatted_history = []
           formatted_history.append("==================================")
           formatted_history.append(f"   {user_name} (相手) との履歴")
           formatted_history.append("==================================")
-          
           seen_messages = set() # To prevent exact duplicates if likely
-          
           for h in all_history:
               role = h["role"]
               text = h["text"].strip()
-              
               # Deduplication check (simple)
               signature = f"{role}:{text}"
               if signature in seen_messages:
                     continue
               seen_messages.add(signature)
-
               if role == "user":
                   header = f"▼ {user_name} (相手)"
               else:  # assistant / model
