@@ -813,7 +813,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       if match:
         age = int(match.group(1))
         print(age)
-        if age < 18 or age > 30:
+        if age < 18 or age > 33:
           chat_ai_flug = True
         else:
           chat_ai_flug = False
