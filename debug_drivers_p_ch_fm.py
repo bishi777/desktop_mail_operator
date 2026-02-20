@@ -72,7 +72,6 @@ def main_syori():
   roll_cnt = 1
   start_time = datetime.now()
   active_chara_list = []
-  list_copy_flug = True
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
@@ -80,11 +79,6 @@ def main_syori():
     now = datetime.now()
     handles = driver.window_handles
     print(f"タブ数:{len(handles)}")
-    print(active_chara_list)
-    if len(active_chara_list):
-      if list_copy_flug:
-        mohu_list = active_chara_list.copy()
-        list_copy_flug = False
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
     for idx, handle in enumerate(handles): 
       driver.switch_to.window(handle)
@@ -223,35 +217,36 @@ def main_syori():
           #   func.change_tor_ip()
           #   time.sleep(6)
           #   print("変更後:", func.get_current_ip())
-          try:
-            top_image_flug = pcmax_2.check_top_image(name,driver)
-            if top_image_flug:
-              func.send_mail(
-                f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
-                mail_info,
-                f"PCMAX トップ画像の更新 ",
-              )
-          except Exception as e:
-            print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
-            traceback.print_exc()
-          try:
-            print("✅新着メールチェック開始")   
-            unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info, chara_prompt)
-            print("新着メールチェック終了✅")
-            report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
-            report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
-            report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
-            report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
-            if check_date:
-              report_dict[name]["check_date"] = check_date
-              one_hour_report_dict[name]["check_date"] = check_date
-            one_hour_report_dict[name]["check_first"] = one_hour_report_dict[name]["check_first"] + check_first
-            one_hour_report_dict[name]["check_second"] = one_hour_report_dict[name]["check_second"] + check_second
-            one_hour_report_dict[name]["gmail_condition"] = one_hour_report_dict[name]["gmail_condition"] + gmail_condition
-            one_hour_report_dict[name]["check_more"] = one_hour_report_dict[name]["check_more"] + check_more
-          except Exception as e:
-            print(f"{name}❌ メールチェック  の操作でエラー: {e}")
-            traceback.print_exc()  
+          if 6 <= now.hour < 24:  
+            try:
+              top_image_flug = pcmax_2.check_top_image(name,driver)
+              if top_image_flug:
+                func.send_mail(
+                  f"pcmax {name}のTOP画像が更新されました。\nNOIMAGE\n{now.strftime('%Y-%m-%d %H:%M:%S')}",
+                  mail_info,
+                  f"PCMAX トップ画像の更新 ",
+                )
+            except Exception as e:
+              print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
+              traceback.print_exc()
+            try:
+              print("✅新着メールチェック開始")   
+              unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info, chara_prompt)
+              print("新着メールチェック終了✅")
+              report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first
+              report_dict[name]["check_second"] = report_dict[name]["check_second"] + check_second
+              report_dict[name]["gmail_condition"] = report_dict[name]["gmail_condition"] + gmail_condition
+              report_dict[name]["check_more"] = report_dict[name]["check_more"] + check_more
+              if check_date:
+                report_dict[name]["check_date"] = check_date
+                one_hour_report_dict[name]["check_date"] = check_date
+              one_hour_report_dict[name]["check_first"] = one_hour_report_dict[name]["check_first"] + check_first
+              one_hour_report_dict[name]["check_second"] = one_hour_report_dict[name]["check_second"] + check_second
+              one_hour_report_dict[name]["gmail_condition"] = one_hour_report_dict[name]["gmail_condition"] + gmail_condition
+              one_hour_report_dict[name]["check_more"] = one_hour_report_dict[name]["check_more"] + check_more
+            except Exception as e:
+              print(f"{name}❌ メールチェック  の操作でエラー: {e}")
+              traceback.print_exc()  
           
           if name == "777":
             iikamo_cnt = 3

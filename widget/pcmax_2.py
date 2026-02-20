@@ -979,70 +979,71 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(1.5) 
             catch_warning_pop(name, driver)
       elif chat_ai_flug:
-        history = []
-        male_history = []
-        # right_balloon キャラ
-        # left_baloon ユーザー
-        message__blocks = driver.find_elements(By.CLASS_NAME, value="bggray")
-        for message__block in message__blocks:
-          femail_flug = message__block.find_elements(By.CLASS_NAME, value="right_balloon") 
-          if len(femail_flug):
-            history.append({"role": "model", "text": femail_flug[0].text})
-          mail_flug = message__block.find_elements(By.CLASS_NAME, value="left_balloon") 
-          if len(mail_flug):
-            history.append({"role": "user", "text": mail_flug[0].text})
-            male_history.append(mail_flug[0].text)
-        if not male_history:
-          user_input = None
-        else:
-          user_input = male_history[-1]
-        print("AIチャット返信処理を開始します")
-        ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
-        if ai_response is None:
-          print("Gemini制限中のため返信しません")
-          return
-        text_area = driver.find_element(By.ID, value="mdc")
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-        script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, ai_response)
-        time.sleep(1)
-        text_area_value = text_area.get_attribute("value")
-        t_a_v_cnt = 0
-        while not text_area_value:
-          t_a_v_cnt += 1
-          time.sleep(2)
+        if chara_prompt:
+          history = []
+          male_history = []
+          # right_balloon キャラ
+          # left_baloon ユーザー
+          message__blocks = driver.find_elements(By.CLASS_NAME, value="bggray")
+          for message__block in message__blocks:
+            femail_flug = message__block.find_elements(By.CLASS_NAME, value="right_balloon") 
+            if len(femail_flug):
+              history.append({"role": "model", "text": femail_flug[0].text})
+            mail_flug = message__block.find_elements(By.CLASS_NAME, value="left_balloon") 
+            if len(mail_flug):
+              history.append({"role": "user", "text": mail_flug[0].text})
+              male_history.append(mail_flug[0].text)
+          if not male_history:
+            user_input = None
+          else:
+            user_input = male_history[-1]
+          print("AIチャット返信処理を開始します")
+          ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
+          if ai_response is None:
+            print("Gemini制限中のため返信しません")
+            return
+          text_area = driver.find_element(By.ID, value="mdc")
+          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+          script = "arguments[0].value = arguments[1];"
+          driver.execute_script(script, text_area, ai_response)
+          time.sleep(1)
           text_area_value = text_area.get_attribute("value")
-          if t_a_v_cnt == 5:
-            print("テキストエリアにfst_message入力できません")
-            break
-        driver.find_element(By.ID, "send_n").click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        mailform_box = driver.find_elements(By.ID, value="mailform_box")
-        if len(mailform_box):
-          if "連続防止" in mailform_box[0].text:
-            print("連続防止　待機中...")
-            time.sleep(7)
-            text_area = driver.find_element(By.ID, value="mdc")
-            driver.execute_script(script, text_area, fst_message.format(name=user_name))
-            time.sleep(1)
-            if mail_img:
-              my_photo_element = driver.find_element(By.ID, "my_photo")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
-              select = Select(my_photo_element)
-              for option in select.options:
-                if mail_img in option.text:
-                  select.select_by_visible_text(option.text)
-                  time.sleep(0.7)
-                  break
-            driver.find_element(By.ID, "send_n").click()
-            time.sleep(1)
-        if driver.find_elements(By.CLASS_NAME, "banned-word"):
-          time.sleep(6)
+          t_a_v_cnt = 0
+          while not text_area_value:
+            t_a_v_cnt += 1
+            time.sleep(2)
+            text_area_value = text_area.get_attribute("value")
+            if t_a_v_cnt == 5:
+              print("テキストエリアにfst_message入力できません")
+              break
           driver.find_element(By.ID, "send_n").click()
-        check_first += 1
-        print(f"{user_name}にチャットAIを送信しました")
-        catch_warning_pop(name, driver)
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          mailform_box = driver.find_elements(By.ID, value="mailform_box")
+          if len(mailform_box):
+            if "連続防止" in mailform_box[0].text:
+              print("連続防止　待機中...")
+              time.sleep(7)
+              text_area = driver.find_element(By.ID, value="mdc")
+              driver.execute_script(script, text_area, fst_message.format(name=user_name))
+              time.sleep(1)
+              if mail_img:
+                my_photo_element = driver.find_element(By.ID, "my_photo")
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", my_photo_element)
+                select = Select(my_photo_element)
+                for option in select.options:
+                  if mail_img in option.text:
+                    select.select_by_visible_text(option.text)
+                    time.sleep(0.7)
+                    break
+              driver.find_element(By.ID, "send_n").click()
+              time.sleep(1)
+          if driver.find_elements(By.CLASS_NAME, "banned-word"):
+            time.sleep(6)
+            driver.find_element(By.ID, "send_n").click()
+          check_first += 1
+          print(f"{user_name}にチャットAIを送信しました")
+          catch_warning_pop(name, driver)
       elif not len(sent_by_me):
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
