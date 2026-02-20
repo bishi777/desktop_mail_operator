@@ -998,7 +998,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           else:
             user_input = male_history[-1]
           print("AIチャット返信処理を開始します")
-          ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
+          ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input, name) 
           if ai_response is None:
             print("Gemini制限中のため返信しません")
             return
