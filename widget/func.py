@@ -1354,7 +1354,7 @@ def normalize_ai_text(text, name):
     return text
 
 
-def chat_ai(system_prompt, history, first_greeting, user_input=None, max_retry=3, name):
+def chat_ai(name, system_prompt, history, first_greeting, user_input=None, max_retry=3, ):
     client = genai.Client(
         api_key=settings.Gemini_API_KEY,
         http_options=HttpOptions(api_version="v1")
