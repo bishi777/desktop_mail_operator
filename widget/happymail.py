@@ -781,88 +781,89 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(1)   
           else: #AIチャット返信
-            history = []
-            male_history = []
-            message__blocks = driver.find_elements(By.CLASS_NAME, value="message__block")
-            for message__block in message__blocks:
-              femail_flug = message__block.find_elements(By.CLASS_NAME, value="message__block__body__text--female") 
-              if len(femail_flug):
-                history.append({"role": "model", "text": femail_flug[0].text})
-              mail_flug = message__block.find_elements(By.CLASS_NAME, value="message__block__body__text--male") 
-              if len(mail_flug):
-                history.append({"role": "user", "text": mail_flug[0].text})
-                male_history.append(mail_flug[0].text)
-            if not male_history:
-              user_input = None
-            else:
-              user_input = male_history[-1]
-            print("AIチャット返信処理を開始します")
-            print(history)
-            print("-----------")
-            ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
-            if ai_response is None:
-              print("Gemini制限中のため返信しません")
-              return
-            text_area = driver.find_element(By.ID, value="text-message")
-            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-            script = "arguments[0].value = arguments[1];"  
-            driver.execute_script(script, text_area, ai_response)
-            time.sleep(0.5)
-            driver.execute_script("arguments[0].click();", text_area)
-            # 送信
-            send_mail = driver.find_element(By.ID, value="submitButton")
-            send_mail.click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5) 
-            send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-            reload_cnt = 0
-            send_message_clean = func.normalize_text(ai_response)
-            send_text_clean = func.normalize_text(send_msg_elem[-1].text)
-            while send_text_clean != send_message_clean:
-              # print(send_text_clean)
-              # print("~~~~~~~~~~~~~~~~~~~~~")
-              # print(send_message)
-              driver.refresh()
+            if chara_prompt:
+              history = []
+              male_history = []
+              message__blocks = driver.find_elements(By.CLASS_NAME, value="message__block")
+              for message__block in message__blocks:
+                femail_flug = message__block.find_elements(By.CLASS_NAME, value="message__block__body__text--female") 
+                if len(femail_flug):
+                  history.append({"role": "model", "text": femail_flug[0].text})
+                mail_flug = message__block.find_elements(By.CLASS_NAME, value="message__block__body__text--male") 
+                if len(mail_flug):
+                  history.append({"role": "user", "text": mail_flug[0].text})
+                  male_history.append(mail_flug[0].text)
+              if not male_history:
+                user_input = None
+              else:
+                user_input = male_history[-1]
+              print("AIチャット返信処理を開始します")
+              print(history)
+              print("-----------")
+              ai_response, all_history = func.chat_ai(chara_prompt, history, fst_message, user_input) 
+              if ai_response is None:
+                print("Gemini制限中のため返信しません")
+                return
+              text_area = driver.find_element(By.ID, value="text-message")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+              script = "arguments[0].value = arguments[1];"  
+              driver.execute_script(script, text_area, ai_response)
+              time.sleep(0.5)
+              driver.execute_script("arguments[0].click();", text_area)
+              # 送信
+              send_mail = driver.find_element(By.ID, value="submitButton")
+              send_mail.click()
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(5)
+              time.sleep(1.5) 
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-              reload_cnt += 1
-              if reload_cnt == 3:
-                  driver.refresh()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(1.5)
-                  break  
-            #やり取りを通知  
-            # Improve formatting
-            formatted_history = []
-            formatted_history.append("==================================")
-            formatted_history.append(f"   {user_name} (相手) との履歴")
-            formatted_history.append("==================================")
-            
-            seen_messages = set() # To prevent exact duplicates if likely
-            
-            for h in all_history:
-                role = h["role"]
-                text = h["text"].strip()
-                
-                # Deduplication check (simple)
-                signature = f"{role}:{text}"
-                if signature in seen_messages:
-                     continue
-                seen_messages.add(signature)
+              reload_cnt = 0
+              send_message_clean = func.normalize_text(ai_response)
+              send_text_clean = func.normalize_text(send_msg_elem[-1].text)
+              while send_text_clean != send_message_clean:
+                # print(send_text_clean)
+                # print("~~~~~~~~~~~~~~~~~~~~~")
+                # print(send_message)
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(5)
+                send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+                reload_cnt += 1
+                if reload_cnt == 3:
+                    driver.refresh()
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    time.sleep(1.5)
+                    break  
+              #やり取りを通知  
+              # Improve formatting
+              formatted_history = []
+              formatted_history.append("==================================")
+              formatted_history.append(f"   {user_name} (相手) との履歴")
+              formatted_history.append("==================================")
+              
+              seen_messages = set() # To prevent exact duplicates if likely
+              
+              for h in all_history:
+                  role = h["role"]
+                  text = h["text"].strip()
+                  
+                  # Deduplication check (simple)
+                  signature = f"{role}:{text}"
+                  if signature in seen_messages:
+                      continue
+                  seen_messages.add(signature)
 
-                if role == "user":
-                    header = f"▼ {user_name} (相手)"
-                else:  # assistant / model
-                    header = f"▲ {name} (自分/AI)"
-                
-                formatted_history.append(f"\n{header}")
-                formatted_history.append("-" * 20)
-                formatted_history.append(text)
-            
-            mail_text = "\n".join(formatted_history)
-            return_message = f"{name}happymail,{login_id}:{password}\n{user_name}\n{mail_text}"
-            return_list.append(return_message) 
+                  if role == "user":
+                      header = f"▼ {user_name} (相手)"
+                  else:  # assistant / model
+                      header = f"▲ {name} (自分/AI)"
+                  
+                  formatted_history.append(f"\n{header}")
+                  formatted_history.append("-" * 20)
+                  formatted_history.append(text)
+              
+              mail_text = "\n".join(formatted_history)
+              return_message = f"{name}happymail,{login_id}:{password}\n{user_name}\n{mail_text}"
+              return_list.append(return_message) 
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
