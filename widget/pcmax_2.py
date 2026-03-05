@@ -1961,3 +1961,109 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     time.sleep(1)
     user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
 
+
+def pcmax_profile_edit(chara_data, driver, wait):
+  """
+  PCMAXのプロフィールを編集する関数
+  1. profile_reg.php でプロフィール情報を入力して送信
+  2. basic_info_change.php?name=1 でニックネームを修正
+  3. basic_info_change.php?work=1 で職業を修正
+  """
+  name = chara_data['name']
+
+  def set_select_by_name(field_name, value):
+    try:
+      el = driver.find_element(By.NAME, field_name)
+      sel = Select(el)
+      sel.select_by_visible_text(str(value))
+      print(f'  {field_name} = {value} ✓')
+    except Exception as e:
+      print(f'  {field_name} = {value} ✗ ({e})')
+
+  # 1. プロフィール編集ページへ移動
+  driver.get('https://pcmax.jp/mobile/profile_reg.php')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  # 2. フォームに入力
+  set_select_by_name('height', chara_data['height'])
+  set_select_by_name('body_type', chara_data['body_shape'])
+  set_select_by_name('taste', chara_data['car_ownership'])
+  set_select_by_name('smoke', chara_data['smoking'])
+  set_select_by_name('spare_time', chara_data['freetime'])
+  set_select_by_name('dirty_minded', chara_data['ecchiness_level'])
+  set_select_by_name('drinking', chara_data['sake'])
+  set_select_by_name('dating_process', chara_data['process_before_meeting'])
+  set_select_by_name('dating_payment', chara_data['first_date_cost'])
+  set_select_by_name('dating_travel', chara_data['travel'])
+  set_select_by_name('birth_pref_no', chara_data['birth_place'])
+  set_select_by_name('academic_background', chara_data['education'])
+  set_select_by_name('housemate', chara_data['roommate'])
+  set_select_by_name('marriage', chara_data['marry'])
+  set_select_by_name('children', chara_data['child'])
+  set_select_by_name('housework', chara_data['housework'])
+  set_select_by_name('sociality', chara_data['sociability'])
+
+  # 自己PR
+  try:
+    el = driver.find_element(By.NAME, 'self_pr')
+    el.clear()
+    el.send_keys(chara_data['self_promotion'])
+    print('  self_pr 入力完了 ✓')
+  except Exception as e:
+    print(f'  self_pr ✗ ({e})')
+
+  # 活動エリア詳細（index[1] のselectが詳細エリア）
+  try:
+    selects = driver.find_elements(By.TAG_NAME, 'select')
+    sel = Select(selects[1])
+    sel.select_by_visible_text(chara_data['detail_activity_area'])
+    print(f'  活動エリア詳細 = {chara_data["detail_activity_area"]} ✓')
+  except Exception as e:
+    print(f'  活動エリア詳細 ✗ ({e})')
+
+  time.sleep(1)
+
+  # 3. 次へボタンをクリックして送信
+  btn = driver.find_element(By.XPATH, "//*[contains(text(), '次へ')]")
+  btn.click()
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  print(f'プロフィール編集送信完了: {driver.current_url}')
+
+  # 4. ニックネームを修正
+  driver.get('https://pcmax.jp/mobile/basic_info_change.php?name=1')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  for inp in driver.find_elements(By.TAG_NAME, 'input'):
+    if inp.get_attribute('type') in ('text', '') and inp.is_displayed():
+      inp.clear()
+      inp.send_keys(name)
+      print(f'  ニックネーム = {name} ✓')
+      break
+  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  print(f'ニックネーム変更完了: {driver.current_url}')
+
+  # 5. 職業を修正
+  driver.get('https://pcmax.jp/mobile/basic_info_change.php?work=1')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  for sel_el in driver.find_elements(By.TAG_NAME, 'select'):
+    for opt in sel_el.find_elements(By.TAG_NAME, 'option'):
+      if opt.text == chara_data['profession']:
+        val = opt.get_attribute('value')
+        driver.execute_script(
+          "document.querySelector('input[name=\"occupation\"]').value = arguments[0]", val
+        )
+        print(f'  職業 = {chara_data["profession"]} ✓')
+        break
+  time.sleep(1)
+  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  print(f'職業変更完了: {driver.current_url}')
+
+  print(f'\n{name} のプロフィール編集がすべて完了しました')
+
