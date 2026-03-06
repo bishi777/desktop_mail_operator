@@ -2050,20 +2050,33 @@ def pcmax_profile_edit(chara_data, driver, wait):
   driver.get('https://pcmax.jp/mobile/basic_info_change.php?work=1')
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
-  for sel_el in driver.find_elements(By.TAG_NAME, 'select'):
-    for opt in sel_el.find_elements(By.TAG_NAME, 'option'):
-      if opt.text == chara_data['profession']:
-        val = opt.get_attribute('value')
-        driver.execute_script(
-          "document.querySelector('input[name=\"occupation\"]').value = arguments[0]", val
-        )
-        print(f'  職業 = {chara_data["profession"]} ✓')
-        break
+  try:
+    sel_el = driver.find_element(By.XPATH, "//select[@name='occupation']")
+    Select(sel_el).select_by_visible_text(chara_data['profession'])
+    print(f'  職業 = {chara_data["profession"]} ✓')
+  except Exception as e:
+    print(f'  職業 ✗ ({e})')
   time.sleep(1)
   driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   print(f'職業変更完了: {driver.current_url}')
+
+  # 6. 血液型を修正
+  driver.get('https://pcmax.jp/mobile/basic_info_change.php?blood=1')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  try:
+    sel_el = driver.find_element(By.XPATH, "//select[@name='blood_type']")
+    Select(sel_el).select_by_visible_text(chara_data['blood_type'])
+    print(f'  血液型 = {chara_data["blood_type"]} ✓')
+  except Exception as e:
+    print(f'  血液型 ✗ ({e})')
+  time.sleep(1)
+  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  print(f'血液型変更完了: {driver.current_url}')
 
   print(f'\n{name} のプロフィール編集がすべて完了しました')
 
