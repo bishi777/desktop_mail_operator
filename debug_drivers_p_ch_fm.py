@@ -102,6 +102,8 @@ def main_syori():
         name_on_pcmax = driver.find_elements(By.CLASS_NAME, 'mydata_name')   
         if name_on_pcmax:
           name = name_on_pcmax[0].text
+          # if "ひろみ" != name:
+          #   continue
         login_retry_cnt = 0
         while not len(name_on_pcmax):
           # 再ログイン処理
@@ -179,7 +181,6 @@ def main_syori():
       for idex, i in enumerate(pcmax_datas):
         login_id = ""   
         if name_on_pcmax == i['name']:
-        # if name_on_pcmax == "ゴン太":
           if name_on_pcmax not in active_chara_list:
             active_chara_list.append(name_on_pcmax)
           if name_on_pcmax not in report_dict:
@@ -252,7 +253,7 @@ def main_syori():
             returnfoot_cnt = 2
           else:
             iikamo_cnt = 1
-            footprint_count = random.randint(7,11)
+            footprint_count = random.randint(7,12)
             returnfoot_cnt = 1
           if fst_flug:
             if 6 <= now.hour < 24:  
