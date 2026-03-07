@@ -43,7 +43,7 @@ handles = driver.window_handles
 mailaddress = user_data['user'][0]['gmail_account']
 gmail_password = user_data['user'][0]['gmail_account_password']
 receiving_address = user_data['user'][0]['user_email']
-
+android = False
 last_reset_hour = None  
 send_flug = True
 
@@ -104,8 +104,11 @@ try:
         print(f"{'='*50}")
 
         round_cnt = 1
+        MIN_ROUND_SEC = 12 * 60  # 1周の最小時間（秒）
+        daily_done = {i["name"]: 0 for i in first_half}  # キャラごとの当日累計処理数
         while datetime.now() < today_end:
           now = datetime.now()
+          round_start = now
           print(f"\n--- {round_cnt}周目 ({now.strftime('%H:%M:%S')}) ---")
           for idx, handle in enumerate(handles):
             for index, i in enumerate(first_half):
@@ -142,6 +145,7 @@ try:
                 return_foot_img = i["chara_image"]
                 gmail_address = i["mail_address"]
                 gmail_password = i["gmail_password"]
+                chara_prompt = i["system_prompt"]
                 matching_cnt = 1
                 type_cnt = 1
                 return_foot_cnt = 1
@@ -153,7 +157,7 @@ try:
 
                 # 新着メールチェック
                 try:
-                  happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password, return_check_cnt)
+                  happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password, return_check_cnt,android,  chara_prompt,)
                   if happymail_new:
                     happymail_new_list.extend(happymail_new)
                   if happymail_new_list:
@@ -185,28 +189,26 @@ try:
                 except Exception as e:
                   print(traceback.format_exc())
                 
-                # マッチング返し・足跡返し（一日一回）
-                send_cnt = 1
-                print(f"本日のマッチング返し・足跡返し実行 (上限: {daily_limit}件)")
-                if report_dict[name][1] and "利用できません" not in happymail_new_list:
-                  try:
-                    return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
-                    # print(return_foot_counted)
-                    # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-                    # report_dict[name][0] = report_dict[name][0] + return_foot_counted[0] + return_foot_counted[2]
-                    # report_dict[name][2].extend(return_foot_counted[5])
-                    # if total_daily_limit <= report_dict[name][0]:
-                    #   print("午前中のマッチング返しの上限に達しました。")
-                    #   limit_text = f"送信数：{report_dict[name][0]} \n"
-                    #   func.send_mail(f"マッチング、足跡返しの上限に達しました。 送信数 {report_dict[name][0]}\n{name}\n{login_id}\n{password}", mail_info, f"ハッピーメール {name} 送信数 {report_dict[name][0]}")
-                    #   report_dict[name][1] = False
-
-                  except Exception as e:
-                    print(f"{name}")
-                    print(traceback.format_exc())
-                    func.send_error(f"{name}", traceback.format_exc())
+                # マッチング返し・足跡返し・足跡付け（daily_limit未達の場合のみ）
+                if daily_done[name] >= daily_limit:
+                  print(f"  {name}: daily_limit({daily_limit})到達済み({daily_done[name]}件) → 新着メールチェックのみ")
+                else:
+                  send_cnt = 1
+                  print(f"  {name}: マッチング返し・足跡返し実行 ({daily_done[name]}/{daily_limit}件)")
+                  if report_dict[name][1] and "利用できません" not in happymail_new_list:
+                    try:
+                      return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
+                      # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
+                      if return_foot_counted and len(return_foot_counted) >= 3:
+                        done = (return_foot_counted[0] or 0) + (return_foot_counted[2] or 0)
+                        daily_done[name] += done
+                        print(f"  {name}: 今回+{done}件 → 累計{daily_done[name]}/{daily_limit}件")
+                    except Exception as e:
+                      print(f"{name}")
+                      print(traceback.format_exc())
+                      func.send_error(f"{name}", traceback.format_exc())
                 # 足跡付け
-                if mf_cnt:
+                if mf_cnt and daily_done[name] < daily_limit:
                   try:
                     happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
                   except NoSuchWindowException:
@@ -222,7 +224,12 @@ try:
                 if top_image_check:
                   happymail_new_list.append(top_image_check)
 
-          print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')}")
+          elapsed = (datetime.now() - round_start).total_seconds()
+          print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒)")
+          wait_sec = MIN_ROUND_SEC - elapsed
+          if wait_sec > 0 and datetime.now() < today_end:
+            print(f"  次の周まで {wait_sec:.0f}秒待機...")
+            time.sleep(wait_sec)
           round_cnt += 1
 
         print(f"\n本日の処理完了: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
