@@ -3221,6 +3221,274 @@ def re_registration(chara_data, driver, wait):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
 
+
+def profile_edit_without_login(chara_data, driver, wait):
+  """既にログイン済みの状態からプロフィール編集を行う（ログイン処理をスキップ）"""
+  warning = catch_warning_screen(driver)
+  if warning:
+    print(f"{chara_data['name']} {warning}")
+    return
+  # マイページへ直接移動
+  driver.get("https://happymail.co.jp/app/html/mypage.php")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  # プロフィールをクリック
+  profile = driver.find_element(By.CLASS_NAME, value="icon-ico_profile ")
+  driver.execute_script("arguments[0].click();", profile)
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(6)
+  # name
+  name_form = driver.find_elements(By.ID, value="nickname_frame")
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", name_form[0])
+  driver.execute_script("arguments[0].click();", name_form[0])
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+  # text_content
+  name_text_area = driver.find_elements(By.CLASS_NAME, value="text_content")
+  if name_text_area[0].get_attribute("value") != chara_data["name"]:
+    name_text_area[0].clear()
+    name_text_area[0].send_keys(chara_data["name"])
+    time.sleep(1)
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    save_button = driver.find_elements(By.ID, value="save")
+    save_button[0].click()
+    time.sleep(2)
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    modal_save_button = driver.find_elements(By.CLASS_NAME, value="modal-button-blue")
+    modal_save_button[0].click()
+    time.sleep(2)
+    print(f"名前:{chara_data['name']}")
+  else:
+    driver.back()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+  def _save_field(field_name, elem):
+    """happyMailSP.api.update_profile_itemを直接呼んで保存"""
+    numeric_val = elem.get_attribute('value')
+    driver.execute_script("""
+      var token = jQuery('#uid').val();
+      happyMailSP.api.update_profile_item({token: token, type: arguments[0], value: arguments[1]});
+    """, field_name, numeric_val)
+    time.sleep(2)
+
+  def _set_and_save(by, locator, field_name, text_value, label):
+    """selectの値を設定してAPIで保存"""
+    if not text_value:
+      return
+    elems = driver.find_elements(by, locator)
+    if not elems:
+      print(f"  {label}: 要素が見つかりません")
+      return
+    try:
+      Select(elems[0]).select_by_visible_text(str(text_value))
+      _save_field(field_name, elems[0])
+      print(f"  {label}: {text_value}")
+    except Exception as e:
+      print(f"  {label}: 設定失敗 ({e})")
+
+  # 年齢
+  _set_and_save(By.ID, "age", "age", chara_data.get("age"), "年齢")
+  # 居住地
+  _set_and_save(By.ID, "area", "area", chara_data.get("activity_area"), "居住地")
+  # 詳細エリア
+  _set_and_save(By.ID, "city", "city", chara_data.get("detail_activity_area"), "詳細エリア")
+  # 出身地
+  _set_and_save(By.NAME, "member_birth_area", "member_birth_area", chara_data.get("birth_place"), "出身地")
+  # 血液型
+  _set_and_save(By.NAME, "blood_type", "blood_type", chara_data.get("blood_type"), "血液型")
+  # 星座
+  _set_and_save(By.NAME, "constellation", "constellation", chara_data.get("constellation"), "星座")
+
+  for field_name, value in [
+    ("height", chara_data.get("height")),
+    ("style", chara_data.get("style")),
+    ("type", chara_data.get("looks")),
+    ("bust_size", chara_data.get("cup")),
+    ("job", chara_data.get("job")),
+    ("educational_background", chara_data.get("education")),
+    ("holiday", chara_data.get("holiday")),
+    ("marriage", chara_data.get("relationship_status")),
+    ("child", chara_data.get("having_children")),
+    ("intention_to_marry", chara_data.get("intention_to_marry")),
+    ("tobacco", chara_data.get("smoking")),
+    ("liquor", chara_data.get("sake")),
+    ("car", chara_data.get("car_ownership")),
+    ("housemate", chara_data.get("roommate")),
+    ("brother", chara_data.get("brothers_and_sisters")),
+    ("hope_before_meet", chara_data.get("until_we_met")),
+    ("first_date_cost", chara_data.get("date_expenses")),
+  ]:
+    _set_and_save(By.NAME, field_name, field_name, value, field_name)
+  # 自己紹介
+  self_promotion = chara_data.get("self_promotion")
+  if self_promotion:
+    driver.get("https://happymail.co.jp/app/html/profileComment.php")
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    textarea = driver.find_elements(By.ID, "self_introduction")
+    if textarea:
+      # textareaはモバイルビューではdisabledになっているためJSで解除
+      driver.execute_script("arguments[0].removeAttribute('disabled'); arguments[0].removeAttribute('readonly');", textarea[0])
+      # テキストを設定してinputイベントで保存ボタンを有効化
+      driver.execute_script("arguments[0].value = '';", textarea[0])
+      textarea[0].send_keys(self_promotion)
+      time.sleep(0.5)
+      driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", textarea[0])
+      time.sleep(0.5)
+      # 審査ボタン（#save）をクリック
+      save_btn = driver.find_elements(By.ID, "save")
+      if save_btn:
+        driver.execute_script("arguments[0].scrollIntoView({block:'center'});", save_btn[0])
+        driver.execute_script("arguments[0].click();", save_btn[0])
+        time.sleep(2)
+        # 確認モーダルの「提出する」ボタンをクリック
+        submit_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'提出する')]")
+        if submit_btn:
+          driver.execute_script("arguments[0].click();", submit_btn[0])
+          time.sleep(3)
+          print(f"  自己紹介: 審査に提出しました")
+        else:
+          print(f"  自己紹介: 提出するボタンが見つかりません")
+      else:
+        print(f"  自己紹介: 審査ボタン(#save)が見つかりません")
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+    else:
+      print(f"  自己紹介: textarea が見つかりません")
+  time.sleep(1)
+  print(f"\n{chara_data['name']} のプロフィール編集が完了しました")
+
+
+HAPPYMAIL_AREA_MAP = {
+  '北海道(道央)': 51, '北海道(道東)': 52, '北海道(道南)': 54, '北海道(道北)': 55,
+  '青森県': 2, '岩手県': 3, '宮城県': 4, '秋田県': 5, '山形県': 6, '福島県': 7,
+  '茨城県': 8, '栃木県': 9, '群馬県': 10, '埼玉県': 11, '千葉県': 12,
+  '神奈川県': 13, '東京都': 14, '新潟県': 15, '山梨県': 19, '長野県': 20,
+  '富山県': 16, '石川県': 17, '福井県': 18,
+  '岐阜県': 21, '静岡県': 22, '愛知県': 23, '三重県': 24,
+  '滋賀県': 25, '京都府': 26, '大阪府': 27, '兵庫県': 28, '奈良県': 29, '和歌山県': 30,
+  '鳥取県': 31, '島根県': 32, '岡山県': 33, '広島県': 34, '山口県': 35,
+  '徳島県': 36, '香川県': 37, '愛媛県': 38, '高知県': 39,
+  '福岡県': 40, '佐賀県': 41, '長崎県': 42, '熊本県': 43, '大分県': 44,
+  '宮崎県': 45, '鹿児島県': 46, '沖縄県': 47,
+  '福岡(北九州)': 48, '福岡(久留米・筑後)': 49, '長崎県(佐世保)': 50,
+}
+
+
+def set_search_conditions(chara_data, driver, wait):
+  """プロフ一覧検索の検索条件を設定して保存する"""
+  driver.get("https://happymail.co.jp/app/html/profile_list_search.php")
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  # 年齢(下)
+  age_low = chara_data.get("prof_search_youngest_age")
+  elems = driver.find_elements(By.NAME, "interest_age_low")
+  if elems and age_low:
+    try:
+      Select(elems[0]).select_by_visible_text(str(age_low))
+      print(f"  希望年齢(下): {age_low}")
+    except Exception as e:
+      print(f"  希望年齢(下): 設定失敗 ({e})")
+
+  # 年齢(上)
+  age_high = chara_data.get("prof_search_oldest_age")
+  elems = driver.find_elements(By.NAME, "interest_age_high")
+  if elems and age_high:
+    try:
+      Select(elems[0]).select_by_visible_text(str(age_high))
+      print(f"  希望年齢(上): {age_high}")
+    except Exception as e:
+      print(f"  希望年齢(上): 設定失敗 ({e})")
+
+  # 身長(下)
+  height_low = chara_data.get("prof_search_height_min")
+  elems = driver.find_elements(By.NAME, "interest_height_low")
+  if elems and height_low:
+    try:
+      Select(elems[0]).select_by_visible_text(str(height_low))
+      print(f"  希望身長(下): {height_low}")
+    except Exception as e:
+      print(f"  希望身長(下): 設定失敗 ({e})")
+
+  # 身長(上)
+  height_high = chara_data.get("prof_search_height_max")
+  elems = driver.find_elements(By.NAME, "interest_height_high")
+  if elems and height_high:
+    try:
+      Select(elems[0]).select_by_visible_text(str(height_high))
+      print(f"  希望身長(上): {height_high}")
+    except Exception as e:
+      print(f"  希望身長(上): 設定失敗 ({e})")
+
+  # エリア（チェックボックス）
+  search_areas = chara_data.get("prof_search_area")
+  if search_areas:
+    area_names = [a.strip() for a in search_areas.split(",") if a.strip()]
+    # 一旦全チェックを外す
+    all_area_cbs = driver.find_elements(By.NAME, "area[]")
+    for cb in all_area_cbs:
+      if cb.is_selected():
+        driver.execute_script("arguments[0].click();", cb)
+    time.sleep(0.3)
+    # 指定エリアをチェック
+    for area_name in area_names:
+      area_val = HAPPYMAIL_AREA_MAP.get(area_name)
+      if area_val is None:
+        print(f"  エリア '{area_name}': マッピングなし")
+        continue
+      cb = driver.find_elements(By.ID, f"area-{area_val}")
+      if cb:
+        if not cb[0].is_selected():
+          driver.execute_script("arguments[0].click();", cb[0])
+        print(f"  エリア: {area_name} (val={area_val})")
+      else:
+        print(f"  エリア '{area_name}': 要素が見つかりません")
+    time.sleep(0.5)
+
+  # 検索するボタンをクリック
+  search_btn = driver.find_elements(By.ID, "btn-search-start")
+  if not search_btn:
+    search_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'検索する')]")
+  if search_btn:
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", search_btn[0])
+    driver.execute_script("arguments[0].click();", search_btn[0])
+    time.sleep(2)
+    print(f"  検索しました")
+  else:
+    print(f"  検索ボタンが見つかりません")
+
+
+def set_footprint_settings(driver, wait):
+  """足あと設定: 足あとを残す=ON、女性を表示する=OFF(男性のみ表示)"""
+  driver.get("https://happymail.co.jp/app/html/ashiato_setting.php")
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+  from selenium.webdriver.support.ui import Select
+
+  # 足あとを残す (enable: 0=残さない, 1=残す)
+  enable_sel = driver.find_elements(By.CSS_SELECTOR, "select[name='enable']")
+  if enable_sel:
+    Select(enable_sel[0]).select_by_value("1")
+    print("  足あとを残す: ON")
+
+  # 女性を表示しない (view: 0=すべて, 1=男性のみ, 2=女性のみ)
+  view_sel = driver.find_elements(By.CSS_SELECTOR, "select[name='view']")
+  if view_sel:
+    Select(view_sel[0]).select_by_value("1")
+    print("  足あと表示: 男性のみ")
+
+  # 変更ボタンをクリック
+  submit_btn = driver.find_elements(By.ID, "submit")
+  if submit_btn:
+    driver.execute_script("arguments[0].click();", submit_btn[0])
+    time.sleep(2)
+    print("  足あと設定を保存しました")
+  else:
+    print("  変更ボタンが見つかりません")
+
+
 def return_foot_message_roll(name, driver, wait, login_id, password, return_foot_message, return_foot_img):
   warning_pop = catch_warning_screen(driver)
   daily_limit = 111
