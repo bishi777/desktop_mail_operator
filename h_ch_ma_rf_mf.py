@@ -90,7 +90,7 @@ try:
         print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
       else:
         # 一日ごとの上限をランダムに設定（5〜15）
-        daily_limit = random.randint(5, 15)
+        daily_limit = random.randint(6, 11)
         matching_daily_limit = daily_limit
         returnfoot_daily_limit = daily_limit
         oneday_total_match = daily_limit

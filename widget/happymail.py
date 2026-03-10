@@ -1729,8 +1729,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
 
         age_elm = f_user[user_icon].find_elements(By.CLASS_NAME, value="ds_like_list_age")
         if "20代" not in age_elm[0].text and "18~19" not in age_elm[0].text:
-          print("年齢が１０〜２０代ではないユーザーです")
-          print(len(f_user))
+          # print("年齢が１０〜２０代ではないユーザーです")
+          # print(len(f_user))
           user_icon += 1
           if len(f_user) <= user_icon:
             # ページの最後までスクロール
