@@ -199,7 +199,7 @@ try:
                     try:
                       return_foot_counted = happymail.return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, returnfoot_daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt)
                       # [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
-                      if return_foot_counted and len(return_foot_counted) >= 3:
+                      if isinstance(return_foot_counted, list) and len(return_foot_counted) >= 3:
                         done = (return_foot_counted[0] or 0) + (return_foot_counted[2] or 0)
                         daily_done[name] += done
                         print(f"  {name}: 今回+{done}件 → 累計{daily_done[name]}/{daily_limit}件")

@@ -289,7 +289,10 @@ def profile_search(driver, search_edit):
   youngest_age_select_box = driver.find_element(By.NAME, "from_age")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", youngest_age_select_box)
   old_value = random.choice(search_edit["o_age"])
-  old_age = f"{old_value}歳"
+  if old_value == 60:
+    old_age = "60歳以上"
+  else:
+    old_age = f"{old_value}歳"
   young_value = random.choice(search_edit["y_age"])
   young_age = f"{young_value}歳"
   # print(f"{young_age} 〜 {old_age} で検索します")
@@ -1868,6 +1871,8 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     "search_body_type": ["スリム", "やや細め", "普通", "ふくよか", "太め" ],
     "annual_income":["200万円未満", "200万円以上〜400万円未満", "指定なし"]
   }
+  if name == "ひろみ":
+    search_edit["o_age"] = [34, 60]
   catch_warning_pop(name, driver)
   if not profile_search(driver, search_edit):
     return
