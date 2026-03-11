@@ -1873,6 +1873,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   }
   if name == "ひろみ":
     search_edit["o_age"] = [34, 60]
+    print(f"特殊設定　{name}　年齢{search_edit['y_age']}~{search_edit['o_age']}")
   catch_warning_pop(name, driver)
   if not profile_search(driver, search_edit):
     return
