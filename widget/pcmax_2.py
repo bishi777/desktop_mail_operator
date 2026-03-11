@@ -1471,7 +1471,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # 年齢確認
     user_age = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME, 'user-age').text
     match = re.search(r'(\d+)歳', user_age)
-    if match:
+    if name == "ひろみ":
+      print(f"特殊設定　{name}  年齢確認 {user_age}")
+    elif match:
       age = int(match.group(1))
       if 18 <= age <= 34:
         print(f"年齢確認OK{age}")
