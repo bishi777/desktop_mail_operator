@@ -3489,6 +3489,440 @@ def set_footprint_settings(driver, wait):
     print("  変更ボタンが見つかりません")
 
 
+# =====================================================================
+# ユーザープロフィール解析・スコアリング
+# =====================================================================
+
+def get_profile_image_urls(driver):
+  """プロフィール詳細ページからユーザー画像URLリストを取得（background-image形式）"""
+  import re
+  result = driver.execute_script('''
+    var found = [];
+    document.querySelectorAll("*").forEach(function(el){
+      var bg = window.getComputedStyle(el).backgroundImage;
+      if(bg && bg !== "none" && bg.includes("pict.happymail.co.jp")){
+        var match = bg.match(/url\\(["']?([^"')]+)["']?\\)/);
+        if(match) found.push(match[1]);
+      }
+    });
+    // 重複除去・サムネ除外（800px幅を優先）
+    return [...new Set(found)].filter(function(u){ return u.includes("/ph/800/") || u.includes("/ph/"); });
+  ''')
+  return result
+
+
+def analyze_image_with_claude(image_url, cookies_dict=None):
+  """
+  Claude APIで画像を解析して「芋っぽい・真面目そう」スコアを返す。
+  戻り値: (score: int, reason: str)
+  """
+  import anthropic
+  import httpx
+  import base64
+  import os
+
+  api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+  if not api_key:
+    try:
+      import settings
+      api_key = getattr(settings, 'anthropic_api_key', '')
+    except Exception:
+      pass
+  if not api_key:
+    return 0, '(APIキー未設定のためスキップ)'
+
+  try:
+    # ブラウザのCookieを使って画像をダウンロード
+    headers = {'Referer': 'https://happymail.co.jp/'}
+    if cookies_dict:
+      headers['Cookie'] = '; '.join([f'{k}={v}' for k, v in cookies_dict.items()])
+
+    resp = httpx.get(image_url, headers=headers, timeout=10, follow_redirects=True)
+    if resp.status_code != 200:
+      return 0, f'(画像取得失敗: {resp.status_code})'
+
+    image_data = base64.standard_b64encode(resp.content).decode('utf-8')
+    media_type = resp.headers.get('content-type', 'image/jpeg').split(';')[0]
+
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+      model='claude-haiku-4-5-20251001',
+      max_tokens=256,
+      messages=[{
+        'role': 'user',
+        'content': [
+          {
+            'type': 'image',
+            'source': {'type': 'base64', 'media_type': media_type, 'data': image_data},
+          },
+          {
+            'type': 'text',
+            'text': (
+              'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
+              '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
+              '・真面目そう・おとなしそう: 高スコア\n'
+              '・女性慣れしていなそう・モテなそう: 高スコア\n'
+              '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
+              '必ず以下の形式のみで答えてください（説明不要）:\n'
+              'SCORE:数字 REASON:一言理由'
+            ),
+          },
+        ],
+      }],
+    )
+    text = message.content[0].text.strip()
+    import re
+    m = re.search(r'SCORE:(\d+)\s+REASON:(.+)', text)
+    if m:
+      return int(m.group(1)), m.group(2).strip()
+    return 0, f'(解析結果: {text[:50]})'
+
+  except Exception as e:
+    return 0, f'(画像解析エラー: {e})'
+
+
+def get_profile_detail(driver, wait):
+  """現在開いている詳細ページからプロフィール情報を全取得してdictで返す"""
+  profile = {}
+
+  # 基本項目（ds_profile_select_list_item: 「ラベル\n値」形式）
+  items = driver.find_elements(By.CLASS_NAME, 'ds_profile_select_list_item')
+  for item in items:
+    text = item.text.strip()
+    if '\n' in text:
+      label, value = text.split('\n', 1)
+      # 重複キーは最初の値（基本情報）を優先
+      if label not in profile:
+        profile[label] = value.strip()
+
+  # 興味・関心
+  interests = driver.find_elements(By.CLASS_NAME, 'ds_circle_text_list_item_pc')
+  profile['興味'] = [el.text.strip() for el in interests if el.text.strip()]
+
+  # 出会いの目的
+  purposes = driver.find_elements(By.CSS_SELECTOR, '.ds_circle_text_list_item_pc')
+  # 自己紹介文
+  intro_els = driver.find_elements(By.CLASS_NAME, 'translate_body')
+  profile['自己紹介'] = intro_els[0].text.strip() if intro_els else ''
+
+  # ニックネーム・ログイン時刻
+  name_el = driver.find_elements(By.CSS_SELECTOR, '.profile_name_text, [class*=profile_name]')
+  profile['名前'] = name_el[0].text.strip() if name_el else ''
+
+  login_el = driver.find_elements(By.CSS_SELECTOR, '[class*=login_date], [class*=last_login]')
+  profile['最終ログイン'] = login_el[0].text.strip() if login_el else ''
+
+  # プロフ画像URL（background-imageから取得）
+  image_urls = get_profile_image_urls(driver)
+  profile['画像あり'] = len(image_urls) > 0
+  profile['画像urls'] = image_urls
+
+  # 現在のURL（user_id取得用）
+  profile['url'] = driver.current_url
+
+  return profile
+
+
+def score_user(profile):
+  """
+  プロフィール情報から「好みタイプ」スコアを算出する。
+  点数が高いほど好みに合致。
+
+  判定基準:
+    - 道程・女性慣れしていない (inexperienced)
+    - 年収が低い
+    - 真面目そう・芋っぽい
+  """
+  score = 0
+  reasons = []
+  intro = profile.get('自己紹介', '')
+  interests = profile.get('興味', [])
+
+  # ── 年収スコア ──────────────────────────────
+  income = profile.get('年収', '')
+  if not income:
+    score += 15
+    reasons.append('年収未記入(+15)')
+  elif '～300' in income or '300万円未満' in income:
+    score += 20
+    reasons.append(f'年収低め {income}(+20)')
+  elif '300～600' in income:
+    score += 10
+    reasons.append(f'年収やや低め {income}(+10)')
+  elif '600～1000' in income:
+    score += 0
+  elif '1000万' in income or '5000万' in income:
+    score -= 10
+    reasons.append(f'高収入 {income}(-10)')
+
+  # ── 職業スコア ──────────────────────────────
+  job = profile.get('職業', '')
+  if job in ['学生']:
+    pass  # 学生はスコアなし
+  elif job in ['フリーター・アルバイト', 'フリーランス・個人事業主']:
+    score += 8
+    reasons.append(f'職業:{job}(+8)')
+  elif job in ['会社員・OL', '大手企業', 'IT・Web関連']:
+    score += 0
+  elif job in ['公務員', '医師・歯科医師', '弁護士・会計士']:
+    score -= 5
+    reasons.append(f'エリート職業:{job}(-5)')
+
+  # ── 道程・女性慣れしていない ──────────────────────────
+  inexperienced_words = [
+    '奥手', '人見知り', '草食', 'コミュ障', '慣れていない', '初めて', '初心者',
+    '緊張', 'モテない', '女性と話す', '苦手', '話しかけてください', 'リードして',
+    'リードされたい', 'ぼっち', '友達いない', '孤独', '引きこもり', '内気',
+  ]
+  hit_words = [w for w in inexperienced_words if w in intro]
+  if hit_words:
+    add = min(len(hit_words) * 8, 30)
+    score += add
+    reasons.append(f'道程ワード{hit_words}(+{add})')
+
+  # 自己紹介が短い・ぎこちない
+  if len(intro) < 30 and intro:
+    score += 8
+    reasons.append(f'自己紹介が短い({len(intro)}文字)(+8)')
+  elif len(intro) == 0:
+    score += 12
+    reasons.append('自己紹介なし(+12)')
+
+  # ── 芋っぽい・真面目系 ──────────────────────────────
+  nerdy_words = [
+    'アニメ', 'ゲーム', '漫画', 'マンガ', 'フィギュア', '鉄道', '電車',
+    'プログラム', 'コード', 'パソコン', 'PC', '読書', '映画鑑賞', '一人',
+    '在宅', 'テレワーク', 'インドア', 'ニコニコ', 'YouTube', '料理',
+  ]
+  nerdy_interests = [w for w in nerdy_words if w in intro or w in ' '.join(interests)]
+  if nerdy_interests:
+    add = min(len(nerdy_interests) * 5, 25)
+    score += add
+    reasons.append(f'芋系ワード{nerdy_interests}(+{add})')
+
+  # ── 画像なし ──────────────────────────────────
+  if not profile.get('画像あり'):
+    score += 15
+    reasons.append('プロフ画像なし(+15)')
+
+  # ── スタイル ──────────────────────────────────
+  style = profile.get('スタイル', '')
+  if style in ['やや細め', '細め']:
+    score += 5
+    reasons.append(f'スタイル:{style}(+5)')
+  elif style == 'ぽっちゃり':
+    score += 8
+    reasons.append(f'スタイル:{style}(+8)')
+
+  # ── タバコ ────────────────────────────────────
+  tobacco = profile.get('タバコ', '')
+  if '吸わない' in tobacco:
+    score += 5
+    reasons.append('非喫煙(+5)')
+
+  # ── 出会いの目的（真面目系）──────────────────────
+  purpose_text = ' '.join(profile.get('興味', []))
+  if '友達' in purpose_text or '真剣' in purpose_text or '結婚' in purpose_text:
+    score += 8
+    reasons.append('真剣系目的(+8)')
+
+  return score, reasons
+
+
+def analyze_profile_list(driver, wait, top_n=10):
+  """
+  プロフ一覧の上位top_nユーザーを順に詳細ページで解析してスコア一覧を返す。
+  戻り値: list of dict {name, score, reasons, profile, url}
+  """
+  driver.get('https://happymail.co.jp/app/html/profile_list.php?a=a')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  results = []
+  for idx in range(1, top_n + 1):
+    try:
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      driver.get(url)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+
+      # 存在チェック（一覧の範囲外なら終了）
+      if 'profile_list' in driver.current_url and 'detail' not in driver.current_url:
+        break
+
+      profile = get_profile_detail(driver, wait)
+      score, reasons = score_user(profile)
+
+      # 画像がある場合はClaude APIで画像解析してスコア加算
+      image_urls = profile.get('画像urls', [])
+      if image_urls:
+        cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
+        img_score, img_reason = analyze_image_with_claude(image_urls[0], cookies_dict)
+        if img_score > 0:
+          score += img_score
+          reasons.append(f'画像解析+{img_score}点({img_reason})')
+
+      name = profile.get('名前') or profile.get('ニックネーム', f'user{idx}')
+      results.append({
+        'name': name,
+        'score': score,
+        'reasons': reasons,
+        'profile': profile,
+        'url': profile['url'],
+      })
+      print(f"  [{idx}] {name} | 年収:{profile.get('年収','-')} | 職業:{profile.get('職業','-')} | スコア:{score}")
+
+    except Exception as e:
+      print(f"  [{idx}] エラー: {e}")
+      continue
+
+  # スコア降順にソート
+  results.sort(key=lambda x: x['score'], reverse=True)
+  return results
+
+
+def print_score_report(results):
+  """スコアリング結果をわかりやすく表示"""
+  print(f"\n{'='*55}")
+  print(f"  スコアランキング (高スコア = 好みタイプ)")
+  print(f"{'='*55}")
+  for i, r in enumerate(results, 1):
+    p = r['profile']
+    print(f"\n{i}位 {r['name']}  スコア:{r['score']}点")
+    print(f"  年齢:{p.get('年齢','-')} 居住地:{p.get('居住地','-')} 年収:{p.get('年収','-')}")
+    print(f"  職業:{p.get('職業','-')} スタイル:{p.get('スタイル','-')}")
+    print(f"  自己紹介: {p.get('自己紹介','')[:60]}")
+    print(f"  理由: {', '.join(r['reasons'])}")
+    print(f"  URL: {r['url']}")
+
+
+def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=None):
+  """
+  プロフ一覧からuser_check_cnt人をスコアリングして、
+  最高スコアのユーザーにfst_messageを送信する。
+
+  Args:
+    name: 自キャラ名（ログ用）
+    driver: WebDriver
+    wait: WebDriverWait
+    fst_message: 送信する初回メッセージ（{name}で相手名を埋め込み可）
+    user_check_cnt: 確認するユーザー数（Noneの場合は8〜14のランダム）
+  Returns:
+    送信先ユーザー名（送信できなかった場合はNone）
+  """
+  if user_check_cnt is None:
+    user_check_cnt = random.randint(8, 14)
+
+  print(f"  [{name}] プロフ一覧から{user_check_cnt}人をスコアリング中...")
+
+  driver.get('https://happymail.co.jp/app/html/profile_list.php?a=a')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  results = []
+  cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
+
+  for idx in range(1, user_check_cnt + 1):
+    try:
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      driver.get(url)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+
+      if 'detail' not in driver.current_url:
+        break
+
+      # メッセージ履歴チェック（mail_history_off = 未送信、それ以外はスキップ）
+      mail_el = driver.find_elements(By.CLASS_NAME, 'ds_profile_detail_mail')
+      if mail_el and 'mail_history_off' not in mail_el[0].get_attribute('class'):
+        print(f"    [{idx}] 送信済みスキップ")
+        continue
+
+      profile = get_profile_detail(driver, wait)
+      score, reasons = score_user(profile)
+
+      # 画像解析
+      image_urls = profile.get('画像urls', [])
+      if image_urls:
+        img_score, img_reason = analyze_image_with_claude(image_urls[0], cookies_dict)
+        if img_score > 0:
+          score += img_score
+          reasons.append(f'画像+{img_score}({img_reason})')
+
+      # NGワードチェック
+      intro = profile.get('自己紹介', '')
+      ngword_list = ['通報', '業者', '金銭', '条件', 'サクラ']
+      if any(ng in intro for ng in ngword_list):
+        print(f"    [{idx}] NGワード検出スキップ")
+        continue
+
+      user_name_els = driver.find_elements(By.CSS_SELECTOR, '.profile_name_text, [class*=nickname], h1, .ds_profile_detail_nickname')
+      user_name = user_name_els[0].text.strip() if user_name_els else f'user{idx}'
+
+      results.append({
+        'name': user_name,
+        'score': score,
+        'reasons': reasons,
+        'profile': profile,
+        'url': driver.current_url,
+        'idx': idx,
+      })
+      print(f"    [{idx}] {user_name} スコア:{score} ({', '.join(reasons[:3])})")
+
+    except Exception as e:
+      print(f"    [{idx}] エラー: {e}")
+      continue
+
+  if not results:
+    print(f"  [{name}] 送信対象が見つかりませんでした")
+    return None
+
+  # 最高スコアのユーザーへ移動
+  results.sort(key=lambda x: x['score'], reverse=True)
+  best = results[0]
+  print(f"  [{name}] 最高スコア: {best['name']} ({best['score']}点) → メッセージ送信")
+
+  driver.get(best['url'])
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+
+  try:
+    # メッセージボタンをクリック（ds_profile_target_btn）
+    mail_btn = driver.find_elements(By.CLASS_NAME, 'ds_profile_target_btn')
+    if not mail_btn:
+      print(f"  [{name}] メッセージボタンが見つかりません")
+      return None
+    driver.execute_script('arguments[0].click();', mail_btn[0])
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+
+    # メッセージ入力
+    text_area = driver.find_elements(By.ID, 'text-message')
+    if not text_area:
+      print(f"  [{name}] テキストエリアが見つかりません")
+      return None
+
+    message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
+    text_area[0].send_keys(message)
+    time.sleep(0.5)
+
+    # 送信
+    send_btn = driver.find_elements(By.ID, 'submitButton')
+    if send_btn:
+      send_btn[0].click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print(f"  [{name}] → {best['name']} にメッセージ送信完了")
+      return best['name']
+    else:
+      print(f"  [{name}] 送信ボタンが見つかりません")
+      return None
+
+  except Exception as e:
+    print(f"  [{name}] メッセージ送信エラー: {e}")
+    return None
+
+
 def return_foot_message_roll(name, driver, wait, login_id, password, return_foot_message, return_foot_img):
   warning_pop = catch_warning_screen(driver)
   daily_limit = 111
