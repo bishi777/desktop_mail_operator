@@ -61,8 +61,6 @@ try:
   # drivers = happymail.start_the_drivers_login(spare_mail_info, first_half, headless, profile_path, True)
   # 足跡付け、チェックメール　ループ
   return_foot_counted = 0
-  mf_cnt = random.randint(5, 9)
-  mf_type_cnt = 2
   report_dict = {}
   for i in first_half:
     report_dict[i["name"]] = [0, send_flug, []]
@@ -106,6 +104,11 @@ try:
         round_cnt = 1
         MIN_ROUND_SEC = 12 * 60  # 1周の最小時間（秒）
         daily_done = {i["name"]: 0 for i in first_half}  # キャラごとの当日累計処理数
+        # fst_message送信用: 一日の上限と最終送信時刻
+        fst_daily_limit = {i["name"]: random.randint(8, 15) for i in first_half}
+        fst_daily_done  = {i["name"]: 0 for i in first_half}
+        last_fst_sent   = {i["name"]: None for i in first_half}
+        print("fst送信上限:", {k: v for k, v in fst_daily_limit.items()})
         while datetime.now() < today_end:
           now = datetime.now()
           round_start = now
@@ -207,12 +210,21 @@ try:
                       print(f"{name}")
                       print(traceback.format_exc())
                       func.send_error(f"{name}", traceback.format_exc())
-                # 足跡付け
-                if mf_cnt and daily_done[name] < daily_limit:
+                # スコアリング＆初回メッセージ送信（約1時間に1回 & 日次上限内）
+                fst_interval = random.randint(50, 70) * 60  # 50〜70分をランダム
+                elapsed_since_fst = (
+                  (datetime.now() - last_fst_sent[name]).total_seconds()
+                  if last_fst_sent[name] else fst_interval + 1
+                )
+                if fst_daily_done[name] < fst_daily_limit[name] and elapsed_since_fst >= fst_interval:
                   try:
-                    happymail.mutidriver_make_footprints(name, login_id, password, driver, wait, mf_cnt, mf_type_cnt)
+                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=random.randint(8, 12))
+                    if sent_to:
+                      fst_daily_done[name] += 1
+                      last_fst_sent[name] = datetime.now()
+                      print(f"  {name}: fst送信済み {fst_daily_done[name]}/{fst_daily_limit[name]}件")
                   except NoSuchWindowException:
-                    print(f"NoSuchWindowExceptionエラーが出ました, {e}")
+                    print(f"NoSuchWindowExceptionエラーが出ました")
                     pass
                   except ReadTimeoutError as e:
                     print("🔴 ページの読み込みがタイムアウトしました:", e)
@@ -220,6 +232,9 @@ try:
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   except Exception as e:
                     print(traceback.format_exc())
+                else:
+                  next_fst = max(0, fst_interval - elapsed_since_fst)
+                  print(f"  {name}: fst送信スキップ ({fst_daily_done[name]}/{fst_daily_limit[name]}件, 次回まで約{next_fst//60:.0f}分)")
               # elif index == 1:　2個目のタブの処理があれば記載
                 if top_image_check:
                   happymail_new_list.append(top_image_check)
