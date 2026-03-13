@@ -3800,7 +3800,7 @@ def print_score_report(results):
     print(f"  URL: {r['url']}")
 
 
-def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=None):
+def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user_check_cnt=None):
   """
   プロフ一覧からuser_check_cnt人をスコアリングして、
   最高スコアのユーザーにfst_messageを送信する。
@@ -3934,8 +3934,8 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(wait_time)
         break
-    # 画像があれば送信
     print(f"  [{name}] → {best['name']} にメッセージ送信完了")
+    # 画像があれば送信
 
     try:
       if image_path:

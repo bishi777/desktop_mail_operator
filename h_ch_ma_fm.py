@@ -217,7 +217,7 @@ try:
                 )
                 if fst_daily_done[name] < fst_daily_limit[name] and elapsed_since_fst >= fst_interval:
                   try:
-                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=random.randint(7, 11))
+                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, return_foot_img, user_check_cnt=random.randint(7, 11))
                     if sent_to:
                       fst_daily_done[name] += 1
                       last_fst_sent[name] = datetime.now()
