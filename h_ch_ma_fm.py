@@ -89,7 +89,7 @@ try:
         print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
       else:
         # 一日ごとの上限をランダムに設定（5〜15）
-        daily_limit = random.randint(6, 11)
+        daily_limit = random.randint(4, 5)
         matching_daily_limit = daily_limit
         returnfoot_daily_limit = daily_limit
         oneday_total_match = daily_limit
@@ -106,7 +106,7 @@ try:
         MIN_ROUND_SEC = 12 * 60  # 1周の最小時間（秒）
         daily_done = {i["name"]: 0 for i in first_half}  # キャラごとの当日累計処理数
         # fst_message送信用: 一日の上限と最終送信時刻
-        fst_daily_limit = {i["name"]: random.randint(8, 15) for i in first_half}
+        fst_daily_limit = {i["name"]: random.randint(9, 11) for i in first_half}
         fst_daily_done  = {i["name"]: 0 for i in first_half}
         last_fst_sent   = {i["name"]: None for i in first_half}
         print("fst送信上限:", {k: v for k, v in fst_daily_limit.items()})
@@ -217,7 +217,7 @@ try:
                 )
                 if fst_daily_done[name] < fst_daily_limit[name] and elapsed_since_fst >= fst_interval:
                   try:
-                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, return_foot_img, user_check_cnt=random.randint(7, 11))
+                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, return_foot_img, user_check_cnt=random.randint(4, 5))
                     if sent_to:
                       fst_daily_done[name] += 1
                       last_fst_sent[name] = datetime.now()
