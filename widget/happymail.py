@@ -3913,7 +3913,6 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
       send_btn[0].click()
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
-      print(f"  [{name}] → {best['name']} にメッセージ送信完了")
       return best['name']
     else:
       print(f"  [{name}] 送信ボタンが見つかりません")
@@ -3936,6 +3935,8 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
         time.sleep(wait_time)
         break
     # 画像があれば送信
+    print(f"  [{name}] → {best['name']} にメッセージ送信完了")
+
     try:
       if image_path:
         img_conform = driver.find_element(By.ID, value="media-confirm")
