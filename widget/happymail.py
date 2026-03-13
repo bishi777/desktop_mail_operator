@@ -3917,6 +3917,44 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
     driver.execute_script('arguments[0].click();', send_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
+    send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+    reload_cnt = 0
+    most_recent_msg = send_msg_elem[-1]  
+    script = """
+      var element = arguments[0];
+
+      // 除外するクラスを持つ子要素を取得
+      var elementsToRemove = element.querySelectorAll('.transit_info, .message__block__body__time');
+
+      // 一時的に削除
+      elementsToRemove.forEach(el => el.remove());
+
+      // 要素Aのテキストを取得
+      var textContent = element.textContent.trim();
+
+      // 削除した子要素を元に戻す
+      elementsToRemove.forEach(el => element.appendChild(el));
+
+      return textContent;
+      """
+      
+    most_recent_msg = driver.execute_script(script, most_recent_msg) 
+    most_recent_msg_clean = func.normalize_text(most_recent_msg)
+    fst_message_clean = func.normalize_text(message)
+    while most_recent_msg_clean != fst_message_clean:
+      # print(most_recent_msg)
+      # print("~~~~~~~~~~~~~~~~~~~~")
+      # print(return_foot_message)
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
+      send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+      reload_cnt += 1
+      if reload_cnt == 1:
+        driver.refresh()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(wait_time)
+        break
     print(f"  [{name}] → {best['name']} にテキスト送信完了")
 
     # 画像送信
