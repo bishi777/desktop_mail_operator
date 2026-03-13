@@ -34,9 +34,10 @@ first_half = happy_info
 # first_half = happy_info[half:]  # 後半
 # profile_path = "chrome_profiles/h_footprint"
 # drivers = {}
+port = sys.argv[1] if len(sys.argv) > 1 else settings.happymail_drivers_port
 service = Service(ChromeDriverManager().install())  # Chrome v141に合うDriverを取得
 options = Options()
-options.add_experimental_option("debuggerAddress", f"127.0.0.1:{settings.happymail_drivers_port}")
+options.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
 driver = webdriver.Chrome(service=service, options=options)
 wait = WebDriverWait(driver, 10)
 handles = driver.window_handles
