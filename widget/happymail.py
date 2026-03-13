@@ -3605,9 +3605,13 @@ def get_profile_detail(driver, wait):
   intro_els = driver.find_elements(By.CLASS_NAME, 'translate_body')
   profile['自己紹介'] = intro_els[0].text.strip() if intro_els else ''
 
-  # ニックネーム・ログイン時刻
-  name_el = driver.find_elements(By.CSS_SELECTOR, '.profile_name_text, [class*=profile_name]')
-  profile['名前'] = name_el[0].text.strip() if name_el else ''
+  # ニックネーム：「XXXさんを通報する」要素から抽出（最も確実）
+  tuhou_el = driver.find_elements(By.CSS_SELECTOR, '[class*=tuhou]')
+  if tuhou_el:
+    profile['名前'] = tuhou_el[0].text.strip().replace('さんを通報する', '')
+  else:
+    name_el = driver.find_elements(By.CSS_SELECTOR, '.profile_name_text, [class*=profile_name]')
+    profile['名前'] = name_el[0].text.strip() if name_el else ''
 
   login_el = driver.find_elements(By.CSS_SELECTOR, '[class*=login_date], [class*=last_login]')
   profile['最終ログイン'] = login_el[0].text.strip() if login_el else ''
@@ -3845,6 +3849,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
       image_urls = profile.get('画像urls', [])
       if image_urls:
         img_score, img_reason = analyze_image_with_claude(image_urls[0], cookies_dict)
+        print(f"    [{idx}] 画像解析スコア: {img_score}点 ({img_reason})")
         if img_score > 0:
           score += img_score
           reasons.append(f'画像+{img_score}({img_reason})')
@@ -3856,8 +3861,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
         print(f"    [{idx}] NGワード検出スキップ")
         continue
 
-      user_name_els = driver.find_elements(By.CSS_SELECTOR, '.profile_name_text, [class*=nickname], h1, .ds_profile_detail_nickname')
-      user_name = user_name_els[0].text.strip() if user_name_els else f'user{idx}'
+      user_name = profile.get('名前') or f'user{idx}'
 
       results.append({
         'name': user_name,
