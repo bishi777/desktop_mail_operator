@@ -132,7 +132,6 @@ try:
                 continue
               if name == i["name"]:
               # if True:
-
                 print(f"  📄 ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
                 happymail_new_list = []
                 top_image_check = None
@@ -157,7 +156,6 @@ try:
                 # func.change_tor_ip()
                 # time.sleep(6)
                 # print("変更後:", func.get_current_ip())
-
                 # 新着メールチェック
                 try:
                   happymail_new = happymail.multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail,return_foot_img, gmail_address, gmail_password, return_check_cnt,android,  chara_prompt,)
@@ -218,7 +216,7 @@ try:
                 )
                 if fst_daily_done[name] < fst_daily_limit[name] and elapsed_since_fst >= fst_interval:
                   try:
-                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=random.randint(8, 12))
+                    sent_to = happymail.score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=random.randint(7, 11))
                     if sent_to:
                       fst_daily_done[name] += 1
                       last_fst_sent[name] = datetime.now()
