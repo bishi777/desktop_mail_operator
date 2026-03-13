@@ -3899,17 +3899,14 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
     driver.execute_script('arguments[0].click();', mail_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
-
     # メッセージ入力
     text_area = driver.find_elements(By.ID, 'text-message')
     if not text_area:
       print(f"  [{name}] テキストエリアが見つかりません")
       return None
-
     message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
     text_area[0].send_keys(message)
     time.sleep(0.5)
-
     # 送信
     send_btn = driver.find_elements(By.ID, 'submitButton')
     if send_btn:
@@ -3921,7 +3918,52 @@ def score_and_send_fst_message(name, driver, wait, fst_message, user_check_cnt=N
     else:
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None
-
+    most_recent_msg = driver.execute_script(script, most_recent_msg) 
+    most_recent_msg_clean = func.normalize_text(most_recent_msg)
+    fst_message_clean = func.normalize_text(message)
+    while most_recent_msg_clean != fst_message_clean:
+      # print(most_recent_msg)
+      # print("~~~~~~~~~~~~~~~~~~~~")
+      # print(return_foot_message)
+      driver.refresh()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
+      send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+      reload_cnt += 1
+      if reload_cnt == 1:
+        driver.refresh()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(wait_time)
+        break
+    # 画像があれば送信
+    try:
+      if image_path:
+        img_conform = driver.find_element(By.ID, value="media-confirm")
+        plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+        time.sleep(1)
+        driver.execute_script("arguments[0].click();", plus_icon[0])         
+        time.sleep(1)
+        upload_file = driver.find_element(By.ID, "upload_file")
+        # DEBUG
+        # upload_file.send_keys("/Users/yamamotokenta/Desktop/myprojects/mail_operator/widget/picture/kumi_mizugi.jpeg")
+        upload_file.send_keys(image_path)
+        time.sleep(1.5)
+        submit = driver.find_element(By.ID, value="submit_button")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
+        driver.execute_script("arguments[0].click();", submit)
+        img_wait_cnt = 0
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
+        while img_conform.is_displayed():
+          time.sleep(2)
+          modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
+          if len(modal_content) and img_wait_cnt > 1:
+            break # modal-content お相手が年齢確認されていない為
+          img_wait_cnt += 1
+    except Exception as e:
+      print("画像の送信に失敗しました", e)
+      print(traceback.format_exc())
   except Exception as e:
     print(f"  [{name}] メッセージ送信エラー: {e}")
     return None
