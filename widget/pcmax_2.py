@@ -859,7 +859,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       email_list = None
-      email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+      email_pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
       received_mail = ""
       for received_mail in received_elems:
         received_mail = received_mail.text 
