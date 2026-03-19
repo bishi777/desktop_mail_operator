@@ -36,10 +36,10 @@ def jmail_debug(headless):
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   loop_cnt = 0
   while True:
+    now = datetime.now()
     if (7 <= now.hour <= 23):
       mail_info = random.choice([user_mail_info, spare_mail_info])
       start_loop_time = time.time()
-      now = datetime.now()
       if drivers == {}:
         break
       for chara_idx, (name, data) in enumerate(drivers.items()):
