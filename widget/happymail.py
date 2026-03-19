@@ -471,13 +471,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # 年齢チェック
           user_age = new_mail[0].find_element(By.CLASS_NAME, value="ds_message_pref")
           # print(f"年齢チェック {user_age.text} {user_name}")
-          if not re.search(r"20代|18.?19", user_age.text):
-            print("年齢が１０〜２０代ではないユーザー　AIで返信します") 
-            print(f"{user_name} {user_age.text}")
-            chat_ai_flug = True
-          else:
-            print("年齢が10代〜20代のユーザー 定型分送信")
-            chat_ai_flug = False
+          # if not re.search(r"20代|18.?19", user_age.text):
+          #   print("年齢が１０〜２０代ではないユーザー　AIで返信します") 
+          #   print(f"{user_name} {user_age.text}")
+          #   chat_ai_flug = True
+          # else:
+          #   print("年齢が10代〜20代のユーザー 定型分送信")
+          #   chat_ai_flug = False
+          chat_ai_flug = False
           new_mail[new_mail_cnt].click()
           # new_mail[1].click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -781,6 +782,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(1)   
           else: #AIチャット返信
+            
             if chara_prompt:
               history = []
               male_history = []

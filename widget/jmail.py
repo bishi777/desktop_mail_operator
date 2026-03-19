@@ -1400,6 +1400,438 @@ def re_post(data, post_areas, driver,wait):
   # change_areas("東京", driver, wait)
 
 
+# ---- プロフィール編集 ----
 
-   
-   
+# モデルの選択肢テキスト → フォームvalue のマッピング
+JMAIL_AGE_MAP = {
+  "18~21": "1", "22~25": "2", "26~29": "3", "30~34": "4",
+  "35~39": "5", "40~44": "6", "45~49": "7", "50~54": "8",
+  "55~59": "9", "60歳以上": "10",
+}
+JMAIL_HEIGHT_MAP = {
+  "150cm未満": "1", "150～154cm": "2", "155～159cm": "3",
+  "160～164cm": "4", "165～169cm": "5", "170～174cm": "6",
+  "175～179cm": "7", "180cm以上": "8",
+}
+JMAIL_STYLE_MAP = {
+  "細身": "1", "キモチ細身": "2", "標準": "3",
+  "ナイスバディー": "4", "グラマー": "5",
+}
+JMAIL_CHARACTER_MAP = {
+  "やさしい": "1", "明るい": "2", "面白い": "3", "冷静": "4",
+  "積極的": "5", "甘えん坊": "6", "穏やか": "7", "寂しがり": "8",
+  "社交的": "9",
+}
+JMAIL_SEXINESS_MAP = {
+  "★": "1", "★★": "2", "★★★": "3", "★★★★": "4", "★★★★★": "5",
+}
+JMAIL_BLOOD_MAP = {
+  "A型": "1", "O型": "2", "B型": "3", "AB型": "4",
+}
+JMAIL_STATE_MAP = {
+  "東京都": "8",
+}
+
+
+def profile_edit(chara_data, driver, wait):
+  """
+  Jmailのプロフィールを3ページで更新する。
+  1. MyProf/      : 興味・エリア・年齢等
+  2. EditNickName/: ニックネーム
+  3. EditPr/      : 自己PR
+  """
+  name = chara_data['name']
+  print(f"[{name}] マイプロフ編集開始")
+
+  # ===== 1. MyProf ページ =====
+  driver.get('https://mintj.com/msm/MyProf/')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+  # --- 都道府県（先に設定してcityのAjax更新を済ませる）---
+  activity_area = chara_data.get('activity_area')
+  if activity_area and activity_area in JMAIL_STATE_MAP:
+    Select(driver.find_element(By.NAME, 'state_id')).select_by_value(JMAIL_STATE_MAP[activity_area])
+    time.sleep(1.2)  # cityのAjax更新を待つ
+    print(f"  都道府県: {activity_area}")
+
+  # --- 市区町村 ---
+  detail_area = chara_data.get('detail_activity_area')
+  if detail_area:
+    try:
+      Select(driver.find_element(By.NAME, 'city')).select_by_visible_text(detail_area)
+      print(f"  市区町村: {detail_area}")
+    except Exception:
+      print(f"  市区町村「{detail_area}」が見つかりません（スキップ）")
+
+  # --- 年齢 ---
+  age = chara_data.get('age')
+  if age and age in JMAIL_AGE_MAP:
+    Select(driver.find_element(By.NAME, 'ProfAge')).select_by_value(JMAIL_AGE_MAP[age])
+    print(f"  年齢: {age}")
+
+  # --- 職業 ---
+  job = chara_data.get('job')
+  if job:
+    try:
+      Select(driver.find_element(By.NAME, 'ProfOccupation')).select_by_visible_text(job)
+      print(f"  職業: {job}")
+    except Exception:
+      print(f"  職業「{job}」が見つかりません（スキップ）")
+
+  # --- ルックス ---
+  looks = chara_data.get('looks')
+  if looks:
+    try:
+      Select(driver.find_element(By.NAME, 'ProfLooks')).select_by_visible_text(looks)
+      print(f"  ルックス: {looks}")
+    except Exception:
+      print(f"  ルックス「{looks}」が見つかりません（スキップ）")
+
+  # --- 身長 ---
+  height = chara_data.get('height')
+  if height and height in JMAIL_HEIGHT_MAP:
+    Select(driver.find_element(By.NAME, 'ProfHeight')).select_by_value(JMAIL_HEIGHT_MAP[height])
+    print(f"  身長: {height}")
+
+  # --- スタイル ---
+  body_shape = chara_data.get('body_shape')
+  if body_shape and body_shape in JMAIL_STYLE_MAP:
+    Select(driver.find_element(By.NAME, 'ProfStyle')).select_by_value(JMAIL_STYLE_MAP[body_shape])
+    print(f"  スタイル: {body_shape}")
+
+  # --- 性格 ---
+  personality = chara_data.get('personality')
+  if personality and personality in JMAIL_CHARACTER_MAP:
+    Select(driver.find_element(By.NAME, 'ProfCharacter')).select_by_value(JMAIL_CHARACTER_MAP[personality])
+    print(f"  性格: {personality}")
+
+  # --- エッチ度 ---
+  sexiness = chara_data.get('sexiness')
+  if sexiness and sexiness in JMAIL_SEXINESS_MAP:
+    Select(driver.find_element(By.NAME, 'ProfFiveRanks')).select_by_value(JMAIL_SEXINESS_MAP[sexiness])
+    print(f"  エッチ度: {sexiness}")
+
+  # --- 血液型 ---
+  blood_type = chara_data.get('blood_type')
+  if blood_type and blood_type in JMAIL_BLOOD_MAP:
+    Select(driver.find_element(By.NAME, 'ProfBlood')).select_by_value(JMAIL_BLOOD_MAP[blood_type])
+    print(f"  血液型: {blood_type}")
+
+  # --- PurposeList チェックボックス（selectのAjax後に設定）---
+  things = chara_data.get('things_interesting') or []
+  if things:
+    all_checks = driver.find_elements(By.NAME, 'PurposeList')
+    for cb in all_checks:
+      if cb.is_selected():
+        driver.execute_script('arguments[0].click();', cb)
+    for cb in all_checks:
+      if cb.get_attribute('value') in things:
+        driver.execute_script('arguments[0].click();', cb)
+        print(f"  チェック: {cb.get_attribute('value')}")
+
+  # --- 更新ボタン ---
+  submit = driver.find_element(By.CSS_SELECTOR, 'input[name="PfUpdate"]')
+  driver.execute_script('arguments[0].scrollIntoView({block:"center"});', submit)
+  driver.execute_script('arguments[0].click();', submit)
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  print(f"  マイプロフ更新完了")
+
+  # ===== 2. ニックネーム =====
+  nick = chara_data.get('name')
+  if nick:
+    driver.get('https://mintj.com/msm/MyProf/EditNickName/')
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.8)
+    nick_input = driver.find_element(By.NAME, 'EditedNickNameText')
+    driver.execute_script('arguments[0].value = "";', nick_input)
+    nick_input.send_keys(nick)
+    submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[value="決定する"]')
+    driver.execute_script('arguments[0].click();', submit_btn)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.8)
+    print(f"  ニックネーム設定完了: {nick}")
+
+  # ===== 3. 自己PR =====
+  self_pr = chara_data.get('self_promotion')
+  if self_pr:
+    driver.get('https://mintj.com/msm/MyProf/EditPr/')
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.8)
+    pr_textarea = driver.find_element(By.NAME, 'EditedSelfPrText')
+    driver.execute_script('arguments[0].value = arguments[1];', pr_textarea, self_pr)
+    submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[name="PrEdit"]')
+    driver.execute_script('arguments[0].click();', submit_btn)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.8)
+    print(f"  自己PR設定完了")
+
+  print(f"[{name}] プロフィール編集完了")
+
+
+def _score_jmail_user(profile_text, age_text):
+  """
+  プロフィールテキストと年齢からスコアを計算する。
+  Returns: (score, reasons)
+  """
+  score = 0
+  reasons = []
+
+  # 年齢スコア
+  age_score_map = {
+    "18～21": 30, "22～25": 25, "26～29": 20,
+    "30～34": 10, "35～39": 5,
+  }
+  for age_key, age_val in age_score_map.items():
+    if age_key in age_text:
+      score += age_val
+      reasons.append(f"年齢{age_text}+{age_val}")
+      break
+
+  # 職業スコア（プロフテキストから）
+  job_scores = {
+    "大学生": 10, "院生": 10,
+    "会社員": 5, "フリーランス": 5, "公務員": 5,
+    "看護師": 5, "医療": 5,
+    "アパレル": 3, "飲食": 2,
+    "夜職": -10, "風俗": -20,
+  }
+  for job, jscore in job_scores.items():
+    if job in profile_text:
+      score += jscore
+      reasons.append(f"{job}{'+' if jscore > 0 else ''}{jscore}")
+      break
+
+  # 自己PRに金銭系NGワードがあれば減点
+  ng_words = ["金銭", "条件", "サポ", "パパ", "業者", "サクラ", "LINE交換", "インスタ"]
+  for ng in ng_words:
+    if ng in profile_text:
+      score -= 50
+      reasons.append(f"NG:{ng}")
+
+  return score, reasons
+
+
+def score_and_send_fst_message(name, driver, wait, fst_message, image_path, submitted_users=None, user_check_cnt=None):
+  """
+  プロフ検索からuser_check_cnt人のユーザーをスコアリングして、
+  最高スコアのユーザーにfst_messageを送信する。
+
+  Args:
+    name: 自キャラ名（ログ用）
+    driver: WebDriver
+    wait: WebDriverWait
+    fst_message: 送信する初回メッセージ（{name}で相手名を埋め込み可）
+    image_path: 送付画像URL（Noneの場合は画像なし）
+    submitted_users: 送信済みユーザーリスト（スキップ対象）
+    user_check_cnt: 確認するユーザー数（Noneの場合は8〜14のランダム）
+  Returns:
+    送信先ユーザー名（送信できなかった場合はNone）
+  """
+  if user_check_cnt is None:
+    user_check_cnt = random.randint(8, 14)
+  if submitted_users is None:
+    submitted_users = []
+
+  print(f"  [{name}] プロフ検索から{user_check_cnt}人をスコアリング中...")
+
+  # ===== プロフ検索ページへ直接遷移 =====
+  driver.get('https://mintj.com/msm/PfSearch/Search/?sid=')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+
+  # 詳しく検索をクリック
+  detail_query = driver.find_elements(By.ID, 'ac2h2')
+  if detail_query:
+    detail_query[0].click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+
+  # 年齢チェック（18-21, 22-25, 26-29）
+  for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3']:
+    els = driver.find_elements(By.XPATH, f'//label[@for="{age_id}"]')
+    if els and 'rgba(0, 0, 0, 0)' in els[0].value_of_css_property('background-color'):
+      els[0].click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+
+  # 地域チェック（東京or神奈川をランダム）
+  accordion03 = driver.find_elements(By.ID, 'accordion03')
+  if accordion03:
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', accordion03[0])
+    time.sleep(0.5)
+    accordion03[0].click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(0.5)
+
+  area_id = random.choice(['CheckState-8', 'CheckState-9'])
+  area_label = driver.find_elements(By.XPATH, f'//label[@for="{area_id}"]')
+  if area_label:
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', area_label[0])
+    time.sleep(0.5)
+    if 'rgba(0, 0, 0, 0)' in area_label[0].value_of_css_property('background-color'):
+      area_label[0].click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.5)
+
+  # 検索実行
+  driver.execute_script('window.scrollBy(0, 300);')
+  time.sleep(0.5)
+  driver.execute_script('window.scrollBy(0, -300);')
+  time.sleep(0.5)
+  query_submit = driver.find_elements(By.ID, 'button')
+  if not query_submit:
+    print(f"  [{name}] 検索ボタンが見つかりません")
+    return None
+  query_submit[0].click()
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+
+  # ===== 検索結果からスコアリング =====
+  users = driver.find_elements(By.CLASS_NAME, 'search_list_col')
+  if not users:
+    print(f"  [{name}] 検索結果が0件です")
+    return None
+
+  results = []
+  checked = 0
+  for i in range(min(len(users), user_check_cnt * 2)):
+    if checked >= user_check_cnt:
+      break
+    try:
+      users = driver.find_elements(By.CLASS_NAME, 'search_list_col')
+      if i >= len(users):
+        break
+      driver.execute_script('arguments[0].scrollIntoView({block:"center"});', users[i])
+      time.sleep(0.5)
+      users[i].find_element(By.TAG_NAME, 'a').click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+
+      if 'err' in driver.current_url:
+        driver.back()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        continue
+
+      # 名前取得
+      name_els = driver.find_elements(By.CLASS_NAME, 'prof_name')
+      user_name = name_els[0].text.strip() if name_els else ''
+      if not user_name:
+        driver.back()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        continue
+
+      # 送信済みスキップ
+      if user_name in submitted_users:
+        print(f"    [{i+1}] {user_name}: 送信済みスキップ")
+        checked += 1
+        driver.back()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        continue
+
+      # mail-off = 未送信 / なければ送信済み
+      if not driver.find_elements(By.CLASS_NAME, 'mail-off'):
+        print(f"    [{i+1}] {user_name}: メール送信済みスキップ")
+        checked += 1
+        driver.back()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        continue
+
+      # 年齢・プロフ取得
+      age_els = driver.find_elements(By.CLASS_NAME, 'prof_age')
+      age_text = age_els[0].text.strip() if age_els else ''
+      pw_els = driver.find_elements(By.CLASS_NAME, 'profile_wrap')
+      profile_text = pw_els[0].text if pw_els else ''
+
+      score, reasons = _score_jmail_user(profile_text, age_text)
+      results.append({
+        'name': user_name,
+        'score': score,
+        'reasons': reasons,
+        'url': driver.current_url,
+      })
+      print(f"    [{i+1}] {user_name}({age_text}) スコア:{score} ({', '.join(reasons[:3])})")
+      checked += 1
+
+      driver.back()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+
+    except Exception as e:
+      print(f"    [{i+1}] スコアリングエラー: {e}")
+      try:
+        driver.back()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+      except Exception:
+        pass
+      continue
+
+  if not results:
+    print(f"  [{name}] 送信対象が見つかりませんでした")
+    return None
+
+  # 最高スコアのユーザーへ遷移
+  results.sort(key=lambda x: x['score'], reverse=True)
+  best = results[0]
+  print(f"  [{name}] 最高スコア: {best['name']} ({best['score']}点) → メッセージ送信")
+
+  driver.get(best['url'])
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+
+  try:
+    # メッセージ入力
+    textarea = driver.find_elements(By.ID, 'textarea')
+    if not textarea:
+      print(f"  [{name}] テキストエリアが見つかりません")
+      return None
+    message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
+    driver.execute_script('arguments[0].value = arguments[1];', textarea[0], message)
+    time.sleep(0.5)
+
+    # テキスト送信
+    send_btn = driver.find_elements(By.ID, 'message_send')
+    if not send_btn:
+      print(f"  [{name}] 送信ボタンが見つかりません")
+      return None
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', send_btn[0])
+    driver.execute_script('arguments[0].click();', send_btn[0])
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f"  [{name}] → {best['name']} にテキスト送信完了")
+
+    # 画像送信
+    local_img_path = None
+    if image_path:
+      try:
+        local_img_path = os.path.abspath(f"{name}_jmail_fst.png")
+        img_response = requests.get(image_path, timeout=10)
+        with open(local_img_path, 'wb') as f:
+          f.write(img_response.content)
+
+        upload = driver.find_elements(By.ID, 'upload_file')
+        if upload:
+          upload[0].send_keys(local_img_path)
+          time.sleep(2)
+          img_send = driver.find_elements(By.ID, 'message_send')
+          if img_send:
+            driver.execute_script('arguments[0].click();', img_send[0])
+            time.sleep(2)
+            print(f"  [{name}] 画像送信完了")
+      except Exception as e:
+        print(f"  [{name}] 画像送信エラー: {e}")
+      finally:
+        if local_img_path and os.path.exists(local_img_path):
+          os.remove(local_img_path)
+
+    return best['name']
+
+  except Exception as e:
+    print(f"  [{name}] メッセージ送信エラー: {e}")
+    traceback.print_exc()
+    return None
