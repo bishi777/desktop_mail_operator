@@ -59,9 +59,9 @@ def jmail_debug(headless):
           traceback.print_exc()
           continue
         print(f"ループ回数: {loop_cnt}")
-        # fst_message送信（12ループに1回、キャラごとにループをずらして実行）
-        # キャラindex=0: loop 12,24,36... / index=1: loop 13,25,37... / index=2: loop 14,26,38...
-        if loop_cnt >= 12 and loop_cnt % 12 == chara_idx:
+        # fst_message送信（起動時 + 12ループに1回、キャラごとにループをずらして実行）
+        # キャラindex=0: loop 0,12,24... / index=1: loop 1,13,25... / index=2: loop 2,14,26...
+        if loop_cnt % 12 == chara_idx:
           try:
             fst_message = data.get('fst_message', '')
             image_path = data.get('chara_image', '')
