@@ -1570,6 +1570,75 @@ def profile_edit(chara_data, driver, wait):
   print(f"[{name}] プロフィール編集完了")
 
 
+def _analyze_jmail_image(image_url, cookies_dict=None):
+  """
+  Claude APIでJmailユーザーの画像を解析して「芋っぽい・真面目そう」スコアを返す。
+  戻り値: (score: int, reason: str)
+  """
+  import anthropic
+  import httpx
+  import base64
+  import os
+  import re
+
+  api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+  if not api_key:
+    try:
+      import settings
+      api_key = getattr(settings, 'anthropic_api_key', '')
+    except Exception:
+      pass
+  if not api_key:
+    return 0, '(APIキー未設定のためスキップ)'
+
+  try:
+    headers = {'Referer': 'https://mintj.com/'}
+    if cookies_dict:
+      headers['Cookie'] = '; '.join([f'{k}={v}' for k, v in cookies_dict.items()])
+
+    resp = httpx.get(image_url, headers=headers, timeout=10, follow_redirects=True)
+    if resp.status_code != 200:
+      return 0, f'(画像取得失敗: {resp.status_code})'
+
+    image_data = base64.standard_b64encode(resp.content).decode('utf-8')
+    media_type = resp.headers.get('content-type', 'image/jpeg').split(';')[0]
+
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+      model='claude-haiku-4-5-20251001',
+      max_tokens=256,
+      messages=[{
+        'role': 'user',
+        'content': [
+          {
+            'type': 'image',
+            'source': {'type': 'base64', 'media_type': media_type, 'data': image_data},
+          },
+          {
+            'type': 'text',
+            'text': (
+              'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
+              '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
+              '・真面目そう・おとなしそう: 高スコア\n'
+              '・女性慣れしていなそう・モテなそう: 高スコア\n'
+              '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
+              '必ず以下の形式のみで答えてください（説明不要）:\n'
+              'SCORE:数字 REASON:一言理由'
+            ),
+          },
+        ],
+      }],
+    )
+    text = message.content[0].text.strip()
+    m = re.search(r'SCORE:(\d+)\s+REASON:(.+)', text)
+    if m:
+      return int(m.group(1)), m.group(2).strip()
+    return 0, f'(解析結果: {text[:50]})'
+
+  except Exception as e:
+    return 0, f'(画像解析エラー: {e})'
+
+
 def _score_jmail_user(profile_text, age_text):
   """
   プロフィールテキストと年齢からスコアを計算する。
@@ -1635,6 +1704,8 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     submitted_users = []
 
   print(f"  [{name}] プロフ検索から{user_check_cnt}人をスコアリング中...")
+
+  cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
 
   # ===== プロフ検索ページへ直接遷移 =====
   driver.get('https://mintj.com/msm/PfSearch/Search/?sid=')
@@ -1748,6 +1819,17 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
       profile_text = pw_els[0].text if pw_els else ''
 
       score, reasons = _score_jmail_user(profile_text, age_text)
+
+      # 画像解析
+      img_els = driver.find_elements(By.XPATH, '//img[contains(@src,"img2.mintj.com")]')
+      if img_els:
+        img_url = img_els[0].get_attribute('src')
+        img_score, img_reason = _analyze_jmail_image(img_url, cookies_dict)
+        print(f"    画像解析: {img_score}点 ({img_reason})")
+        if img_score > 0:
+          score += img_score
+          reasons.append(f'画像+{img_score}({img_reason})')
+
       results.append({
         'name': user_name,
         'score': score,
