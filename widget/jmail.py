@@ -1720,7 +1720,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     time.sleep(1.5)
 
   # 年齢チェック（18-21, 22-25, 26-29）
-  for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3']:
+  for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4']:
     els = driver.find_elements(By.XPATH, f'//label[@for="{age_id}"]')
     if els and 'rgba(0, 0, 0, 0)' in els[0].value_of_css_property('background-color'):
       els[0].click()
