@@ -1572,7 +1572,7 @@ def profile_edit(chara_data, driver, wait):
 
 def _analyze_jmail_image(image_url, cookies_dict=None):
   """
-  Claude APIでJmailユーザーの画像を解析して「芋っぽい・真面目そう」スコアを返す。
+  Claude APIでJmailユーザーの画像を解析して「女性慣れしていない・真面目そう、優しそう、気が弱そう」スコアを返す。
   戻り値: (score: int, reason: str)
   """
   import anthropic
@@ -1618,9 +1618,9 @@ def _analyze_jmail_image(image_url, cookies_dict=None):
             'type': 'text',
             'text': (
               'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
-              '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
+              '・地味・オタク系の見た目: 高スコア\n'
               '・真面目そう・おとなしそう: 高スコア\n'
-              '・女性慣れしていなそう・モテなそう: 高スコア\n'
+              '・女性慣れしていなそう・モテなそう・気が弱そう: 高スコア\n'
               '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
               '必ず以下の形式のみで答えてください（説明不要）:\n'
               'SCORE:数字 REASON:一言理由'
@@ -1873,47 +1873,30 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
       print(f"  [{name}] テキストエリアが見つかりません")
       return None
     message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', textarea[0])
     driver.execute_script('arguments[0].value = arguments[1];', textarea[0], message)
-    time.sleep(0.5)
+    time.sleep(1)
 
-    # テキスト送信
+    # 画像があればセット
+    if image_path:
+      img_input = driver.find_elements(By.NAME, 'image1')
+      if img_input:
+        img_input[0].send_keys(image_path)
+        time.sleep(2)
+
+    # 送信
     send_btn = driver.find_elements(By.ID, 'message_send')
     if not send_btn:
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None
-    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', send_btn[0])
     driver.execute_script('arguments[0].click();', send_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
-    print(f"  [{name}] → {best['name']} にテキスト送信完了")
-
-    # 画像送信
-    local_img_path = None
-    if image_path:
-      try:
-        local_img_path = os.path.abspath(f"{name}_jmail_fst.png")
-        img_response = requests.get(image_path, timeout=10)
-        with open(local_img_path, 'wb') as f:
-          f.write(img_response.content)
-
-        upload = driver.find_elements(By.ID, 'upload_file')
-        if upload:
-          upload[0].send_keys(local_img_path)
-          time.sleep(2)
-          img_send = driver.find_elements(By.ID, 'message_send')
-          if img_send:
-            driver.execute_script('arguments[0].click();', img_send[0])
-            time.sleep(2)
-            print(f"  [{name}] 画像送信完了")
-      except Exception as e:
-        print(f"  [{name}] 画像送信エラー: {e}")
-      finally:
-        if local_img_path and os.path.exists(local_img_path):
-          os.remove(local_img_path)
-
-    return best['name']
+    print(f"  [{name}] → {best['name']} に送信完了")
+    submitted_users.append(best['name'])
+    return best['name'], submitted_users
 
   except Exception as e:
     print(f"  [{name}] メッセージ送信エラー: {e}")
     traceback.print_exc()
-    return None
+    return None, submitted_users

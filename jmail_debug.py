@@ -65,7 +65,7 @@ def jmail_debug(headless):
           try:
             fst_message = data.get('fst_message', '')
             image_path = data.get('chara_image', '')
-            sent_to = jmail.score_and_send_fst_message(
+            sent_to, submitted_users = jmail.score_and_send_fst_message(
               name, driver, wait, fst_message, image_path,
               submitted_users=submitted_users,
               user_check_cnt=random.randint(7, 11)
