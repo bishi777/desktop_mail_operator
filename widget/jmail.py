@@ -1866,6 +1866,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
+  local_img_path = None
   try:
     # メッセージ入力
     textarea = driver.find_elements(By.ID, 'textarea')
@@ -1877,26 +1878,44 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     driver.execute_script('arguments[0].value = arguments[1];', textarea[0], message)
     time.sleep(1)
 
-    # 画像があればセット
+    # 画像があればダウンロードしてセット
     if image_path:
-      img_input = driver.find_elements(By.NAME, 'image1')
-      if img_input:
-        img_input[0].send_keys(image_path)
-        time.sleep(2)
+      try:
+        if image_path.startswith('http'):
+          img_url = image_path
+        else:
+          img_url = f'https://meruopetyan.com{image_path}'
+        img_response = requests.get(img_url, timeout=10)
+        ext = os.path.splitext(image_path)[1] or '.jpg'
+        local_img_path = os.path.abspath(f"{name}_jmail_fst{ext}")
+        with open(local_img_path, 'wb') as f:
+          f.write(img_response.content)
+        img_input = driver.find_elements(By.NAME, 'image1')
+        if img_input:
+          img_input[0].send_keys(local_img_path)
+          time.sleep(2)
+      except Exception as e:
+        print(f"  [{name}] 画像セットエラー: {e}")
 
     # 送信
     send_btn = driver.find_elements(By.ID, 'message_send')
     if not send_btn:
       print(f"  [{name}] 送信ボタンが見つかりません")
-      return None
+      return None, submitted_users
     driver.execute_script('arguments[0].click();', send_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     print(f"  [{name}] → {best['name']} に送信完了")
     submitted_users.append(best['name'])
+
+    if local_img_path and os.path.exists(local_img_path):
+      os.remove(local_img_path)
+
     return best['name'], submitted_users
 
   except Exception as e:
     print(f"  [{name}] メッセージ送信エラー: {e}")
     traceback.print_exc()
+    if local_img_path and os.path.exists(local_img_path):
+      os.remove(local_img_path)
     return None, submitted_users
