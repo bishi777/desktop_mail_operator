@@ -1617,11 +1617,11 @@ def _analyze_jmail_image(image_url, cookies_dict=None):
           {
             'type': 'text',
             'text': (
-              'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
+              'この男性の写真を見て、以下の観点で-10〜10点のスコアをつけてください。\n'
               '・地味・オタク系の見た目: 高スコア\n'
               '・真面目そう・おとなしそう: 高スコア\n'
               '・女性慣れしていなそう・モテなそう・気が弱そう: 高スコア\n'
-              '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
+              '・イケメン・チャラい・自信ありそう: 低スコア（マイナスも可）\n\n'
               '必ず以下の形式のみで答えてください（説明不要）:\n'
               'SCORE:数字 REASON:一言理由'
             ),
@@ -1630,7 +1630,7 @@ def _analyze_jmail_image(image_url, cookies_dict=None):
       }],
     )
     text = message.content[0].text.strip()
-    m = re.search(r'SCORE:(\d+)\s+REASON:(.+)', text)
+    m = re.search(r'SCORE:(-?\d+)\s+REASON:(.+)', text)
     if m:
       return int(m.group(1)), m.group(2).strip()
     return 0, f'(解析結果: {text[:50]})'
@@ -1826,9 +1826,9 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
         img_url = img_els[0].get_attribute('src')
         img_score, img_reason = _analyze_jmail_image(img_url, cookies_dict)
         print(f"    画像解析: {img_score}点 ({img_reason})")
-        if img_score > 0:
+        if img_score != 0:
           score += img_score
-          reasons.append(f'画像+{img_score}({img_reason})')
+          reasons.append(f'画像{img_score:+d}({img_reason})')
 
       results.append({
         'name': user_name,
