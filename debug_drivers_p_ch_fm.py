@@ -303,7 +303,7 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()
-          if now.hour % 6 == 0 or now.hour == 22:
+          if now.hour in (10, 14, 18, 22):
             if send_flug:
               try:
                 body = func.format_progress_mail(report_dict, now)
