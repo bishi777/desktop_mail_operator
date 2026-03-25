@@ -781,9 +781,10 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   mityaiya_send[0].click()
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(1)   
-          else: #AIチャット返信
-            
+          else: 
+            #AIチャット返信
             if chara_prompt:
+
               history = []
               male_history = []
               message__blocks = driver.find_elements(By.CLASS_NAME, value="message__block")
@@ -870,6 +871,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")
+          print(777)
+          print(f"新着メール数{len(new_mail)}")
         else:
           if len(new_mail):
             new_mail_cnt += 1

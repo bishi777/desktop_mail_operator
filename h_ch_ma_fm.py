@@ -89,7 +89,7 @@ try:
         print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
       else:
         # 一日ごとの上限をランダムに設定 19行目付近　fst上限
-        daily_limit = random.randint(3, 4)
+        daily_limit = random.randint(1, 2)
         matching_daily_limit = daily_limit
         returnfoot_daily_limit = daily_limit
         oneday_total_match = daily_limit
@@ -106,7 +106,7 @@ try:
         MIN_ROUND_SEC = 12 * 60  # 1周の最小時間（秒）
         daily_done = {i["name"]: 0 for i in first_half}  # キャラごとの当日累計処理数
         # fst_message送信用: 一日の上限と最終送信時刻
-        fst_daily_limit = {i["name"]: random.randint(3, 4) for i in first_half}
+        fst_daily_limit = {i["name"]: random.randint(1, 2) for i in first_half}
         fst_daily_done  = {i["name"]: 0 for i in first_half}
         last_fst_sent   = {i["name"]: None for i in first_half}
         print("fst送信上限:", {k: v for k, v in fst_daily_limit.items()})
