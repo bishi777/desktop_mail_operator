@@ -231,11 +231,11 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           age_range = match.group()
           # 「～」で分割して数値に変換
           min_age, max_age = map(int, age_range.split("～"))
-          if max_age <= 30:
-            print("30歳以下です")
+          if max_age <= 34:
+            print("34歳以下です")
             young_flag = True
           else:
-            print("31歳以上です")
+            print("35歳以上です")
             young_flag = False
         if young_flag:
           if interacting_user_name not in young_submitted_users:
