@@ -1,0 +1,208 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+import time
+from widget import func, ikukuru
+import settings
+import random
+import traceback
+from selenium.webdriver.support.ui import WebDriverWait
+from datetime import datetime
+import argparse
+
+
+def reset_metrics_keep_check_date(d: dict) -> dict:
+  metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
+  new_d = {}
+  for name, v in (d or {}).items():
+    if isinstance(v, dict):
+      cd = v.get("check_date", None)
+    else:
+      cd = None
+    new_d[name] = {k: 0 for k in metric_keys}
+    new_d[name]["check_date"] = cd
+  return new_d
+
+
+SEARCH_FILTER = {
+  "age_from": "18-19歳",   # ageFrom select の visible text
+  "age_to":   "30代前半",  # ageTo select の visible text (30-34歳)
+  # area（地域）は別ボタン経由のためブラウザ側で設定済みのものを使用
+}
+
+
+def parse_port():
+  p = argparse.ArgumentParser()
+  p.add_argument("port", nargs="?", type=int, help="remote debugging port")
+  args = p.parse_args()
+  if args.port is not None:
+    return args.port
+  return getattr(settings, "ikukuru_port", None)
+
+
+def main_syori():
+  PORT = parse_port()
+  user_data = func.get_user_data()
+  user_mail_info = [
+    user_data['user'][0]['user_email'],
+    user_data['user'][0]['gmail_account'],
+    user_data['user'][0]['gmail_account_password'],
+  ]
+  gmail_account = user_data['user'][0]['gmail_account']
+  gmail_account_password = user_data['user'][0]['gmail_account_password']
+  recieve_mailaddress = user_data['user'][0]['user_email']
+
+  ikukuru_datas = user_data["ikukuru"]
+  options = Options()
+
+  if PORT is not None:
+    options.add_experimental_option("debuggerAddress", f"127.0.0.1:{PORT}")
+  else:
+    print("[INFO] No remote-debugging port provided. Launching Chrome normally.")
+  driver = webdriver.Chrome(options=options)
+  wait = WebDriverWait(driver, 10)
+  report_dict = {}
+  send_flug = False
+  roll_cnt = 1
+  start_time = datetime.now()
+  active_chara_list = []
+
+  while True:
+    start_loop_time = time.time()
+    now = datetime.now()
+    handles = driver.window_handles
+    print(f"タブ数:{len(handles)}")
+    print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+    for idx, handle in enumerate(handles):
+      driver.switch_to.window(handle)
+      if "194964" not in driver.current_url:
+        continue
+
+      # PC版メニューページに移動して状態をリセット
+      if driver.current_url != "https://pc.194964.com/menu.html":
+        driver.get("https://pc.194964.com/menu.html")
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
+
+      # キャラ名取得（マイページから）
+      try:
+        driver.get("https://pc.194964.com/mypage.html")
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        name_elements = driver.find_elements(By.CLASS_NAME, value="profile-name")
+        if not name_elements:
+          print("イククル: キャラ名が取得できません")
+          continue
+        name_on_ikukuru = name_elements[0].text.strip()
+        now = datetime.now()
+        print(f"~~~~~~~~~~~{idx+1}キャラ目:{name_on_ikukuru}~~~~~{now.strftime('%m-%d %H:%M:%S')}~~~~~~~~~~")
+      except Exception as e:
+        print(f"❌ キャラ名取得エラー: {e}")
+        traceback.print_exc()
+        continue
+
+      # キャラデータと照合
+      for i in ikukuru_datas:
+        if name_on_ikukuru != i['name']:
+          continue
+
+        if name_on_ikukuru not in active_chara_list:
+          active_chara_list.append(name_on_ikukuru)
+        if name_on_ikukuru not in report_dict:
+          report_dict[name_on_ikukuru] = {
+            "fst": 0, "rf": 0, "check_first": 0, "check_second": 0,
+            "gmail_condition": 0, "check_more": 0, "check_date": None
+          }
+
+        name = i["name"]
+        fst_message = i["fst_message"]
+        return_foot_message = i.get("return_foot_message", "")
+        footprint_count = random.randint(7, 12)
+
+        if 6 <= now.hour < 24:
+          # 1. 新着メールチェック
+          try:
+            print("✅新着メールチェック開始")
+            check_first, check_second, gmail_condition, _ = ikukuru.check_mail(
+              driver, wait, i, gmail_account, gmail_account_password, recieve_mailaddress
+            )
+            print("新着メールチェック終了✅")
+            report_dict[name]["check_first"] += check_first
+            report_dict[name]["check_second"] += check_second
+            report_dict[name]["gmail_condition"] += gmail_condition
+          except Exception as e:
+            print(f"{name}❌ メールチェックエラー: {e}")
+            traceback.print_exc()
+
+          # 2. 足跡返し
+          if return_foot_message:
+            try:
+              print("🐾足跡返し開始")
+              rf_cnt = ikukuru.return_foot(driver, wait, return_foot_message, name, send_cnt=1)
+              report_dict[name]["rf"] += rf_cnt
+              print(f"足跡返し終了 {rf_cnt}件🐾")
+            except Exception as e:
+              print(f"{name}❌ 足跡返しエラー: {e}")
+              traceback.print_exc()
+
+          # 3. タイプ返し + fst
+          try:
+            print("💕タイプ返し+fst開始")
+            rt_cnt = ikukuru.return_type(driver, wait, fst_message, name, send_cnt=1)
+            report_dict[name]["fst"] += rt_cnt
+            print(f"タイプ返し+fst終了 {rt_cnt}件💕")
+          except Exception as e:
+            print(f"{name}❌ タイプ返しエラー: {e}")
+            traceback.print_exc()
+
+          # 4. 足跡付け
+          try:
+            print(f"🐾🐾足跡付け開始 {footprint_count}件🐾🐾")
+            ikukuru.make_footprint(driver, wait, name, footprint_count, SEARCH_FILTER)
+          except Exception as e:
+            print(f"{name}❌ 足跡付けエラー: {e}")
+            traceback.print_exc()
+
+        # 進捗報告
+        if now.hour in (10, 14, 18, 22):
+          if send_flug:
+            try:
+              body = func.format_progress_mail(report_dict, now)
+              func.send_mail(
+                body,
+                user_mail_info,
+                f"イククル 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
+              )
+              send_flug = False
+              report_dict = reset_metrics_keep_check_date(report_dict)
+              start_time = datetime.now()
+            except Exception as e:
+              print(f"{name}❌ 進捗報告エラー: {e}")
+              traceback.print_exc()
+        else:
+          send_flug = True
+
+    elapsed_time = time.time() - start_loop_time
+    wait_cnt = 0
+    while elapsed_time < 600:
+      time.sleep(10)
+      elapsed_time = time.time() - start_loop_time
+      if wait_cnt % 6 == 0:
+        print(f"待機中~~ {elapsed_time:.0f}s ")
+      wait_cnt += 1
+    print("🎉🎉🎉<<<<<<<<<<<<<ループ終了>>>>>>>>>>>>>>>>>>>>>🎉🎉🎉")
+    elapsed_time = time.time() - start_loop_time
+    minutes, seconds = divmod(int(elapsed_time), 60)
+    print(f"🏁🏁🏁タイム: {minutes}分{seconds}秒　🏁🏁🏁")
+    roll_cnt += 1
+
+
+if __name__ == "__main__":
+  try:
+    main_syori()
+  except KeyboardInterrupt:
+    print("\n🛑 手動終了 (Ctrl + C) により処理を中断しました。安全に終了します。")
+  except Exception as e:
+    print(f"\n❌ 予期せぬエラーが発生しました: {e}")
+    traceback.print_exc()
