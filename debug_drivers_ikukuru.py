@@ -24,11 +24,9 @@ def reset_metrics_keep_check_date(d: dict) -> dict:
   return new_d
 
 
-SEARCH_FILTER = {
-  "age_from": "18-19歳",   # ageFrom select の visible text
-  "age_to":   "30代前半",  # ageTo select の visible text (30-34歳)
-  # area（地域）は別ボタン経由のためブラウザ側で設定済みのものを使用
-}
+# 検索フィルターはikukuru.py内のFIXED_SEARCH_FILTERで固定
+# area（地域）のみブラウザ側で設定しておく
+SEARCH_FILTER = None
 
 
 def parse_port():

@@ -10,16 +10,24 @@ import os
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from widget import func
 
-# 検索フィルターのフォーム name 属性マッピング（Select要素のみ）
-# age_from/age_to の値は visible text: "18-19歳","20代前半","20代後半","30代前半","30代後半" 等
 # area（地域）は別ボタン経由のため自動設定不可 → ブラウザ側で設定しておく
+# 全キャラ共通の固定検索フィルター
+FIXED_SEARCH_FILTER = {
+  "age_from":  "18-19歳",       # 年齢下限
+  "age_to":    "30代前半",       # 年齢上限（～34歳）
+  "height_to": "165～169",       # 身長上限
+  "child":     "いない",         # 子供なし
+  "married":   ["1", "5", "6"], # 独身 / 彼氏募集中 / 恋愛相談
+}
+
 FILTER_SELECT_MAP = {
-  "age_from":    "ageFrom",    # 年齢（下限）
-  "age_to":      "ageTo",      # 年齢（上限）
-  "height_from": "heightFrom", # 身長（下限）
-  "height_to":   "heightTo",   # 身長（上限）
-  "income":      "income",     # 年収
-  "child":       "child",      # 子供
+  "age_from":    "ageFrom",
+  "age_to":      "ageTo",
+  "height_from": "heightFrom",
+  "height_to":   "heightTo",
+  "income":      "income",
+  "child":       "child",
+  "married":     "married[]",
 }
 
 def _apply_filters(driver, filters):
@@ -30,13 +38,14 @@ def _apply_filters(driver, filters):
       continue
     try:
       if isinstance(value, list):
-        # チェックボックス / 複数選択
-        for v in value:
-          checkboxes = driver.find_elements(By.CSS_SELECTOR, f"input[name='{name_attr}']")
-          for cb in checkboxes:
-            if cb.get_attribute("value") == v:
-              if not cb.is_selected():
-                driver.execute_script("arguments[0].click();", cb)
+        # チェックボックス（married[] など）
+        checkboxes = driver.find_elements(By.CSS_SELECTOR, f"input[name='{name_attr}']")
+        for cb in checkboxes:
+          should_check = cb.get_attribute("value") in value
+          if should_check and not cb.is_selected():
+            driver.execute_script("arguments[0].click();", cb)
+          elif not should_check and cb.is_selected():
+            driver.execute_script("arguments[0].click();", cb)
       else:
         sel_elem = driver.find_element(By.NAME, name_attr)
         sel = Select(sel_elem)
@@ -85,8 +94,11 @@ def set_search_filter(driver, wait, filters=None):
   driver.get("https://pc.194964.com/profile/profilesearch/show_profile_search.html")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
+  # 固定フィルターを常に適用し、追加フィルターがあればマージ
+  merged = dict(FIXED_SEARCH_FILTER)
   if filters:
-    _apply_filters(driver, filters)
+    merged.update(filters)
+  _apply_filters(driver, merged)
   # 検索ボタン（class: input_search）
   search_btns = driver.find_elements(By.CLASS_NAME, value="input_search")
   if not search_btns:
@@ -296,18 +308,26 @@ def _input_text(driver, element, text):
   )
 
 def _collect_profile_links(driver, wait, list_url, max_next=3):
-  """足跡・タイプリストページからプロフィール/遷移URLを収集して返す"""
+  """足跡・タイプリストページからプロフィール/遷移URLとユーザー名を収集して返す"""
   driver.get(list_url)
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(random.uniform(2, 3))
-  hrefs = []
+  items = []  # (href, username) のリスト
+  seen_hrefs = set()
   next_cnt = 0
   while True:
     links = driver.find_elements(By.CLASS_NAME, value="type-list-link")
     for link in links:
       href = link.get_attribute("href")
-      if href and href not in hrefs:
-        hrefs.append(href)
+      if href and href not in seen_hrefs:
+        seen_hrefs.add(href)
+        name_els = link.find_elements(By.CLASS_NAME, value="type-list-name")
+        username = name_els[0].text.strip() if name_els else ""
+        # リストアイテムのテキストから年齢を抽出（例: "22歳"）
+        link_text = link.text
+        age_match = re.search(r'(\d+)歳', link_text)
+        age = int(age_match.group(1)) if age_match else None
+        items.append((href, username, age))
     # 次のページへ
     next_btn = driver.find_elements(By.CLASS_NAME, value="nextBtn")
     if not next_btn or "gray555" in (next_btn[0].get_attribute("class") or "") or next_cnt >= max_next:
@@ -316,9 +336,9 @@ def _collect_profile_links(driver, wait, list_url, max_next=3):
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     next_cnt += 1
-  return hrefs
+  return items
 
-def _send_message_on_profile(driver, wait, message, name, label):
+def _send_message_on_profile(driver, wait, message, name, label, opponent_name=""):
   """プロフページからfooter-btn-sendmail経由でメッセージ履歴ページへ遷移し送信。成功したらTrue"""
   wait_time = random.uniform(2, 3)
   # footer-btn-sendmail のhref = 会話履歴ページURL
@@ -332,6 +352,14 @@ def _send_message_on_profile(driver, wait, message, name, label):
   driver.get(history_url)
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
+  # 相手の名前を履歴ページから取得（リスト側で取れなかった場合のフォールバック）
+  if not opponent_name:
+    w60_els = driver.find_elements(By.CLASS_NAME, value="w60")
+    if w60_els:
+      opponent_name = w60_els[0].text.strip()
+  # {name} プレースホルダーを相手の名前に置換
+  if opponent_name:
+    message = message.replace("{name}", opponent_name)
   # 既送信チェック（bubble_owner が存在 = すでにメッセージ送信済み）
   already_sent = driver.find_elements(By.CLASS_NAME, value="bubble_owner")
   if already_sent:
@@ -370,16 +398,20 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
   """足跡リストのユーザーにreturn_foot_messageを送る"""
   FOOT_LIST_URL = "https://pc.194964.com/sns/snsashiato/show.html"
   rf_cnt = 0
-  hrefs = _collect_profile_links(driver, wait, FOOT_LIST_URL)
-  print(f"イククル:{name} 足跡リスト {len(hrefs)}件")
-  for href in hrefs:
+  items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
+  print(f"イククル:{name} 足跡リスト {len(items)}件")
+  for href, opponent_name, age in items:
     if rf_cnt >= send_cnt:
       break
+    if age is not None and age > 34:
+      print(f"イククル:{name} 足跡返し スキップ（{opponent_name} {age}歳 > 34歳）")
+      continue
     try:
       driver.get(href)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
-      sent = _send_message_on_profile(driver, wait, return_foot_message, name, "足跡返し")
+      msg = return_foot_message.replace("{name}", opponent_name) if opponent_name else return_foot_message
+      sent = _send_message_on_profile(driver, wait, msg, name, "足跡返し", opponent_name)
       if sent:
         rf_cnt += 1
         print(f"イククル:{name} 足跡返しメッセージ送信 {rf_cnt}件")
@@ -391,21 +423,25 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   """タイプリストのユーザーにタイプを返してfst_messageを送る"""
   TYPE_LIST_URL = "https://pc.194964.com/sns/snstype/show_typed_list.html"
   rt_cnt = 0
-  hrefs = _collect_profile_links(driver, wait, TYPE_LIST_URL)
-  print(f"イククル:{name} タイプリスト {len(hrefs)}件")
-  for href in hrefs:
+  items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
+  print(f"イククル:{name} タイプリスト {len(items)}件")
+  for href, opponent_name, age in items:
     if rt_cnt >= send_cnt:
       break
+    if age is not None and age > 34:
+      print(f"イククル:{name} タイプ返し スキップ（{opponent_name} {age}歳 > 34歳）")
+      continue
     try:
       driver.get(href)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
+      msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
       # PC版: send-like-message + submitLikeMessageBtn でタイプ返し+fst同時送信
       like_textarea = driver.find_elements(By.ID, value="send-like-message")
       like_btn = driver.find_elements(By.ID, value="submitLikeMessageBtn")
       if like_textarea and like_btn:
         try:
-          _input_text(driver, like_textarea[0], fst_message)
+          _input_text(driver, like_textarea[0], msg)
           time.sleep(1)
           driver.execute_script("arguments[0].click();", like_btn[0])
           wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
@@ -417,7 +453,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
           rt_cnt += 1
       else:
         # フォールバック: footer-btn-sendmail 経由でメッセージ送信
-        sent = _send_message_on_profile(driver, wait, fst_message, name, "タイプ返しfst")
+        sent = _send_message_on_profile(driver, wait, msg, name, "タイプ返しfst", opponent_name)
         if sent:
           rt_cnt += 1
           print(f"イククル:{name} タイプ返し+fst送信(履歴経由) {rt_cnt}件")
