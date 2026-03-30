@@ -1471,7 +1471,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if len(woman):
       user_row_cnt += 1
       continue
-    
+
+    # いいかも済みはスキップ
+    if foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type5'):
+      user_row_cnt += 1
+      continue
+
     # 年齢確認
     user_age = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME, 'user-age').text
     match = re.search(r'(\d+)歳', user_age)
@@ -1524,18 +1529,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       continue
     if two_messages_flug:
       two_message_users.append(ditail_page_user_name)
-    arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
     iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
     iikamo_text = ""
-    if len(arleady_iikamo):
-      print(f"{ditail_page_user_name} いいかも済みのためスキップ")
-      driver.back()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      user_row_cnt += 1
-      continue
-    elif len(iikamo):
+    if len(iikamo):
       WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
       iikamo[0].click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
