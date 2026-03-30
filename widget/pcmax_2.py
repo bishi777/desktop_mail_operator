@@ -1529,8 +1529,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
     iikamo_text = ""
     if len(arleady_iikamo):
-      iikamo_text = f"いいかも済み"
-      # print(f"いいかも済み  ユーザー名:{ditail_page_user_name}  ")
+      print(f"{ditail_page_user_name} いいかも済みのためスキップ")
+      driver.back()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      user_row_cnt += 1
+      continue
     elif len(iikamo):
       WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
       iikamo[0].click()
