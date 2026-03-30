@@ -12,12 +12,24 @@ from widget import func
 
 # area（地域）は別ボタン経由のため自動設定不可 → ブラウザ側で設定しておく
 # 全キャラ共通の固定検索フィルター
+# 全キャラ共通の固定フィルター（ランダム項目は除く）
 FIXED_SEARCH_FILTER = {
-  "age_from":  "18-19歳",       # 年齢下限
-  "age_to":    "30代前半",       # 年齢上限（～34歳）
-  "height_to": "165～169",       # 身長上限
-  "child":     "いない",         # 子供なし
-  "married":   ["1", "5", "6"], # 独身 / 彼氏募集中 / 恋愛相談
+  "age_from": "18-19歳",        # 年齢下限（固定）
+  "child":    "いない",          # 子供なし（固定）
+  "married":  ["1", "5", "6"], # 独身 / 彼氏募集中 / 恋愛相談（固定）
+}
+
+# ランダム選択肢
+_AGE_TO_CHOICES    = ["20代後半", "30代前半"]
+_HEIGHT_TO_CHOICES = ["165～169", "170～174"]
+_INCOME_CHOICES    = ["100万円以下", "100～300万円", "指定なし"]
+_AREA_POOL = {   # 東京は必須、残り2つをここからランダム選択
+  "東京都":  "21-10021",
+  "栃木県":  "18-10018",
+  "静岡県":  "23-10023",
+  "千葉県":  "20-10020",
+  "神奈川県": "15-10015",
+  "埼玉県":  "16-10016",
 }
 
 FILTER_SELECT_MAP = {
@@ -29,6 +41,60 @@ FILTER_SELECT_MAP = {
   "child":       "child",
   "married":     "married[]",
 }
+
+def _set_area_filter(driver, wait, area_values):
+  """地域フィルターを設定する。area_values = prefAndCity[]のvalue文字列リスト（東京を先頭に）"""
+  PREF_NAMES = {v: k for k, v in _AREA_POOL.items()}
+
+  # 地域変更ボタンをクリック → show_selected_area.html
+  area_btn = driver.find_element(By.CSS_SELECTOR, "input[value*='地域']")
+  area_btn.click()
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+
+  # 既存の選択を全削除
+  existing = driver.find_elements(By.CSS_SELECTOR, "input[name='prefAndCity[]']")
+  if existing:
+    for cb in existing:
+      if not cb.is_selected():
+        driver.execute_script("arguments[0].click();", cb)
+    del_btn = driver.find_element(By.XPATH, "//*[contains(text(),'チェックを削除')]")
+    del_btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    # 削除後は show_profile_search.html にリダイレクトされるため再度クリック
+    area_btn = driver.find_element(By.CSS_SELECTOR, "input[value*='地域']")
+    area_btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+
+  # 1件ずつ地域を追加（追加後は show_profile_search.html に戻る）
+  for i, area_val in enumerate(area_values):
+    if i > 0:
+      # 前の追加後は show_profile_search.html に戻るため再度クリック
+      area_btn = driver.find_element(By.CSS_SELECTOR, "input[value*='地域']")
+      area_btn.click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
+    add_btn = driver.find_element(By.XPATH, "//button[contains(text(),'地域を追加する')]")
+    add_btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    pref_name = PREF_NAMES[area_val]
+    pref_link = driver.find_element(By.XPATH, f"//a[.//p[text()='{pref_name}']]")
+    pref_link.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    cb = driver.find_element(By.CSS_SELECTOR, f"input[value='{area_val}']")
+    driver.execute_script("arguments[0].click();", cb)
+    time.sleep(0.5)
+    select_btn = driver.find_element(By.CSS_SELECTOR, "button.greenButton")
+    driver.execute_script("arguments[0].click();", select_btn)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    # 各 選択する 後は show_profile_search.html に戻る
+  random_area_names = [PREF_NAMES[v] for v in area_values]
+  print(f"地域設定: {', '.join(random_area_names)}")
 
 def _apply_filters(driver, filters):
   """検索フォームにフィルターを適用する"""
@@ -94,10 +160,25 @@ def set_search_filter(driver, wait, filters=None):
   driver.get("https://pc.194964.com/profile/profilesearch/show_profile_search.html")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
-  # 固定フィルターを常に適用し、追加フィルターがあればマージ
+
+  # 地域フィルター: 東京固定 + ランダム2件
+  extra_areas = random.sample([v for k, v in _AREA_POOL.items() if k != "東京都"], 2)
+  area_values = [_AREA_POOL["東京都"]] + extra_areas
+  _set_area_filter(driver, wait, area_values)
+
+  # ランダムフィルター生成
+  random_filters = {
+    "age_to":    random.choice(_AGE_TO_CHOICES),
+    "height_to": random.choice(_HEIGHT_TO_CHOICES),
+    "income":    random.choice(_INCOME_CHOICES),
+  }
+
+  # 固定 + ランダム + 追加フィルターをマージして適用
   merged = dict(FIXED_SEARCH_FILTER)
+  merged.update(random_filters)
   if filters:
     merged.update(filters)
+  print(f"検索フィルター: 年齢上限={merged['age_to']} 身長上限={merged['height_to']} 年収={merged['income']}")
   _apply_filters(driver, merged)
   # 検索ボタン（class: input_search）
   search_btns = driver.find_elements(By.CLASS_NAME, value="input_search")

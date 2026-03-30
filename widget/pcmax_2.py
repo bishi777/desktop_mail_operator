@@ -241,142 +241,151 @@ def profile_search(driver, search_edit):
         print(f"✅ {name_on_pcmax[0].text}プロフ検索メニューのURLかチェック") 
         if not "pcmax.jp/mobile/profile_reference.php" in driver.current_url:
           return
-  # チェックが入っている項目をリセット
-  try:
-    area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
-    for el in area_check_elements:
-      if el.is_selected():
-        el.click()
-        time.sleep(0.5)
-  except NoSuchElementException:
-    pass
-  try:
-    tokyo_checkbox = driver.find_element(By.ID, "22")
-    if not tokyo_checkbox.is_selected():
-      tokyo_checkbox.click()
-      time.sleep(1)
-  except NoSuchElementException:
-    pass
-  r = random.randint(0, 99)
-  # 地域設定（ランダムで１つ選択）
-  if search_edit["area_flug"] == 1:
-    if r < 50:
-      area, area_id = random.choice(list(area_id_dict.items()))
-      try:
-        checkbox = driver.find_element(By.ID, str(area_id))
-        if not checkbox.is_selected():
-            checkbox.click()
-            time.sleep(1)
-      except NoSuchElementException:
-        pass
-  # 地域設定（ランダムで２つ選択）
-  if search_edit["area_flug"] == 2:
-    random_areas = dict(random.sample(list(area_id_dict.items()), 2))
-    for area, area_id in random_areas.items():
-      try:
-        checkbox = driver.find_element(By.ID, str(area_id))
-        if not checkbox.is_selected():
-          checkbox.click()
-          time.sleep(1)
-      except NoSuchElementException:
-        pass
-  # 年齢設定
-  try:
-    time.sleep(2)
-    oldest_age_select_box = driver.find_element(By.ID, "makerItem")
-  except NoSuchElementException:
-    oldest_age_select_box = driver.find_element(By.ID, "to_age")
-  youngest_age_select_box = driver.find_element(By.NAME, "from_age")
-  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", youngest_age_select_box)
-  old_value = random.choice(search_edit["o_age"])
-  if old_value == 60:
-    old_age = "60歳以上"
-  else:
-    old_age = f"{old_value}歳"
-  young_value = random.choice(search_edit["y_age"])
-  young_age = f"{young_value}歳"
-  # print(f"{young_age} 〜 {old_age} で検索します")
-  youngest_age_select_box.send_keys(young_age)
-  time.sleep(0.5)
-  oldest_age_select_box.send_keys(old_age)
-  time.sleep(0.5)
-  # 検索対象
-  # チェックが入っている項目をリセット
-  try:
-    check_elements = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "input")
-    for el in check_elements:
-      if el.is_selected():
-        el.click()
-        time.sleep(0.5)
-  except NoSuchElementException:
-    pass
-  labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "label")
-  for label in labels:
-    if label.text.replace(" ", "") in search_edit["search_target"]:
-      checkbox = label.find_element(By.TAG_NAME, "input")
-      if not checkbox.is_selected():
-        checkbox.click()
-      time.sleep(0.5)
-  # 検索する項目
+  
+  # # チェックが入っている項目をリセット
   # try:
-  #   purpose_id13 = driver.find_element(By.ID, "purpose_id13")
+  #   area_check_elements = driver.find_element(By.CLASS_NAME, "bbs_table-radio").find_elements(By.TAG_NAME, "input")
+  #   for el in area_check_elements:
+  #     if el.is_selected():
+  #       el.click()
+  #       time.sleep(0.5)
   # except NoSuchElementException:
-  #   print("セックスフレンドのチェックボックスが見つかりません")
-  # if purpose_id13.is_selected():
-  #   purpose_id13.click()
+  #   pass
+  # try:
+  #   tokyo_checkbox = driver.find_element(By.ID, "22")
+  #   if not tokyo_checkbox.is_selected():
+  #     tokyo_checkbox.click()
+  #     time.sleep(1)
+  # except NoSuchElementException:
+  #   pass
+  # r = random.randint(0, 99)
+  # # 地域設定（ランダムで１つ選択）
+  # if search_edit["area_flug"] == 1:
+  #   if r < 50:
+  #     area, area_id = random.choice(list(area_id_dict.items()))
+  #     try:
+  #       checkbox = driver.find_element(By.ID, str(area_id))
+  #       if not checkbox.is_selected():
+  #           checkbox.click()
+  #           time.sleep(1)
+  #     except NoSuchElementException:
+  #       pass
+  # # 地域設定（ランダムで２つ選択）
+  # if search_edit["area_flug"] == 2:
+  #   random_areas = dict(random.sample(list(area_id_dict.items()), 2))
+  #   for area, area_id in random_areas.items():
+  #     try:
+  #       checkbox = driver.find_element(By.ID, str(area_id))
+  #       if not checkbox.is_selected():
+  #         checkbox.click()
+  #         time.sleep(1)
+  #     except NoSuchElementException:
+  #       pass
+  # # 年齢設定
+  # try:
+  #   time.sleep(2)
+  #   oldest_age_select_box = driver.find_element(By.ID, "makerItem")
+  # except NoSuchElementException:
+  #   oldest_age_select_box = driver.find_element(By.ID, "to_age")
+  # youngest_age_select_box = driver.find_element(By.NAME, "from_age")
+  # driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", youngest_age_select_box)
+  # old_value = random.choice(search_edit["o_age"])
+  # if old_value == 60:
+  #   old_age = "60歳以上"
+  # else:
+  #   old_age = f"{old_value}歳"
+  # young_value = random.choice(search_edit["y_age"])
+  # young_age = f"{young_value}歳"
+  # # print(f"{young_age} 〜 {old_age} で検索します")
+  # youngest_age_select_box.send_keys(young_age)
+  # time.sleep(0.5)
+  # oldest_age_select_box.send_keys(old_age)
+  # time.sleep(0.5)
+  # # 検索対象
+  # # チェックが入っている項目をリセット
+  # try:
+  #   check_elements = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "input")
+  #   for el in check_elements:
+  #     if el.is_selected():
+  #       el.click()
+  #       time.sleep(0.5)
+  # except NoSuchElementException:
+  #   pass
+  # labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[2].find_elements(By.TAG_NAME, "label")
+  # for label in labels:
+  #   if label.text.replace(" ", "") in search_edit["search_target"]:
+  #     checkbox = label.find_element(By.TAG_NAME, "input")
+  #     if not checkbox.is_selected():
+  #       checkbox.click()
+  #     time.sleep(0.5)
+  # # 検索する項目
+  # # try:
+  # #   purpose_id13 = driver.find_element(By.ID, "purpose_id13")
+  # # except NoSuchElementException:
+  # #   print("セックスフレンドのチェックボックスが見つかりません")
+  # # if purpose_id13.is_selected():
+  # #   purpose_id13.click()
+  # # time.sleep(0.5)
+
+  # # 検索から外す項目
+  # exclusion_ids = [
+  #   ("10120", "except12"),
+  #   ("", "except14"),
+  #   ("10160", "except16"),
+  #   ("10190", "except19"),
+  #   ("10200", "except20"),
+  # ]
+  # for primary_id, fallback_id in exclusion_ids:
+  #   try:
+  #     checkbox = driver.find_element(By.ID, primary_id)
+  #   except NoSuchElementException:
+  #     checkbox = driver.find_element(By.ID, fallback_id)
+  #   if not checkbox.is_selected():
+  #     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
+  #     time.sleep(0.5)
+  #     checkbox.click()
+  #   time.sleep(1)
+  # # 身長設定
+  # try:
+  #   time.sleep(2)
+  #   max_height_select_box = driver.find_element(By.ID, "makerItem1")
+  #   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
+  #   value = random.choice(search_edit["m_height"])
+  #   if value == 180:
+  #     max_height = "180cm以上"
+  #   else:
+  #     max_height = f"{value}cm"
+  #   max_height_select_box.send_keys(max_height)
+  # except NoSuchElementException:
+  #   print("身長設定できません")
+  # time.sleep(0.5)
+  # # 体型
+  # body_type_labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[6].find_elements(By.TAG_NAME, "label")
+  # for label in body_type_labels:
+  #   if label.text.replace(" ", "") in search_edit["search_body_type"]:
+  #     checkbox = label.find_element(By.TAG_NAME, "input")
+  #     if not checkbox.is_selected():
+  #       checkbox.click()
+  #     time.sleep(0.5)
+  # # 年収
+  # annual_income_select_box = driver.find_element(By.ID, "sa1")
+  # driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", annual_income_select_box)
+  # value = random.choice(search_edit["annual_income"])
+  # annual_income_select_box.send_keys(value)
   # time.sleep(0.5)
 
-  # 検索から外す項目
-  exclusion_ids = [
-    ("10120", "except12"),
-    ("", "except14"),
-    ("10160", "except16"),
-    ("10190", "except19"),
-    ("10200", "except20"),
-  ]
-  for primary_id, fallback_id in exclusion_ids:
-    try:
-      checkbox = driver.find_element(By.ID, primary_id)
-    except NoSuchElementException:
-      checkbox = driver.find_element(By.ID, fallback_id)
-    if not checkbox.is_selected():
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
-      time.sleep(0.5)
-      checkbox.click()
-    time.sleep(1)
-  # 身長設定
-  try:
-    time.sleep(2)
-    max_height_select_box = driver.find_element(By.ID, "makerItem1")
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
-    value = random.choice(search_edit["m_height"])
-    if value == 180:
-      max_height = "180cm以上"
-    else:
-      max_height = f"{value}cm"
-    max_height_select_box.send_keys(max_height)
-  except NoSuchElementException:
-    print("身長設定できません")
-  time.sleep(0.5)
-  # 体型
-  body_type_labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[6].find_elements(By.TAG_NAME, "label")
-  for label in body_type_labels:
-    if label.text.replace(" ", "") in search_edit["search_body_type"]:
-      checkbox = label.find_element(By.TAG_NAME, "input")
-      if not checkbox.is_selected():
-        checkbox.click()
-      time.sleep(0.5)
-  # 年収
-  annual_income_select_box = driver.find_element(By.ID, "sa1")
-  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", annual_income_select_box)
-  value = random.choice(search_edit["annual_income"])
-  annual_income_select_box.send_keys(value)
-  time.sleep(0.5)
   # 検索ボタンを押す
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.5)
+  driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(0.5)
   try:
     search_button = driver.find_element(By.ID, "image_button")
   except NoSuchElementException:
     search_button = driver.find_element(By.ID, "search1")
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", search_button)
+  time.sleep(0.5)
   search_button.click()
   return True
 def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_messages_flug, mail_info):
@@ -1880,6 +1889,28 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   if not profile_search(driver, search_edit):
     return
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  # 地域セレクト: 東京都50%、栃木/静岡/群馬/埼玉/千葉/神奈川 各約8%
+  _area_pool    = ["東京都", "栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
+  _area_weights = [50, 8, 8, 8, 8, 8, 8]
+  chosen_area = random.choices(_area_pool, weights=_area_weights)[0]
+  try:
+    area_url = driver.execute_script("""
+      var sel = document.querySelectorAll('select')[0];
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].text === arguments[0]) {
+          return sel.options[i].value;
+        }
+      }
+      return null;
+    """, chosen_area)
+    if area_url:
+      from urllib.parse import urljoin
+      driver.get(urljoin(driver.current_url, area_url))
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+    print(f"{name} 検索地域: {chosen_area}")
+  except Exception as e:
+    print(f"{name} 地域セレクトエラー: {e}")
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
   user_list_url = driver.current_url
   ft_cnt = 0
@@ -1899,7 +1930,12 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
       elif "pcmax" in driver.current_url:
         user_info = user_name
       user_age =  user_list[current_step].find_elements(By.CLASS_NAME, value="age")[0].text
-      user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")    
+      user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")
+      age_num_m = re.search(r'(\d+)', user_age)
+      if age_num_m and int(age_num_m.group(1)) > 34:
+        print(f"年齢スキップ {user_name} {user_age}")
+        current_step += 1
+        continue
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
       catch_warning_pop(name, driver)
       iikamo_text = ""
