@@ -1540,9 +1540,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       iikamo_text = f"いいかも"
       # print(f"いいかも  ユーザー名:{ditail_page_user_name} ")
     elif len(iikamo_arigatou):
-      # iikamo_arigatou[0].click()
-      # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      # time.sleep(0.7)
+      iikamo_arigatou[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
       iikamo_text = f"いいかもありがとう"
       # print(f"いいかもありがとう  ユーザー名:{ditail_page_user_name} ")
     try:
