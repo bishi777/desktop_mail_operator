@@ -1472,11 +1472,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       user_row_cnt += 1
       continue
     
-    # めもありか確認　memo_tab
-    memo_tab = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'memo_tab')
-    if len(memo_tab):
-      user_row_cnt += 1
-      continue
     # 年齢確認
     user_age = foot_user_list[user_row_cnt].find_element(By.CLASS_NAME, 'user-age').text
     match = re.search(r'(\d+)歳', user_age)
@@ -2004,6 +1999,112 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+
+
+def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
+  """いまヒマリストページで34歳以下のユーザーに足跡をつける"""
+  import urllib.parse
+  wait = WebDriverWait(driver, 10)
+
+  # TOPページへ移動してリンクを取得
+  top_url = "https://pcmax.jp/pcm/index.php" if "pcmax" in driver.current_url else "https://linkleweb.jp/pcm/index.php"
+  driver.get(top_url)
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+  try:
+    link = driver.find_element(By.CSS_SELECTOR, "a[href*='profile_reference.php?direct2=1&sort=3']")
+    link.click()
+  except Exception as e:
+    print(f"{name} いまヒマリンクエラー: {e}")
+    return 0
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+  list_url = driver.current_url
+  visited_ids = set()
+  ft_cnt = 0
+  encoded_memo = urllib.parse.quote("いまヒマリスト", encoding='shift_jis')
+
+  while ft_cnt < footprint_count:
+    links = driver.find_elements(By.CSS_SELECTOR, "a[href*='profile_detail']")
+    targets = []
+    for lnk in links:
+      href = lnk.get_attribute("href") or ""
+      uid_m = re.search(r'user_id=(\d+)', href)
+      if not uid_m:
+        continue
+      uid = uid_m.group(1)
+      if uid in visited_ids:
+        continue
+      link_text = lnk.text
+      age_m = re.search(r'(\d+)歳', link_text)
+      if not age_m:
+        continue
+      age = int(age_m.group(1))
+      if age > 34:
+        visited_ids.add(uid)
+        continue
+      targets.append((uid, href, age, link_text))
+
+    if not targets:
+      print(f"{name} いまヒマ足跡付け終了（対象ユーザーなし） {ft_cnt}件")
+      break
+
+    for uid, href, age, link_text in targets:
+      if ft_cnt >= footprint_count:
+        break
+      visited_ids.add(uid)
+      driver.get(href)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(random.uniform(0.8, 2.0))
+      # いいかも処理
+      iikamo_text = ""
+      if iikamo_count > 0:
+        arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
+        iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+        if arleady_iikamo:
+          iikamo_text = "いいかも済み"
+        elif iikamo:
+          iikamo[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          iikamo_text = "いいかも"
+        elif iikamo_arigatou:
+          iikamo_arigatou[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          iikamo_text = "いいかもありがとう"
+      # メモ確認：いまヒマリスト済みならスキップ
+      try:
+        memo_edit = driver.find_elements(By.CLASS_NAME, 'memo_edit')
+        if memo_edit and "いまヒマリスト" in memo_edit[0].text:
+          display_name = re.sub(r'\s*\d+歳.*', '', link_text.split('\n')[0])[:12]
+          print(f"{name} スキップ（いまヒマリスト済み） {display_name} {age}歳")
+          driver.get(list_url)
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          continue
+      except Exception as e:
+        print(f"{name} メモ確認エラー: {e}")
+      # メモ登録
+      try:
+        driver.execute_script(
+          f"$.get('https://pcmax.jp/mobile/memo_reg.php?memo_user_id={uid}&memo={encoded_memo}&regist=1');"
+        )
+        time.sleep(0.5)
+      except Exception as e:
+        print(f"{name} メモ登録エラー: {e}")
+      ft_cnt += 1
+      display_name = re.sub(r'\s*\d+歳.*', '', link_text.split('\n')[0])[:12]
+      print(f"{name} いまヒマ足跡 {ft_cnt}件 {display_name} {age}歳 {datetime.now().strftime('%m/%d %H:%M:%S')}")
+      driver.get(list_url)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+
+  return ft_cnt
 
 
 def pcmax_profile_edit(chara_data, driver, wait):

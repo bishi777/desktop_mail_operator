@@ -298,8 +298,12 @@ def main_syori():
                 print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                 print(traceback.format_exc())
               try:
-                print(f"🐾🐾🐾🐾足跡付け開始 {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-                pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+                if random.random() < 0.5:
+                  print(f"🐾🐾🐾🐾足跡付け開始(make_footprint) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+                  pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+                else:
+                  print(f"🐾🐾🐾🐾足跡付け開始(make_footprint_imahima) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+                  pcmax_2.make_footprint_imahima(name, driver, footprint_count, iikamo_cnt)
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()
