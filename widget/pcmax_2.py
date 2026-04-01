@@ -1887,7 +1887,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # 地域セレクト: 東京都50%、栃木/静岡/群馬/埼玉/千葉/神奈川 各約8%
   _area_pool    = ["東京都", "栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
-  _area_weights = [50, 8, 8, 8, 8, 8, 8]
+  _area_weights = [28, 12, 12, 12, 12, 12, 12]
   chosen_area = random.choices(_area_pool, weights=_area_weights)[0]
   try:
     area_url = driver.execute_script("""
@@ -2007,6 +2007,79 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
   import urllib.parse
   wait = WebDriverWait(driver, 10)
 
+  def _go_to_city_page(pref_name):
+    """basic_info_change → profile_reg?city=1 へ遷移"""
+    driver.get("https://pcmax.jp/mobile/basic_info_change.php?area=1")
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    Select(driver.find_element(By.NAME, "area_pref_no")).select_by_visible_text(pref_name)
+    time.sleep(0.5)
+    driver.find_element(By.ID, "image_button2").click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+
+  def _select_city(city_sel_id, city_text):
+    """都道府県変更後に詳細地域を選択（選択して下さいの場合はスキップ）"""
+    if city_text == "選択して下さい":
+      return
+    try:
+      city_sel = Select(driver.find_element(By.ID, city_sel_id))
+      city_sel.select_by_visible_text(city_text)
+      time.sleep(0.3)
+    except Exception:
+      pass
+
+  def _read_activity_areas():
+    """現在の活動地域3つを読み取って返す"""
+    pref1 = Select(driver.find_element(By.NAME, "area_pref_no")).first_selected_option.text
+    _go_to_city_page(pref1)
+    areas = {}
+    for i, (pref_id, city_id) in enumerate([("prech","city_id_1"),("prech2","city_id_2"),("prech3","city_id_3")], 1):
+      areas[f"pref{i}"] = Select(driver.find_element(By.ID, pref_id)).first_selected_option.text
+      areas[f"city{i}"] = Select(driver.find_element(By.ID, city_id)).first_selected_option.text
+    return areas
+
+  def _set_activity_areas(areas):
+    """保存したエリアデータで3つすべてを設定して送信"""
+    _go_to_city_page(areas["pref1"])
+    # エリア1
+    Select(driver.find_element(By.ID, "prech")).select_by_visible_text(areas["pref1"])
+    time.sleep(1)
+    _select_city("city_id_1", areas["city1"])
+    # エリア2
+    Select(driver.find_element(By.ID, "prech2")).select_by_visible_text(areas["pref2"])
+    time.sleep(1)
+    _select_city("city_id_2", areas["city2"])
+    # エリア3
+    Select(driver.find_element(By.ID, "prech3")).select_by_visible_text(areas["pref3"])
+    time.sleep(1)
+    _select_city("city_id_3", areas["city3"])
+    driver.find_element(By.ID, "p_reg_btn").click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+
+  # 現在の活動地域を保存
+  original_areas = None
+  _area_pool    = ["東京都", "栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
+  _area_weights = [28, 12, 12, 12, 12, 12, 12]
+  chosen_area = random.choices(_area_pool, weights=_area_weights)[0]
+  try:
+    driver.get("https://pcmax.jp/mobile/basic_info_change.php?area=1")
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    original_areas = _read_activity_areas()
+    print(f"{name} 活動地域保存: {original_areas}")
+    # 新しい地域に変更（エリア1のみ、詳細なし）
+    _go_to_city_page(chosen_area)
+    Select(driver.find_element(By.ID, "prech")).select_by_visible_text(chosen_area)
+    time.sleep(1)
+    driver.find_element(By.ID, "p_reg_btn").click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    print(f"{name} 活動地域変更: {chosen_area}")
+  except Exception as e:
+    print(f"{name} 活動地域変更エラー: {e}")
+
   # TOPページへ移動してリンクを取得
   top_url = "https://pcmax.jp/pcm/index.php" if "pcmax" in driver.current_url else "https://linkleweb.jp/pcm/index.php"
   driver.get(top_url)
@@ -2104,6 +2177,15 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
       driver.get(list_url)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
+
+  # 活動地域を元に戻す
+  if original_areas:
+    try:
+      _set_activity_areas(original_areas)
+      print(f"{name} 活動地域復元: {original_areas}")
+      original_areas = None
+    except Exception as e:
+      print(f"{name} 活動地域復元エラー: {e}")
 
   return ft_cnt
 
