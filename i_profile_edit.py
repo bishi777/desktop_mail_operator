@@ -9,21 +9,24 @@ from selenium.webdriver.support.ui import WebDriverWait
 from widget import func, ikukuru
 
 
-def find_matching_tab(driver, wait, chara_name):
-  """イククルのタブからキャラ名と一致するタブを探してswitchする"""
+def find_matching_tab(driver, wait, login_mail_address):
+  """イククルのタブからメールアドレスが一致するタブを探してswitchする"""
+  import re, time
   for handle in driver.window_handles:
     try:
       driver.switch_to.window(handle)
       if '194964' not in driver.current_url:
         continue
-      driver.get('https://pc.194964.com/mypage.html')
+      driver.get('https://pc.194964.com/config/settingregist/show_setting_mailaddress.html')
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-      import time; time.sleep(2)
-      elements = driver.find_elements(By.CLASS_NAME, 'profile-name')
-      if elements:
-        page_name = elements[0].text.strip()
-        if page_name == chara_name:
-          print(f'  対象タブ発見: {page_name} (handle={handle})')
+      time.sleep(2)
+      body_text = driver.find_element(By.TAG_NAME, 'body').text
+      match = re.search(r'ご登録のメールアドレス\s*\n\s*(\S+@\S+)', body_text)
+      if match:
+        page_mail = match.group(1).strip()
+        print(f'  タブ確認: {page_mail}')
+        if page_mail == login_mail_address:
+          print(f'  対象タブ発見: {page_mail} (handle={handle})')
           return True
     except Exception:
       continue
@@ -56,10 +59,11 @@ def main():
     print('イククルキャラ一覧:', [c['name'] for c in user_data.get('ikukuru', [])])
     sys.exit(1)
 
-  print(f'{chara_name} のデータ取得完了')
+  login_mail = chara_data.get('login_mail_address', '')
+  print(f'{chara_name} のデータ取得完了 (mail: {login_mail})')
 
-  if not find_matching_tab(driver, wait, chara_name):
-    print(f'「{chara_name}」と一致するタブが見つかりません')
+  if not find_matching_tab(driver, wait, login_mail):
+    print(f'「{chara_name}」({login_mail}) と一致するタブが見つかりません')
     sys.exit(1)
 
   ikukuru.profile_edit(chara_data, driver, wait)
