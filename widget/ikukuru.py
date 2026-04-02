@@ -583,11 +583,50 @@ def make_footprint(driver, wait, name, footprint_count, filters=None):
 
 def profile_edit(chara_data, driver, wait):
   """イククルのプロフィールを編集する"""
+  import re
   name = chara_data['name']
 
   def _val(key):
     v = chara_data.get(key)
     return None if (v is None or str(v).strip() in ('None', '')) else str(v).strip()
+
+  # 地域確認・東京以外なら引越し
+  detail_area = _val('detail_activity_area')
+  try:
+    driver.get('https://pc.194964.com/mypage.html')
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    age_el = driver.find_element(By.CLASS_NAME, 'profile-age')
+    area_text = age_el.text.strip()
+    print(f'  現在の地域: {area_text}')
+    if '東京' not in area_text:
+      print(f'  東京以外のため引越し処理を実行')
+      driver.get('https://pc.194964.com/other/area/show_pref_setting_list.html')
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      driver.find_element(By.LINK_TEXT, '東京都').click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      city_links = [l for l in driver.find_elements(By.TAG_NAME, 'a')
+                    if 'show_complete_move_pref_and_city' in (l.get_attribute('href') or '')]
+      # detail_activity_areaと一致する市区町村を探す、なければ先頭
+      target = None
+      if detail_area:
+        target = next((l for l in city_links if l.text.strip() == detail_area), None)
+      if target is None:
+        target = city_links[0] if city_links else None
+      if target:
+        city_name = target.text.strip()
+        target.click()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        print(f'  引越し完了: {city_name}')
+      else:
+        print('  市区町村リンクが見つかりません')
+    else:
+      print('  地域は東京のためスキップ')
+  except Exception as e:
+    print(f'  地域確認・引越しエラー: {e}')
 
   def set_select(sel_name, value):
     if value is None:
@@ -599,7 +638,44 @@ def profile_edit(chara_data, driver, wait):
     except Exception as e:
       print(f'  {sel_name} = {value} ✗ ({e})')
 
-  # 1. プロフィール編集（基本情報）
+  # 1. ニックネーム・年齢設定
+  from datetime import datetime
+  chara_name_val = _val('name') or name
+  age_val = _val('age')
+  driver.get('https://pc.194964.com/config/settingprof/show_profile_setting.html')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(3)
+  try:
+    name_input = driver.find_element(By.CSS_SELECTOR, 'input[name="name"]')
+    name_input.clear()
+    name_input.send_keys(chara_name_val)
+    print(f'  name = {chara_name_val} ✓')
+  except Exception as e:
+    print(f'  name 設定エラー: {e}')
+  if age_val:
+    try:
+      birth_year = datetime.now().year - int(age_val)
+      birth_date_str = f'{birth_year}-01'
+      select_date_str = f'{birth_year}年01月'
+      driver.execute_script("""
+        var sd = document.querySelector('input[name="selectdate"]');
+        var bd = document.querySelector('input[name="birthDate"]');
+        if (sd) sd.value = arguments[0];
+        if (bd) bd.value = arguments[1];
+      """, select_date_str, birth_date_str)
+      print(f'  age = {age_val} → birthDate = {birth_date_str} ✓')
+    except Exception as e:
+      print(f'  age 設定エラー: {e}')
+  try:
+    btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
+    btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f'  ニックネーム・年齢更新完了')
+  except Exception as e:
+    print(f'  更新ボタンエラー: {e}')
+
+  # 2. プロフィール編集（基本情報）
   driver.get('https://pc.194964.com/sns/snssetting/show_edit_profile.html')
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(3)
