@@ -1863,6 +1863,7 @@ def re_post(driver,wait, post_title, post_content):
       return
 
 def make_footprint(name, driver, footprint_count, iikamo_count):
+  import urllib.parse
   current_step = 0
   wait = WebDriverWait(driver, 10)
   random_wait = random.uniform(0.1, 3.4)
@@ -2001,6 +2002,18 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           iikamo_count -= 1
           iikamo_text = "いいかもありがとう"
           # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
+      # メモ登録（地域セレクト）
+      try:
+        uid_m = re.search(r'user_id=(\d+)', driver.current_url)
+        if uid_m:
+          area_short = re.sub(r'[都道府県]$', '', chosen_area)
+          encoded_memo = urllib.parse.quote(f"地域セレクト{area_short}", encoding='shift_jis')
+          driver.execute_script(
+            f"$.get('https://pcmax.jp/mobile/memo_reg.php?memo_user_id={uid_m.group(1)}&memo={encoded_memo}&regist=1');"
+          )
+          time.sleep(0.3)
+      except Exception as e:
+        print(f"{name} メモ登録エラー: {e}")
       footprint_now = datetime.now().strftime('%m/%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
