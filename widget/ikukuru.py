@@ -666,6 +666,17 @@ def profile_edit(chara_data, driver, wait):
       print(f'  age = {age_val} → birthDate = {birth_date_str} ✓')
     except Exception as e:
       print(f'  age 設定エラー: {e}')
+  set_select('height',  _val('height'))
+  set_select('style',   _val('body_shape'))
+  set_select('blood',   _val('blood_type'))
+  set_select('looks',   _val('_type'))
+  # relationship_status の値をページ選択肢に合わせてマッピング
+  _married_map = {'独身': '未婚'}
+  _married_val = _val('relationship_status')
+  if _married_val:
+    _married_val = _married_map.get(_married_val, _married_val)
+  set_select('married', _married_val)
+  set_select('city',    _val('detail_activity_area'))
   try:
     btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
     btn.click()
@@ -680,14 +691,13 @@ def profile_edit(chara_data, driver, wait):
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(3)
 
-  set_select('occupation', _val('occupation'))
-  set_select('income',     _val('income'))
-  set_select('cigarette',  _val('smoking'))
-  set_select('alcohol',    _val('sake'))
-  set_select('child',      _val('child'))
-  set_select('fStyle',     _val('body_shape'))
-  set_select('freeTime',   _val('freetime'))
-  set_select('cup',        _val('cup'))
+  set_select('occupation',   _val('job'))
+  set_select('income',       _val('annual_income'))
+  set_select('cigarette',    _val('tobacco'))
+  set_select('alcohol',      _val('alcohol'))
+  set_select('child',        _val('children'))
+  set_select('constellation', _val('constellation'))
+  set_select('freeTime',     _val('free_time'))
 
   try:
     btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
