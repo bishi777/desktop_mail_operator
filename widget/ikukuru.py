@@ -579,3 +579,63 @@ def make_footprint(driver, wait, name, footprint_count, filters=None):
     except Exception as e:
       print(f"イククル:{name} 足跡付けエラー: {e}")
   return visited
+
+
+def profile_edit(chara_data, driver, wait):
+  """イククルのプロフィールを編集する"""
+  name = chara_data['name']
+
+  def _val(key):
+    v = chara_data.get(key)
+    return None if (v is None or str(v).strip() in ('None', '')) else str(v).strip()
+
+  def set_select(sel_name, value):
+    if value is None:
+      return
+    try:
+      el = driver.find_element(By.NAME, sel_name)
+      Select(el).select_by_visible_text(value)
+      print(f'  {sel_name} = {value} ✓')
+    except Exception as e:
+      print(f'  {sel_name} = {value} ✗ ({e})')
+
+  # 1. プロフィール編集（基本情報）
+  driver.get('https://pc.194964.com/sns/snssetting/show_edit_profile.html')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(3)
+
+  set_select('occupation', _val('occupation'))
+  set_select('income',     _val('income'))
+  set_select('cigarette',  _val('smoking'))
+  set_select('alcohol',    _val('sake'))
+  set_select('child',      _val('child'))
+  set_select('fStyle',     _val('body_shape'))
+  set_select('freeTime',   _val('freetime'))
+  set_select('cup',        _val('cup'))
+
+  try:
+    btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
+    btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f'  プロフィール更新完了: {driver.current_url}')
+  except Exception as e:
+    print(f'  更新ボタンエラー: {e}')
+
+  # 2. 自己紹介編集
+  intro = _val('self_promotion')
+  if intro:
+    driver.get('https://pc.194964.com/sns/snssetting/show_edit_profile_intro.html')
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(3)
+    try:
+      ta = driver.find_element(By.NAME, 'introduction')
+      ta.clear()
+      ta.send_keys(intro)
+      btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
+      btn.click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print(f'  自己紹介更新完了: {driver.current_url}')
+    except Exception as e:
+      print(f'  自己紹介更新エラー: {e}')
