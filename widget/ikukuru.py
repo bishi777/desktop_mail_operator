@@ -698,6 +698,8 @@ def profile_edit(chara_data, driver, wait):
   set_select('child',        _val('children'))
   set_select('constellation', _val('constellation'))
   set_select('freeTime',     _val('free_time'))
+  set_select('fStyle',       _val('favorite_body_shape'))
+  set_select('cup',          _val('cup'))
 
   try:
     btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
