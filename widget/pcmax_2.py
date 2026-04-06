@@ -825,7 +825,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       if match:
         age = int(match.group(1))
         print(age)
-        if age < 18 or age > 33:
+        if age < 18 or age > 40:
           chat_ai_flug = True
         else:
           chat_ai_flug = False
@@ -991,7 +991,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(1.5) 
             catch_warning_pop(name, driver)
       elif chat_ai_flug:
-        if chara_prompt:
+        if False:
+        # if chara_prompt:
           history = []
           male_history = []
           # right_balloon キャラ
