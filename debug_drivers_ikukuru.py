@@ -90,7 +90,43 @@ def main_syori():
         time.sleep(1)
         name_elements = driver.find_elements(By.CLASS_NAME, value="profile-name")
         if not name_elements:
-          print("イククル: キャラ名が取得できません")
+          print("イククル: キャラ名が取得できません → 再ログイン処理開始")
+          try:
+            # 再ログインリンクを探してクリック
+            relogin_links = [el for el in driver.find_elements(By.TAG_NAME, 'a') if '再ログイン' in el.text]
+            if not relogin_links:
+              driver.get('https://pc.194964.com/other/error/show_nosession.html')
+              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+              relogin_links = [el for el in driver.find_elements(By.TAG_NAME, 'a') if '再ログイン' in el.text]
+            if not relogin_links:
+              print("  再ログインリンクが見つかりません")
+              continue
+            relogin_links[0].click()
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
+            # パスワード入力画面でメールアドレスを確認してパスワードを特定
+            import re as _re
+            body_text = driver.find_element(By.TAG_NAME, 'body').text
+            matched_data = None
+            for ik in ikukuru_datas:
+              if ik.get('login_mail_address', '') in body_text:
+                matched_data = ik
+                break
+            if matched_data is None:
+              print("  メールアドレスから対象キャラを特定できません")
+              continue
+            print(f"  対象キャラ: {matched_data['name']}")
+            pw_input = driver.find_element(By.ID, 'txtPassword')
+            pw_input.clear()
+            pw_input.send_keys(matched_data['password'])
+            submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[type="submit"], button[type="submit"]')
+            submit_btn.click()
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+            print(f"  再ログイン完了: {matched_data['name']}")
+          except Exception as re_e:
+            print(f"  再ログインエラー: {re_e}")
           continue
         name_on_ikukuru = name_elements[0].text.strip()
         now = datetime.now()
