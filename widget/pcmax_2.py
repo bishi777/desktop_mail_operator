@@ -2044,6 +2044,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           profile_search(driver, search_edit)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           user_list_url = driver.current_url
+          current_step = 0
         else:
           user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
           footprint_now = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
