@@ -511,7 +511,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
-    if age is not None and age > 35:
+    if age is not None and age < 55:
       print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
     try:
@@ -552,7 +552,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
     except Exception as e:
       print(f"イククル:{name} 両思いfstエラー: {e}")
 
-  return rt_cnt
+  return type_cnt
 
 def make_footprint(driver, wait, name, footprint_count, filters=None):
   """詳細フィルターでプロフ検索してfootprint_count件の足跡をつける"""
