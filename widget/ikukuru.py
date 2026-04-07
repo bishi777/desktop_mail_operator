@@ -347,9 +347,10 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
         submit_button = driver.find_elements(By.ID, value="submitBtn")
-        submit_button[0].click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+        if submit_button:
+          submit_button[0].click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
         popup_text = driver.find_elements(By.CLASS_NAME, value="popupText")
         popup_text_cnt = 0
         while not len(popup_text):
@@ -501,45 +502,54 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
   return rf_cnt
 
 def return_type(driver, wait, fst_message, name, send_cnt=1):
-  """タイプリストのユーザーにタイプを返してfst_messageを送る"""
-  TYPE_LIST_URL = "https://pc.194964.com/sns/snstype/show_typed_list.html"
-  rt_cnt = 1
+  """タイプリスト(35歳以下)にタイプを返し、両思いリストにfst_messageを送る"""
+  TYPE_LIST_URL   = "https://pc.194964.com/sns/snstype/show_typed_list.html"
+  MUTUAL_LIST_URL = "https://pc.194964.com/sns/snstype/show_mutual_list.html"
+  rt_cnt = 0
+
+  # --- Step1: タイプリスト → 35歳以下にタイプを返す ---
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
-    if rt_cnt >= send_cnt:
-      break
-    if age is not None and age > 34:
-      print(f"イククル:{name} タイプ返し スキップ（{opponent_name} {age}歳 > 34歳）")
+    if age is not None and age > 35:
+      print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
     try:
       driver.get(href)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
-      msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
-      # PC版: send-like-message + submitLikeMessageBtn でタイプ返し+fst同時送信
-      like_textarea = driver.find_elements(By.ID, value="send-like-message")
+      # タイプ返しボタンをクリック（メッセージなし）
       like_btn = driver.find_elements(By.ID, value="submitLikeMessageBtn")
-      if like_textarea and like_btn:
-        try:
-          _input_text(driver, like_textarea[0], msg)
-          time.sleep(1)
-          driver.execute_script("arguments[0].click();", like_btn[0])
-          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          rt_cnt += 1
-          print(f"イククル:{name} タイプ返し+fst送信 {rt_cnt}件")
-        except Exception as e:
-          print(f"イククル:{name} タイプ返し操作エラー: {e}")
-          rt_cnt += 1
+      if like_btn:
+        driver.execute_script("arguments[0].click();", like_btn[0])
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        rt_cnt += 1
+        print(f"イククル:{name} タイプ返し {rt_cnt}件（{opponent_name} {age}歳）")
       else:
-        # フォールバック: footer-btn-sendmail 経由でメッセージ送信
-        sent = _send_message_on_profile(driver, wait, msg, name, "タイプ返しfst", opponent_name)
-        if sent:
-          rt_cnt += 1
-          print(f"イククル:{name} タイプ返し+fst送信(履歴経由) {rt_cnt}件")
+        print(f"イククル:{name} タイプ返しボタンなし（{opponent_name}）")
     except Exception as e:
       print(f"イククル:{name} タイプ返しエラー: {e}")
+
+  # --- Step2: 両思いリスト → fst_messageを送る ---
+  mutual_items = _collect_profile_links(driver, wait, MUTUAL_LIST_URL)
+  print(f"イククル:{name} 両思いリスト {len(mutual_items)}件")
+  fst_cnt = 0
+  for href, opponent_name, age in mutual_items:
+    if fst_cnt >= send_cnt:
+      break
+    try:
+      driver.get(href)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(random.uniform(1.5, 2.5))
+      msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
+      sent = _send_message_on_profile(driver, wait, msg, name, "両思いfst", opponent_name)
+      if sent:
+        fst_cnt += 1
+        print(f"イククル:{name} 両思いfst送信 {fst_cnt}件（{opponent_name}）")
+    except Exception as e:
+      print(f"イククル:{name} 両思いfstエラー: {e}")
+
   return rt_cnt
 
 def make_footprint(driver, wait, name, footprint_count, filters=None):
