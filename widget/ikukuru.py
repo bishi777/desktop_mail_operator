@@ -512,51 +512,31 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
     # ３５歳以上はスキップ
-    if age is not None and age > 35:
+    if age is not None and age > 50:
       print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
     try:
       driver.get(href)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
-      like_btn = driver.find_elements(By.ID, value="submitLikeMessageBtn")
-      if like_btn:
-        # タイプボタンあり → タイプを押す（メッセージなし）
-        driver.execute_script("arguments[0].click();", like_btn[0])
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
+      # btn-type-on が表示されている = まだタイプしていない
+      type_on_inner = driver.find_elements(By.CSS_SELECTOR, '[id^="btn-type-on"] .footer-btn-item-txt[onclick]')
+      if type_on_inner:
+        # setTypeStatusPc を直接実行してタイプ
+        onclick_val = type_on_inner[0].get_attribute('onclick')
+        driver.execute_script(onclick_val)
         time.sleep(2)
+        print(f"イククル:{name} タイプ返し（{opponent_name} {age}歳）")
+      # タイプ済み・未問わずfst送信
+      sent = _send_message_on_profile(driver, wait, msg, name, "fst", opponent_name)
+      if sent:
         type_cnt += 1
-        print(f"イククル:{name} タイプ返し {type_cnt}件（{opponent_name} {age}歳）")
-      else:
-        # タイプボタンなし（既タイプ済み等）→ fst_message送信
-        msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
-        sent = _send_message_on_profile(driver, wait, msg, name, "タイプ済みfst", opponent_name)
-        if sent:
-          type_cnt += 1
-          print(f"イククル:{name} タイプ済みfst送信（{opponent_name}）")
+        print(f"イククル:{name} fst送信 {type_cnt}件（{opponent_name}）")
     except Exception as e:
       print(f"イククル:{name} タイプ返しエラー: {e}")
-    if type_cnt == 1:
+    if type_cnt >= send_cnt:
       break
-
-  # --- Step2: 両思いリスト → fst_messageを送る ---
-  mutual_items = _collect_profile_links(driver, wait, MUTUAL_LIST_URL)
-  print(f"イククル:{name} 両思いリスト {len(mutual_items)}件")
-  fst_cnt = 0
-  for href, opponent_name, age in mutual_items:
-    if fst_cnt >= send_cnt:
-      break
-    try:
-      driver.get(href)
-      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-      time.sleep(random.uniform(1.5, 2.5))
-      msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
-      sent = _send_message_on_profile(driver, wait, msg, name, "両思いfst", opponent_name)
-      if sent:
-        fst_cnt += 1
-        print(f"イククル:{name} 両思いfst送信 {fst_cnt}件（{opponent_name}）")
-    except Exception as e:
-      print(f"イククル:{name} 両思いfstエラー: {e}")
 
   return type_cnt
 
