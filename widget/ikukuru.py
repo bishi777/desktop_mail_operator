@@ -512,7 +512,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
     # ３５歳以上はスキップ
-    if age is not None and age > 50:
+    if age is not None and age > 34:
       print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
     try:
