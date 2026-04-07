@@ -503,7 +503,7 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
 def return_type(driver, wait, fst_message, name, send_cnt=1):
   """タイプリストのユーザーにタイプを返してfst_messageを送る"""
   TYPE_LIST_URL = "https://pc.194964.com/sns/snstype/show_typed_list.html"
-  rt_cnt = 0
+  rt_cnt = 1
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
