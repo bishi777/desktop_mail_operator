@@ -505,7 +505,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   """タイプリスト(35歳以下)にタイプを返し、両思いリストにfst_messageを送る"""
   TYPE_LIST_URL   = "https://pc.194964.com/sns/snstype/show_typed_list.html"
   MUTUAL_LIST_URL = "https://pc.194964.com/sns/snstype/show_mutual_list.html"
-  rt_cnt = 0
+  type_cnt = 0
 
   # --- Step1: タイプリスト → 35歳以下にタイプを返す ---
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
@@ -524,12 +524,14 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
         driver.execute_script("arguments[0].click();", like_btn[0])
         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
-        rt_cnt += 1
-        print(f"イククル:{name} タイプ返し {rt_cnt}件（{opponent_name} {age}歳）")
+        type_cnt += 1
+        print(f"イククル:{name} タイプ返し {type_cnt}件（{opponent_name} {age}歳）")
       else:
         print(f"イククル:{name} タイプ返しボタンなし（{opponent_name}）")
     except Exception as e:
       print(f"イククル:{name} タイプ返しエラー: {e}")
+    if type_cnt == 1:
+      break
 
   # --- Step2: 両思いリスト → fst_messageを送る ---
   mutual_items = _collect_profile_links(driver, wait, MUTUAL_LIST_URL)
