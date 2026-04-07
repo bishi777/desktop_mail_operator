@@ -511,23 +511,29 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
   for href, opponent_name, age in items:
-    if age is not None and age < 55:
+    # ３５歳以上はスキップ
+    if age is not None and age > 35:
       print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
     try:
       driver.get(href)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
-      # タイプ返しボタンをクリック（メッセージなし）
       like_btn = driver.find_elements(By.ID, value="submitLikeMessageBtn")
       if like_btn:
+        # タイプボタンあり → タイプを押す（メッセージなし）
         driver.execute_script("arguments[0].click();", like_btn[0])
         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
         type_cnt += 1
         print(f"イククル:{name} タイプ返し {type_cnt}件（{opponent_name} {age}歳）")
       else:
-        print(f"イククル:{name} タイプ返しボタンなし（{opponent_name}）")
+        # タイプボタンなし（既タイプ済み等）→ fst_message送信
+        msg = fst_message.replace("{name}", opponent_name) if opponent_name else fst_message
+        sent = _send_message_on_profile(driver, wait, msg, name, "タイプ済みfst", opponent_name)
+        if sent:
+          type_cnt += 1
+          print(f"イククル:{name} タイプ済みfst送信（{opponent_name}）")
     except Exception as e:
       print(f"イククル:{name} タイプ返しエラー: {e}")
     if type_cnt == 1:
