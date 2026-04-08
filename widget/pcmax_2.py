@@ -332,6 +332,7 @@ def profile_search(driver, search_edit):
     ("10120", "except12"),
     ("10130", "except13"),
     ("", "except14"),
+    ("10150", "except15"),
     ("10160", "except16"),
     ("10190", "except19"),
     ("10200", "except20"),
@@ -2013,18 +2014,18 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           iikamo_count -= 1
           iikamo_text = "いいかもありがとう"
           # print(f"いいかもありがとう  ユーザー名:{user_info} {user_area}")
-      # メモ登録（地域セレクト）
-      try:
-        uid_m = re.search(r'user_id=(\d+)', driver.current_url)
-        if uid_m:
-          area_short = re.sub(r'[都道府県]$', '', chosen_area)
-          encoded_memo = urllib.parse.quote(f"地域セレクト{area_short}", encoding='shift_jis')
-          driver.execute_script(
-            f"$.get('https://pcmax.jp/mobile/memo_reg.php?memo_user_id={uid_m.group(1)}&memo={encoded_memo}&regist=1');"
-          )
-          time.sleep(0.3)
-      except Exception as e:
-        print(f"{name} メモ登録エラー: {e}")
+      # メモ登録（地域セレクト） ※地域セレクト無効化中のためスキップ
+      # try:
+      #   uid_m = re.search(r'user_id=(\d+)', driver.current_url)
+      #   if uid_m:
+      #     area_short = re.sub(r'[都道府県]$', '', chosen_area)
+      #     encoded_memo = urllib.parse.quote(f"地域セレクト{area_short}", encoding='shift_jis')
+      #     driver.execute_script(
+      #       f"$.get('https://pcmax.jp/mobile/memo_reg.php?memo_user_id={uid_m.group(1)}&memo={encoded_memo}&regist=1');"
+      #     )
+      #     time.sleep(0.3)
+      # except Exception as e:
+      #   print(f"{name} メモ登録エラー: {e}")
       footprint_now = datetime.now().strftime('%m/%d %H:%M:%S')
       current_step += 1  
       ft_cnt += 1
