@@ -298,7 +298,7 @@ def main_syori():
                 print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                 print(traceback.format_exc())
               try:
-                if random.random() < 0.6:
+                if random.random() < 0.9:
                   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
                   pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
                 else:
