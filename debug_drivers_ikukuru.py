@@ -152,6 +152,7 @@ def main_syori():
         name = i["name"]
         fst_message = i["fst_message"]
         return_foot_message = i.get("return_foot_message", "")
+        chara_image = i.get("chara_image", "")
         footprint_count = random.randint(7, 12)
 
         if 6 <= now.hour < 24:
@@ -173,7 +174,7 @@ def main_syori():
           if return_foot_message:
             try:
               print("🐾足跡返し開始")
-              rf_cnt = ikukuru.return_foot(driver, wait, return_foot_message, name, send_cnt=1)
+              rf_cnt = ikukuru.return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=chara_image)
               report_dict[name]["rf"] += rf_cnt
               print(f"足跡返し終了 {rf_cnt}件🐾")
             except Exception as e:
@@ -183,7 +184,7 @@ def main_syori():
           # 3. タイプ返し + fst
           try:
             print("💕タイプ返し+fst開始")
-            rt_cnt = ikukuru.return_type(driver, wait, fst_message, name, send_cnt=1)
+            rt_cnt = ikukuru.return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=chara_image)
             report_dict[name]["fst"] += rt_cnt
             print(f"タイプ返し+fst終了 {rt_cnt}件💕")
           except Exception as e:

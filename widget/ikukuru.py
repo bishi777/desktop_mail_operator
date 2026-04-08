@@ -1,4 +1,6 @@
 import time
+import base64
+import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
 import random
@@ -7,6 +9,7 @@ import re
 from datetime import datetime, timedelta
 import sys
 import os
+import traceback
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from widget import func
 
@@ -420,7 +423,42 @@ def _collect_profile_links(driver, wait, list_url, max_next=3):
     next_cnt += 1
   return items
 
-def _send_message_on_profile(driver, wait, message, name, label, opponent_name=""):
+def _prepare_chara_image(name, chara_image):
+  """chara_image URLから画像をダウンロードしてローカルパスを返す。失敗時は空文字"""
+  if not chara_image:
+    return ""
+  try:
+    url = chara_image
+    if url.startswith("/"):
+      url = "https://meruopetyan.com" + url
+    image_response = requests.get(url)
+    image_filename = f"{name}_ikukuru_image.png"
+    with open(image_filename, 'wb') as f:
+      f.write(image_response.content)
+    return os.path.abspath(image_filename)
+  except Exception as e:
+    print(f"イククル:{name} 画像ダウンロードエラー: {e}")
+    return ""
+
+def _attach_image_on_message(driver, name, label, image_path):
+  """メッセージ送信ページで画像を添付する。sendButton押下前に呼ぶ"""
+  if not image_path:
+    return
+  try:
+    file_input = driver.find_elements(By.ID, "fileupload")
+    if not file_input:
+      file_input = driver.find_elements(By.CSS_SELECTOR, 'input[type="file"]')
+    if not file_input:
+      print(f"イククル:{name} {label} ファイルinputが見つかりません（画像スキップ）")
+      return
+    file_input[0].send_keys(image_path)
+    time.sleep(2)
+    print(f"イククル:{name} {label} 画像添付完了")
+  except Exception as e:
+    print(f"イククル:{name} {label} 画像添付エラー: {e}")
+    traceback.print_exc()
+
+def _send_message_on_profile(driver, wait, message, name, label, opponent_name="", image_path=""):
   """プロフページからfooter-btn-sendmail経由でメッセージ履歴ページへ遷移し送信。成功したらTrue"""
   wait_time = random.uniform(2, 3)
   # footer-btn-sendmail のhref = 会話履歴ページURL
@@ -455,6 +493,8 @@ def _send_message_on_profile(driver, wait, message, name, label, opponent_name="
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
   _input_text(driver, text_area[0], message)
   time.sleep(1)
+  # 画像添付
+  _attach_image_on_message(driver, name, label, image_path)
   send_button = driver.find_elements(By.ID, value="sendButton")
   if not send_button:
     return False
@@ -476,10 +516,11 @@ def _send_message_on_profile(driver, wait, message, name, label, opponent_name="
     print(f"イククル:{name} {label} {popup_text[-1].text[:40]}")
   return True
 
-def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
+def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=""):
   """足跡リストのユーザーにreturn_foot_messageを送る"""
   FOOT_LIST_URL = "https://pc.194964.com/sns/snsashiato/show.html"
   rf_cnt = 0
+  image_path = _prepare_chara_image(name, chara_image)
   items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
   print(f"イククル:{name} 足跡リスト {len(items)}件")
   for href, opponent_name, age in items:
@@ -493,7 +534,7 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(random.uniform(1.5, 2.5))
       msg = return_foot_message.replace("{name}", opponent_name) if opponent_name else return_foot_message
-      sent = _send_message_on_profile(driver, wait, msg, name, "足跡返し", opponent_name)
+      sent = _send_message_on_profile(driver, wait, msg, name, "足跡返し", opponent_name, image_path)
       if sent:
         rf_cnt += 1
         print(f"イククル:{name} 足跡返しメッセージ送信 {rf_cnt}件")
@@ -501,11 +542,12 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1):
       print(f"イククル:{name} 足跡返しエラー: {e}")
   return rf_cnt
 
-def return_type(driver, wait, fst_message, name, send_cnt=1):
+def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
   """タイプリスト(35歳以下)にタイプを返し、両思いリストにfst_messageを送る"""
   TYPE_LIST_URL   = "https://pc.194964.com/sns/snstype/show_typed_list.html"
   MUTUAL_LIST_URL = "https://pc.194964.com/sns/snstype/show_mutual_list.html"
   type_cnt = 0
+  image_path = _prepare_chara_image(name, chara_image)
 
   # --- Step1: タイプリスト → 35歳以下にタイプを返す ---
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
@@ -529,7 +571,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1):
         time.sleep(2)
         print(f"イククル:{name} タイプ返し（{opponent_name} {age}歳）")
       # タイプ済み・未問わずfst送信
-      sent = _send_message_on_profile(driver, wait, msg, name, "fst", opponent_name)
+      sent = _send_message_on_profile(driver, wait, msg, name, "fst", opponent_name, image_path)
       if sent:
         type_cnt += 1
         print(f"イククル:{name} fst送信 {type_cnt}件（{opponent_name}）")
