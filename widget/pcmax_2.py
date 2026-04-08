@@ -1543,6 +1543,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       two_message_users.append(ditail_page_user_name)
     iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
     iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+    matching = driver.find_elements(By.CLASS_NAME, 'type5')
     iikamo_text = ""
     if len(iikamo_arigatou):
       iikamo_arigatou[0].click()
@@ -1555,6 +1556,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(0.7)
       iikamo_text = f"いいかも"
+    elif len(matching):
+      matching[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      iikamo_text = f"マッチング"
     try:
       catch_warning_pop(name, driver)
       memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
