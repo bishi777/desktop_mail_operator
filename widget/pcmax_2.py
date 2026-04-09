@@ -376,11 +376,11 @@ def profile_search(driver, search_edit):
   annual_income_select_box.send_keys(value)
   time.sleep(0.5)
 
-  # 検索順をプロフ更新順に設定
+  # 検索順を登録順に設定
   try:
     sort_select = driver.find_element(By.ID, "so1")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", sort_select)
-    Select(sort_select).select_by_value("1")
+    Select(sort_select).select_by_value("2")
     time.sleep(0.5)
   except NoSuchElementException:
     print("検索順の設定ができません")
