@@ -72,6 +72,7 @@ def main_syori():
   roll_cnt = 1
   start_time = datetime.now()
   active_chara_list = []
+  last_post_time = {}  # キャラごとの最終掲示板投稿時刻
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
@@ -202,6 +203,8 @@ def main_syori():
           two_messages_flug = i["two_message_flug"]
           fst_flug = i["fst_flug"]
           chara_prompt = i["system_prompt"]
+          post_title = i.get("post_title", "")
+          post_content = i.get("post_content", "")
           if two_messages_flug:
             print(f"******{name}は2通メール送信対象キャラです******")
           # if roll_cnt % 2 == 0:
@@ -306,6 +309,22 @@ def main_syori():
                   pcmax_2.make_footprint_imahima(name, driver, footprint_count, iikamo_cnt)
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
+                traceback.print_exc()
+          # 掲示板投稿（6〜22時、3時間に1回）
+          if 6 <= now.hour < 22 and post_title and post_content:
+            should_post = False
+            if name not in last_post_time:
+              should_post = True
+            elif (now - last_post_time[name]).total_seconds() >= 3 * 3600:
+              should_post = True
+            if should_post:
+              try:
+                print(f"📝掲示板投稿開始")
+                pcmax_2.re_post(driver, wait, post_title, post_content)
+                last_post_time[name] = now
+                print(f"掲示板投稿完了📝")
+              except Exception as e:
+                print(f"{name}❌ 掲示板投稿エラー: {e}")
                 traceback.print_exc()
           if now.hour in (10, 14, 18, 22):
             if send_flug:

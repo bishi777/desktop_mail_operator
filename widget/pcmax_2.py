@@ -1500,7 +1500,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       print(f"特殊設定　{name}  年齢確認 {user_age}")
     elif match:
       age = int(match.group(1))
-      if 18 <= age <= 34:
+      if 18 <= age <= 69:
         print(f"年齢確認OK{age}")
       else:
         user_row_cnt += 1
@@ -1793,15 +1793,65 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           break         
   return rf_cnt
 
+def _post_copy_with_area(driver, wait, pref_name, city_name):
+  """「過去の書込のコピー・削除」ページから「地域を変えてコピー」で指定地域に投稿する"""
+  line_bottoms = driver.find_elements(By.CLASS_NAME, "line_bottom")
+  for line_bottom in line_bottoms:
+    if "地域を変えてコピー" in line_bottom.text:
+      line_bottom.click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      # 都道府県を変更
+      pref_select = driver.find_element(By.ID, "prech")
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", pref_select)
+      time.sleep(0.5)
+      Select(pref_select).select_by_visible_text(pref_name)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      # 市区町村を選択
+      detail_area = driver.find_element(By.ID, "citych")
+      Select(detail_area).select_by_visible_text(city_name)
+      time.sleep(0.5)
+      max_reception_count = driver.find_element(By.NAME, "max_reception_count")
+      Select(max_reception_count).select_by_visible_text("5通")
+      time.sleep(1)
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
+      time.sleep(10)
+      driver.find_element(By.ID, "wri").click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      print(f"掲示板投稿完了（{pref_name} {city_name}）")
+      return True
+  print("「地域を変えてコピー」リンクが見つかりません")
+  return False
+
+def _go_to_post_list(driver, wait):
+  """過去の書込のコピー・削除ページへ遷移する"""
+  if not get_header_menu(driver, "掲示板投稿"):
+    driver.get("https://pcmax.jp/mobile/bbs_write.php")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+  text_right = driver.find_elements(By.CLASS_NAME, "text_right")
+  if text_right:
+    copy_links = text_right[0].find_elements(By.TAG_NAME, "a")
+    if copy_links:
+      copy_links[0].click()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      return True
+  print("過去の書込リンクが見つかりません")
+  return False
+
 def re_post(driver,wait, post_title, post_content):
-  post_area_tokyo = ["千代田区",  "文京区", 
-                   "品川区", "目黒区", "大田区", "世田谷区", "渋谷区", 
+  post_area_tokyo = ["千代田区",  "文京区",
+                   "品川区", "目黒区", "大田区", "世田谷区", "渋谷区",
                    "杉並区", "豊島区",  "荒川区", "板橋区", "練馬区",
                     "武蔵野市",  "西東京市", "三鷹市", "調布市", "小金井市", "小平市",
-                    "立川市", "八王子市",  "府中市", 
+                    "立川市", "八王子市",  "府中市",
                    ]
-  get_header_menu(driver, "掲示板投稿")
-  driver.find_element(By.CLASS_NAME, "text_right").find_elements(By.TAG_NAME, "a")[0].click()
+  nearby_prefs = ["神奈川県", "埼玉県", "千葉県", "群馬県", "栃木県"]
+  if not _go_to_post_list(driver, wait):
+    return
   examination_wait = driver.find_elements(By.CLASS_NAME, "wait")
   if len(examination_wait):
     print("掲示板投稿の審査中です")
@@ -1833,7 +1883,7 @@ def re_post(driver,wait, post_title, post_content):
     driver.find_element(By.ID, "bty_6").click()
     driver.find_element(By.ID, "bty_7").click()
     driver.find_element(By.ID, "bty_8").click()
-    
+
     bbs_title = driver.find_element(By.NAME, "bbs_title")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
     time.sleep(0.5)
@@ -1844,6 +1894,13 @@ def re_post(driver,wait, post_title, post_content):
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
     time.sleep(1)
     driver.find_element(By.ID, "wri").click()
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    print("東京投稿完了 → 近隣県に2件目を投稿します")
+    # 過去の書込ページに戻って近隣県で2件目
+    if _go_to_post_list(driver, wait):
+      chosen_pref = random.choice(nearby_prefs)
+      _post_copy_with_area(driver, wait, chosen_pref, "全域")
     return
   elif len(list_photo) == 1:
     # 30分経過しているか
@@ -1856,7 +1913,7 @@ def re_post(driver,wait, post_title, post_content):
     elapsed_time = now - arrival_datetime
     print(f"前回の投稿からの経過時間{elapsed_time}")
     if elapsed_time >= timedelta(minutes=1):
-      print("地域を変更して再投稿します")
+      print("地域を変更して再投稿します（東京）")
       line_bottoms = driver.find_elements(By.CLASS_NAME, "line_bottom")
       for line_bottom in line_bottoms:
         if "地域を変えてコピー" in line_bottom.text:
@@ -1874,7 +1931,14 @@ def re_post(driver,wait, post_title, post_content):
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
           time.sleep(10)
           driver.find_element(By.ID, "wri").click()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          print("東京投稿完了 → 近隣県に2件目を投稿します")
           break
+      # 過去の書込ページに戻って近隣県で2件目
+      if _go_to_post_list(driver, wait):
+        chosen_pref = random.choice(nearby_prefs)
+        _post_copy_with_area(driver, wait, chosen_pref, "全域")
     else:
       print("30分経過していません")
       return
