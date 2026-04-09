@@ -1753,7 +1753,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   query_submit = driver.find_elements(By.ID, 'button')
   if not query_submit:
     print(f"  [{name}] 検索ボタンが見つかりません")
-    return None
+    return None, submitted_users
   query_submit[0].click()
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
@@ -1762,7 +1762,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   users = driver.find_elements(By.CLASS_NAME, 'search_list_col')
   if not users:
     print(f"  [{name}] 検索結果が0件です")
-    return None
+    return None, submitted_users
 
   results = []
   checked = 0
@@ -1855,7 +1855,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
 
   if not results:
     print(f"  [{name}] 送信対象が見つかりませんでした")
-    return None
+    return None, submitted_users
 
   # 最高スコアのユーザーへ遷移
   results.sort(key=lambda x: x['score'], reverse=True)
@@ -1872,7 +1872,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     textarea = driver.find_elements(By.ID, 'textarea')
     if not textarea:
       print(f"  [{name}] テキストエリアが見つかりません")
-      return None
+      return None, submitted_users
     message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', textarea[0])
     driver.execute_script('arguments[0].value = arguments[1];', textarea[0], message)
