@@ -27,16 +27,38 @@ api_url = "https://meruopetyan.com/api/update-submitted-users/"
 # api_url = "http://127.0.0.1:8000/api/update-submitted-users/"
 rf_flug = True
 
-def jmail_debug(headless):
+def _get_fst_time_slot(hour):
+  """現在の時刻がfst送信対象の時間帯ならスロット名を返す"""
+  if 6 <= hour < 8:
+    return "morning"
+  elif 18 <= hour < 20:
+    return "evening"
+  elif 20 <= hour < 22:
+    return "night"
+  return None
+
+def _is_send_day(send_on="even"):
+  """今日がfst送信日かどうか（1日おき）
+  send_on: "even"=偶数日に送信, "odd"=奇数日に送信
+  """
+  yday = datetime.now().timetuple().tm_yday
+  if send_on == "odd":
+    return yday % 2 == 1
+  return yday % 2 == 0
+
+def jmail_debug(headless, send_on="even"):
   repost_flug = True
   user_data = func.get_user_data()
   jmail_datas = user_data["jmail"]
   chara_name_list = [data["name"] for data in jmail_datas]
-  
+
   drivers = jmail.start_jmail_drivers(jmail_datas, headless, base_path)
   loop_cnt = 0
+  # キャラごと・時間帯ごとのfst送信済みフラグ {name: {"morning": "2026-04-09", ...}}
+  fst_sent_today = {}
   while True:
     now = datetime.now()
+    today_str = now.strftime("%Y-%m-%d")
     if (7 <= now.hour <= 23):
       mail_info = random.choice([user_mail_info, spare_mail_info])
       start_loop_time = time.time()
@@ -59,9 +81,27 @@ def jmail_debug(headless):
           traceback.print_exc()
           continue
         print(f"ループ回数: {loop_cnt}")
-        # fst_message送信（起動時 + 12ループに1回、キャラごとにループをずらして実行）
-        # キャラindex=0: loop 0,12,24... / index=1: loop 1,13,25... / index=2: loop 2,14,26...
-        if loop_cnt % 12 == chara_idx:
+        # fst_message送信（1日おき、6-8時/18-20時/20-22時に各1回、キャラごとにずらす）
+        time_slot = _get_fst_time_slot(now.hour)
+        should_send_fst = False
+        # "even" or "odd"を指定  
+        send_on = "even"  
+        # send_on = "odd"  
+        if _is_send_day(send_on) and time_slot:
+          if name not in fst_sent_today:
+            fst_sent_today[name] = {}
+          # 日付が変わったらリセット
+          for slot in list(fst_sent_today[name].keys()):
+            if fst_sent_today[name][slot] != today_str:
+              del fst_sent_today[name][slot]
+          # この時間帯で未送信ならキャラごとにずらして実行
+          if time_slot not in fst_sent_today[name]:
+            # 時間帯内でキャラごとにずらす（ループごとに1キャラずつ）
+            already_sent_count = sum(1 for n, slots in fst_sent_today.items() if time_slot in slots and slots[time_slot] == today_str)
+            if already_sent_count == chara_idx:
+              should_send_fst = True
+
+        if should_send_fst:
           try:
             fst_message = data.get('fst_message', '')
             image_path = data.get('chara_image', '')
@@ -72,9 +112,12 @@ def jmail_debug(headless):
             )
             if sent_to:
               print(f"  [{name}] fst送信完了: {sent_to}")
+            fst_sent_today[name][time_slot] = today_str
           except Exception as e:
             print(f"  [{name}] fst送信エラー: {e}")
             traceback.print_exc()
+        elif time_slot and not _is_send_day(send_on):
+          pass  # 送信しない日
           
         # 送信履歴ユーザー更新
         # print(f"{drivers[name]['login_id']}:{drivers[name]['password']}:{submitted_users}")
