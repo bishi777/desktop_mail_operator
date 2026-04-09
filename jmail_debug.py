@@ -179,5 +179,11 @@ def jmail_debug(headless, send_on="even"):
       print(f"タイム: {minutes}分{seconds}秒")  
      
 if __name__ == '__main__':
+  import argparse
+  parser = argparse.ArgumentParser()
+  parser.add_argument("send_on", nargs="?", type=int, default=0, choices=[0, 1],
+                      help="0=偶数日に送信, 1=奇数日に送信")
+  args = parser.parse_args()
+  send_on = "odd" if args.send_on == 1 else "even"
   headless = False
-  jmail_debug(headless)
+  jmail_debug(headless, send_on=send_on)
