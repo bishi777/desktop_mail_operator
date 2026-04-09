@@ -64,6 +64,7 @@ def main_syori():
   roll_cnt = 1
   start_time = datetime.now()
   active_chara_list = []
+  handle_chara_map = {}  # タブhandle → キャラデータのマッピング
 
   while True:
     start_loop_time = time.time()
@@ -105,16 +106,16 @@ def main_syori():
             relogin_links[0].click()
             wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
             time.sleep(1.5)
-            # パスワード入力画面でメールアドレスを確認してパスワードを特定
-            import re as _re
-            body_text = driver.find_element(By.TAG_NAME, 'body').text
-            matched_data = None
-            for ik in ikukuru_datas:
-              if ik.get('login_mail_address', '') in body_text:
-                matched_data = ik
-                break
+            # タブマッピングからキャラを特定、なければメールアドレスで照合
+            matched_data = handle_chara_map.get(handle)
             if matched_data is None:
-              print("  メールアドレスから対象キャラを特定できません")
+              body_text = driver.find_element(By.TAG_NAME, 'body').text
+              for ik in ikukuru_datas:
+                if ik.get('login_mail_address', '') in body_text:
+                  matched_data = ik
+                  break
+            if matched_data is None:
+              print("  対象キャラを特定できません")
               continue
             print(f"  対象キャラ: {matched_data['name']}")
             pw_input = driver.find_element(By.ID, 'txtPassword')
@@ -129,6 +130,11 @@ def main_syori():
             print(f"  再ログインエラー: {re_e}")
           continue
         name_on_ikukuru = name_elements[0].text.strip()
+        # タブhandle → キャラデータのマッピングを保存
+        for ik in ikukuru_datas:
+          if ik['name'] == name_on_ikukuru:
+            handle_chara_map[handle] = ik
+            break
         now = datetime.now()
         print(f"~~~~~~~~~~~{idx+1}キャラ目:{name_on_ikukuru}~~~~~{now.strftime('%m-%d %H:%M:%S')}~~~~~~~~~~")
       except Exception as e:
