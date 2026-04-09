@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
-from widget import func, pcmax_2, pcmax
+from widget import func, pcmax_2
 import settings
 import random
 import os
@@ -303,7 +303,8 @@ def main_syori():
               try:
                 if random.random() < 0.9:
                   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-                  pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+                  # pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+                  pcmax_2.make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=iikamo_cnt)
                 else:
                   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint_imahima) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
                   pcmax_2.make_footprint_imahima(name, driver, footprint_count, iikamo_cnt)

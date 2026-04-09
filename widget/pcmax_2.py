@@ -2266,6 +2266,142 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
 
 
+def make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=0):
+  """新人プロフィール検索から足跡をつける。東京→他地域を2回繰り返す"""
+  wait = WebDriverWait(driver, 10)
+  _area_pool = ["栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
+  areas = ["東京都"] + random.sample(_area_pool, 2)
+  catch_warning_pop(name, driver)
+
+  for area in areas:
+    # TOPページに移動して新人プロフィール検索をクリック
+    if "pcmax" in driver.current_url:
+      driver.get("https://pcmax.jp/pcm/index.php")
+    elif "linkleweb" in driver.current_url:
+      driver.get("https://linkleweb.jp/pcm/member.php")
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    # 新人プロフィール検索リンクをクリック
+    links = driver.find_elements(By.TAG_NAME, "a")
+    clicked = False
+    for link in links:
+      if "新人プロフィール検索" in link.text:
+        link.click()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        clicked = True
+        break
+    if not clicked:
+      print(f"{name} 新人プロフィール検索リンクが見つかりません")
+      return
+
+    # 地域を変更（selectの最初の要素で地域URLを選択）
+    if area != "東京都":
+      try:
+        area_select = driver.find_elements(By.TAG_NAME, "select")[0]
+        options = area_select.find_elements(By.TAG_NAME, "option")
+        for opt in options:
+          if opt.text.strip() == area:
+            area_url = opt.get_attribute("value")
+            from urllib.parse import urljoin
+            driver.get(urljoin(driver.current_url, area_url))
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            break
+      except Exception as e:
+        print(f"{name} 地域変更エラー({area}): {e}")
+        continue
+
+    print(f"{name} 新人足跡付け開始: {area}")
+    user_list_url = driver.current_url
+    user_list = driver.find_elements(By.CLASS_NAME, "profile_card")
+    ft_cnt = 0
+    current_step = 0
+    area_iikamo_count = iikamo_count  # 地域ごとにリセット
+    random_wait = random.uniform(0.1, 3.4)
+
+    while ft_cnt < footprint_count:
+      if current_step >= len(user_list):
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(3)
+        user_list = driver.find_elements(By.CLASS_NAME, "profile_card")
+        if current_step >= len(user_list):
+          print(f"{name} {area} これ以上ユーザーがいません({ft_cnt}件)")
+          break
+
+      card = user_list[current_step]
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", card)
+      time.sleep(0.4)
+
+      # やり取りありスキップ
+      exchange = card.find_elements(By.CLASS_NAME, "exchange")
+      if exchange:
+        current_step += 1
+        continue
+
+      # 年齢チェック
+      try:
+        user_name = card.find_elements(By.CLASS_NAME, "name")[0].text
+        user_age = card.find_elements(By.CLASS_NAME, "age")[0].text
+        age_m = re.search(r'(\d+)', user_age)
+        if age_m and int(age_m.group(1)) > 34:
+          current_step += 1
+          continue
+      except Exception:
+        current_step += 1
+        continue
+
+      # プロフィールを見る
+      try:
+        card.find_element(By.CLASS_NAME, "profile_link_btn").click()
+        catch_warning_pop(name, driver)
+      except Exception:
+        current_step += 1
+        continue
+
+      # いいかも処理
+      iikamo_text = ""
+      if area_iikamo_count > 0:
+        arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
+        iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+        if len(arleady_iikamo):
+          iikamo_text = "いいかも済み"
+        elif len(iikamo):
+          iikamo[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          area_iikamo_count -= 1
+          iikamo_text = "いいかも"
+        elif len(iikamo_arigatou):
+          iikamo_arigatou[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          area_iikamo_count -= 1
+          iikamo_text = "いいかもありがとう"
+
+      footprint_now = datetime.now().strftime('%m/%d %H:%M:%S')
+      ft_cnt += 1
+      current_step += 1
+      user_area = ""
+      try:
+        user_area = card.find_elements(By.CLASS_NAME, "conf")[0].text.replace("登録地域", "")
+      except Exception:
+        pass
+      print(f"  {ft_cnt}件 {iikamo_text} {user_name}{user_age} {user_area} {footprint_now}")
+      time.sleep(random_wait)
+
+      # 検索結果ページに戻る
+      if user_list_url not in driver.current_url:
+        driver.get(user_list_url)
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        user_list = driver.find_elements(By.CLASS_NAME, "profile_card")
+
+    print(f"{name} 新人足跡付け完了: {area} {ft_cnt}件")
+
+
 def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
   """いまヒマリストページで34歳以下のユーザーに足跡をつける"""
   import urllib.parse
