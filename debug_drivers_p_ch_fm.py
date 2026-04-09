@@ -255,7 +255,7 @@ def main_syori():
             footprint_count = 14
             returnfoot_cnt = 2
           else:
-            iikamo_cnt = 1
+            iikamo_cnt = 2
             footprint_count = random.randint(11,15)
             returnfoot_cnt = 1
           if fst_flug:
