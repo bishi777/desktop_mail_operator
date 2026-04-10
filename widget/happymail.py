@@ -3750,7 +3750,7 @@ def analyze_profile_list(driver, wait, top_n=10):
   results = []
   for idx in range(1, top_n + 1):
     try:
-      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=profp&idx={idx}'
       driver.get(url)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -3833,7 +3833,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
 
   for idx in range(1, user_check_cnt + 1):
     try:
-      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=profp&idx={idx}'
       driver.get(url)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
@@ -3909,22 +3909,55 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
     if not text_area:
       print(f"  [{name}] テキストエリアが見つかりません")
       return None
-    message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
-    text_area[0].send_keys(message)
-    time.sleep(0.5)
+    message = generate_fst_message_with_ai(name, fst_message, best['profile'])
+    driver.execute_script('arguments[0].value = arguments[1];', text_area[0], message)
+    driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area[0])
+    driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", text_area[0])
+    human_sleep(1.0, 3.0)
 
-    # テキスト送信
-    send_btn = driver.find_elements(By.ID, 'submit_button')
-    if not send_btn:
+    # テキスト送信（青い三角アイコン）
+    send_icon = driver.find_elements(By.CSS_SELECTOR, '.icon-message_send')
+    if not send_icon:
+      send_icon = driver.find_elements(By.ID, 'submit_button')
+    if not send_icon:
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None
-    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', send_btn[0])
-    driver.execute_script('arguments[0].click();', send_btn[0])
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(2)
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', send_icon[0])
+    driver.execute_script('arguments[0].click();', send_icon[0])
+    time.sleep(3)
+
+    # 年齢確認ポップアップ対応
+    age_confirm = driver.find_elements(By.CSS_SELECTOR, 'button.modal-confirm.modal-button-blue')
+    if age_confirm and age_confirm[0].is_displayed():
+      print(f"  [{name}] 年齢確認ポップアップ → はい をクリック")
+      age_confirm[0].click()
+      time.sleep(3)
     send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
     reload_cnt = 0
-    most_recent_msg = send_msg_elem[-1]  
+    if not send_msg_elem:
+      print(f"  [{name}] → {best['name']} にテキスト送信完了（送信確認要素なし）")
+      # 画像送信へスキップ
+      local_img_path = None
+      if image_path:
+        try:
+          local_img_path = f"{name}_fst_img.png"
+          func.download_image(image_path, local_img_path)
+          file_input = driver.find_elements(By.CSS_SELECTOR, 'input[type="file"]')
+          if file_input:
+            file_input[0].send_keys(os.path.abspath(local_img_path))
+            time.sleep(2)
+            confirm_btn = driver.find_elements(By.CSS_SELECTOR, '.preview__btn--send, #submit_button')
+            if confirm_btn:
+              driver.execute_script('arguments[0].click();', confirm_btn[0])
+              time.sleep(2)
+              print(f"  [{name}] → 画像送信完了")
+        except Exception as img_e:
+          print(f"  [{name}] 画像送信エラー: {img_e}")
+        finally:
+          if local_img_path and os.path.exists(local_img_path):
+            os.remove(local_img_path)
+      return best['name']
+    most_recent_msg = send_msg_elem[-1]
     script = """
       var element = arguments[0];
 
@@ -4023,8 +4056,97 @@ def return_foot_message_roll(name, driver, wait, login_id, password, return_foot
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
-  
-     
+
+# ===== Bot対策ヘルパー関数群 =====
+
+def human_sleep(min_sec=1.0, max_sec=3.0):
+  """人間的なランダム待機（正規分布寄り）"""
+  mean = (min_sec + max_sec) / 2
+  std = (max_sec - min_sec) / 4
+  t = max(min_sec, min(max_sec, random.gauss(mean, std)))
+  time.sleep(t)
 
 
+def human_scroll(driver, times=None):
+  """人間的なスクロール動作を模倣"""
+  if times is None:
+    times = random.randint(1, 3)
+  for _ in range(times):
+    scroll_amount = random.randint(100, 400)
+    driver.execute_script(f'window.scrollBy(0, {scroll_amount});')
+    time.sleep(random.uniform(0.3, 1.0))
 
+
+def human_dwell(driver, interest_level="normal"):
+  """ページ滞在を模倣（interest_levelで閲覧時間を変える）"""
+  if interest_level == "high":
+    human_scroll(driver, random.randint(2, 4))
+    human_sleep(5.0, 15.0)
+  elif interest_level == "low":
+    human_sleep(1.0, 3.0)
+  else:
+    human_scroll(driver, random.randint(1, 2))
+    human_sleep(2.0, 6.0)
+
+
+def stealth_setup(driver):
+  """WebDriver検知フラグを除去する"""
+  driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+    'source': '''
+      Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+      window.navigator.chrome = {runtime: {}};
+      Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+      Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP', 'ja', 'en-US', 'en']});
+    '''
+  })
+
+
+def generate_fst_message_with_ai(chara_name, base_message, profile):
+  """Geminiで相手プロフに合わせたfstメッセージを生成"""
+  import settings
+  from google import genai
+
+  user_name = profile.get('名前', '')
+  intro = profile.get('自己紹介', '')[:200]
+  job = profile.get('職業', '')
+  interests = profile.get('興味', [])
+  interests_str = '、'.join(interests[:5]) if interests else ''
+  age = profile.get('年齢', '')
+
+  prompt = f"""あなたは「{chara_name}」というマッチングアプリの女性ユーザーです。
+以下の男性に最初のメッセージを送ります。
+
+【相手のプロフィール】
+名前: {user_name}
+年齢: {age}
+職業: {job}
+興味: {interests_str}
+自己紹介: {intro}
+
+【あなたの元のメッセージ例】
+{base_message}
+
+【ルール】
+- 元のメッセージのテンションや文体・絵文字の使い方を維持
+- 相手のプロフから1つだけ具体的に触れる（趣味や職業など）
+- 50〜100文字程度
+- 「はじめまして」系の挨拶から始める
+- 具体的な内容がない場合は「自己紹介を見て興味を持った」などの無難な理由で触れる
+- プロフに触れるポイントがなければ元のメッセージをそのまま使う
+
+メッセージだけを出力してください。"""
+
+  try:
+    client = genai.Client(api_key=settings.Gemini_API_KEY)
+    response = client.models.generate_content(
+      model="gemini-2.0-flash-lite-001",
+      contents=prompt,
+    )
+    result = response.text.strip()
+    if result:
+      print(f"  [{chara_name}] AI生成メッセージ: {result[:50]}...")
+      return result
+  except Exception as e:
+    print(f"  [{chara_name}] メッセージ生成失敗、デフォルト使用: {e}")
+
+  return base_message.format(name=user_name) if '{name}' in base_message else base_message

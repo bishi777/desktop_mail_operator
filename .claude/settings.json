@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(myenv/bin/python -c \"from widget import func; data = func.get_user_data\\(\\); happy = data['happymail']; [print\\(f'{h[\\\\\"name\\\\\"]}: {h[\\\\\"login_id\\\\\"]}'\\) for h in happy]\")",
+      "Bash(./start_debug_chrome_mac.sh 9224)",
+      "Read(//tmp/**)",
+      "Read(//private/tmp/**)",
+      "Read(//Users/yamamotokenta/Desktop/myprojects/desktop_mail_operator/**)",
+      "Bash(xargs kill:*)",
+      "Bash(myenv/bin/python)"
+    ]
+  }
+}
