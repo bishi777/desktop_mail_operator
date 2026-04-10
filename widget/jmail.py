@@ -1617,11 +1617,12 @@ def _analyze_jmail_image(image_url, cookies_dict=None):
           {
             'type': 'text',
             'text': (
-              'この男性の写真を見て、以下の観点で-10〜10点のスコアをつけてください。\n'
-              '・地味・オタク系の見た目: 高スコア\n'
-              '・真面目そう・おとなしそう: 高スコア\n'
-              '・女性慣れしていなそう・モテなそう・気が弱そう: 高スコア\n'
-              '・イケメン・チャラい・自信ありそう: 低スコア（マイナスも可）\n\n'
+              'この写真の雰囲気・印象を分析し、-10〜10点のスコアをつけてください。\n'
+              '写真全体から受ける印象を以下の基準で評価します:\n'
+              '・落ち着いた雰囲気・誠実な印象・穏やかな空気感: 高スコア\n'
+              '・趣味に没頭していそうな雰囲気・インドア派な印象: 高スコア\n'
+              '・派手・社交的・アクティブな雰囲気: 低スコア（マイナスも可）\n'
+              '・加工が強い・SNS慣れしている印象: 低スコア\n\n'
               '必ず以下の形式のみで答えてください（説明不要）:\n'
               'SCORE:数字 REASON:一言理由'
             ),
@@ -1707,8 +1708,24 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
 
   cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
 
-  # ===== プロフ検索ページへ直接遷移 =====
-  driver.get('https://mintj.com/msm/PfSearch/Search/?sid=')
+  # ===== プロフ検索ページへ遷移（メニューアイコンからリンク取得） =====
+  menu_icon = driver.find_elements(By.CLASS_NAME, 'menu-off')
+  if menu_icon:
+    menu_icon[0].click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+  prof_link = None
+  menu = driver.find_elements(By.CLASS_NAME, 'iconMenu')
+  if menu:
+    foot_menus = menu[0].find_elements(By.TAG_NAME, 'p')
+    for p in foot_menus:
+      if p.text == 'プロフ検索':
+        prof_link = p.find_element(By.XPATH, './..').get_attribute('href')
+        break
+  if not prof_link:
+    print(f"  [{name}] プロフ検索リンクが見つかりません")
+    return None, submitted_users
+  driver.get(prof_link)
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
