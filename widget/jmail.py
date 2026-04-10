@@ -186,10 +186,23 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
   interacting_users = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
   # 未読メールをチェック
   sended_mail = False
+  check_mail_start = time.time()
+  processed_users = set()
   while len(interacting_users):
-  # for interacting_user_cnt in range(len(interacting_users)):
-    # interacting_userリストを取得
-    interacting_user_name = interacting_users[0].text
+    if time.time() - check_mail_start > 180:
+      print(f"  [{name}] check_mail whileループ タイムアウト(180秒)")
+      break
+    # 未処理のユーザーを探す
+    target_user = None
+    for u in interacting_users:
+      u_text = u.text.strip()
+      if u_text not in processed_users:
+        target_user = u
+        break
+    if target_user is None:
+      print(f"  [{name}] 未処理の未読ユーザーなし")
+      break
+    interacting_user_name = target_user.text
     if "未読" in interacting_user_name:
       interacting_user_name = interacting_user_name.replace("未読", "")
     if "退会" in interacting_user_name:
@@ -198,30 +211,27 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       interacting_user_name = interacting_user_name.replace(" ", "")
     if "　" in interacting_user_name:
       interacting_user_name = interacting_user_name.replace("　", "")
+    # 処理済みとしてマーク
+    processed_users.add(target_user.text.strip())
     # 未読、退会以外でNEWのアイコンも存在してそう
     # NEWアイコンがあるかチェック
-    new_icon = interacting_users[0].find_elements(By.TAG_NAME, value="img")
-    if "テラ" in interacting_users[0].text or len(new_icon):
+    new_icon = target_user.find_elements(By.TAG_NAME, value="img")
+    if "テラ" in target_user.text or len(new_icon):
       submitted_users.append(interacting_user_name)
-    if "未読" in interacting_users[0].text or len(new_icon):
+    if "未読" in target_user.text or len(new_icon):
     # deug
     # if True:
-      # 時間を取得　
-      parent_usr_info = interacting_users[0].find_element(By.XPATH, "./..")
+      # 時間を取得
+      parent_usr_info = target_user.find_element(By.XPATH, "./..")
       parent_usr_info = parent_usr_info.find_element(By.XPATH, "./..")
       next_element = parent_usr_info.find_element(By.XPATH, value="following-sibling::*[1]")
       current_year = datetime.now().year
       date_string = f"{current_year} {next_element.text}"
-      date_format = "%Y %m/%d %H:%M" 
+      date_format = "%Y %m/%d %H:%M"
       date_object = datetime.strptime(date_string, date_format)
       now = datetime.today()
       elapsed_time = now - date_object
-      # print(interacting_users[interacting_user_cnt].text)
-      # print(f"メール到着からの経過時間{elapsed_time}")
-      # print(interacting_user_name)
 
-      
-      # if True:
       if elapsed_time >= timedelta(minutes=4):
         print("4分以上経過しています。")
         # 年齢を取得
@@ -246,7 +256,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         send_message = ""
         ojisan_flag = False
         # リンクを取得
-        link_element = interacting_users[0].find_element(By.XPATH, "./..")
+        link_element = target_user.find_element(By.XPATH, "./..")
         driver.get(link_element.get_attribute("href"))
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
@@ -375,34 +385,30 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           # ローディングが終わるのを一定時間待って、待機後リロードしてメッセージが遅れたか確認
-        if ojisan_flag:
-          user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
-          for user_link in user_links:
-            if name != user_link.text:
-              user_link.find_element(By.TAG_NAME, value="a").click()
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(2)
-              catch_warning(driver, wait)
-              # スクショして送信
-              driver.save_screenshot("screenshot.png")
-              # 圧縮（JPEG化＋リサイズ＋品質調整）
-              compressed_path = func.compress_image("screenshot.png")  # 例: screenshot2_compressed.jpg ができる
-              title = f"{name}jmail おじさんメッセージ"
-              text = send_by_user_message   
-              # メール送信
-              if mail_info:
-                func.send_mail(text, mail_info, title,  compressed_path)
-              for p in ["screenshot.png", compressed_path]:
-                try:
-                  if os.path.exists(p):
-                    os.remove(p)
-                except Exception as e:
-                  print(f"⚠️ 後処理で削除失敗: {p} -> {e}")
-              break
-              
-          driver.back()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
+        # if ojisan_flag:
+        #   user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
+        #   for user_link in user_links:
+        #     if name != user_link.text:
+        #       user_link.find_element(By.TAG_NAME, value="a").click()
+        #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        #       time.sleep(2)
+        #       catch_warning(driver, wait)
+        #       driver.save_screenshot("screenshot.png")
+        #       compressed_path = func.compress_image("screenshot.png")
+        #       title = f"{name}jmail おじさんメッセージ"
+        #       text = send_by_user_message
+        #       if mail_info:
+        #         func.send_mail(text, mail_info, title, compressed_path)
+        #       for p in ["screenshot.png", compressed_path]:
+        #         try:
+        #           if os.path.exists(p):
+        #             os.remove(p)
+        #         except Exception as e:
+        #           print(f"⚠️ 後処理で削除失敗: {p} -> {e}")
+        #       break
+        #   driver.back()
+        #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        #   time.sleep(1)
         # メール一覧に戻る
         try:
           catch_warning(driver, wait)
@@ -603,31 +609,26 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(2)
               # ローディングが終わるのを一定時間待って、待機後リロードしてメッセージが遅れたか確認
-            else:
-              user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
-              for user_link in user_links:
-                if name != user_link.text:
-                  user_link.find_element(By.TAG_NAME, value="a").click()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(2)
-                  catch_warning(driver, wait)
-                  # # スクショして送信
-                  # driver.save_screenshot("screenshot.png")
-                  # # 圧縮（JPEG化＋リサイズ＋品質調整）
-                  # compressed_path = func.compress_image("screenshot.png")  # 例: screenshot2_compressed.jpg ができる
-                  compressed_path = None
-                  title = f"{name}jmail おじさんAIチャットメッセージ"
-                  text = send_by_user_message   
-                  # メール送信
-                  if mail_info:
-                    func.send_mail(text, mail_info, title,  compressed_path)
-                  for p in ["screenshot.png", compressed_path]:
-                    try:
-                      if os.path.exists(p):
-                        os.remove(p)
-                    except Exception as e:
-                      print(f"⚠️ 後処理で削除失敗: {p} -> {e}")
-                  break
+            # else:
+            #   user_links = driver.find_elements(By.CLASS_NAME, value="icon_sex_m")
+            #   for user_link in user_links:
+            #     if name != user_link.text:
+            #       user_link.find_element(By.TAG_NAME, value="a").click()
+            #       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            #       time.sleep(2)
+            #       catch_warning(driver, wait)
+            #       compressed_path = None
+            #       title = f"{name}jmail おじさんAIチャットメッセージ"
+            #       text = send_by_user_message
+            #       if mail_info:
+            #         func.send_mail(text, mail_info, title, compressed_path)
+            #       for p in ["screenshot.png", compressed_path]:
+            #         try:
+            #           if os.path.exists(p):
+            #             os.remove(p)
+            #         except Exception as e:
+            #           print(f"⚠️ 後処理で削除失敗: {p} -> {e}")
+            #       break
             # メール一覧に戻る　message_back
             back_parent = driver.find_elements(By.CLASS_NAME, value="message_back")
             back = back_parent[0].find_elements(By.TAG_NAME, value="a")

@@ -70,14 +70,17 @@ def jmail_debug(headless, send_on="even"):
         driver = drivers[name]["driver"]
         wait = drivers[name]["wait"]
         try:
+          check_start = time.time()
           young_submitted_users, submitted_users  = jmail.check_mail(name,data, driver, wait, mail_info)
+          print(f"  [{name}] check_mail完了 ({time.time()-check_start:.0f}秒)")
         except TimeoutException as e:
-          print("新着メールチェックTimeoutException")
+          print(f"  [{name}] 新着メールチェックTimeoutException ({time.time()-check_start:.0f}秒)")
+          traceback.print_exc()
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
         except Exception as e:
-          print(f"❌ {name} エラー発生:", e)
+          print(f"❌ {name} check_mailエラー ({time.time()-check_start:.0f}秒):", e)
           traceback.print_exc()
           continue
         print(f"ループ回数: {loop_cnt}")
@@ -176,7 +179,7 @@ def jmail_debug(headless, send_on="even"):
       print("<<<<<<<<<<<<<ループ折り返し>>>>>>>>>>>>>>>>>>>>>")
       elapsed_time = time.time() - start_loop_time
       minutes, seconds = divmod(int(elapsed_time), 60)
-      print(f"タイム: {minutes}分{seconds}秒")  
+      print(f"タイム: {minutes}分{seconds}秒")
      
 if __name__ == '__main__':
   import argparse
