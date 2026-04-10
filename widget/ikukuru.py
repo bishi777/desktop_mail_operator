@@ -673,7 +673,19 @@ def profile_edit(chara_data, driver, wait):
       return
     try:
       el = driver.find_element(By.NAME, sel_name)
-      Select(el).select_by_visible_text(value)
+      sel = Select(el)
+      try:
+        sel.select_by_visible_text(value)
+      except Exception:
+        # 完全一致しない場合、部分一致で探す
+        matched = False
+        for opt in sel.options:
+          if value in opt.text or opt.text in value:
+            sel.select_by_visible_text(opt.text)
+            matched = True
+            break
+        if not matched:
+          raise
       print(f'  {sel_name} = {value} ✓')
     except Exception as e:
       print(f'  {sel_name} = {value} ✗ ({e})')
@@ -758,8 +770,7 @@ def profile_edit(chara_data, driver, wait):
     time.sleep(3)
     try:
       ta = driver.find_element(By.NAME, 'introduction')
-      ta.clear()
-      ta.send_keys(intro)
+      driver.execute_script('arguments[0].value = arguments[1];', ta, intro)
       btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
       btn.click()
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
