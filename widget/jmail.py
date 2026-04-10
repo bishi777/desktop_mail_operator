@@ -1906,7 +1906,12 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
       return None, submitted_users
     message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', textarea[0])
-    driver.execute_script('arguments[0].value = arguments[1];', textarea[0], message)
+    driver.execute_script(
+      'arguments[0].value = arguments[1];'
+      'arguments[0].dispatchEvent(new Event("input", {bubbles: true}));'
+      'arguments[0].dispatchEvent(new Event("change", {bubbles: true}));',
+      textarea[0], message
+    )
     time.sleep(1)
 
     # 画像があればダウンロードしてセット
@@ -1928,12 +1933,14 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
       except Exception as e:
         print(f"  [{name}] 画像セットエラー: {e}")
 
-    # 送信
-    send_btn = driver.find_elements(By.ID, 'message_send')
-    if not send_btn:
+    # 送信（labelをクリック）
+    send_label = driver.find_elements(By.CSS_SELECTOR, 'label[for="message_send"]')
+    if not send_label:
+      send_label = driver.find_elements(By.ID, 'message_send')
+    if not send_label:
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None, submitted_users
-    driver.execute_script('arguments[0].click();', send_btn[0])
+    driver.execute_script('arguments[0].click();', send_label[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     print(f"  [{name}] → {best['name']} に送信完了")
