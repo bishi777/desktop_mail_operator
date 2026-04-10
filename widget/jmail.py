@@ -1715,15 +1715,15 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   # 詳しく検索をクリック
   detail_query = driver.find_elements(By.ID, 'ac2h2')
   if detail_query:
-    detail_query[0].click()
+    driver.execute_script('arguments[0].click();', detail_query[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
 
   # 年齢チェック（18-21, 22-25, 26-29）
   for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4']:
     els = driver.find_elements(By.XPATH, f'//label[@for="{age_id}"]')
-    if els and 'rgba(0, 0, 0, 0)' in els[0].value_of_css_property('background-color'):
-      els[0].click()
+    if els and els[0].is_displayed() and 'rgba(0, 0, 0, 0)' in els[0].value_of_css_property('background-color'):
+      driver.execute_script('arguments[0].click();', els[0])
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
 
   # 地域チェック（東京or神奈川をランダム）
@@ -1731,7 +1731,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   if accordion03:
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', accordion03[0])
     time.sleep(0.5)
-    accordion03[0].click()
+    driver.execute_script('arguments[0].click();', accordion03[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
 
@@ -1740,8 +1740,8 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   if area_label:
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', area_label[0])
     time.sleep(0.5)
-    if 'rgba(0, 0, 0, 0)' in area_label[0].value_of_css_property('background-color'):
-      area_label[0].click()
+    if area_label[0].is_displayed() and 'rgba(0, 0, 0, 0)' in area_label[0].value_of_css_property('background-color'):
+      driver.execute_script('arguments[0].click();', area_label[0])
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(0.5)
 
@@ -1754,7 +1754,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   if not query_submit:
     print(f"  [{name}] 検索ボタンが見つかりません")
     return None, submitted_users
-  query_submit[0].click()
+  driver.execute_script('arguments[0].click();', query_submit[0])
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
@@ -1786,7 +1786,9 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
         continue
 
       # 名前取得
-      name_els = driver.find_elements(By.CLASS_NAME, 'prof_name')
+      name_els = driver.find_elements(By.CLASS_NAME, 'userPhotoCard_name')
+      if not name_els:
+        name_els = driver.find_elements(By.CLASS_NAME, 'prof_name')
       user_name = name_els[0].text.strip() if name_els else ''
       if not user_name:
         driver.back()
@@ -1835,6 +1837,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
         'score': score,
         'reasons': reasons,
         'url': driver.current_url,
+        'index': i,
       })
       print(f"    [{i+1}] {user_name}({age_text}) スコア:{score} ({', '.join(reasons[:3])})")
       checked += 1
@@ -1862,9 +1865,19 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   best = results[0]
   print(f"  [{name}] 最高スコア: {best['name']} ({best['score']}点) → メッセージ送信")
 
-  driver.get(best['url'])
-  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-  time.sleep(1.5)
+  # 検索結果ページから対象ユーザーを再クリック（URLのsidが空で遷移できないため）
+  users = driver.find_elements(By.CLASS_NAME, 'search_list_col')
+  if best['index'] < len(users):
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', users[best['index']])
+    time.sleep(0.5)
+    users[best['index']].find_element(By.TAG_NAME, 'a').click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+  else:
+    # フォールバック: URL直接遷移
+    driver.get(best['url'])
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
 
   local_img_path = None
   try:
