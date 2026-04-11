@@ -2411,6 +2411,7 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
     """basic_info_change → profile_reg?city=1 へ遷移"""
     driver.get("https://pcmax.jp/mobile/basic_info_change.php?area=1")
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    wait.until(EC.presence_of_element_located((By.NAME, "area_pref_no")))
     time.sleep(1)
     Select(driver.find_element(By.NAME, "area_pref_no")).select_by_visible_text(pref_name)
     time.sleep(0.5)
@@ -2431,6 +2432,10 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
 
   def _read_activity_areas():
     """現在の活動地域3つを読み取って返す"""
+    driver.get("https://pcmax.jp/mobile/basic_info_change.php?area=1")
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    wait.until(EC.presence_of_element_located((By.NAME, "area_pref_no")))
+    time.sleep(1)
     pref1 = Select(driver.find_element(By.NAME, "area_pref_no")).first_selected_option.text
     _go_to_city_page(pref1)
     areas = {}
@@ -2545,7 +2550,26 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
       targets.append((uid, href, age, link_text))
 
     if not targets:
-      print(f"{name} いまヒマ足跡付け終了（対象ユーザーなし） {ft_cnt}件")
+      # 次ページボタン（三角）をクリック
+      driver.execute_script('window.scrollTo(0, document.body.scrollHeight)')
+      time.sleep(1)
+      next_btn = driver.find_elements(By.CSS_SELECTOR, "a[href*='next'], a.next, a[rel='next'], a[title='次へ']")
+      if not next_btn:
+        # 三角ボタン（▶ or ›）を探す
+        pager_links = driver.find_elements(By.CSS_SELECTOR, ".pager a, .pagination a, a[href*='page='], a[href*='offset=']")
+        for pl in pager_links:
+          text = pl.text.strip()
+          if text in ['>', '›', '»', '▶', '次へ', '次', '＞']:
+            next_btn = [pl]
+            break
+      if next_btn:
+        print(f"{name} 次ページへ移動")
+        next_btn[0].click()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        list_url = driver.current_url
+        continue
+      print(f"{name} いまヒマ足跡付け終了（対象ユーザーなし・次ページなし） {ft_cnt}件")
       break
 
     for uid, href, age, link_text in targets:
