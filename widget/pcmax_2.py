@@ -2405,7 +2405,7 @@ def make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=0):
 def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
   """いまヒマリストページで34歳以下のユーザーに足跡をつける"""
   import urllib.parse
-  wait = WebDriverWait(driver, 10)
+  wait = WebDriverWait(driver, 15)
 
   def _go_to_city_page(pref_name):
     """basic_info_change → profile_reg?city=1 へ遷移"""
@@ -2417,7 +2417,8 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
     time.sleep(0.5)
     driver.find_element(By.ID, "image_button2").click()
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
+    wait.until(EC.presence_of_element_located((By.ID, "prech")))
+    time.sleep(2)
 
   def _select_city(city_sel_id, city_text):
     """都道府県変更後に詳細地域を選択（選択して下さいの場合はスキップ）"""
@@ -2447,15 +2448,18 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
   def _set_activity_areas(areas):
     """保存したエリアデータで3つすべてを設定して送信"""
     _go_to_city_page(areas["pref1"])
+    wait.until(EC.presence_of_element_located((By.ID, "prech")))
     # エリア1
     Select(driver.find_element(By.ID, "prech")).select_by_visible_text(areas["pref1"])
     time.sleep(1)
     _select_city("city_id_1", areas["city1"])
     # エリア2
+    wait.until(EC.presence_of_element_located((By.ID, "prech2")))
     Select(driver.find_element(By.ID, "prech2")).select_by_visible_text(areas["pref2"])
     time.sleep(1)
     _select_city("city_id_2", areas["city2"])
     # エリア3
+    wait.until(EC.presence_of_element_located((By.ID, "prech3")))
     Select(driver.find_element(By.ID, "prech3")).select_by_visible_text(areas["pref3"])
     time.sleep(1)
     _select_city("city_id_3", areas["city3"])
@@ -2550,20 +2554,17 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
       targets.append((uid, href, age, link_text))
 
     if not targets:
-      # 次ページボタン（三角）をクリック
+      # 次ページボタン（▶三角）をクリック
       driver.execute_script('window.scrollTo(0, document.body.scrollHeight)')
       time.sleep(1)
-      next_btn = driver.find_elements(By.CSS_SELECTOR, "a[href*='next'], a.next, a[rel='next'], a[title='次へ']")
-      if not next_btn:
-        # 三角ボタン（▶ or ›）を探す
-        pager_links = driver.find_elements(By.CSS_SELECTOR, ".pager a, .pagination a, a[href*='page='], a[href*='offset=']")
-        for pl in pager_links:
-          text = pl.text.strip()
-          if text in ['>', '›', '»', '▶', '次へ', '次', '＞']:
-            next_btn = [pl]
-            break
+      # 現在のページ番号を取得して次ページリンクを探す
+      import re as _re
+      current_page_m = _re.search(r'[?&]page=(\d+)', driver.current_url)
+      current_page = int(current_page_m.group(1)) if current_page_m else 1
+      next_page = current_page + 1
+      next_btn = driver.find_elements(By.CSS_SELECTOR, f"a[href*='page={next_page}']")
       if next_btn:
-        print(f"{name} 次ページへ移動")
+        print(f"{name} 次ページへ移動 (page {next_page})")
         next_btn[0].click()
         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
