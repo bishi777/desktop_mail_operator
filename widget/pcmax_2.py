@@ -2480,6 +2480,23 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
   except Exception as e:
     print(f"{name} 活動地域変更エラー: {e}")
 
+  # 活動地域が正しく変更されたか確認
+  try:
+    current_areas = _read_activity_areas()
+    current_pref = current_areas.get("pref1", "")
+    if current_pref != chosen_area:
+      print(f"{name} 活動地域変更が反映されていません: 期待={chosen_area}, 実際={current_pref} → 再設定")
+      _go_to_city_page(chosen_area)
+      Select(driver.find_element(By.ID, "prech")).select_by_visible_text(chosen_area)
+      time.sleep(1)
+      driver.find_element(By.ID, "p_reg_btn").click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+    else:
+      print(f"{name} 活動地域確認OK: {current_pref}")
+  except Exception as e:
+    print(f"{name} 活動地域確認エラー: {e}")
+
   # TOPページへ移動してリンクを取得
   top_url = "https://pcmax.jp/pcm/index.php" if "pcmax" in driver.current_url else "https://linkleweb.jp/pcm/index.php"
   driver.get(top_url)
@@ -2490,6 +2507,13 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
     link.click()
   except Exception as e:
     print(f"{name} いまヒマリンクエラー: {e}")
+    # 活動地域を復元してからreturn
+    if original_areas:
+      try:
+        _set_activity_areas(original_areas)
+        print(f"{name} 活動地域復元: {original_areas}")
+      except Exception as e2:
+        print(f"{name} 活動地域復元エラー: {e2}")
     return 0
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
@@ -2583,6 +2607,14 @@ def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):
     try:
       _set_activity_areas(original_areas)
       print(f"{name} 活動地域復元: {original_areas}")
+      # 復元後に確認
+      restored = _read_activity_areas()
+      if restored.get("pref1") != original_areas.get("pref1"):
+        print(f"{name} 活動地域復元失敗: 期待={original_areas.get('pref1')}, 実際={restored.get('pref1')} → 再試行")
+        _set_activity_areas(original_areas)
+        print(f"{name} 活動地域再復元完了")
+      else:
+        print(f"{name} 活動地域復元確認OK: {restored.get('pref1')}")
       original_areas = None
     except Exception as e:
       print(f"{name} 活動地域復元エラー: {e}")
