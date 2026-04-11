@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 REM デバッグ用Chrome起動スクリプト (Windows版)
 REM 使い方: start_debug_chrome_win.bat [ポート番号]
 REM 例: start_debug_chrome_win.bat 9222
