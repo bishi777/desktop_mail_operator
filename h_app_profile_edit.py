@@ -34,37 +34,27 @@ def create_driver():
     options.no_reset = True
     options.auto_accept_alerts = True
     options.wda_launch_timeout = 120000
+    options.wda_connection_timeout = 120000
     return webdriver.Remote(APPIUM_URL, options=options)
 
 
 def dismiss_popups(driver):
-    """起動時のポップアップを閉じ、途中画面から戻る"""
-    for _ in range(10):
+    """起動時のポップアップ・ダイアログを閉じる"""
+    for _ in range(5):
         closed = False
-        # 戻るボタン（ナビゲーション途中）
-        for back_id in ['back arrow btn', 'BackButton']:
-            try:
-                back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, back_id)
-                if back and back[0].get_attribute('visible') == 'true':
-                    back[0].click()
-                    time.sleep(1)
-                    closed = True
-                    break
-            except Exception:
-                pass
-        if closed:
-            continue
         # OKボタン
         try:
             ok = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'OK')
             if ok and ok[0].get_attribute('visible') == 'true':
                 ok[0].click()
                 time.sleep(1)
-                continue
+                closed = True
         except Exception:
             pass
+        if closed:
+            continue
         # ×ボタン各種
-        for cancel_id in ['icon cancel', 'order icon cancel old']:
+        for cancel_id in ['icon cancel', 'icon_cancel_black', 'order icon cancel old']:
             try:
                 cancel = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, cancel_id)
                 if cancel and cancel[0].get_attribute('visible') == 'true':
@@ -76,21 +66,46 @@ def dismiss_popups(driver):
                 pass
         if closed:
             continue
-        # タブバーが見えていれば完了
+        # 年齢確認ダイアログ
         try:
-            tab_bars = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeTabBar')
-            if tab_bars:
-                tabs = tab_bars[0].find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeButton')
-                visible_tabs = [t for t in tabs if t.get_attribute('visible') == 'true']
-                if visible_tabs:
-                    break
+            yes = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'はい(募集一覧へ)')
+            if yes and yes[0].get_attribute('visible') == 'true':
+                yes[0].click()
+                time.sleep(1)
+                continue
         except Exception:
             pass
         break
 
 
 def go_to_mypage(driver):
-    """マイページタブへ移動"""
+    """タブバーが見えるTOP階層まで戻ってからマイページタブへ移動"""
+    # タブバーが見えるまで戻る
+    for _ in range(10):
+        tab_bars = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeTabBar')
+        if tab_bars:
+            try:
+                tabs = tab_bars[0].find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeButton')
+                visible = [t for t in tabs if t.get_attribute('visible') == 'true']
+                if visible:
+                    break
+            except Exception:
+                pass
+        # タブバーが見えない → 戻るボタンで階層を上がる
+        backed = False
+        for back_id in ['back arrow btn', 'BackButton']:
+            try:
+                back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, back_id)
+                if back and back[0].get_attribute('visible') == 'true':
+                    back[0].click()
+                    time.sleep(1)
+                    backed = True
+                    break
+            except Exception:
+                pass
+        if not backed:
+            break
+    # マイページタブをタップ
     tab_bars = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeTabBar')
     if tab_bars:
         for tb in tab_bars[0].find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeButton'):
@@ -130,34 +145,71 @@ def go_to_profile_edit(driver):
     return False
 
 
+def _safe_scroll(driver, direction):
+    """スクロール（失敗しても無視）"""
+    try:
+        driver.execute_script('mobile: scroll', {'direction': direction})
+        time.sleep(0.5)
+    except Exception:
+        pass
+
+
+def _ensure_on_profile_edit(driver):
+    """プロフィール編集画面にいることを確認。リスト選択画面にいたら戻る"""
+    for _ in range(5):
+        nav = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeNavigationBar')
+        if nav:
+            try:
+                title = nav[0].get_attribute('name') or ''
+                if title == 'マイプロフィール':
+                    return True
+            except Exception:
+                pass
+        # マイプロフィール以外 → 戻る
+        back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'back arrow btn')
+        if back:
+            try:
+                if back[0].get_attribute('visible') == 'true':
+                    back[0].click()
+                    time.sleep(1)
+                    continue
+            except Exception:
+                pass
+        break
+    return False
+
+
+def _is_profile_field_cell(cell, field_label):
+    """プロフィール編集画面のフィールドセルか判定（ラベル+値の2つのStaticTextを持つ）"""
+    try:
+        texts = cell.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeStaticText')
+        labels = [t.get_attribute('label') or '' for t in texts]
+        # field_labelが含まれ、かつ値テキストもある（2つ以上のStaticText）
+        if field_label in labels and len(labels) >= 2:
+            return True
+    except Exception:
+        pass
+    return False
+
+
 def scroll_to_field(driver, field_label):
-    """指定フィールドが表示されるまでスクロール"""
+    """指定フィールドが表示されるまで下にスクロールして探す"""
+    _ensure_on_profile_edit(driver)
     for _ in range(8):
         cells = driver.find_elements(AppiumBy.XPATH,
             f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{field_label}"]]')
-        if cells:
+        for cell in cells:
             try:
-                if cells[0].get_attribute('visible') == 'true':
-                    return cells[0]
+                if cell.get_attribute('visible') == 'true' and _is_profile_field_cell(cell, field_label):
+                    return cell
             except Exception:
                 pass
-        driver.execute_script('mobile: scroll', {'direction': 'down'})
-        time.sleep(0.5)
+        _safe_scroll(driver, 'down')
     return None
-
-
-def scroll_to_top(driver):
-    """画面最上部へスクロール"""
-    for _ in range(5):
-        driver.execute_script('mobile: scroll', {'direction': 'up'})
-        time.sleep(0.3)
 
 
 def edit_nickname(driver, name):
     """ニックネームを編集"""
-    scroll_to_top(driver)
-    driver.execute_script('mobile: scroll', {'direction': 'down'})
-    time.sleep(0.5)
     cell = scroll_to_field(driver, 'ニックネーム')
     if not cell:
         print('  ニックネーム: セルが見つかりません')
@@ -200,7 +252,6 @@ def edit_list_field(driver, field_label, target_value):
     """リスト選択形式のフィールドを編集（居住地・出身地・血液型等）"""
     if not target_value:
         return
-    scroll_to_top(driver)
     cell = scroll_to_field(driver, field_label)
     if not cell:
         print(f'  {field_label}: セルが見つかりません')
@@ -218,7 +269,13 @@ def edit_list_field(driver, field_label, target_value):
         return
     cell.click()
     time.sleep(2)
+    # リスト選択画面に入れたか確認（ナビバータイトルが変わるはず）
+    nav = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeNavigationBar')
+    if not nav:
+        print(f'  {field_label}: リスト画面に遷移できませんでした')
+        return
     # リストからtarget_valueを探してタップ
+    found = False
     for _ in range(8):
         target_cells = driver.find_elements(AppiumBy.XPATH,
             f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{target_value}"]]')
@@ -226,26 +283,91 @@ def edit_list_field(driver, field_label, target_value):
             target_cells[0].click()
             time.sleep(1)
             print(f'  {field_label}: {target_value}')
-            # 戻るボタン
-            back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'back arrow btn')
-            if back and back[0].get_attribute('visible') == 'true':
+            found = True
+            break
+        _safe_scroll(driver, 'down')
+    if not found:
+        print(f'  {field_label}: 「{target_value}」が見つかりません')
+    # リスト選択画面にいる場合は戻る
+    nav = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeNavigationBar')
+    nav_title = ''
+    if nav:
+        try:
+            nav_title = nav[0].get_attribute('name') or ''
+        except Exception:
+            pass
+    if nav_title != 'マイプロフィール':
+        back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'back arrow btn')
+        if back:
+            try:
                 back[0].click()
                 time.sleep(1)
-            return
-        driver.execute_script('mobile: scroll', {'direction': 'down'})
+            except Exception:
+                pass
+
+
+def edit_tag_field(driver, field_label, target_value):
+    """タグ/チップボタン形式のフィールドを編集（スタイル・ルックス等の外見セクション）
+    セルをタップするとインラインオーバーレイが開き、ボタンで選択する形式。
+    """
+    if not target_value:
+        return
+    cell = scroll_to_field(driver, field_label)
+    if not cell:
+        print(f'  {field_label}: セルが見つかりません')
+        return
+    # 現在の値を確認
+    inner_texts = cell.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeStaticText')
+    current_value = None
+    for t in inner_texts:
+        label = (t.get_attribute('label') or '').strip()
+        if label and label != field_label:
+            current_value = label
+            break
+    if current_value == target_value:
+        print(f'  {field_label}: 変更なし ({target_value})')
+        return
+    cell.click()
+    time.sleep(2)
+    # オーバーレイ内のボタンを探す
+    found = False
+    for _ in range(3):
+        buttons = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeButton')
+        for btn in buttons:
+            try:
+                btn_label = (btn.get_attribute('label') or '').strip()
+                if btn_label == target_value and btn.get_attribute('visible') == 'true':
+                    btn.click()
+                    time.sleep(1)
+                    print(f'  {field_label}: {target_value}')
+                    found = True
+                    break
+            except Exception:
+                pass
+        if found:
+            break
+        _safe_scroll(driver, 'down')
         time.sleep(0.5)
-    print(f'  {field_label}: 「{target_value}」が見つかりません')
-    back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'back arrow btn')
-    if back and back[0].get_attribute('visible') == 'true':
-        back[0].click()
-        time.sleep(1)
+    if not found:
+        print(f'  {field_label}: 「{target_value}」ボタンが見つかりません')
+        # オーバーレイを閉じる試み（×ボタンやオーバーレイ外タップ）
+        for close_id in ['icon cancel', 'icon_cancel_black', 'order icon cancel old', '閉じる']:
+            try:
+                close_btn = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, close_id)
+                if close_btn and close_btn[0].get_attribute('visible') == 'true':
+                    close_btn[0].click()
+                    time.sleep(1)
+                    return
+            except Exception:
+                pass
+        # 戻るボタンで閉じる
+        _ensure_on_profile_edit(driver)
 
 
 def edit_self_introduction(driver, text):
     """自己紹介を編集"""
     if not text:
         return
-    scroll_to_top(driver)
     cell = scroll_to_field(driver, '自己紹介')
     if not cell:
         print('  自己紹介: セルが見つかりません')
@@ -281,7 +403,6 @@ def edit_pr_comment(driver, text):
     """PRコメントを編集"""
     if not text:
         return
-    scroll_to_top(driver)
     cell = scroll_to_field(driver, 'PRコメント')
     if not cell:
         print('  PRコメント: セルが見つかりません')
@@ -316,35 +437,43 @@ def profile_edit(chara_data, driver):
     """プロフィール全体を編集"""
     print(f'\n--- {chara_data["name"]} プロフィール編集 ---')
 
+    # プロフィール編集画面のトップへ
+    for _ in range(3):
+        _safe_scroll(driver, 'up')
+
     # ニックネーム
     edit_nickname(driver, chara_data['name'])
 
-    # リスト選択フィールド
+    # フィールド編集（画面表示順）
+    # type: 'list' = リスト選択画面遷移, 'tag' = インラインオーバーレイのタグボタン
     field_mappings = [
-        ('居住地', 'activity_area'),
-        ('詳細エリア', 'detail_activity_area'),
-        ('出身地', 'birth_place'),
-        ('血液型', 'blood_type'),
-        ('星座', 'constellation'),
-        ('身長', 'height'),
-        ('スタイル', 'style'),
-        ('ルックス', 'looks'),
-        ('職業', 'job'),
-        ('学歴', 'education'),
-        ('休日', 'holiday'),
-        ('子ども', 'having_children'),
-        ('タバコ', 'smoking'),
-        ('お酒', 'sake'),
-        ('クルマ', 'car_ownership'),
-        ('同居人', 'roommate'),
-        ('兄弟姉妹', 'brothers_and_sisters'),
-        ('出会うまでの希望', 'until_we_met'),
-        ('初回デート費用', 'date_expenses'),
+        ('居住地', 'activity_area', 'list'),
+        ('詳細エリア', 'detail_activity_area', 'list'),
+        ('出身地', 'birth_place', 'list'),
+        ('血液型', 'blood_type', 'list'),
+        ('星座', 'constellation', 'list'),
+        ('身長', 'height', 'list'),
+        ('スタイル', 'style', 'tag'),
+        ('ルックス', 'looks', 'tag'),
+        ('職業', 'job', 'list'),
+        ('学歴', 'education', 'list'),
+        ('休日', 'holiday', 'list'),
+        ('子ども', 'having_children', 'list'),
+        ('タバコ', 'smoking', 'list'),
+        ('お酒', 'sake', 'list'),
+        ('クルマ', 'car_ownership', 'list'),
+        ('同居人', 'roommate', 'list'),
+        ('兄弟姉妹', 'brothers_and_sisters', 'list'),
+        ('出会うまでの希望', 'until_we_met', 'list'),
+        ('初回デート費用', 'date_expenses', 'list'),
     ]
-    for field_label, data_key in field_mappings:
+    for field_label, data_key, field_type in field_mappings:
         value = chara_data.get(data_key)
         if value:
-            edit_list_field(driver, field_label, str(value))
+            if field_type == 'tag':
+                edit_tag_field(driver, field_label, str(value))
+            else:
+                edit_list_field(driver, field_label, str(value))
 
     # PRコメント
     edit_pr_comment(driver, chara_data.get('pr_comment'))
@@ -380,7 +509,7 @@ def main():
     # Appium接続
     print('Appium接続中...')
     driver = create_driver()
-    time.sleep(5)
+    time.sleep(2)
 
     try:
         # ポップアップ閉じる

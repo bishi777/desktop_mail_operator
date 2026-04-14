@@ -7,7 +7,11 @@
       "Read(//private/tmp/**)",
       "Read(//Users/yamamotokenta/Desktop/myprojects/desktop_mail_operator/**)",
       "Bash(xargs kill:*)",
-      "Bash(myenv/bin/python)"
+      "Bash(myenv/bin/python)",
+      "Bash(myenv/bin/python h_app_profile_edit.py えりか)",
+      "Bash(curl -s http://localhost:4723/status)",
+      "Bash(kill 38842)",
+      "Bash(pymobiledevice3 usbmux:*)"
     ]
   }
 }
