@@ -11,7 +11,16 @@
       "Bash(myenv/bin/python h_app_profile_edit.py えりか)",
       "Bash(curl -s http://localhost:4723/status)",
       "Bash(kill 38842)",
-      "Bash(pymobiledevice3 usbmux:*)"
+      "Bash(pymobiledevice3 usbmux:*)",
+      "Bash(kill 40948)",
+      "Bash(myenv/bin/python -c ':*)",
+      "Bash(myenv/bin/python -u h_app_profile_edit.py えりか)",
+      "Bash(system_profiler SPUSBDataType)",
+      "Bash(pymobiledevice3 pair:*)",
+      "Bash(pymobiledevice3 lockdown:*)",
+      "Bash(myenv/bin/python -u -c ':*)",
+      "Bash(myenv/bin/python -u h_app_return_foot.py えりか)",
+      "Bash(ls -t /tmp/hm_send_fail_*.png)"
     ]
   }
 }

@@ -193,18 +193,19 @@ def _is_profile_field_cell(cell, field_label):
 
 
 def scroll_to_field(driver, field_label):
-    """指定フィールドが表示されるまで下にスクロールして探す"""
+    """指定フィールドが表示されるまでスクロールして探す（下5回→上5回）"""
     _ensure_on_profile_edit(driver)
-    for _ in range(8):
-        cells = driver.find_elements(AppiumBy.XPATH,
-            f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{field_label}"]]')
-        for cell in cells:
-            try:
-                if cell.get_attribute('visible') == 'true' and _is_profile_field_cell(cell, field_label):
-                    return cell
-            except Exception:
-                pass
-        _safe_scroll(driver, 'down')
+    for direction in ['down', 'up']:
+        for _ in range(5):
+            cells = driver.find_elements(AppiumBy.XPATH,
+                f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{field_label}"]]')
+            for cell in cells:
+                try:
+                    if cell.get_attribute('visible') == 'true' and _is_profile_field_cell(cell, field_label):
+                        return cell
+                except Exception:
+                    pass
+            _safe_scroll(driver, direction)
     return None
 
 
@@ -257,58 +258,69 @@ def edit_list_field(driver, field_label, target_value):
         print(f'  {field_label}: セルが見つかりません')
         return
     # 現在の値を確認
-    inner_texts = cell.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeStaticText')
-    current_value = None
-    for t in inner_texts:
-        label = (t.get_attribute('label') or '').strip()
-        if label and label != field_label:
-            current_value = label
-            break
-    if current_value == target_value:
-        print(f'  {field_label}: 変更なし ({target_value})')
-        return
+    try:
+        inner_texts = cell.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeStaticText')
+        current_value = None
+        for t in inner_texts:
+            label = (t.get_attribute('label') or '').strip()
+            if label and label != field_label:
+                current_value = label
+                break
+        if current_value == target_value:
+            print(f'  {field_label}: 変更なし ({target_value})')
+            return
+    except Exception:
+        pass
     cell.click()
     time.sleep(2)
-    # リスト選択画面に入れたか確認（ナビバータイトルが変わるはず）
-    nav = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeNavigationBar')
-    if not nav:
-        print(f'  {field_label}: リスト画面に遷移できませんでした')
-        return
     # リストからtarget_valueを探してタップ
     found = False
     for _ in range(8):
-        target_cells = driver.find_elements(AppiumBy.XPATH,
-            f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{target_value}"]]')
-        if target_cells:
-            target_cells[0].click()
-            time.sleep(1)
-            print(f'  {field_label}: {target_value}')
-            found = True
-            break
+        try:
+            target_cells = driver.find_elements(AppiumBy.XPATH,
+                f'//XCUIElementTypeCell[.//XCUIElementTypeStaticText[@label="{target_value}"]]')
+            if target_cells:
+                target_cells[0].click()
+                time.sleep(1)
+                print(f'  {field_label}: {target_value}')
+                found = True
+                break
+        except Exception:
+            pass
         _safe_scroll(driver, 'down')
     if not found:
         print(f'  {field_label}: 「{target_value}」が見つかりません')
     # リスト選択画面にいる場合は戻る
-    nav = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeNavigationBar')
-    nav_title = ''
-    if nav:
+    for close_id in ['icon_cancel_black', 'back arrow btn']:
         try:
-            nav_title = nav[0].get_attribute('name') or ''
+            btn = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, close_id)
+            if btn and btn[0].get_attribute('visible') == 'true':
+                btn[0].click()
+                time.sleep(1)
+                break
         except Exception:
             pass
-    if nav_title != 'マイプロフィール':
-        back = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, 'back arrow btn')
-        if back:
-            try:
-                back[0].click()
+
+
+def _close_overlay(driver):
+    """オーバーレイを閉じる"""
+    for close_id in ['icon_cancel_black', 'icon cancel', 'order icon cancel old']:
+        try:
+            btn = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, close_id)
+            if btn and btn[0].get_attribute('visible') == 'true':
+                btn[0].click()
                 time.sleep(1)
-            except Exception:
-                pass
+                return True
+        except Exception:
+            pass
+    return False
 
 
 def edit_tag_field(driver, field_label, target_value):
-    """タグ/チップボタン形式のフィールドを編集（スタイル・ルックス等の外見セクション）
+    """タグ/チップボタン形式のフィールドを編集
     セルをタップするとインラインオーバーレイが開き、ボタンで選択する形式。
+    同名ボタン（例: その他）が複数セクションにある場合、field_labelのテキストの
+    後に出現する最初のマッチを選ぶ。
     """
     if not target_value:
         return
@@ -329,39 +341,28 @@ def edit_tag_field(driver, field_label, target_value):
         return
     cell.click()
     time.sleep(2)
-    # オーバーレイ内のボタンを探す
+    # オーバーレイ内のボタンを探す（ACCESSIBILITY_IDで直接検索）
     found = False
-    for _ in range(3):
-        buttons = driver.find_elements(AppiumBy.CLASS_NAME, 'XCUIElementTypeButton')
-        for btn in buttons:
-            try:
-                btn_label = (btn.get_attribute('label') or '').strip()
-                if btn_label == target_value and btn.get_attribute('visible') == 'true':
+    for _ in range(5):
+        try:
+            buttons = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, target_value)
+            for btn in buttons:
+                if btn.get_attribute('visible') == 'true':
                     btn.click()
                     time.sleep(1)
                     print(f'  {field_label}: {target_value}')
                     found = True
                     break
-            except Exception:
-                pass
+        except Exception:
+            pass
         if found:
             break
         _safe_scroll(driver, 'down')
         time.sleep(0.5)
     if not found:
         print(f'  {field_label}: 「{target_value}」ボタンが見つかりません')
-        # オーバーレイを閉じる試み（×ボタンやオーバーレイ外タップ）
-        for close_id in ['icon cancel', 'icon_cancel_black', 'order icon cancel old', '閉じる']:
-            try:
-                close_btn = driver.find_elements(AppiumBy.ACCESSIBILITY_ID, close_id)
-                if close_btn and close_btn[0].get_attribute('visible') == 'true':
-                    close_btn[0].click()
-                    time.sleep(1)
-                    return
-            except Exception:
-                pass
-        # 戻るボタンで閉じる
-        _ensure_on_profile_edit(driver)
+    # タグ選択後もオーバーレイが残るので閉じる
+    _close_overlay(driver)
 
 
 def edit_self_introduction(driver, text):
@@ -455,17 +456,17 @@ def profile_edit(chara_data, driver):
         ('身長', 'height', 'list'),
         ('スタイル', 'style', 'tag'),
         ('ルックス', 'looks', 'tag'),
-        ('職業', 'job', 'list'),
-        ('学歴', 'education', 'list'),
-        ('休日', 'holiday', 'list'),
-        ('子ども', 'having_children', 'list'),
-        ('タバコ', 'smoking', 'list'),
-        ('お酒', 'sake', 'list'),
-        ('クルマ', 'car_ownership', 'list'),
-        ('同居人', 'roommate', 'list'),
-        ('兄弟姉妹', 'brothers_and_sisters', 'list'),
-        ('出会うまでの希望', 'until_we_met', 'list'),
-        ('初回デート費用', 'date_expenses', 'list'),
+        ('職業', 'job', 'tag'),
+        ('学歴', 'education', 'tag'),
+        ('休日', 'holiday', 'tag'),
+        ('子ども', 'having_children', 'tag'),
+        ('タバコ', 'smoking', 'tag'),
+        ('お酒', 'sake', 'tag'),
+        ('クルマ', 'car_ownership', 'tag'),
+        ('同居人', 'roommate', 'tag'),
+        ('兄弟姉妹', 'brothers_and_sisters', 'tag'),
+        ('出会うまでの希望', 'until_we_met', 'tag'),
+        ('初回デート費用', 'date_expenses', 'tag'),
     ]
     for field_label, data_key, field_type in field_mappings:
         value = chara_data.get(data_key)
