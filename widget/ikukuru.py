@@ -916,3 +916,122 @@ def profile_edit(chara_data, driver, wait):
       print('  デート・出会い希望: 既に未設定')
   except Exception as e:
     print(f'  デート・出会い希望 設定エラー: {e}')
+
+def post_bbs(chara_data, driver, wait):
+  """イククル掲示板に投稿する（大人の出会い）"""
+  name = chara_data['name']
+  post_title = chara_data.get('post_title', '')
+  post_content = chara_data.get('post_content', '')
+  chara_image = chara_data.get('chara_image', '')
+
+  if not post_title or not post_content:
+    print(f'イククル:{name} post_titleまたはpost_contentが未設定')
+    return False
+
+  print(f'\nイククル:{name} 掲示板投稿開始')
+  image_path = _prepare_chara_image(name, chara_image)
+
+  # メニューから「大人の募集」の書く一覧へ
+  driver.get('https://pc.194964.com/menu.html')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  # 2番目のshow_write_listリンクが大人の募集
+  wl_links = driver.find_elements(By.CSS_SELECTOR, "a[href*='show_write_list']")
+  if len(wl_links) < 2:
+    print(f'イククル:{name} 大人の募集リンクが見つかりません')
+    return False
+  driver.get(wl_links[1].get_attribute('href'))
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  # 「大人の出会い」リンクをクリック
+  write_links = driver.find_elements(By.CSS_SELECTOR, "a[href*='show_write.html']")
+  target_link = None
+  for a in write_links:
+    if a.text.strip() == '大人の出会い':
+      target_link = a
+      break
+  if not target_link:
+    print(f'イククル:{name} 大人の出会いリンクが見つかりません')
+    return False
+  driver.get(target_link.get_attribute('href'))
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+
+  # 地域をランダムに選択（東京都の区）
+  try:
+    city_select = driver.find_element(By.NAME, 'cityId')
+    sel = Select(city_select)
+    options = [o for o in sel.options if o.get_attribute('value')]
+    if options:
+      random_city = random.choice(options)
+      sel.select_by_value(random_city.get_attribute('value'))
+      print(f'  地域: {random_city.text}')
+  except Exception as e:
+    print(f'  地域選択エラー: {e}')
+
+  # タイトル入力（JS value設定 + イベント発火）
+  try:
+    title_area = driver.find_element(By.NAME, 'title')
+    driver.execute_script("""
+      var el = arguments[0]; el.value = arguments[1];
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+      el.dispatchEvent(new Event('change', {bubbles: true}));
+    """, title_area, post_title)
+    print(f'  タイトル: {post_title}')
+  except Exception as e:
+    print(f'  タイトル入力エラー: {e}')
+    return False
+
+  # 内容入力（JS value設定 + イベント発火）
+  try:
+    body_area = driver.find_element(By.NAME, 'body')
+    driver.execute_script("""
+      var el = arguments[0]; el.value = arguments[1];
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+      el.dispatchEvent(new Event('change', {bubbles: true}));
+    """, body_area, post_content)
+    print(f'  内容: {post_content[:30]}...')
+  except Exception as e:
+    print(f'  内容入力エラー: {e}')
+    return False
+
+  # 画像添付
+  if image_path:
+    try:
+      file_input = driver.find_element(By.NAME, 'imageFile')
+      file_input.send_keys(image_path)
+      time.sleep(1)
+      print(f'  画像添付: {os.path.basename(image_path)}')
+    except Exception as e:
+      print(f'  画像添付エラー: {e}')
+
+  # 1. 確認ボタンクリック → 確認ページへ
+  try:
+    confirm_btn = driver.find_element(By.CSS_SELECTOR, "button[name='confirm']")
+    confirm_btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+  except Exception as e:
+    print(f'  確認ボタンエラー: {e}')
+    return False
+
+  # 2. 確認ページで募集するボタンクリック → 実際に投稿
+  try:
+    submit_btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
+    submit_btn.click()
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+  except Exception as e:
+    print(f'  募集ボタンエラー: {e}')
+    return False
+
+  # 3. 投稿成功確認（新規: complete_bbs_write / 編集: show_bbs_write_detail）
+  body_text = driver.find_element(By.TAG_NAME, 'body').text
+  if '募集しました' in body_text or '募集を編集しました' in body_text:
+    print(f'イククル:{name} 掲示板投稿完了')
+    return True
+  else:
+    print(f'イククル:{name} 掲示板投稿失敗 URL={driver.current_url}')
+    return False

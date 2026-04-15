@@ -28,6 +28,15 @@ def reset_metrics_keep_check_date(d: dict) -> dict:
 # area（地域）のみブラウザ側で設定しておく
 SEARCH_FILTER = None
 
+# 掲示板投稿の時間帯スロット
+BBS_SLOTS = [(6, 9), (9, 12), (14, 17), (17, 20), (20, 22)]
+
+def get_bbs_slot(hour):
+  for idx, (start, end) in enumerate(BBS_SLOTS):
+    if start <= hour < end:
+      return idx
+  return None
+
 
 def parse_port():
   p = argparse.ArgumentParser()
@@ -65,10 +74,16 @@ def main_syori():
   start_time = datetime.now()
   active_chara_list = []
   handle_chara_map = {}  # タブhandle → キャラデータのマッピング
+  bbs_posted = {}  # {name: set(slot_idx)} 掲示板投稿済みスロット
+  bbs_date = now.date()  # 日付変更検知用
 
   while True:
     start_loop_time = time.time()
     now = datetime.now()
+    # 日付が変わったら掲示板投稿済みをリセット
+    if now.date() != bbs_date:
+      bbs_posted = {}
+      bbs_date = now.date()
     handles = driver.window_handles
     print(f"タブ数:{len(handles)}")
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
@@ -204,6 +219,22 @@ def main_syori():
           except Exception as e:
             print(f"{name}❌ 足跡付けエラー: {e}")
             traceback.print_exc()
+
+          # 5. 掲示板投稿（時間帯スロットごとに1回）
+          slot_idx = get_bbs_slot(now.hour)
+          if slot_idx is not None:
+            if name not in bbs_posted:
+              bbs_posted[name] = set()
+            if slot_idx not in bbs_posted[name]:
+              try:
+                print("📝掲示板投稿開始")
+                result = ikukuru.post_bbs(i, driver, wait)
+                if result:
+                  bbs_posted[name].add(slot_idx)
+                print("掲示板投稿終了📝")
+              except Exception as e:
+                print(f"{name}❌ 掲示板投稿エラー: {e}")
+                traceback.print_exc()
 
         # 進捗報告
         if now.hour in (10, 14, 18, 22):
