@@ -248,6 +248,7 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
   gmail_address = ikukuru_data["gmail_address"]
   gmail_pass = ikukuru_data["gmail_password"]
   condition_message = ikukuru_data["condition_message"]
+  confirmation_mail = ikukuru_data.get("confirmation_mail", "")
 
   wait_time = random.uniform(2, 3)
   driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
@@ -309,6 +310,43 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
             user_name = driver.find_elements(By.CLASS_NAME, value="w60")
             user_name = user_name[0].text
             print(user_name)
+            # confirmation_mail をサイト内メッセージとして送信
+            if confirmation_mail:
+              try:
+                text_area = driver.find_elements(By.NAME, value="body")
+                if text_area:
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+                  _input_text(driver, text_area[0], confirmation_mail)
+                  time.sleep(0.5)
+                  send_button = driver.find_elements(By.ID, value="sendButton")
+                  if send_button:
+                    send_button[0].click()
+                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                    time.sleep(1)
+                    submit_button = driver.find_elements(By.ID, value="submitBtn")
+                    if submit_button:
+                      submit_button[0].click()
+                      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                      time.sleep(1)
+                    print("confirmation_mail送信完了")
+              except Exception as e:
+                print(f"confirmation_mail送信エラー: {e}")
+            # 見ちゃイヤリストに追加
+            try:
+              notsees_el = driver.find_elements(By.CSS_SELECTOR, "a[href*='show_confirm_regist_notsees']")
+              if notsees_el:
+                driver.get(notsees_el[0].get_attribute("href"))
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(1)
+                submit_btn = driver.find_elements(By.CSS_SELECTOR, "button[type='submit']")
+                if submit_btn:
+                  submit_btn[0].click()
+                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                  time.sleep(1)
+                  print("見ちゃイヤリストに追加しました")
+            except Exception as e:
+              print(f"見ちゃイヤリスト追加エラー: {e}")
+            # 条件メールをGmail送信
             for user_address in email_list:
               site = "イククル"
               try:
@@ -316,17 +354,12 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
                 print("アドレス内1stメールを送信しました")
                 gmail_condition += 1
                 time.sleep(2)
-                driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(1)
-                users_list = driver.find_elements(By.CLASS_NAME, value="bgMiddle")
               except Exception:
                 print(f"{user_name} アドレス内1stメールの送信に失敗しました")
-                time.sleep(2)
-                driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(1)
-                users_list = driver.find_elements(By.CLASS_NAME, value="bgMiddle")
+            driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            users_list = driver.find_elements(By.CLASS_NAME, value="bgMiddle")
           continue
         elif len(chara_send) == 2: #通知
           print('やり取り中')
@@ -859,3 +892,27 @@ def profile_edit(chara_data, driver, wait):
       print(f'  自己紹介更新完了: {driver.current_url}')
     except Exception as e:
       print(f'  自己紹介更新エラー: {e}')
+
+  # 4. デートでしたいこと・出会うまでの希望を未設定にする
+  driver.get('https://pc.194964.com/config/settingprof/show_companionship.html')
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(2)
+  try:
+    changed = False
+    for radio_name in ['dating1', 'dating2']:
+      radios = driver.find_elements(By.CSS_SELECTOR, f"input[name='{radio_name}']")
+      for r in radios:
+        if r.get_attribute('value') == '0':
+          if not r.is_selected():
+            driver.execute_script("arguments[0].click();", r)
+            changed = True
+          break
+    if changed:
+      driver.execute_script('setCompanionship();')
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print('  デート・出会い希望を未設定に変更完了')
+    else:
+      print('  デート・出会い希望: 既に未設定')
+  except Exception as e:
+    print(f'  デート・出会い希望 設定エラー: {e}')
