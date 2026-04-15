@@ -3,6 +3,8 @@ import base64
 import requests
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.select import Select
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import random
 from selenium.common.exceptions import ElementNotInteractableException
 import re
@@ -50,7 +52,9 @@ def _set_area_filter(driver, wait, area_values):
   PREF_NAMES = {v: k for k, v in _AREA_POOL.items()}
 
   # 地域変更ボタンをクリック → show_selected_area.html
-  area_btn = driver.find_element(By.CSS_SELECTOR, "input[value*='地域']")
+  area_btn = WebDriverWait(driver, 10).until(
+    EC.presence_of_element_located((By.CSS_SELECTOR, "input[value*='地域']"))
+  )
   area_btn.click()
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
