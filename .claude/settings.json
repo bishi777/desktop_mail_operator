@@ -21,7 +21,9 @@
       "Bash(myenv/bin/python -u -c ':*)",
       "Bash(myenv/bin/python -u h_app_return_foot.py えりか)",
       "Bash(ls -t /tmp/hm_send_fail_*.png)",
-      "Bash(myenv/bin/python debug_type_list.py)"
+      "Bash(myenv/bin/python debug_type_list.py)",
+      "Bash(curl -s http://127.0.0.1:9222/json/version)",
+      "Bash(echo \"EXIT:$?\")"
     ]
   }
 }

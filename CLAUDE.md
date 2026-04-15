@@ -100,3 +100,5 @@ happymail_port = 9224
 - お引越し: `show_pref_setting_list.html` → `show_city_setting_list.html`
 - タブ識別: `show_setting_mailaddress.html` のメールアドレスで照合
 - スタンプ不使用キャラ（`make_chara_image.py`）: yukko / erika / tumugi
+
+あなたの作業が完了したら、Codexが出力をレビューします。

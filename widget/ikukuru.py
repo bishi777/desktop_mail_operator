@@ -550,24 +550,27 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
       print(f"イククル:{name} {label} チェックボックス操作エラー: {e}")
   if checked > 0:
     try:
-      del_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'チェックを削除')]")
+      # deleteButtonクリック → モーダル表示 → #delete フォームsubmit
+      del_btn = driver.find_elements(By.ID, "deleteButton")
       if del_btn:
         del_btn[0].click()
+        time.sleep(1)
+        # モーダル内の#submitBtnをクリック
+        submit_btn = driver.find_elements(By.ID, "submitBtn")
+        if submit_btn:
+          submit_btn[0].click()
+        else:
+          # フォールバック: フォームを直接submit
+          driver.execute_script('var f = document.getElementById("delete"); if(f) f.submit();')
         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
-        try:
-          alert = driver.switch_to.alert
-          alert.accept()
-          time.sleep(1)
-        except Exception:
-          pass
         print(f"イククル:{name} {label} {checked}件削除")
     except Exception as e:
       print(f"イククル:{name} {label} 削除ボタンエラー: {e}")
   return checked
 
 def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=""):
-  """足跡リストのユーザーにreturn_foot_messageを送る。34歳以上は最大4人削除、5人目以降はスキップ"""
+  """足跡リストのユーザーにreturn_foot_messageを送る。36〜59歳は最大4人削除・5人目以降スキップ、35歳以下と60歳以上は足跡返し"""
   FOOT_LIST_URL = "https://pc.194964.com/sns/snsashiato/show.html"
   MAX_DELETE = 4
   rf_cnt = 0
@@ -575,8 +578,8 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
   items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
   print(f"イククル:{name} 足跡リスト {len(items)}件")
 
-  # 34歳以上をリスト画面でチェック→削除（最大4人）
-  age_delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and a >= 34]
+  # 39〜59歳をリスト画面でチェック→削除（最大4人）
+  age_delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and 39 <= a <= 59]
   if age_delete_targets:
     _delete_checked_on_list(driver, wait, FOOT_LIST_URL, age_delete_targets, name, "足跡", MAX_DELETE)
     items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
@@ -587,7 +590,7 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
   for href, opponent_name, age in items:
     if rf_cnt >= send_cnt:
       break
-    if age is not None and age >= 34:
+    if age is not None and 36 <= age <= 59:
       print(f"イククル:{name} 足跡返し スキップ（{opponent_name} {age}歳）")
       continue
     try:
@@ -612,27 +615,26 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
   return rf_cnt
 
 def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
-  """タイプリスト(34歳未満)にタイプを返し、34歳以上は削除(最大4人/回)、両思いリストにfst_messageを送る"""
+  """タイプリスト 36〜59歳は削除(最大4人/回)・5人目以降スキップ、35歳以下と60歳以上はタイプ返し"""
   TYPE_LIST_URL   = "https://pc.194964.com/sns/snstype/show_typed_list.html"
   MUTUAL_LIST_URL = "https://pc.194964.com/sns/snstype/show_mutual_list.html"
   type_cnt = 0
   image_path = _prepare_chara_image(name, chara_image)
 
-  # --- Step1: タイプリスト → 34歳以上はチェックして削除、それ以外にタイプを返す ---
+  # --- Step1: タイプリスト → 36〜59歳はチェックして削除、それ以外にタイプを返す ---
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
 
-  # 34歳以上をリスト画面上でチェック→削除（1ループ最大4人）
+  # 39〜59歳をリスト画面上でチェック→削除（1ループ最大4人）
   MAX_DELETE = 4
-  delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and a >= 34]
+  delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and 39 <= a <= 59]
   if delete_targets:
     _delete_checked_on_list(driver, wait, TYPE_LIST_URL, delete_targets, name, "タイプ", MAX_DELETE)
     items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
 
-  skip_over34 = 0
   for href, opponent_name, age in items:
-    # ３４歳以上はスキップ（削除上限超過分）
-    if age is not None and age >= 34:
+    # 36〜59歳はスキップ（削除上限超過分）
+    if age is not None and 36 <= age <= 59:
       skip_over34 += 1
       print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
       continue
