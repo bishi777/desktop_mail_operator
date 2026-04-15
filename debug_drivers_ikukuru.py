@@ -75,7 +75,7 @@ def main_syori():
   active_chara_list = []
   handle_chara_map = {}  # タブhandle → キャラデータのマッピング
   bbs_posted = {}  # {name: set(slot_idx)} 掲示板投稿済みスロット
-  bbs_date = now.date()  # 日付変更検知用
+  bbs_date = datetime.now().date()  # 日付変更検知用
 
   while True:
     start_loop_time = time.time()
