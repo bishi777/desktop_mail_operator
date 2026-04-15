@@ -665,6 +665,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
     _delete_checked_on_list(driver, wait, TYPE_LIST_URL, delete_targets, name, "タイプ", MAX_DELETE)
     items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
 
+  skip_over34 = 0
   for href, opponent_name, age in items:
     # 36〜59歳はスキップ（削除上限超過分）
     if age is not None and 36 <= age <= 59:
