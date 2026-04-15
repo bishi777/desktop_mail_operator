@@ -516,18 +516,79 @@ def _send_message_on_profile(driver, wait, message, name, label, opponent_name="
     print(f"イククル:{name} {label} {popup_text[-1].text[:40]}")
   return True
 
+def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label, max_delete=4):
+  """リスト画面（足跡/タイプ）でチェックボックスにチェックを入れて削除する共通処理"""
+  if not items_to_delete:
+    return 0
+  driver.get(list_url)
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(random.uniform(1.5, 2.5))
+  checked = 0
+  delete_hrefs = set(href for href, _, _ in items_to_delete[:max_delete])
+  links = driver.find_elements(By.CLASS_NAME, value="type-list-link")
+  for link in links:
+    if checked >= max_delete:
+      break
+    href = link.get_attribute("href")
+    if href not in delete_hrefs:
+      continue
+    try:
+      parent = link.find_element(By.XPATH, './..')
+      cb = parent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
+      if not cb:
+        grandparent = parent.find_element(By.XPATH, './..')
+        cb = grandparent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
+      if cb:
+        if not cb[0].is_selected():
+          driver.execute_script("arguments[0].click();", cb[0])
+          time.sleep(0.3)
+        name_els = link.find_elements(By.CLASS_NAME, value="type-list-name")
+        oname = name_els[0].text.strip() if name_els else "不明"
+        print(f"イククル:{name} {label} 削除チェック（{oname}）")
+        checked += 1
+    except Exception as e:
+      print(f"イククル:{name} {label} チェックボックス操作エラー: {e}")
+  if checked > 0:
+    try:
+      del_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'チェックを削除')]")
+      if del_btn:
+        del_btn[0].click()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        try:
+          alert = driver.switch_to.alert
+          alert.accept()
+          time.sleep(1)
+        except Exception:
+          pass
+        print(f"イククル:{name} {label} {checked}件削除")
+    except Exception as e:
+      print(f"イククル:{name} {label} 削除ボタンエラー: {e}")
+  return checked
+
 def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=""):
-  """足跡リストのユーザーにreturn_foot_messageを送る"""
+  """足跡リストのユーザーにreturn_foot_messageを送る。34歳以上は最大4人削除、5人目以降はスキップ"""
   FOOT_LIST_URL = "https://pc.194964.com/sns/snsashiato/show.html"
+  MAX_DELETE = 4
   rf_cnt = 0
   image_path = _prepare_chara_image(name, chara_image)
   items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
   print(f"イククル:{name} 足跡リスト {len(items)}件")
+
+  # 34歳以上をリスト画面でチェック→削除（最大4人）
+  age_delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and a >= 34]
+  if age_delete_targets:
+    _delete_checked_on_list(driver, wait, FOOT_LIST_URL, age_delete_targets, name, "足跡", MAX_DELETE)
+    items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
+
+  # 履歴ありで削除する対象を記録
+  history_delete_targets = []
+
   for href, opponent_name, age in items:
     if rf_cnt >= send_cnt:
       break
-    if age is not None and age > 34:
-      print(f"イククル:{name} 足跡返し スキップ（{opponent_name} {age}歳 > 34歳）")
+    if age is not None and age >= 34:
+      print(f"イククル:{name} 足跡返し スキップ（{opponent_name} {age}歳）")
       continue
     try:
       driver.get(href)
@@ -538,8 +599,16 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
       if sent:
         rf_cnt += 1
         print(f"イククル:{name} 足跡返しメッセージ送信 {rf_cnt}件")
+      else:
+        # 送信失敗（履歴ありスキップ含む）→ 削除対象に追加
+        history_delete_targets.append((href, opponent_name, age))
     except Exception as e:
       print(f"イククル:{name} 足跡返しエラー: {e}")
+
+  # 履歴ありスキップ分をリスト画面でチェック→削除（最大4人）
+  if history_delete_targets:
+    _delete_checked_on_list(driver, wait, FOOT_LIST_URL, history_delete_targets, name, "足跡(履歴あり)", MAX_DELETE)
+
   return rf_cnt
 
 def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
@@ -557,58 +626,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
   MAX_DELETE = 4
   delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and a >= 34]
   if delete_targets:
-    driver.get(TYPE_LIST_URL)
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(random.uniform(1.5, 2.5))
-    deleted = 0
-    checked = 0
-    # ページ内のチェックボックスをチェックする
-    links = driver.find_elements(By.CLASS_NAME, value="type-list-link")
-    for link in links:
-      if checked >= MAX_DELETE:
-        break
-      link_text = link.text
-      age_match = re.search(r'(\d+)歳', link_text)
-      link_age = int(age_match.group(1)) if age_match else None
-      if link_age is not None and link_age >= 34:
-        # チェックボックスは同じリストアイテム内 or 親要素内にある
-        try:
-          parent = link.find_element(By.XPATH, './..')
-          cb = parent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
-          if not cb:
-            # さらに上の親を探す
-            grandparent = parent.find_element(By.XPATH, './..')
-            cb = grandparent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
-          if cb:
-            if not cb[0].is_selected():
-              driver.execute_script("arguments[0].click();", cb[0])
-              time.sleep(0.3)
-            name_els = link.find_elements(By.CLASS_NAME, value="type-list-name")
-            oname = name_els[0].text.strip() if name_els else "不明"
-            print(f"イククル:{name} 削除チェック（{oname} {link_age}歳）")
-            checked += 1
-        except Exception as e:
-          print(f"イククル:{name} チェックボックス操作エラー: {e}")
-    # チェック済みがあれば削除実行
-    if checked > 0:
-      try:
-        del_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'チェックを削除')]")
-        if del_btn:
-          del_btn[0].click()
-          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)
-          # 確認ダイアログがある場合
-          try:
-            alert = driver.switch_to.alert
-            alert.accept()
-            time.sleep(1)
-          except Exception:
-            pass
-          deleted = checked
-          print(f"イククル:{name} タイプリストから{deleted}件削除")
-      except Exception as e:
-        print(f"イククル:{name} 削除ボタンエラー: {e}")
-    # 削除後にリストを再取得
+    _delete_checked_on_list(driver, wait, TYPE_LIST_URL, delete_targets, name, "タイプ", MAX_DELETE)
     items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
 
   skip_over34 = 0
