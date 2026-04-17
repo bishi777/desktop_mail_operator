@@ -17,23 +17,23 @@ from selenium.webdriver.support.ui import WebDriverWait
 from widget import func, jmail
 
 
-def find_matching_tab(driver, wait, chara_name):
-  """mintj.comのタブからニックネームが一致するタブを探してswitchする"""
+def find_matching_tab(driver, wait, login_id):
+  """mintj.comのタブからマイページの会員IDが一致するタブを探してswitchする"""
+  import re
   for handle in driver.window_handles:
     try:
       driver.switch_to.window(handle)
       if 'mintj.com' not in driver.current_url:
         continue
-      driver.get('https://mintj.com/msm/MyProf/EditNickName/')
+      driver.get('https://mintj.com/msm/mypage/')
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
-      nick_input = driver.find_elements(By.NAME, 'EditedNickNameText')
-      if not nick_input:
-        continue
-      nick = (nick_input[0].get_attribute('value') or '').strip()
-      print(f'  タブ確認: {nick}')
-      if nick == chara_name:
-        print(f'  対象タブ発見: {nick} (handle={handle})')
+      body_text = driver.find_element(By.TAG_NAME, 'body').text
+      match = re.search(r'会員ID[\s::]*([0-9A-Za-z\-_]+)', body_text)
+      page_id = match.group(1).strip() if match else ''
+      print(f'  タブ確認: 会員ID={page_id}')
+      if page_id == str(login_id):
+        print(f'  対象タブ発見: {page_id} (handle={handle})')
         return True
     except Exception:
       continue
@@ -65,10 +65,11 @@ def main():
     print('Jmailキャラ一覧:', [c['name'] for c in user_data.get('jmail', [])])
     sys.exit(1)
 
-  print(f'キャラ: {chara_name}  login_id: {chara_data.get("login_id")}')
+  login_id = chara_data.get('login_id')
+  print(f'キャラ: {chara_name}  login_id: {login_id}')
 
-  if not find_matching_tab(driver, wait, chara_name):
-    print(f'「{chara_name}」と一致するタブが見つかりません')
+  if not find_matching_tab(driver, wait, login_id):
+    print(f'「{chara_name}」(会員ID={login_id}) と一致するタブが見つかりません')
     sys.exit(1)
 
   jmail.profile_edit(chara_data, driver, wait)
