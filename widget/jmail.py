@@ -1083,19 +1083,8 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
 #     return ""
 
 def make_footprints(driver, wait):
-  #メニューをクリック
-  menu_icon = driver.find_elements(By.CLASS_NAME, value="menu-off")
-  menu_icon[0].click()
-  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(2)
-  menu = driver.find_elements(By.CLASS_NAME, value="iconMenu")
-  #プロフ検索をクリック
-  foot_menus = menu[0].find_elements(By.TAG_NAME, value="p")
-  for i in foot_menus:
-    if i.text == "プロフ検索":
-      prof_menu_link = i.find_element(By.XPATH, "./..")
-      prof_link = prof_menu_link.get_attribute("href")
-  driver.get(prof_link)
+  # プロフ検索ページへ遷移
+  driver.get('https://mintj.com/msm/PfSearch/Search/?sid=')
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   # 詳しく検索
@@ -1721,24 +1710,8 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
 
   cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
 
-  # ===== プロフ検索ページへ遷移（メニューアイコンからリンク取得） =====
-  menu_icon = driver.find_elements(By.CLASS_NAME, 'menu-off')
-  if menu_icon:
-    menu_icon[0].click()
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(1.5)
-  prof_link = None
-  menu = driver.find_elements(By.CLASS_NAME, 'iconMenu')
-  if menu:
-    foot_menus = menu[0].find_elements(By.TAG_NAME, 'p')
-    for p in foot_menus:
-      if p.text == 'プロフ検索':
-        prof_link = p.find_element(By.XPATH, './..').get_attribute('href')
-        break
-  if not prof_link:
-    print(f"  [{name}] プロフ検索リンクが見つかりません")
-    return None, submitted_users
-  driver.get(prof_link)
+  # ===== プロフ検索ページへ遷移 =====
+  driver.get('https://mintj.com/msm/PfSearch/Search/?sid=')
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
