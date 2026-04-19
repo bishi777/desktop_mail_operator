@@ -497,7 +497,8 @@ def _attach_image_on_message(driver, name, label, image_path):
     traceback.print_exc()
 
 def _send_message_on_profile(driver, wait, message, name, label, opponent_name="", image_path=""):
-  """プロフページからfooter-btn-sendmail経由でメッセージ履歴ページへ遷移し送信。成功したらTrue"""
+  """プロフページからfooter-btn-sendmail経由でメッセージ履歴ページへ遷移し送信。
+  戻り値: True=送信成功, 'history'=既送信あり, False=その他失敗"""
   wait_time = random.uniform(2, 3)
   # footer-btn-sendmail のhref = 会話履歴ページURL
   send_mail_btn = driver.find_elements(By.CLASS_NAME, value="footer-btn-sendmail")
@@ -522,7 +523,7 @@ def _send_message_on_profile(driver, wait, message, name, label, opponent_name="
   already_sent = driver.find_elements(By.CLASS_NAME, value="bubble_owner")
   if already_sent:
     print(f"イククル:{name} {label} 履歴あり スキップ")
-    return False
+    return 'history'
   # メッセージ送信（check_mailと同じ仕組み）
   text_area = driver.find_elements(By.NAME, value="body")
   if not text_area:
@@ -562,28 +563,43 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(random.uniform(1.5, 2.5))
   checked = 0
+  # hrefで照合（完全一致できない場合のため、hrefのパス+クエリ末尾の数値IDでも照合）
   delete_hrefs = set(href for href, _, _ in items_to_delete[:max_delete])
+  delete_names = set((oname or "").strip() for _, oname, _ in items_to_delete[:max_delete] if oname)
+  print(f"イククル:{name} {label} 削除対象 {len(delete_hrefs)}件: {delete_names}")
+
   links = driver.find_elements(By.CLASS_NAME, value="type-list-link")
+  print(f"イククル:{name} {label} リスト上のリンク数: {len(links)}")
   for link in links:
     if checked >= max_delete:
       break
-    href = link.get_attribute("href")
-    if href not in delete_hrefs:
+    href = link.get_attribute("href") or ""
+    name_els = link.find_elements(By.CLASS_NAME, value="type-list-name")
+    oname = name_els[0].text.strip() if name_els else ""
+    # href完全一致 or 相手名一致で照合
+    matched = href in delete_hrefs or (oname and oname in delete_names)
+    if not matched:
       continue
     try:
-      parent = link.find_element(By.XPATH, './..')
-      cb = parent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
-      if not cb:
-        grandparent = parent.find_element(By.XPATH, './..')
-        cb = grandparent.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
-      if cb:
-        if not cb[0].is_selected():
-          driver.execute_script("arguments[0].click();", cb[0])
-          time.sleep(0.3)
-        name_els = link.find_elements(By.CLASS_NAME, value="type-list-name")
-        oname = name_els[0].text.strip() if name_els else "不明"
-        print(f"イククル:{name} {label} 削除チェック（{oname}）")
-        checked += 1
+      # link要素から祖先を5階層まで辿ってcheckboxを探す
+      cb = None
+      anc = link
+      for _ in range(5):
+        anc = anc.find_element(By.XPATH, './..')
+        cbs = anc.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
+        if cbs:
+          cb = cbs[0]
+          break
+      if cb is None:
+        print(f"イククル:{name} {label} checkbox見つからず（{oname}）")
+        continue
+      if not cb.is_selected():
+        driver.execute_script("arguments[0].scrollIntoView({block:'center'});", cb)
+        time.sleep(0.2)
+        driver.execute_script("arguments[0].click();", cb)
+        time.sleep(0.3)
+      print(f"イククル:{name} {label} 削除チェック（{oname}）")
+      checked += 1
     except Exception as e:
       print(f"イククル:{name} {label} チェックボックス操作エラー: {e}")
   if checked > 0:
@@ -637,11 +653,11 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
       time.sleep(random.uniform(1.5, 2.5))
       msg = return_foot_message.replace("{name}", opponent_name) if opponent_name else return_foot_message
       sent = _send_message_on_profile(driver, wait, msg, name, "足跡返し", opponent_name, image_path)
-      if sent:
+      if sent is True:
         rf_cnt += 1
         print(f"イククル:{name} 足跡返しメッセージ送信 {rf_cnt}件")
-      else:
-        # 送信失敗（履歴ありスキップ含む）→ 削除対象に追加
+      elif sent == 'history':
+        # 既送信あり → リスト画面に戻って削除対象に追加
         history_delete_targets.append((href, opponent_name, age))
     except Exception as e:
       print(f"イククル:{name} 足跡返しエラー: {e}")
@@ -692,7 +708,7 @@ def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
         print(f"イククル:{name} タイプ返し（{opponent_name} {age}歳）")
       # タイプ済み・未問わずfst送信
       sent = _send_message_on_profile(driver, wait, msg, name, "fst", opponent_name, image_path)
-      if sent:
+      if sent is True:
         type_cnt += 1
         print(f"イククル:{name} fst送信 {type_cnt}件（{opponent_name}）")
     except Exception as e:
