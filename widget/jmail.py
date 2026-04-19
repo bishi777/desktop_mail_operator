@@ -1764,14 +1764,10 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   # 年齢: 18-34
   _check_ids(['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4'], '年齢')
 
-  # 身長: 170cm以上（6=170-174, 7=175-179, 8=180+）
-  _check_ids(['CheckHeight6', 'CheckHeight7', 'CheckHeight8'], '身長')
-
-  # 体型: 細身/キモチ細身/標準/細マッチョ/ガッチリ
+  # 身長: 169cm以下すべて
   _check_ids(
-    ['CheckFigureStyle1', 'CheckFigureStyle2', 'CheckFigureStyle3',
-     'CheckFigureStyle4', 'CheckFigureStyle5'],
-    '体型'
+    ['CheckHeight1', 'CheckHeight2', 'CheckHeight3', 'CheckHeight4', 'CheckHeight5'],
+    '身長'
   )
 
   # 写真あり
@@ -1780,23 +1776,56 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   # リッチ度★★★以上
   _check_ids(['o01'], 'リッチ度')
 
-  # 地域（居住地accordionを開いて東京or神奈川をランダム）
+  # 地域: 東京固定 + もう1つを 神奈川/千葉/埼玉/静岡/栃木/群馬 からランダム
   _open_accordion('accordion03')
-  area_id = random.choice(['CheckState-8', 'CheckState-9'])
-  _check_ids([area_id], '地域')
+  # サーバーが前回検索条件を保持してるので、まず全stateチェックを外す
+  state_cbs = driver.find_elements(By.CSS_SELECTOR, "input[type='checkbox'][name='state']")
+  for scb in state_cbs:
+    if scb.is_selected():
+      driver.execute_script('arguments[0].click();', scb)
+      time.sleep(0.1)
+  extra_area_id = random.choice([
+    'CheckState-9',   # 神奈川
+    'CheckState-10',  # 千葉
+    'CheckState-11',  # 埼玉
+    'CheckState-24',  # 静岡
+    'CheckState-14',  # 栃木
+    'CheckState-13',  # 群馬
+  ])
+  _check_ids(['CheckState-8', extra_area_id], '地域')
 
-  # 職業: 会社員/役員/自営業/公務員/IT/金融/不動産/医師/法律/クリエイティブ
-  _open_accordion('accordion06')
+  # ルックス: かわいい系/癒し系/カジュアル系/スーツ系/オタ系/お笑い系
+  _open_accordion('accordion04')
   _check_ids(
-    ['CheckOccupation1', 'CheckOccupation2', 'CheckOccupation3', 'CheckOccupation4',
-     'CheckOccupation27', 'CheckOccupation29', 'CheckOccupation30',
-     'CheckOccupation15', 'CheckOccupation31', 'CheckOccupation25'],
+    ['CheckLooksType1', 'CheckLooksType4', 'CheckLooksType6',
+     'CheckLooksType16', 'CheckLooksType17', 'CheckLooksType18'],
+    'ルックス'
+  )
+
+  # 性格: やさしい/明るい/甘えん坊/穏やか/さびしがり/奥手/真面目
+  _open_accordion('accordion05')
+  _check_ids(
+    ['CheckCharacter1', 'CheckCharacter2', 'CheckCharacter5', 'CheckCharacter6',
+     'CheckCharacter7', 'CheckCharacter10', 'CheckCharacter11'],
+    '性格'
+  )
+
+  # 職業: 役員・事業経営(2)/夜職(14)/美容関連(19)/法律関係(31)/モデル(33) 以外
+  _open_accordion('accordion06')
+  _occupation_exclude = {2, 14, 19, 31, 33}
+  _check_ids(
+    [f'CheckOccupation{n}' for n in range(1, 38) if n not in _occupation_exclude],
     '職業'
   )
 
-  # 目的: 恋愛/婚活/恋人探し
+  # 興味あること: 合コン(10)/カラオケ(14)/ギャンブル(15)/テレH・メールH(19)/
+  # 不倫・浮気(22)/SM(24)/特殊プレイ(25)/写真・動画(27) 以外
   _open_accordion('accordion07')
-  _check_ids(['CheckPurpose0', 'CheckPurpose1', 'CheckPurpose3'], '目的')
+  _purpose_exclude = {10, 14, 15, 19, 22, 24, 25, 27}
+  _check_ids(
+    [f'CheckPurpose{n}' for n in range(0, 28) if n not in _purpose_exclude],
+    '目的'
+  )
 
   # 検索実行
   driver.execute_script('window.scrollBy(0, 300);')

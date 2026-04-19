@@ -55,29 +55,52 @@ def main():
       time.sleep(0.6)
 
   _check_ids(['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4'], '年齢')
-  _check_ids(['CheckHeight6', 'CheckHeight7', 'CheckHeight8'], '身長')
   _check_ids(
-    ['CheckFigureStyle1', 'CheckFigureStyle2', 'CheckFigureStyle3',
-     'CheckFigureStyle4', 'CheckFigureStyle5'],
-    '体型'
+    ['CheckHeight1', 'CheckHeight2', 'CheckHeight3', 'CheckHeight4', 'CheckHeight5'],
+    '身長'
   )
   _check_ids(['f01'], '写真あり')
   _check_ids(['o01'], 'リッチ度')
 
   _open_accordion('accordion03')
-  area_id = random.choice(['CheckState-8', 'CheckState-9'])
-  _check_ids([area_id], '地域')
+  state_cbs = driver.find_elements(By.CSS_SELECTOR, "input[type='checkbox'][name='state']")
+  for scb in state_cbs:
+    if scb.is_selected():
+      driver.execute_script('arguments[0].click();', scb)
+      time.sleep(0.1)
+  extra_area_id = random.choice([
+    'CheckState-9', 'CheckState-10', 'CheckState-11',
+    'CheckState-24', 'CheckState-14', 'CheckState-13',
+  ])
+  _check_ids(['CheckState-8', extra_area_id], '地域')
+
+  _open_accordion('accordion04')
+  _check_ids(
+    ['CheckLooksType1', 'CheckLooksType4', 'CheckLooksType6',
+     'CheckLooksType16', 'CheckLooksType17', 'CheckLooksType18'],
+    'ルックス'
+  )
+
+  _open_accordion('accordion05')
+  _check_ids(
+    ['CheckCharacter1', 'CheckCharacter2', 'CheckCharacter5', 'CheckCharacter6',
+     'CheckCharacter7', 'CheckCharacter10', 'CheckCharacter11'],
+    '性格'
+  )
 
   _open_accordion('accordion06')
+  _occupation_exclude = {2, 14, 19, 31, 33}
   _check_ids(
-    ['CheckOccupation1', 'CheckOccupation2', 'CheckOccupation3', 'CheckOccupation4',
-     'CheckOccupation27', 'CheckOccupation29', 'CheckOccupation30',
-     'CheckOccupation15', 'CheckOccupation31', 'CheckOccupation25'],
+    [f'CheckOccupation{n}' for n in range(1, 38) if n not in _occupation_exclude],
     '職業'
   )
 
   _open_accordion('accordion07')
-  _check_ids(['CheckPurpose0', 'CheckPurpose1', 'CheckPurpose3'], '目的')
+  _purpose_exclude = {10, 14, 15, 19, 22, 24, 25, 27}
+  _check_ids(
+    [f'CheckPurpose{n}' for n in range(0, 28) if n not in _purpose_exclude],
+    '目的'
+  )
 
   print("\n===== 最終的にselected=Trueなcheckbox一覧 =====")
   all_cbs = driver.find_elements(By.CSS_SELECTOR, "input[type='checkbox']")
