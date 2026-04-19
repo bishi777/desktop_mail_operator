@@ -1739,26 +1739,64 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
 
-  # 年齢チェック（18-21, 22-25, 26-29, 30-34）— checkbox input に直接JSクリック
-  for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4']:
-    cbs = driver.find_elements(By.ID, age_id)
-    if cbs and not cbs[0].is_selected():
-      driver.execute_script('arguments[0].click();', cbs[0])
-      time.sleep(0.3)
+  def _check_ids(ids, label_for_log=None):
+    """checkbox idリストをすべて選択。すでに選択済みならスキップ。"""
+    selected_values = []
+    for cid in ids:
+      cbs = driver.find_elements(By.ID, cid)
+      if not cbs:
+        continue
+      cb = cbs[0]
+      if not cb.is_selected():
+        driver.execute_script('arguments[0].click();', cb)
+        time.sleep(0.2)
+      if cb.is_selected():
+        selected_values.append(cb.get_attribute('value'))
+    if label_for_log and selected_values:
+      print(f"  [{name}] {label_for_log}: {selected_values}")
 
-  # 地域チェック（東京or神奈川をランダム）
-  # 居住地accordionを開く
-  accordion03 = driver.find_elements(By.ID, 'accordion03')
-  if accordion03:
-    driver.execute_script('arguments[0].click();', accordion03[0])
-    time.sleep(1)
+  def _open_accordion(acc_id):
+    els = driver.find_elements(By.ID, acc_id)
+    if els:
+      driver.execute_script('arguments[0].click();', els[0])
+      time.sleep(0.6)
 
+  # 年齢: 18-34
+  _check_ids(['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4'], '年齢')
+
+  # 身長: 170cm以上（6=170-174, 7=175-179, 8=180+）
+  _check_ids(['CheckHeight6', 'CheckHeight7', 'CheckHeight8'], '身長')
+
+  # 体型: 細身/キモチ細身/標準/細マッチョ/ガッチリ
+  _check_ids(
+    ['CheckFigureStyle1', 'CheckFigureStyle2', 'CheckFigureStyle3',
+     'CheckFigureStyle4', 'CheckFigureStyle5'],
+    '体型'
+  )
+
+  # 写真あり
+  _check_ids(['f01'], '写真あり')
+
+  # リッチ度★★★以上
+  _check_ids(['o01'], 'リッチ度')
+
+  # 地域（居住地accordionを開いて東京or神奈川をランダム）
+  _open_accordion('accordion03')
   area_id = random.choice(['CheckState-8', 'CheckState-9'])
-  area_cbs = driver.find_elements(By.ID, area_id)
-  if area_cbs and not area_cbs[0].is_selected():
-    driver.execute_script('arguments[0].click();', area_cbs[0])
-    time.sleep(0.5)
-    print(f"  [{name}] 地域選択: {area_cbs[0].get_attribute('value')} (selected={area_cbs[0].is_selected()})")
+  _check_ids([area_id], '地域')
+
+  # 職業: 会社員/役員/自営業/公務員/IT/金融/不動産/医師/法律/クリエイティブ
+  _open_accordion('accordion06')
+  _check_ids(
+    ['CheckOccupation1', 'CheckOccupation2', 'CheckOccupation3', 'CheckOccupation4',
+     'CheckOccupation27', 'CheckOccupation29', 'CheckOccupation30',
+     'CheckOccupation15', 'CheckOccupation31', 'CheckOccupation25'],
+    '職業'
+  )
+
+  # 目的: 恋愛/婚活/恋人探し
+  _open_accordion('accordion07')
+  _check_ids(['CheckPurpose0', 'CheckPurpose1', 'CheckPurpose3'], '目的')
 
   # 検索実行
   driver.execute_script('window.scrollBy(0, 300);')
