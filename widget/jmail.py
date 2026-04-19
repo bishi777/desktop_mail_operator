@@ -1659,6 +1659,63 @@ def _analyze_jmail_image(image_url, cookies_dict=None):
     return 0, f'(画像解析エラー: {e})'
 
 
+def _analyze_jmail_profile_text(profile_text):
+  """
+  Claude APIで自己PRテキストを解析し、-10〜10点のスコアを返す。
+  評価基準は画像解析と同じ（落ち着き・真面目・インドア派=高、派手・SNS慣れ=低）。
+  戻り値: (score: int, reason: str)
+  """
+  import anthropic
+  import os
+  import re
+
+  if not profile_text or len(profile_text.strip()) < 10:
+    return 0, '(自己PR短すぎスキップ)'
+
+  api_key = os.environ.get('ANTHROPIC_API_KEY', '')
+  if not api_key:
+    try:
+      import settings
+      api_key = getattr(settings, 'anthropic_api_key', '')
+    except Exception:
+      pass
+  if not api_key:
+    return 0, '(APIキー未設定のためスキップ)'
+
+  try:
+    client = anthropic.Anthropic(api_key=api_key)
+    message = client.messages.create(
+      model='claude-haiku-4-5-20251001',
+      max_tokens=256,
+      messages=[{
+        'role': 'user',
+        'content': [{
+          'type': 'text',
+          'text': (
+            '以下は出会い系サイトの男性プロフィール自己PRです。'
+            '文面から受ける印象を -10〜10点で評価してください。\n'
+            '評価基準:\n'
+            '・落ち着いた雰囲気・誠実で真面目な印象・穏やかな文体: 高スコア\n'
+            '・趣味に没頭している・インドア派な印象: 高スコア\n'
+            '・派手・社交的・アクティブでチャラい印象: 低スコア（マイナスも可）\n'
+            '・遊び目的・SNS慣れしている印象・露骨な性目的: 低スコア\n\n'
+            f'自己PR:\n{profile_text[:1500]}\n\n'
+            '必ず以下の形式のみで答えてください（説明不要）:\n'
+            'SCORE:数字 REASON:一言理由'
+          ),
+        }],
+      }],
+    )
+    text = message.content[0].text.strip()
+    m = re.search(r'SCORE:(-?\d+)\s+REASON:(.+)', text)
+    if m:
+      return int(m.group(1)), m.group(2).strip()
+    return 0, f'(解析結果: {text[:50]})'
+
+  except Exception as e:
+    return 0, f'(テキスト解析エラー: {e})'
+
+
 def _score_jmail_user(profile_text, age_text):
   """
   プロフィールテキストと年齢からスコアを計算する。
@@ -1680,11 +1737,11 @@ def _score_jmail_user(profile_text, age_text):
 
   # 職業スコア（プロフテキストから）
   job_scores = {
-    "大学生": 2, "院生": 2,
-    "会社員": 4, "フリーランス": 2, "公務員": 5,
-    "看護師": 5, "医療": 5,
-    "アパレル": 1, "飲食": 2,
-    "夜職": -10, "風俗": -20,
+    "大学生": 0, "院生": 0,
+    "会社員": 2, "フリーランス": 1, "公務員": 2,
+    "看護師": 3, "医療": 3,
+    "アパレル": 0, "飲食": 2,
+    "夜職": -5, "風俗": -5,
   }
   for job, jscore in job_scores.items():
     if job in profile_text:
@@ -1698,6 +1755,12 @@ def _score_jmail_user(profile_text, age_text):
     if ng in profile_text:
       score -= 50
       reasons.append(f"NG:{ng}")
+
+  # 自己PR内容をClaudeで雰囲気評価（画像と同じ基準）
+  pr_score, pr_reason = _analyze_jmail_profile_text(profile_text)
+  if pr_score != 0:
+    score += pr_score
+    reasons.append(f"自己PR{pr_score:+d}({pr_reason})")
 
   return score, reasons
 
