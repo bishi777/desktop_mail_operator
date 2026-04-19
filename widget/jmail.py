@@ -26,6 +26,23 @@ from selenium.common.exceptions import StaleElementReferenceException
 import uuid
 from PIL import Image
 
+
+def _encode_for_sjis_form(text):
+  """Shift_JIS(CP932)で表現できない文字（絵文字など）をHTML数値参照に変換。
+  Jmailの送信フォームはSJIS encoding のため、絵文字はそのままでは'?'に化ける。
+  &#N; で送ればサーバ側で保持され、表示時に絵文字として描画される。"""
+  if not text:
+    return text
+  out = []
+  for ch in text:
+    try:
+      ch.encode('cp932')
+      out.append(ch)
+    except UnicodeEncodeError:
+      out.append(f'&#{ord(ch)};')
+  return ''.join(out)
+
+
 def catch_warning(driver, wait):
   loader = driver.find_elements(By.ID, value="loader")
   if len(loader):
@@ -1722,31 +1739,26 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
 
-  # 年齢チェック（18-21, 22-25, 26-29）
+  # 年齢チェック（18-21, 22-25, 26-29, 30-34）— checkbox input に直接JSクリック
   for age_id in ['CheckAge1', 'CheckAge2', 'CheckAge3', 'CheckAge4']:
-    els = driver.find_elements(By.XPATH, f'//label[@for="{age_id}"]')
-    if els and els[0].is_displayed() and 'rgba(0, 0, 0, 0)' in els[0].value_of_css_property('background-color'):
-      driver.execute_script('arguments[0].click();', els[0])
-      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    cbs = driver.find_elements(By.ID, age_id)
+    if cbs and not cbs[0].is_selected():
+      driver.execute_script('arguments[0].click();', cbs[0])
+      time.sleep(0.3)
 
   # 地域チェック（東京or神奈川をランダム）
+  # 居住地accordionを開く
   accordion03 = driver.find_elements(By.ID, 'accordion03')
   if accordion03:
-    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', accordion03[0])
-    time.sleep(0.5)
     driver.execute_script('arguments[0].click();', accordion03[0])
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.5)
+    time.sleep(1)
 
   area_id = random.choice(['CheckState-8', 'CheckState-9'])
-  area_label = driver.find_elements(By.XPATH, f'//label[@for="{area_id}"]')
-  if area_label:
-    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', area_label[0])
+  area_cbs = driver.find_elements(By.ID, area_id)
+  if area_cbs and not area_cbs[0].is_selected():
+    driver.execute_script('arguments[0].click();', area_cbs[0])
     time.sleep(0.5)
-    if area_label[0].is_displayed() and 'rgba(0, 0, 0, 0)' in area_label[0].value_of_css_property('background-color'):
-      driver.execute_script('arguments[0].click();', area_label[0])
-      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.5)
+    print(f"  [{name}] 地域選択: {area_cbs[0].get_attribute('value')} (selected={area_cbs[0].is_selected()})")
 
   # 検索実行
   driver.execute_script('window.scrollBy(0, 300);')
@@ -1890,6 +1902,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
       print(f"  [{name}] テキストエリアが見つかりません")
       return None, submitted_users
     message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
+    message = _encode_for_sjis_form(message)
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', textarea[0])
     driver.execute_script(
       'arguments[0].value = arguments[1];'
