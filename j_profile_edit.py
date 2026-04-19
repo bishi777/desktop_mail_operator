@@ -25,11 +25,11 @@ def find_matching_tab(driver, wait, login_id):
       driver.switch_to.window(handle)
       if 'mintj.com' not in driver.current_url:
         continue
-      driver.get('https://mintj.com/msm/mypage/')
+      driver.get('https://mintj.com/msm/mainmenu/M.aspx?sid=&pn=51')
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       body_text = driver.find_element(By.TAG_NAME, 'body').text
-      match = re.search(r'会員ID[\s::]*([0-9A-Za-z\-_]+)', body_text)
+      match = re.search(r'会員ID[\s【\[:：]+(\d+)', body_text)
       page_id = match.group(1).strip() if match else ''
       print(f'  タブ確認: 会員ID={page_id}')
       if page_id == str(login_id):

@@ -1544,15 +1544,27 @@ def profile_edit(chara_data, driver, wait):
   if nick:
     driver.get('https://mintj.com/msm/MyProf/EditNickName/')
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.8)
+    time.sleep(1)
     nick_input = driver.find_element(By.NAME, 'EditedNickNameText')
-    driver.execute_script('arguments[0].value = "";', nick_input)
-    nick_input.send_keys(nick)
+    # JSで直接value設定 + input/changeイベント発火
+    driver.execute_script("""
+      var el = arguments[0]; el.value = arguments[1];
+      el.dispatchEvent(new Event('input', {bubbles: true}));
+      el.dispatchEvent(new Event('change', {bubbles: true}));
+    """, nick_input, nick)
+    # submitボタンまでスクロール + native click
     submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[value="決定する"]')
-    driver.execute_script('arguments[0].click();', submit_btn)
+    driver.execute_script('arguments[0].scrollIntoView({block:"center"});', submit_btn)
+    time.sleep(0.5)
+    # form submit を直接呼ぶ（action="#"でもmethod=postならサーバに送信される）
+    driver.execute_script('arguments[0].closest("form").submit();', submit_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(0.8)
-    print(f"  ニックネーム設定完了: {nick}")
+    time.sleep(2)
+    # リダイレクト先URLで成否判定
+    if 'EditNickName' not in driver.current_url:
+      print(f"  ニックネーム設定完了: {nick}")
+    else:
+      print(f"  ⚠️ ニックネーム送信後にEditNickNameに残留: {driver.current_url}")
 
   # ===== 3. 自己PR =====
   self_pr = chara_data.get('self_promotion')

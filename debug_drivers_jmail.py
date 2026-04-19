@@ -192,13 +192,14 @@ def main_syori():
       except Exception as e:
         print(f"❌ {name} check_mailエラー: {e}")
         traceback.print_exc()
-        continue
+        # check_mail失敗でもfst送信処理は継続
 
       print(f"ループ回数: {loop_cnt}")
 
-      # 2. fst送信判定（1日おき・時間帯別・キャラごとにずらす）
+      # 2. fst送信判定（1日おき・時間帯別・各キャラそのスロット1回）
       time_slot = _get_fst_time_slot(now.hour)
       should_send_fst = False
+      print(f"  [{name}] fst判定 hour={now.hour} slot={time_slot} send_day={_is_send_day(send_on)} sent_today={fst_sent_today.get(name, {})}")
       if _is_send_day(send_on) and time_slot:
         if name not in fst_sent_today:
           fst_sent_today[name] = {}
@@ -206,12 +207,7 @@ def main_syori():
           if fst_sent_today[name][slot] != today_str:
             del fst_sent_today[name][slot]
         if time_slot not in fst_sent_today[name]:
-          already_sent_count = sum(
-            1 for n, slots in fst_sent_today.items()
-            if time_slot in slots and slots[time_slot] == today_str
-          )
-          if already_sent_count == chara_idx:
-            should_send_fst = True
+          should_send_fst = True
 
       if should_send_fst:
         try:
