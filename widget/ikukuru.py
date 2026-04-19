@@ -401,8 +401,9 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
             break
         check_sent_text_1 = "お相手がメッセージを送信されてから3日間以上経過している為、送信ポイントは付きません"
         check_sent_text_2 = "お返事のない方へ2通以上続けて送信した場合は送信ポイントはつきません"
-        print(popup_text[-1].text)
-        if "メッセージを送信しました" in popup_text[-1].text or check_sent_text_1 in popup_text[-1].text or check_sent_text_2 in popup_text[-1].text:
+        popup_msg = popup_text[-1].text if popup_text else ""
+        print(popup_msg)
+        if "メッセージを送信しました" in popup_msg or check_sent_text_1 in popup_msg or check_sent_text_2 in popup_msg:
           print("メッセージを送信しました")
           if len(chara_send) == 0:
             check_first += 1
@@ -413,7 +414,7 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
         else:
-          print("メッセージ送信に失敗しました")
+          print(f"メッセージ送信に失敗しました (popup={popup_msg!r})")
           time.sleep(2)
           driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
