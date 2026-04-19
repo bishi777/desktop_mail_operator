@@ -83,8 +83,17 @@ def _set_area_filter(driver, wait, area_values):
       area_btn.click()
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
-    add_btn = driver.find_element(By.XPATH, "//button[contains(text(),'地域を追加する')]")
-    add_btn.click()
+    try:
+      add_btn = WebDriverWait(driver, 5).until(
+        EC.element_to_be_clickable((By.XPATH, "//*[self::button or self::a or self::input][contains(., '地域を追加') or contains(@value,'地域を追加')]"))
+      )
+    except Exception:
+      print(f"[set_search_filter] '地域を追加する' 見つからず area_val={area_val} URL={driver.current_url}")
+      break
+    try:
+      add_btn.click()
+    except Exception:
+      driver.execute_script("arguments[0].click();", add_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     pref_name = PREF_NAMES[area_val]
@@ -379,10 +388,22 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
           print("second")
           send_message = second_message
         text_area = driver.find_elements(By.NAME, value="body")
+        if not text_area:
+          print("bodyテキストエリアが見つかりません スキップ")
+          driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          continue
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
         _input_text(driver, text_area[0], send_message)
         time.sleep(1)
         send_button = driver.find_elements(By.ID, value="sendButton")
+        if not send_button:
+          print("sendButtonが見つかりません スキップ")
+          driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          continue
         send_button[0].click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
@@ -604,23 +625,51 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
       print(f"イククル:{name} {label} チェックボックス操作エラー: {e}")
   if checked > 0:
     try:
-      # deleteButtonクリック → モーダル表示 → #delete フォームsubmit
+      # 「チェックを削除」ボタンを複数候補で探す
       del_btn = driver.find_elements(By.ID, "deleteButton")
-      if del_btn:
+      if not del_btn:
+        del_btn = driver.find_elements(
+          By.XPATH,
+          "//button[contains(., 'チェックを削除')] | //input[@type='submit' and (contains(@value,'チェックを削除') or contains(@value,'削除'))] | //a[contains(., 'チェックを削除')]"
+        )
+      if not del_btn:
+        print(f"イククル:{name} {label} 「チェックを削除」ボタン見つからず")
+        return checked
+
+      driver.execute_script("arguments[0].scrollIntoView({block:'center'});", del_btn[0])
+      time.sleep(0.3)
+      try:
         del_btn[0].click()
-        time.sleep(1)
-        # モーダル内の#submitBtnをクリック
-        submit_btn = driver.find_elements(By.ID, "submitBtn")
-        if submit_btn:
+      except Exception:
+        driver.execute_script("arguments[0].click();", del_btn[0])
+      time.sleep(1.5)
+
+      # 確認モーダル/ページの submitBtn or 「削除する」ボタンをクリック
+      submit_btn = driver.find_elements(By.ID, "submitBtn")
+      if not submit_btn:
+        submit_btn = driver.find_elements(
+          By.XPATH,
+          "//button[contains(., '削除する') or contains(., 'OK') or contains(., 'はい')] | //input[@type='submit' and (contains(@value,'削除する') or contains(@value,'OK') or contains(@value,'はい'))]"
+        )
+      if submit_btn:
+        try:
           submit_btn[0].click()
-        else:
-          # フォールバック: フォームを直接submit
-          driver.execute_script('var f = document.getElementById("delete"); if(f) f.submit();')
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-        print(f"イククル:{name} {label} {checked}件削除")
+        except Exception:
+          driver.execute_script("arguments[0].click();", submit_btn[0])
+      else:
+        # フォールバック: 削除フォームを直接submit
+        submitted = driver.execute_script(
+          'var f = document.getElementById("delete"); if(f){f.submit(); return true;} return false;'
+        )
+        if not submitted:
+          print(f"イククル:{name} {label} 削除確認ボタン見つからず")
+          return checked
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      print(f"イククル:{name} {label} {checked}件削除完了")
     except Exception as e:
       print(f"イククル:{name} {label} 削除ボタンエラー: {e}")
+      traceback.print_exc()
   return checked
 
 def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=""):
@@ -669,29 +718,35 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
   return rf_cnt
 
 def return_type(driver, wait, fst_message, name, send_cnt=1, chara_image=""):
-  """タイプリスト 36〜59歳は削除(最大4人/回)・5人目以降スキップ、35歳以下と60歳以上はタイプ返し"""
+  """タイプリスト 36〜59歳はタイプ返しのみ、35歳以下と60歳以上はタイプ返し+fst送信"""
   TYPE_LIST_URL   = "https://pc.194964.com/sns/snstype/show_typed_list.html"
   MUTUAL_LIST_URL = "https://pc.194964.com/sns/snstype/show_mutual_list.html"
   type_cnt = 0
   image_path = _prepare_chara_image(name, chara_image)
 
-  # --- Step1: タイプリスト → 36〜59歳はチェックして削除、それ以外にタイプを返す ---
+  # --- タイプリストからユーザー処理 ---
   items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
   print(f"イククル:{name} タイプリスト {len(items)}件")
 
-  # 39〜59歳をリスト画面上でチェック→削除（1ループ最大4人）
-  MAX_DELETE = 4
-  delete_targets = [(href, oname, a) for href, oname, a in items if a is not None and 39 <= a <= 59]
-  if delete_targets:
-    _delete_checked_on_list(driver, wait, TYPE_LIST_URL, delete_targets, name, "タイプ", MAX_DELETE)
-    items = _collect_profile_links(driver, wait, TYPE_LIST_URL)
-
   skip_over34 = 0
   for href, opponent_name, age in items:
-    # 36〜59歳はスキップ（削除上限超過分）
+    # 36〜59歳はプロフィールページでタイプだけ返す（fst送信はしない）
     if age is not None and 36 <= age <= 59:
       skip_over34 += 1
-      print(f"イククル:{name} タイプ返しスキップ（{opponent_name} {age}歳）")
+      try:
+        driver.get(href)
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(random.uniform(1.5, 2.5))
+        type_on_inner = driver.find_elements(By.CSS_SELECTOR, '[id^="btn-type-on"] .footer-btn-item-txt[onclick]')
+        if type_on_inner:
+          onclick_val = type_on_inner[0].get_attribute('onclick')
+          driver.execute_script(onclick_val)
+          time.sleep(2)
+          print(f"イククル:{name} タイプ返しのみ（{opponent_name} {age}歳）")
+        else:
+          print(f"イククル:{name} タイプ返し対象外 タイプ済み（{opponent_name} {age}歳）")
+      except Exception as e:
+        print(f"イククル:{name} タイプ返し（36-59歳）エラー: {e}")
       continue
     try:
       driver.get(href)
