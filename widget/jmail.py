@@ -1836,9 +1836,6 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   # 写真あり
   _check_ids(['f01'], '写真あり')
 
-  # リッチ度★★★以上
-  _check_ids(['o01'], 'リッチ度')
-
   # 地域: 東京固定 + もう1つを 神奈川/千葉/埼玉/静岡/栃木/群馬 からランダム
   _open_accordion('accordion03')
   # サーバーが前回検索条件を保持してるので、まず全stateチェックを外す
