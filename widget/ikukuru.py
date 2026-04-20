@@ -379,8 +379,23 @@ def check_mail(driver, wait, ikukuru_data, gmail_account, gmail_account_password
           user_name = driver.find_elements(By.CLASS_NAME, value="w60")
           user_name = user_name[0].text
           print(user_name)
-          return_message = f"{user_name}イククル,{login_address}:{login_password}\n{user_name}「{received_mail}」"
-          return_list.append(return_message)
+          chara_name = ikukuru_data.get("name", "")
+          return_message = f"{chara_name}イククル,{login_address}:{login_password}\n{user_name}「{received_mail}」"
+          try:
+            func.send_mail(
+              return_message,
+              [recieve_mailaddress, gmail_account, gmail_account_password],
+              f"イククル新着{chara_name}",
+            )
+            print("通知メールを送信しました")
+          except Exception as e:
+            print(f"{chara_name} 通知メールの送信に失敗しました: {e}")
+            traceback.print_exc()
+          driver.get("https://pc.194964.com/mail/inbox/show_mailbox.html")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          users_list = driver.find_elements(By.CLASS_NAME, value="bgMiddle")
+          continue
         elif len(chara_send) == 0: #fst
           send_message = fst_message
           print("fst")

@@ -1288,7 +1288,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           print(f"{user_name}に2ndメールを送信しました")
           check_second += 1
         else:
-          # print("やり取り中")
+          print("やり取り中")
 
           messages = driver.find_element(By.CLASS_NAME, "bggray").text
           return_message = f"{name}pcmax,{login_id}:{login_pass}\n{messages}」"
