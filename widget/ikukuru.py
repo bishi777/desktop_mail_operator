@@ -537,9 +537,12 @@ def _send_message_on_profile(driver, wait, message, name, label, opponent_name="
     w60_els = driver.find_elements(By.CLASS_NAME, value="w60")
     if w60_els:
       opponent_name = w60_els[0].text.strip()
-  # {name} プレースホルダーを相手の名前に置換
+  # {name} プレースホルダーを相手の名前に置換。未置換のまま残ったら送信中止
   if opponent_name:
     message = message.replace("{name}", opponent_name)
+  if "{name}" in message:
+    print(f"イククル:{name} {label} ❌ {{name}}プレースホルダ未置換のため送信スキップ")
+    return False
   # 既送信チェック（bubble_owner が存在 = すでにメッセージ送信済み）
   already_sent = driver.find_elements(By.CLASS_NAME, value="bubble_owner")
   if already_sent:

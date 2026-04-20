@@ -381,6 +381,15 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
             image_filename = ""
         
         if send_message:
+          # {name}プレースホルダを相手名で置換。置換できず{name}が残る場合は送信スキップ
+          if "{name}" in send_message:
+            if interacting_user_name:
+              send_message = send_message.replace("{name}", interacting_user_name)
+            if "{name}" in send_message:
+              print(f"[{name}] ❌ {{name}}プレースホルダ未置換のため送信スキップ（相手名未取得）")
+              send_message = ""
+        if send_message:
+          send_message = _encode_for_sjis_form(send_message)
           # 返信するをクリック
           res_do = driver.find_elements(By.CLASS_NAME, value="color_variations_05")
           res_do[1].click()
@@ -391,7 +400,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area[0], send_message)
           time.sleep(4)
-          # 画像があれば送信 
+          # 画像があれば送信
           if image_path:
             img_input = driver.find_elements(By.NAME, value="image1")
             img_input[0].send_keys(image_path)
@@ -2028,7 +2037,16 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     if not textarea:
       print(f"  [{name}] テキストエリアが見つかりません")
       return None, submitted_users
-    message = fst_message.format(name=best['name']) if '{name}' in fst_message else fst_message
+    if '{name}' in fst_message:
+      if best.get('name'):
+        message = fst_message.replace('{name}', best['name'])
+      else:
+        message = fst_message
+      if '{name}' in message:
+        print(f"  [{name}] ❌ {{name}}プレースホルダ未置換のため送信スキップ")
+        return None, submitted_users
+    else:
+      message = fst_message
     message = _encode_for_sjis_form(message)
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', textarea[0])
     driver.execute_script(
