@@ -83,12 +83,35 @@ def _set_area_filter(driver, wait, area_values):
       area_btn.click()
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1.5)
-    try:
-      add_btn = WebDriverWait(driver, 5).until(
-        EC.element_to_be_clickable((By.XPATH, "//*[self::button or self::a or self::input][contains(., '地域を追加') or contains(@value,'地域を追加')]"))
-      )
-    except Exception:
-      print(f"[set_search_filter] '地域を追加する' 見つからず area_val={area_val} URL={driver.current_url}")
+    add_btn = None
+    for xp in (
+      "//*[self::button or self::a or self::input][contains(., '地域を追加') or contains(@value,'地域を追加')]",
+      "//*[contains(., '地域を追加')]",
+      "//a[contains(@href,'add_area') or contains(@href,'selected_area')]",
+    ):
+      try:
+        add_btn = WebDriverWait(driver, 3).until(
+          EC.element_to_be_clickable((By.XPATH, xp))
+        )
+        if add_btn:
+          break
+      except Exception:
+        continue
+    if add_btn is None:
+      # 3件上限で追加ボタンが出ない可能性大。既存を明示的に解除して再挑戦
+      print(f"[set_search_filter] '地域を追加する' 見つからず area_val={area_val} URL={driver.current_url} → 既存解除を再試行")
+      try:
+        sel_boxes = driver.find_elements(By.CSS_SELECTOR, "input[name='prefAndCity[]'], input[name='selectedPrefAndCity[]']")
+        for cb in sel_boxes:
+          if not cb.is_selected():
+            driver.execute_script("arguments[0].click();", cb)
+        del_links = driver.find_elements(By.XPATH, "//*[contains(text(),'チェックを削除') or contains(text(),'削除する') or contains(text(),'クリア')]")
+        if del_links:
+          driver.execute_script("arguments[0].click();", del_links[0])
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+      except Exception as re_e:
+        print(f"  既存解除失敗: {re_e}")
       break
     try:
       add_btn.click()
@@ -177,10 +200,16 @@ def set_search_filter(driver, wait, filters=None):
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
 
-  # 地域フィルター: 東京固定 + ランダム2件
-  extra_areas = random.sample([v for k, v in _AREA_POOL.items() if k != "東京都"], 2)
+  # 地域フィルター: 東京固定 + ランダム1件
+  extra_areas = random.sample([v for k, v in _AREA_POOL.items() if k != "東京都"], 1)
   area_values = [_AREA_POOL["東京都"]] + extra_areas
   _set_area_filter(driver, wait, area_values)
+
+  # _set_area_filterが失敗して別ページに残る場合に備え、検索ページへ戻す
+  if "show_profile_search.html" not in driver.current_url:
+    driver.get("https://pc.194964.com/profile/profilesearch/show_profile_search.html")
+    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    time.sleep(wait_time)
 
   # ランダムフィルター生成
   random_filters = {
