@@ -39,17 +39,19 @@ def get_bbs_slot(hour):
   return None
 
 
-def parse_port():
+def parse_args():
   p = argparse.ArgumentParser()
   p.add_argument("port", nargs="?", type=int, help="remote debugging port")
+  p.add_argument("chara", nargs="?", type=str, help="対象キャラ名（指定時はそのタブのみ実行）")
   args = p.parse_args()
-  if args.port is not None:
-    return args.port
-  return getattr(settings, "ikukuru_port", None)
+  port = args.port if args.port is not None else getattr(settings, "ikukuru_port", None)
+  return port, args.chara
 
 
 def main_syori():
-  PORT = parse_port()
+  PORT, CHARA_FILTER = parse_args()
+  if CHARA_FILTER:
+    print(f"[INFO] 対象キャラを限定: {CHARA_FILTER}")
   user_data = func.get_user_data()
   user_mail_info = [
     user_data['user'][0]['user_email'],
@@ -161,6 +163,10 @@ def main_syori():
             print(f"  再ログインエラー: {re_e}")
           continue
         name_on_ikukuru = name_elements[0].text.strip()
+        # キャラ名フィルターが指定されていれば、それ以外はスキップ
+        if CHARA_FILTER and name_on_ikukuru != CHARA_FILTER:
+          print(f"  スキップ（対象外キャラ: {name_on_ikukuru}）")
+          continue
         # タブhandle → キャラデータのマッピングを保存
         for ik in ikukuru_datas:
           if ik['name'] == name_on_ikukuru:
