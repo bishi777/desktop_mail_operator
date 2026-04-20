@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import WebDriverException
 import time
 from widget import func, ikukuru
 import settings
@@ -84,20 +85,35 @@ def main_syori():
     if now.date() != bbs_date:
       bbs_posted = {}
       bbs_date = now.date()
-    handles = driver.window_handles
+    try:
+      handles = driver.window_handles
+    except WebDriverException as e:
+      print(f"❌ タブ列挙エラー（セッション切断？）: {e}")
+      time.sleep(60)
+      continue
     print(f"タブ数:{len(handles)}")
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
 
+    net_down = False
     for idx, handle in enumerate(handles):
-      driver.switch_to.window(handle)
-      if "194964" not in driver.current_url:
-        continue
+      try:
+        driver.switch_to.window(handle)
+        if "194964" not in driver.current_url:
+          continue
 
-      # PC版メニューページに移動して状態をリセット
-      if driver.current_url != "https://pc.194964.com/menu.html":
-        driver.get("https://pc.194964.com/menu.html")
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        time.sleep(1.5)
+        # PC版メニューページに移動して状態をリセット
+        if driver.current_url != "https://pc.194964.com/menu.html":
+          driver.get("https://pc.194964.com/menu.html")
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(1.5)
+      except WebDriverException as e:
+        msg = str(e)
+        if 'ERR_INTERNET_DISCONNECTED' in msg or 'ERR_NAME_NOT_RESOLVED' in msg or 'ERR_CONNECTION' in msg:
+          print(f"⚠️ ネット切断検知 → 60秒待機して次ループへ: {msg.splitlines()[0]}")
+          net_down = True
+          break
+        print(f"❌ タブ初期化エラー（スキップ）: {msg.splitlines()[0]}")
+        continue
 
       # キャラ名取得（マイページから）
       try:
@@ -254,6 +270,10 @@ def main_syori():
               traceback.print_exc()
         else:
           send_flug = True
+
+    if net_down:
+      time.sleep(60)
+      continue
 
     elapsed_time = time.time() - start_loop_time
     wait_cnt = 0
