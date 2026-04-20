@@ -254,6 +254,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
         # 年齢を取得
         age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
         match = re.search(r"\d+～\d+", age_element.text)
+        young_flag = False
         if match:
           age_range = match.group()
           # 「～」で分割して数値に変換
@@ -264,6 +265,8 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           else:
             print("35歳以上です")
             young_flag = False
+        else:
+          print(f"年齢パース失敗（{age_element.text[:30]}）→ 35歳以上扱い")
         if young_flag:
           if interacting_user_name not in young_submitted_users:
             young_submitted_users.append(interacting_user_name)

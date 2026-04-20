@@ -102,3 +102,4 @@ happymail_port = 9224
 - スタンプ不使用キャラ（`make_chara_image.py`）: yukko / erika / tumugi
 
 あなたの作業が完了したら、Codexが出力をレビューします。
+指定された時以外は必ず日本語で答えてください。
