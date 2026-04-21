@@ -258,28 +258,33 @@ def main_syori():
                 print(f"{name}❌ 掲示板投稿エラー: {e}")
                 traceback.print_exc()
 
-        # 進捗報告
-        if now.hour in (10, 14, 18, 22):
-          if send_flug:
-            try:
-              body = func.format_progress_mail(report_dict, now)
-              func.send_mail(
-                body,
-                user_mail_info,
-                f"イククル 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
-              )
-              send_flug = False
-              report_dict = reset_metrics_keep_check_date(report_dict)
-              start_time = datetime.now()
-            except Exception as e:
-              print(f"{name}❌ 進捗報告エラー: {e}")
-              traceback.print_exc()
-        else:
-          send_flug = True
-
     if net_down:
       time.sleep(60)
       continue
+
+    # 進捗報告（全タブ処理後に1回だけ判定）
+    now = datetime.now()
+    if now.hour in (10, 14, 18, 22):
+      if send_flug:
+        try:
+          print(f"✉️ 進捗報告送信開始 hour={now.hour}")
+          body = func.format_progress_mail(report_dict, now)
+          func.send_mail(
+            body,
+            user_mail_info,
+            f"イククル 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
+          )
+          print("✉️ 進捗報告メールを送信しました")
+          send_flug = False
+          report_dict = reset_metrics_keep_check_date(report_dict)
+          start_time = datetime.now()
+        except Exception as e:
+          print(f"❌ 進捗報告エラー: {e}")
+          traceback.print_exc()
+      else:
+        print(f"[INFO] 進捗報告スキップ（send_flug=False, hour={now.hour}）")
+    else:
+      send_flug = True
 
     elapsed_time = time.time() - start_loop_time
     wait_cnt = 0
