@@ -126,41 +126,76 @@ def main_syori():
         if not name_elements:
           print("イククル: キャラ名が取得できません → 再ログイン処理開始")
           try:
-            # 再ログインリンクを探してクリック
-            relogin_links = [el for el in driver.find_elements(By.TAG_NAME, 'a') if '再ログイン' in el.text]
-            if not relogin_links:
-              driver.get('https://pc.194964.com/other/error/show_nosession.html')
-              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-              time.sleep(1)
+            cur_url = driver.current_url
+            # すでに簡単ログイン/セッションエラーページにいれば遷移不要
+            on_login_page = any(s in cur_url for s in ('show_login_easy', 'show_nosession', 'relogin'))
+            if not on_login_page:
+              # 再ログインリンクを探してクリック
               relogin_links = [el for el in driver.find_elements(By.TAG_NAME, 'a') if '再ログイン' in el.text]
-            if not relogin_links:
-              print("  再ログインリンクが見つかりません")
-              continue
-            relogin_links[0].click()
-            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5)
-            # タブマッピングからキャラを特定、なければメールアドレスで照合
+              if not relogin_links:
+                driver.get('https://pc.194964.com/other/error/show_nosession.html')
+                wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                time.sleep(1)
+                relogin_links = [el for el in driver.find_elements(By.TAG_NAME, 'a') if '再ログイン' in el.text]
+              if relogin_links:
+                relogin_links[0].click()
+                wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                time.sleep(1.5)
+            # タブマッピング → body本文メール一致 → CHARA_FILTER の順で特定
             matched_data = handle_chara_map.get(handle)
             if matched_data is None:
               body_text = driver.find_element(By.TAG_NAME, 'body').text
               for ik in ikukuru_datas:
-                if ik.get('login_mail_address', '') in body_text:
+                if ik.get('login_mail_address', '') and ik['login_mail_address'] in body_text:
                   matched_data = ik
                   break
+            if matched_data is None and CHARA_FILTER:
+              for ik in ikukuru_datas:
+                if ik['name'] == CHARA_FILTER:
+                  matched_data = ik
+                  print(f"  CHARA_FILTER から特定: {matched_data['name']}")
+                  break
             if matched_data is None:
-              print("  対象キャラを特定できません")
+              print(f"  対象キャラを特定できません URL={cur_url}")
               continue
             print(f"  対象キャラ: {matched_data['name']}")
-            pw_input = driver.find_element(By.ID, 'txtPassword')
+            # パスワード入力欄（候補を順に試す）
+            pw_input = None
+            for by, sel in [(By.ID, 'txtPassword'), (By.NAME, 'password'), (By.CSS_SELECTOR, 'input[type="password"]')]:
+              els = driver.find_elements(by, sel)
+              if els:
+                pw_input = els[0]
+                break
+            if pw_input is None:
+              print("  パスワード入力欄が見つかりません")
+              continue
             pw_input.clear()
             pw_input.send_keys(matched_data['password'])
-            submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[type="submit"], button[type="submit"]')
-            submit_btn.click()
+            # ログインボタン（候補を順に試す）
+            submit_btn = None
+            for by, sel in [
+              (By.CSS_SELECTOR, 'input[type="submit"]'),
+              (By.CSS_SELECTOR, 'button[type="submit"]'),
+              (By.XPATH, "//*[self::button or self::input][contains(., 'ログイン') or contains(@value, 'ログイン')]"),
+              (By.CSS_SELECTOR, 'button.greenButton, a.greenButton'),
+            ]:
+              els = driver.find_elements(by, sel)
+              if els:
+                submit_btn = els[0]
+                break
+            if submit_btn is None:
+              print("  ログインボタンが見つかりません")
+              continue
+            try:
+              submit_btn.click()
+            except Exception:
+              driver.execute_script("arguments[0].click();", submit_btn)
             wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
             print(f"  再ログイン完了: {matched_data['name']}")
           except Exception as re_e:
             print(f"  再ログインエラー: {re_e}")
+            traceback.print_exc()
           continue
         name_on_ikukuru = name_elements[0].text.strip()
         # キャラ名フィルターが指定されていれば、それ以外はスキップ
