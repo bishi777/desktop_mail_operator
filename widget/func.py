@@ -58,6 +58,7 @@ from google import genai
 import settings
 from google.genai.errors import ClientError
 from google.genai.types import HttpOptions
+import anthropic
 
 
 
@@ -1354,7 +1355,7 @@ def normalize_ai_text(text, name):
     return text
 
 
-def chat_ai(name, system_prompt, history, first_greeting, user_input=None, max_retry=3, ):
+def chat_ai_gemini(name, system_prompt, history, first_greeting, user_input=None, max_retry=3, ):
     client = genai.Client(
         api_key=settings.Gemini_API_KEY,
         http_options=HttpOptions(api_version="v1")
@@ -1382,7 +1383,7 @@ def chat_ai(name, system_prompt, history, first_greeting, user_input=None, max_r
     for attempt in range(1, max_retry + 1):
         try:
             response = client.models.generate_content(
-                model="gemini-2.0-flash-lite-001", 
+                model="gemini-2.0-flash-lite-001",
 
                 contents=full_prompt,  # ← 文字列のみ
             )
@@ -1403,4 +1404,57 @@ def chat_ai(name, system_prompt, history, first_greeting, user_input=None, max_r
                 raise
 
     print("❌ Gemini 429 が続いたため今回はスキップ")
+    return None, history
+
+
+def chat_ai(name, system_prompt, history, first_greeting, user_input=None, max_retry=3):
+    """Anthropic (Claude) 版の chat_ai。既存の chat_ai_gemini と同じシグネチャ。"""
+    client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+
+    if not user_input or user_input.strip() == "":
+        history.clear()
+        history.append({"role": "assistant", "text": first_greeting})
+        return first_greeting, history
+
+    # history を Anthropic 形式 (role: user/assistant, content: text) に変換
+    # Gemini履歴では "model" が assistant 相当なので変換する
+    messages = []
+    for h in history:
+        role = h.get("role", "user")
+        if role not in ("user", "assistant"):
+            role = "assistant" if role == "model" else "user"
+        messages.append({"role": role, "content": h.get("text", "")})
+    messages.append({"role": "user", "content": user_input})
+
+    sys_text = (system_prompt or "").strip() if isinstance(system_prompt, str) else ""
+
+    for attempt in range(1, max_retry + 1):
+        try:
+            response = client.messages.create(
+                model="claude-haiku-4-5-20251001",
+                max_tokens=1024,
+                system=sys_text,
+                messages=messages,
+            )
+            reply_text = response.content[0].text.strip()
+            reply_text = normalize_ai_text(reply_text, name)
+
+            history.append({"role": "user", "text": user_input})
+            history.append({"role": "assistant", "text": reply_text})
+
+            return reply_text, history
+
+        except anthropic.RateLimitError:
+            print(f"⚠️ Claude 429 (試行 {attempt}/{max_retry}) → 10秒待機")
+            time.sleep(10)
+            continue
+        except anthropic.APIStatusError as e:
+            status = getattr(e, "status_code", None)
+            if status in (429, 529):
+                print(f"⚠️ Claude {status} (試行 {attempt}/{max_retry}) → 10秒待機")
+                time.sleep(10)
+                continue
+            raise
+
+    print("❌ Claude リトライ上限到達のためスキップ")
     return None, history

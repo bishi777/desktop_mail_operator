@@ -1,4 +1,6 @@
 {
+  // "low" / "medium" / "high"（デフォルト）/ "xhigh"（Opus 4.7のみ）/ "max"
+  "effortLevel": "xhigh",
   "permissions": {
     "allow": [
       "Bash(myenv/bin/python -c \"from widget import func; data = func.get_user_data\\(\\); happy = data['happymail']; [print\\(f'{h[\\\\\"name\\\\\"]}: {h[\\\\\"login_id\\\\\"]}'\\) for h in happy]\")",

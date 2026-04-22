@@ -58,6 +58,16 @@ def main_syori():
     user_data['user'][0]['gmail_account'],
     user_data['user'][0]['gmail_account_password'],
   ]
+  spare_mail_info = [
+    "ryapya694@ruru.be",
+    "siliboco68@gmail.com",
+    "akkcxweqzdplcymh",
+  ]
+  spare_mail_info_2 = [
+    "ryapya694@ruru.be",
+    "misuzu414510@gmail.com",
+    "xdcwqbnhosxnvtbp",
+  ]
   gmail_account = user_data['user'][0]['gmail_account']
   gmail_account_password = user_data['user'][0]['gmail_account_password']
   recieve_mailaddress = user_data['user'][0]['user_email']
@@ -81,6 +91,7 @@ def main_syori():
   bbs_date = datetime.now().date()  # 日付変更検知用
 
   while True:
+    mail_info = random.choice([spare_mail_info, spare_mail_info_2])
     start_loop_time = time.time()
     now = datetime.now()
     # 日付が変わったら掲示板投稿済みをリセット
@@ -306,7 +317,7 @@ def main_syori():
           body = func.format_progress_mail(report_dict, now)
           func.send_mail(
             body,
-            user_mail_info,
+            mail_info,
             f"イククル 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
           )
           print("✉️ 進捗報告メールを送信しました")
