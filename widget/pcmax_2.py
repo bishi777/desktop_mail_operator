@@ -1874,6 +1874,16 @@ def _post_copy_with_area(driver, wait, pref_name, city_name):
   print("「地域を変えてコピー」リンクが見つかりません")
   return False
 
+def _post_multi_nearby(driver, wait, post_title, post_content, prefs, count):
+  """nearby_prefs から count 件サンプリングして地域違いで投稿する（コピー失敗時は新規投稿）"""
+  chosen = random.sample(prefs, count)
+  for chosen_pref in chosen:
+    if _go_to_post_list(driver, wait):
+      if not _post_copy_with_area(driver, wait, chosen_pref, "全域"):
+        _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
+    else:
+      _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
+
 def _go_to_post_list(driver, wait):
   """過去の書込のコピー・削除ページへ遷移する"""
   if not get_header_menu(driver, "掲示板投稿"):
@@ -1941,14 +1951,8 @@ def re_post(driver,wait, post_title, post_content):
     driver.find_element(By.ID, "wri").click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
-    print("東京投稿完了 → 近隣県に2件目を投稿します")
-    # 過去の書込ページに戻って近隣県で2件目（コピー失敗時は新規投稿）
-    chosen_pref = random.choice(nearby_prefs)
-    if _go_to_post_list(driver, wait):
-      if not _post_copy_with_area(driver, wait, chosen_pref, "全域"):
-        _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
-    else:
-      _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
+    print("東京投稿完了 → 近隣県に2件追加投稿します（合計3件）")
+    _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
     return
   elif len(list_photo) == 1:
     # ジャンルが「新人自己紹介」なら削除して新規投稿
@@ -2019,13 +2023,8 @@ def re_post(driver,wait, post_title, post_content):
       driver.find_element(By.ID, "wri").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
-      print("新人自己紹介削除→新規投稿完了 → 近隣県に2件目を投稿します")
-      chosen_pref = random.choice(nearby_prefs)
-      if _go_to_post_list(driver, wait):
-        if not _post_copy_with_area(driver, wait, chosen_pref, "全域"):
-          _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
-      else:
-        _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
+      print("新人自己紹介削除→新規投稿完了 → 近隣県に2件追加投稿します（合計3件）")
+      _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
       return
     # 30分経過しているか
     posted_date = driver.find_elements(By.CLASS_NAME, value="font_size")
@@ -2057,15 +2056,9 @@ def re_post(driver,wait, post_title, post_content):
           driver.find_element(By.ID, "wri").click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
-          print("東京投稿完了 → 近隣県に2件目を投稿します")
+          print("東京投稿完了 → 近隣県に2件追加投稿します（合計3件）")
           break
-      # 過去の書込ページに戻って近隣県で2件目（コピー失敗時は新規投稿）
-      chosen_pref = random.choice(nearby_prefs)
-      if _go_to_post_list(driver, wait):
-        if not _post_copy_with_area(driver, wait, chosen_pref, "全域"):
-          _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
-      else:
-        _post_new_with_area(driver, wait, post_title, post_content, chosen_pref, "全域")
+      _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
     else:
       print("30分経過していません")
       return
@@ -2400,6 +2393,170 @@ def make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=0):
         user_list = driver.find_elements(By.CLASS_NAME, "profile_card")
 
     print(f"{name} 新人足跡付け完了: {area} {ft_cnt}件")
+
+
+def make_footprint_keyword(name, driver, footprint_count=5, iikamo_count=0):
+  """プロフィール検索フォームで キーワード + 都道府県(東京+近隣からランダム3県=計4県)
+  + 年齢(18〜34) + 送信歴無し を設定し、「この条件で検索する」で検索。
+  結果に順に足跡付け（+いいかも）する。※サイト側の仕様で都道府県は最大4つ。"""
+  wait = WebDriverWait(driver, 10)
+  KEYWORDS = ["童貞", "未経験", "女性慣れ"]
+  # 近隣県の pref[] value: 神奈川23, 埼玉24, 千葉25, 茨城19, 栃木20, 群馬21
+  _NEARBY_PAIRS = [("23", "神奈川県"), ("24", "埼玉県"), ("25", "千葉県"),
+                   ("19", "茨城県"), ("20", "栃木県"), ("21", "群馬県")]
+  nearby_pick = random.sample(_NEARBY_PAIRS, 3)
+  TARGET_PREF_VALUES = {"22"} | {v for v, _ in nearby_pick}
+  TARGET_AREAS = {"東京都"} | {n for _, n in nearby_pick}
+  AGE_MIN, AGE_MAX = 18, 34
+  random_wait = random.uniform(3.4, 6.4)
+  keyword = random.choice(KEYWORDS)
+  print(f"{name} 対象地域: {sorted(TARGET_AREAS)} キーワード: {keyword}")
+
+  catch_warning_pop(name, driver)
+
+  # プロフィール検索フォームへ直接遷移
+  if "linkleweb" in driver.current_url:
+    driver.get("https://linkleweb.jp/mobile/profile_reference.php")
+  else:
+    driver.get("https://pcmax.jp/mobile/profile_reference.php")
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+  # 都道府県チェック（東京+近隣6県のみ）
+  for cb in driver.find_elements(By.CSS_SELECTOR, "input[name='pref[]']"):
+    v = cb.get_attribute("value")
+    want = v in TARGET_PREF_VALUES
+    if cb.is_selected() != want:
+      driver.execute_script("arguments[0].click();", cb)
+
+  # 送信歴無しをチェック
+  nt = driver.find_elements(By.CSS_SELECTOR, "input[name='no_transmit']")
+  if nt and not nt[0].is_selected():
+    driver.execute_script("arguments[0].click();", nt[0])
+
+  # 年齢範囲
+  try:
+    Select(driver.find_element(By.NAME, "from_age")).select_by_visible_text(f"{AGE_MIN}歳")
+    Select(driver.find_element(By.NAME, "to_age")).select_by_visible_text(f"{AGE_MAX}歳")
+  except Exception as e:
+    print(f"{name} 年齢設定エラー: {e}")
+
+  # キーワードを phrase 入力欄に入力
+  try:
+    phrase = driver.find_element(By.CSS_SELECTOR, "input[name='phrase']")
+    phrase.clear()
+    phrase.send_keys(keyword)
+  except Exception as e:
+    print(f"{name} キーワード入力エラー: {e}")
+
+  # 「この条件 で 検索 する」ボタンをクリック
+  clicked = False
+  for btn in driver.find_elements(By.TAG_NAME, "button"):
+    if "条件" in btn.text and "検索" in btn.text:
+      driver.execute_script("arguments[0].scrollIntoView({block:'center'});", btn)
+      time.sleep(0.4)
+      btn.click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.5)
+      clicked = True
+      break
+  if not clicked:
+    print(f"{name} ❌ 「この条件で検索する」ボタンが見つかりません")
+    return
+
+  user_list_url = driver.current_url
+  user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+  if not user_list:
+    print(f"{name} 検索結果が0件")
+    return
+
+  ft_cnt = 0
+  current_step = 0
+
+  while ft_cnt < footprint_count:
+    if current_step >= len(user_list):
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(3)
+      user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+      if current_step >= len(user_list):
+        print(f"{name} 検索結果終端: 付け数={ft_cnt}")
+        return
+      continue
+
+    card = user_list[current_step]
+    try:
+      driver.execute_script("arguments[0].scrollIntoView({block:'center'});", card)
+      time.sleep(0.4)
+
+      if card.find_elements(By.CLASS_NAME, "exchange"):
+        nm_els = card.find_elements(By.CLASS_NAME, "name")
+        print(f"やり取り有り {nm_els[0].text if nm_els else ''}")
+        current_step += 1
+        continue
+
+      name_els = card.find_elements(By.CLASS_NAME, "name")
+      age_els = card.find_elements(By.CLASS_NAME, "age")
+      conf_els = card.find_elements(By.CLASS_NAME, "conf")
+      if not (name_els and age_els and conf_els):
+        current_step += 1
+        continue
+      user_name = name_els[0].text
+      user_age_text = age_els[0].text
+      user_area_text = conf_els[0].text.replace("登録地域", "").strip()
+
+      age_m = re.search(r'(\d+)', user_age_text)
+      if age_m:
+        age_n = int(age_m.group(1))
+        if age_n < AGE_MIN or age_n > AGE_MAX:
+          print(f"年齢スキップ {user_name} {user_age_text}")
+          current_step += 1
+          continue
+
+      matched_area = next((a for a in TARGET_AREAS if a in user_area_text), None)
+      if matched_area is None:
+        print(f"地域スキップ {user_name} {user_area_text}")
+        current_step += 1
+        continue
+
+      card.find_element(By.CLASS_NAME, "profile_link_btn").click()
+      catch_warning_pop(name, driver)
+
+      iikamo_text = ""
+      if iikamo_count > 0:
+        arleady_iikamo = driver.find_elements(By.CLASS_NAME, 'type5')
+        iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+        iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+        if arleady_iikamo:
+          iikamo_text = "いいかも済み"
+        elif iikamo:
+          iikamo[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          iikamo_text = "いいかも"
+        elif iikamo_arigatou:
+          iikamo_arigatou[0].click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(0.7)
+          iikamo_count -= 1
+          iikamo_text = "いいかもありがとう"
+
+      now_str = datetime.now().strftime('%m/%d %H:%M:%S')
+      current_step += 1
+      ft_cnt += 1
+      print(f"{ft_cnt}件 {iikamo_text} {user_name}{user_age_text} {user_area_text} {now_str}")
+      time.sleep(random_wait)
+
+      if user_list_url not in driver.current_url:
+        driver.get(user_list_url)
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+      user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+    except Exception as e:
+      print(f"{name} カード処理エラー: {e}")
+      current_step += 1
+      continue
 
 
 def make_footprint_imahima(name, driver, footprint_count, iikamo_count=0):

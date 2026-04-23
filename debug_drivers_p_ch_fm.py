@@ -17,6 +17,8 @@ import sys
 import argparse
 import re
 
+POST_SLOTS = [(6, 30), (9, 0), (17, 0), (20, 0)]
+
 def reset_metrics_keep_check_date(d: dict) -> dict:
     metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
     new_d = {}
@@ -72,7 +74,7 @@ def main_syori():
   roll_cnt = 1
   start_time = datetime.now()
   active_chara_list = []
-  last_post_time = {}  # キャラごとの最終掲示板投稿時刻
+  last_post_slot = {}  # キャラごとの最終投稿スロット {name: (date, slot_idx)}
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
@@ -311,18 +313,20 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()
-          # 掲示板投稿（6〜22時、3時間に1回）
-          if 6 <= now.hour < 22 and post_title and post_content:
-            should_post = False
-            if name not in last_post_time:
-              should_post = True
-            elif (now - last_post_time[name]).total_seconds() >= 3 * 3600:
-              should_post = True
-            if should_post:
+          # 掲示板投稿（6:30, 9:00, 17:00, 20:00 の各スロットで1回ずつ）
+          if post_title and post_content:
+            active_slot = None
+            for _si, (_sh, _sm) in enumerate(POST_SLOTS):
+              _st = now.replace(hour=_sh, minute=_sm, second=0, microsecond=0)
+              if now >= _st:
+                active_slot = _si
+            slot_key = (now.date(), active_slot) if active_slot is not None else None
+            if slot_key is not None and last_post_slot.get(name) != slot_key:
               try:
-                print(f"📝掲示板投稿開始")
+                _sh, _sm = POST_SLOTS[active_slot]
+                print(f"📝掲示板投稿開始 slot={_sh:02d}:{_sm:02d}")
                 pcmax_2.re_post(driver, wait, post_title, post_content)
-                last_post_time[name] = now
+                last_post_slot[name] = slot_key
                 print(f"掲示板投稿完了📝")
               except Exception as e:
                 print(f"{name}❌ 掲示板投稿エラー: {e}")

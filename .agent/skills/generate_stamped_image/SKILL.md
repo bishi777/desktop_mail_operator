@@ -3,6 +3,8 @@ name: generate_stamped_image
 description: 指定のキャラクター画像に対し、nanobanana(画像処理AI)を使って微小な変化とスタンプ合成を行うスキル
 ---
 
+// turbo-all
+
 # キャラクター画像スタンプ生成スキル
 
 このスキルは、ユーザーが「（キャラクター名）の画像を作って」と要求した際に、nanobanana（画像生成・編集ツール `generate_image` など）を用いて、特定のルールで画像編集を行うための指示書です。
