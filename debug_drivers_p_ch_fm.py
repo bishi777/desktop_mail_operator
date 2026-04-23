@@ -255,8 +255,8 @@ def main_syori():
             footprint_count = 14
             returnfoot_cnt = 2
           else:
-            iikamo_cnt = 2
-            footprint_count = random.randint(11,15)
+            iikamo_cnt = 1
+            footprint_count = random.randint(6,11)
             returnfoot_cnt = 1
           if fst_flug:
             if 6 <= now.hour < 24:  
@@ -301,13 +301,13 @@ def main_syori():
                 print(f"{name}❌ rfメール送信失敗: {type(e).__name__} → {str(e)}")
                 print(traceback.format_exc())
               try:
-                if random.random() < 0.2:
+                # if random.random() < 0.2:
                   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-                  # pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
-                  pcmax_2.make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=iikamo_cnt)
-                else:
-                  print(f"🐾🐾🐾🐾足跡付け開始(make_footprint_imahima) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-                  pcmax_2.make_footprint_imahima(name, driver, footprint_count, iikamo_cnt)
+                  pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+                  # pcmax_2.make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=iikamo_cnt)
+                # else:
+                #   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint_imahima) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
+                #   pcmax_2.make_footprint_imahima(name, driver, footprint_count, iikamo_cnt)
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()

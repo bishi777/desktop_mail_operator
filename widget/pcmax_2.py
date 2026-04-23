@@ -2074,7 +2074,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   import urllib.parse
   current_step = 0
   wait = WebDriverWait(driver, 10)
-  random_wait = random.uniform(0.1, 3.4)
+  random_wait = random.uniform(3.4, 6.4)
   search_edit = {
     "y_age": [18],
     "o_age": [29,30,34],
@@ -2092,72 +2092,72 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   if not profile_search(driver, search_edit):
     return
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  # # 地域セレクト: 東京都50%、栃木/静岡/群馬/埼玉/千葉/神奈川 各約8%
-  # _area_pool    = ["東京都", "栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
-  # _area_weights = [28, 12, 12, 12, 12, 12, 12]
-  # chosen_area = random.choices(_area_pool, weights=_area_weights)[0]
-  # try:
-  #   from urllib.parse import urljoin
-  #   base_url = driver.current_url
-  #   area_url = driver.execute_script("""
-  #     var sel = document.querySelectorAll('select')[0];
-  #     if (!sel) return null;
-  #     for (var i = 0; i < sel.options.length; i++) {
-  #       if (sel.options[i].text.trim() === arguments[0]) {
-  #         return sel.options[i].value;
-  #       }
-  #     }
-  #     // デバッグ用: 全オプションを表示
-  #     var opts = [];
-  #     for (var j = 0; j < sel.options.length; j++) { opts.push(sel.options[j].text.trim()); }
-  #     return '__OPTIONS__:' + opts.join(',');
-  #   """, chosen_area)
-  #   if area_url and not str(area_url).startswith('__OPTIONS__:'):
-  #     driver.get(urljoin(base_url, area_url))
-  #     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #     time.sleep(1)
-  #     # 地域選択できたか確認
-  #     selected_area = driver.execute_script("""
-  #       var sel = document.querySelectorAll('select')[0];
-  #       if (!sel) return null;
-  #       return sel.options[sel.selectedIndex].text.trim();
-  #     """)
-  #     if selected_area != chosen_area:
-  #       print(f"{name} 地域選択NG（期待:{chosen_area} 実際:{selected_area}）→ 再試行")
-  #       area_url2 = driver.execute_script("""
-  #         var sel = document.querySelectorAll('select')[0];
-  #         if (!sel) return null;
-  #         for (var i = 0; i < sel.options.length; i++) {
-  #           if (sel.options[i].text.trim() === arguments[0]) {
-  #             return sel.options[i].value;
-  #           }
-  #         }
-  #         return null;
-  #       """, chosen_area)
-  #       if area_url2:
-  #         driver.get(urljoin(base_url, area_url2))
-  #         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  #         time.sleep(1)
-  #         selected_area = driver.execute_script("""
-  #           var sel = document.querySelectorAll('select')[0];
-  #           if (!sel) return null;
-  #           return sel.options[sel.selectedIndex].text.trim();
-  #         """)
-  #         print(f"{name} 再試行後の地域: {selected_area}")
-  #       else:
-  #         print(f"{name} 再試行用URLが取得できませんでした")
-  #     if selected_area != chosen_area:
-  #       print(f"{name} ⚠️ 地域選択最終NG（期待:{chosen_area} 実際:{selected_area}）→ そのまま続行")
-  #     else:
-  #       print(f"{name} ✅ 検索地域: {selected_area}")
-  #   elif area_url and str(area_url).startswith('__OPTIONS__:'):
-  #     opts = area_url.replace('__OPTIONS__:', '')
-  #     print(f"{name} ⚠️ 地域オプションに '{chosen_area}' が見つかりません。利用可能: {opts}")
-  #   else:
-  #     print(f"{name} ⚠️ セレクト要素が見つかりません（指定無しで続行）")
-  # except Exception as e:
-  #   print(f"{name} 地域セレクトエラー: {e}")
-  #   traceback.print_exc()
+  # 地域セレクト: 東京都50%、栃木/静岡/群馬/埼玉/千葉/神奈川 各約8%
+  _area_pool    = ["東京都", "栃木県", "静岡県", "群馬県", "埼玉県", "千葉県", "神奈川県"]
+  _area_weights = [28, 12, 12, 12, 12, 12, 12]
+  chosen_area = random.choices(_area_pool, weights=_area_weights)[0]
+  try:
+    from urllib.parse import urljoin
+    base_url = driver.current_url
+    area_url = driver.execute_script("""
+      var sel = document.querySelectorAll('select')[0];
+      if (!sel) return null;
+      for (var i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].text.trim() === arguments[0]) {
+          return sel.options[i].value;
+        }
+      }
+      // デバッグ用: 全オプションを表示
+      var opts = [];
+      for (var j = 0; j < sel.options.length; j++) { opts.push(sel.options[j].text.trim()); }
+      return '__OPTIONS__:' + opts.join(',');
+    """, chosen_area)
+    if area_url and not str(area_url).startswith('__OPTIONS__:'):
+      driver.get(urljoin(base_url, area_url))
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1)
+      # 地域選択できたか確認
+      selected_area = driver.execute_script("""
+        var sel = document.querySelectorAll('select')[0];
+        if (!sel) return null;
+        return sel.options[sel.selectedIndex].text.trim();
+      """)
+      if selected_area != chosen_area:
+        print(f"{name} 地域選択NG（期待:{chosen_area} 実際:{selected_area}）→ 再試行")
+        area_url2 = driver.execute_script("""
+          var sel = document.querySelectorAll('select')[0];
+          if (!sel) return null;
+          for (var i = 0; i < sel.options.length; i++) {
+            if (sel.options[i].text.trim() === arguments[0]) {
+              return sel.options[i].value;
+            }
+          }
+          return null;
+        """, chosen_area)
+        if area_url2:
+          driver.get(urljoin(base_url, area_url2))
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          selected_area = driver.execute_script("""
+            var sel = document.querySelectorAll('select')[0];
+            if (!sel) return null;
+            return sel.options[sel.selectedIndex].text.trim();
+          """)
+          print(f"{name} 再試行後の地域: {selected_area}")
+        else:
+          print(f"{name} 再試行用URLが取得できませんでした")
+      if selected_area != chosen_area:
+        print(f"{name} ⚠️ 地域選択最終NG（期待:{chosen_area} 実際:{selected_area}）→ そのまま続行")
+      else:
+        print(f"{name} ✅ 検索地域: {selected_area}")
+    elif area_url and str(area_url).startswith('__OPTIONS__:'):
+      opts = area_url.replace('__OPTIONS__:', '')
+      print(f"{name} ⚠️ 地域オプションに '{chosen_area}' が見つかりません。利用可能: {opts}")
+    else:
+      print(f"{name} ⚠️ セレクト要素が見つかりません（指定無しで続行）")
+  except Exception as e:
+    print(f"{name} 地域セレクトエラー: {e}")
+    traceback.print_exc()
   user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
   user_list_url = driver.current_url
   ft_cnt = 0
