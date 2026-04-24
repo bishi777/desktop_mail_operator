@@ -101,5 +101,12 @@ happymail_port = 9224
 - タブ識別: `show_setting_mailaddress.html` のメールアドレスで照合
 - スタンプ不使用キャラ（`make_chara_image.py`）: yukko / erika / tumugi
 
+## デバッグファイルの扱い
+
+単発の調査・検証目的で新規作成した `debug_*.py`（ページDOM調査・関数単体テスト等）は、デバッグが成功して目的を果たしたら **その場で削除する**。残すとルートが散らかり、メインドライバ（`debug_drivers_*.py`）と混ざって紛らわしい。
+
+- 削除しないファイル: `debug_drivers_*.py`（常駐メインドライバ）
+- 削除するファイル: 調査のために作った `debug_inspect_*.py` / `debug_repost_*.py` / `debug_footprint_*.py` 等の単発スクリプト
+
 あなたの作業が完了したら、Codexが出力をレビューします。
 指定された時以外は必ず日本語で答えてください。
