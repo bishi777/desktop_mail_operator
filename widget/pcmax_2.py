@@ -921,6 +921,26 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1)
               break
+        elif "pcmax" in driver.current_url:
+          # やり取り全表示画面には #icon_menu が無いので、一度メール詳細画面に戻る
+          driver.back()
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
+          nolook_a = driver.find_elements(By.CSS_SELECTOR, "#icon_menu a[href*='nolook_add.php']")
+          if nolook_a:
+            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", nolook_a[0])
+            nolook_a[0].click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            image_button2 = driver.find_elements(By.ID, "image_button2")
+            if len(image_button2):
+              image_button2[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1)
+            print(f"{user_name}を見ちゃいや登録")
+          driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          time.sleep(1)
         # print(f"メールアドレスが見つかりました: {email_list}")
         if "icloud" in received_mail:
           # print("icloudが含まれています")
