@@ -376,14 +376,24 @@ def profile_search(driver, search_edit):
   annual_income_select_box.send_keys(value)
   time.sleep(0.5)
 
-  # # 検索順を登録順に設定
-  # try:
-  #   sort_select = driver.find_element(By.ID, "so1")
-  #   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", sort_select)
-  #   Select(sort_select).select_by_value("2")
-  #   time.sleep(0.5)
-  # except NoSuchElementException:
-  #   print("検索順の設定ができません")
+  # 検索順を 最新ログイン順 → 登録順 → 最新ログイン順 と切替えてリフレッシュを強制
+  # （デフォルト最新ログイン順のままだと並び替えが反映されない事があるため）
+  try:
+    sort_select = driver.find_element(By.ID, "so1")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", sort_select)
+    Select(sort_select).select_by_value("3")  # 最新ログイン順
+    print("検索順 → 最新ログイン順")
+    time.sleep(random.uniform(1.0, 2.0))
+    sort_select = driver.find_element(By.ID, "so1")
+    Select(sort_select).select_by_value("2")  # 登録順
+    print("検索順 → 登録順")
+    time.sleep(random.uniform(1.0, 2.0))
+    sort_select = driver.find_element(By.ID, "so1")
+    Select(sort_select).select_by_value("3")  # 最新ログイン順に戻す（最終状態）
+    print("検索順 → 最新ログイン順（最終）")
+    time.sleep(0.5)
+  except NoSuchElementException:
+    print("検索順の設定ができません")
 
   # 検索ボタンを押す
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')

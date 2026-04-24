@@ -305,7 +305,7 @@ def main_syori():
               try:
                 # if random.random() < 0.2:
                   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
-                  pcmax_2.make_footprint_keyword(name, driver, footprint_count, iikamo_cnt)
+                  pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
                   # pcmax_2.make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=iikamo_cnt)
                 # else:
                 #   print(f"🐾🐾🐾🐾足跡付け開始(make_footprint_imahima) {footprint_count}件 いいかも{iikamo_cnt}件🐾🐾🐾🐾")
