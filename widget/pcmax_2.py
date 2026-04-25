@@ -1931,7 +1931,34 @@ def _go_to_post_list(driver, wait):
   print("過去の書込リンクが見つかりません")
   return False
 
-def re_post(driver,wait, post_title, post_content):
+def _delete_all_posts(driver, wait):
+  """掲示板一覧画面で既存投稿を全削除する。事前に _go_to_post_list で一覧画面に遷移済みであること。"""
+  count = 0
+  while True:
+    line_bottoms = driver.find_elements(By.CLASS_NAME, "line_bottom")
+    delete_url = None
+    for lb in line_bottoms:
+      for a in lb.find_elements(By.TAG_NAME, "a"):
+        href = a.get_attribute("href") or ""
+        m = re.search(r'dispMenu\((\d+),(\d+),(\d+)\)', href)
+        if m:
+          sfid_match = re.search(r'sfid=([a-f0-9]+)', driver.current_url)
+          sfid = sfid_match.group(1) if sfid_match else ""
+          delete_url = f"https://pcmax.jp/mobile/bbs_write.php?delete=1&pref_no={m.group(1)}&bbs_category={m.group(2)}&bbs_id={m.group(3)}&page=1&sfid={sfid}"
+          break
+      if delete_url:
+        break
+    if not delete_url:
+      break
+    driver.get(delete_url)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1)
+    count += 1
+    if not _go_to_post_list(driver, wait):
+      break
+  return count
+
+def re_post(driver, wait, post_title, post_content):
   post_area_tokyo = ["千代田区",  "文京区",
                    "品川区", "目黒区", "大田区", "世田谷区", "渋谷区",
                    "杉並区", "豊島区",  "荒川区", "板橋区", "練馬区",
@@ -1940,158 +1967,33 @@ def re_post(driver,wait, post_title, post_content):
                    ]
   nearby_prefs = ["神奈川県", "埼玉県", "千葉県", "群馬県", "栃木県"]
   if not _go_to_post_list(driver, wait):
+    print("re_post: 掲示板一覧へ遷移失敗")
     return
   list_photo = driver.find_elements(By.CLASS_NAME, "list_photo")
-  if not len(list_photo):
-    print("投稿がありません。新規投稿します")
-    candidate_add_post_links = driver.find_element(By.CLASS_NAME, "instructions").find_elements(By.TAG_NAME, "a")
-    for candidate_add_post_link in candidate_add_post_links:
-      if "掲示板でお相手を募集する" in candidate_add_post_link.text:
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_add_post_link)
-        time.sleep(0.5)
-        candidate_add_post_link.click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        break
-    driver.find_element(By.ID, "2").click()
-    detail_area = driver.find_element(By.ID, "citych")
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
-    time.sleep(0.5)
-    select = Select(detail_area)
-    select.select_by_visible_text(random.choice(post_area_tokyo))
-    max_reception_count = driver.find_element(By.NAME, "max_reception_count")
-    select = Select(max_reception_count)
-    select.select_by_visible_text("5通")
-    driver.find_element(By.ID, "bty_4").click()
-    driver.find_element(By.ID, "bty_16").click()
-    driver.find_element(By.ID, "bty_5").click()
-    driver.find_element(By.ID, "bty_6").click()
-    driver.find_element(By.ID, "bty_7").click()
-    driver.find_element(By.ID, "bty_8").click()
+  print(f"re_post: 既存投稿数 = {len(list_photo)}")
 
-    bbs_title = driver.find_element(By.NAME, "bbs_title")
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
-    time.sleep(0.5)
-    script = "arguments[0].value = arguments[1];"
-    driver.execute_script(script, bbs_title, post_title)
-    time.sleep(0.5)
-    driver.execute_script(script, driver.find_element(By.ID, "bbs_comment1"), post_content)
-    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
-    time.sleep(1)
-    driver.find_element(By.ID, "wri").click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    print("東京投稿完了 → 近隣県に2件追加投稿します（合計3件）")
-    _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
-    return
-  elif len(list_photo) == 1:
-    # ジャンルが「新人自己紹介」なら削除して新規投稿
-    line_bottoms_genre = driver.find_elements(By.CLASS_NAME, "line_bottom")
-    is_shinjin = False
-    for lb in line_bottoms_genre:
-      if "新人自己紹介" in lb.text:
-        is_shinjin = True
-        break
-    if is_shinjin:
-      print("ジャンルが新人自己紹介のため削除して新規投稿します")
-      # 削除リンクのhrefからdispMenuパラメータを取得し、直接削除URLで遷移
-      deleted = False
-      for lb in line_bottoms_genre:
-        delete_links = lb.find_elements(By.TAG_NAME, "a")
-        for a in delete_links:
-          href = a.get_attribute("href") or ""
-          m = re.search(r'dispMenu\((\d+),(\d+),(\d+)\)', href)
-          if m:
-            sfid_match = re.search(r'sfid=([a-f0-9]+)', driver.current_url)
-            sfid = sfid_match.group(1) if sfid_match else ""
-            delete_url = f"https://pcmax.jp/mobile/bbs_write.php?delete=1&pref_no={m.group(1)}&bbs_category={m.group(2)}&bbs_id={m.group(3)}&page=1&sfid={sfid}"
-            driver.get(delete_url)
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1)
-            print("掲示板削除完了")
-            deleted = True
-            break
-        if deleted:
-          break
-      if not deleted:
-        print("削除リンクが見つかりません")
-        return
-      # 削除後のページに「掲示板でお相手を募集する」リンクがある
-      recruit_links = driver.find_elements(By.TAG_NAME, "a")
-      for candidate_add_post_link in recruit_links:
-        if "掲示板でお相手を募集する" in candidate_add_post_link.text:
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_add_post_link)
-          time.sleep(0.5)
-          candidate_add_post_link.click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          break
-      driver.find_element(By.ID, "2").click()
-      detail_area = driver.find_element(By.ID, "citych")
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
-      time.sleep(0.5)
-      select = Select(detail_area)
-      select.select_by_visible_text(random.choice(post_area_tokyo))
-      max_reception_count = driver.find_element(By.NAME, "max_reception_count")
-      select = Select(max_reception_count)
-      select.select_by_visible_text("5通")
-      driver.find_element(By.ID, "bty_4").click()
-      driver.find_element(By.ID, "bty_16").click()
-      driver.find_element(By.ID, "bty_5").click()
-      driver.find_element(By.ID, "bty_6").click()
-      driver.find_element(By.ID, "bty_7").click()
-      driver.find_element(By.ID, "bty_8").click()
-      bbs_title = driver.find_element(By.NAME, "bbs_title")
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
-      time.sleep(0.5)
-      script = "arguments[0].value = arguments[1];"
-      driver.execute_script(script, bbs_title, post_title)
-      time.sleep(0.5)
-      driver.execute_script(script, driver.find_element(By.ID, "bbs_comment1"), post_content)
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
-      time.sleep(1)
-      driver.find_element(By.ID, "wri").click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(1)
-      print("新人自己紹介削除→新規投稿完了 → 近隣県に2件追加投稿します（合計3件）")
-      _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
-      return
-    # 30分経過しているか
-    posted_date = driver.find_elements(By.CLASS_NAME, value="font_size")
-    date_numbers = re.findall(r'\d+', posted_date[0].text)
-    # datetime型を作成
-    current_year = datetime.now().year
-    arrival_datetime = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]),)
-    now = datetime.today()
-    elapsed_time = now - arrival_datetime
-    print(f"前回の投稿からの経過時間{elapsed_time}")
-    if elapsed_time >= timedelta(minutes=1):
-      print("地域を変更して再投稿します（東京）")
-      line_bottoms = driver.find_elements(By.CLASS_NAME, "line_bottom")
-      for line_bottom in line_bottoms:
-        if "地域を変えてコピー" in line_bottom.text:
-          line_bottom.click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          detail_area = driver.find_element(By.ID, "citych")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
-          time.sleep(1)
-          select = Select(detail_area)
-          select.select_by_visible_text(random.choice(post_area_tokyo))
-          max_reception_count = driver.find_element(By.NAME, "max_reception_count")
-          select = Select(max_reception_count)
-          select.select_by_visible_text("5通")
-          time.sleep(1)
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
-          time.sleep(10)
-          driver.find_element(By.ID, "wri").click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          print("東京投稿完了 → 近隣県に2件追加投稿します（合計3件）")
-          break
-      _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
-    else:
-      print("30分経過していません")
-      return
+  if len(list_photo) >= 1:
+    posted_date_elems = driver.find_elements(By.CLASS_NAME, "font_size")
+    if posted_date_elems:
+      try:
+        date_numbers = re.findall(r'\d+', posted_date_elems[0].text)
+        current_year = datetime.now().year
+        last_post = datetime(current_year, int(date_numbers[0]), int(date_numbers[1]), int(date_numbers[2]), int(date_numbers[3]))
+        elapsed = datetime.today() - last_post
+        print(f"前回の投稿からの経過時間: {elapsed}")
+        if elapsed < timedelta(hours=2):
+          print("前回投稿から2時間未満のため再投稿しません")
+          return
+      except (ValueError, IndexError) as e:
+        print(f"⚠️ 投稿日時パース失敗、続行: {e}")
+    deleted = _delete_all_posts(driver, wait)
+    print(f"既存投稿{deleted}件を削除しました")
+
+  chosen_city = random.choice(post_area_tokyo)
+  print(f"新規投稿します（東京都 {chosen_city}）")
+  _post_new_with_area(driver, wait, post_title, post_content, "東京都", chosen_city)
+  print("東京投稿完了 → 近隣県に2件追加投稿します（合計3件）")
+  _post_multi_nearby(driver, wait, post_title, post_content, nearby_prefs, 2)
 
 def make_footprint(name, driver, footprint_count, iikamo_count):
   import urllib.parse

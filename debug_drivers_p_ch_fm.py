@@ -314,14 +314,21 @@ def main_syori():
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()
           # 掲示板投稿（6:30, 9:00, 17:00, 20:00 の各スロットで1回ずつ）
-          if post_title and post_content:
+          if not (post_title and post_content):
+            print(f"{name} 掲示板投稿スキップ: postデータ空 title={bool(post_title)} content={bool(post_content)}")
+          else:
             active_slot = None
             for _si, (_sh, _sm) in enumerate(POST_SLOTS):
               _st = now.replace(hour=_sh, minute=_sm, second=0, microsecond=0)
               if now >= _st:
                 active_slot = _si
             slot_key = (now.date(), active_slot) if active_slot is not None else None
-            if slot_key is not None and last_post_slot.get(name) != slot_key:
+            if slot_key is None:
+              print(f"{name} 掲示板投稿スキップ: 有効スロット未到達 (now={now.strftime('%H:%M')})")
+            elif last_post_slot.get(name) == slot_key:
+              _sh, _sm = POST_SLOTS[active_slot]
+              print(f"{name} 掲示板投稿スキップ: 同一スロット投稿済み slot={_sh:02d}:{_sm:02d}")
+            else:
               try:
                 _sh, _sm = POST_SLOTS[active_slot]
                 print(f"📝掲示板投稿開始 slot={_sh:02d}:{_sm:02d}")
