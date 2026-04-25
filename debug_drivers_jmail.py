@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
+from selenium.common.exceptions import TimeoutException, WebDriverException
 from widget import func, jmail
 import settings
 import time
@@ -112,9 +112,24 @@ def main_syori():
     for handle in handles:
       try:
         driver.switch_to.window(handle)
+        current_url = driver.current_url
+      except WebDriverException as e:
+        print(f"⚠️ タブクラッシュ検知、リロード試行: {e}")
+        try:
+          driver.refresh()
+          time.sleep(3)
+          current_url = driver.current_url
+          print(f"  リロード成功: {current_url}")
+        except Exception as e2:
+          print(f"  リロード失敗、タブを閉じてスキップ: {e2}")
+          try:
+            driver.close()
+          except Exception:
+            pass
+          continue
       except Exception:
         continue
-      if "mintj.com" not in driver.current_url:
+      if "mintj.com" not in current_url:
         continue
 
       # キャラ名取得（ニックネーム編集ページから）
