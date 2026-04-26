@@ -2881,7 +2881,9 @@ def pcmax_profile_edit(chara_data, driver, wait):
   print(f'血液型変更完了: {driver.current_url}')
 
   # 7. メイン活動エリア（area_pref_no）を修正
-  # 1段目: 都道府県を選択して「次へ」 → 2段目: 詳細エリア確認画面で p_reg_btn 保存
+  # 1段目 basic_info_change.php?area=1: area_pref_no select + 次へ(image_button2)
+  # 2段目 profile_reg.php?city=1: prech/city_id_1〜3 + 設定(p_reg_btn)
+  # ※ 1段目で都道府県変更→次へ で 2段目は city_id_1=千代田区 にリセットされる → 詳細1を再設定が必要
   main_area = chara_data.get('activity_area') or '東京都'
   detail_area = chara_data.get('detail_activity_area')
   try:
@@ -2891,37 +2893,28 @@ def pcmax_profile_edit(chara_data, driver, wait):
     Select(driver.find_element(By.NAME, 'area_pref_no')).select_by_visible_text(main_area)
     print(f'  メイン活動エリア = {main_area} ✓')
     time.sleep(1)
-    # 「次へ」で詳細エリア画面へ
-    next_btn = driver.find_element(By.XPATH, "//*[contains(text(), '次へ')]")
-    driver.execute_script("arguments[0].click()", next_btn)
+    # 1段目「次へ」(image_button2) で 2段目に遷移
+    driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
-    # 詳細エリア画面: 詳細1 (prech / city_id_1) を再設定（main都道府県変更で初期化される可能性に備える）
-    try:
-      prech_el = driver.find_elements(By.ID, 'prech')
-      if prech_el:
-        Select(prech_el[0]).select_by_visible_text(main_area)
-        time.sleep(1)
-        if detail_area:
-          city1 = driver.find_elements(By.ID, 'city_id_1')
-          if city1:
-            opts = [o.text for o in Select(city1[0]).options]
-            if detail_area in opts:
-              Select(city1[0]).select_by_visible_text(detail_area)
-              print(f'  詳細1 = {main_area}-{detail_area} ✓')
-    except Exception as e:
-      print(f'  詳細1 設定スキップ ({e})')
-    # 保存ボタン
-    save_btn = driver.find_elements(By.ID, 'p_reg_btn')
-    if not save_btn:
-      save_btn = driver.find_elements(By.ID, 'image_button2')
-    if save_btn:
-      driver.execute_script("arguments[0].click()", save_btn[0])
-      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)
-      print(f'メイン活動エリア変更完了: {driver.current_url}')
-    else:
-      print(f'  ⚠ 保存ボタン不在 URL={driver.current_url}')
+    # 2段目: 詳細1 (city_id_1) を detail_area に再設定（次へ通過時にリセットされるため）
+    if detail_area:
+      try:
+        city1 = driver.find_element(By.ID, 'city_id_1')
+        opts = [o.text for o in Select(city1).options]
+        if detail_area in opts:
+          Select(city1).select_by_visible_text(detail_area)
+          time.sleep(0.5)
+          print(f'  詳細1 = {main_area}-{detail_area} ✓')
+        else:
+          print(f'  ⚠ city_id_1に「{detail_area}」なし(opts先頭={opts[:5]})')
+      except Exception as e:
+        print(f'  詳細1 ✗ ({e})')
+    # 2段目「設定」(p_reg_btn) で保存
+    driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'p_reg_btn'))
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f'メイン活動エリア変更完了: {driver.current_url}')
   except Exception as e:
     print(f'  メイン活動エリア ✗ ({e})')
 
