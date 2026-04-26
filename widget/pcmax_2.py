@@ -2778,21 +2778,35 @@ def pcmax_profile_edit(chara_data, driver, wait):
   set_select_by_name('housework', chara_data['housework'])
   set_select_by_name('sociality', chara_data['sociability'])
 
-  # 自己PR
+  # 自己PR（絵文字などBMP外文字対応のためJSで直接set）
   try:
     el = driver.find_element(By.NAME, 'self_pr')
-    el.clear()
-    el.send_keys(chara_data['self_promotion'])
+    driver.execute_script(
+      "arguments[0].value = '';"
+      "arguments[0].value = arguments[1];"
+      "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
+      "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
+      el, chara_data['self_promotion']
+    )
     print('  self_pr 入力完了 ✓')
   except Exception as e:
     print(f'  self_pr ✗ ({e})')
 
-  # 活動エリア詳細（index[1] のselectが詳細エリア）
+  # 活動エリア（都道府県）→ 活動エリア詳細（市区町村）
+  # name属性なしのselectが活動エリア・活動エリア詳細
   try:
     selects = driver.find_elements(By.TAG_NAME, 'select')
-    sel = Select(selects[1])
-    sel.select_by_visible_text(chara_data['detail_activity_area'])
-    print(f'  活動エリア詳細 = {chara_data["detail_activity_area"]} ✓')
+    nameless = [s for s in selects if not (s.get_attribute('name') or '').strip()]
+    if chara_data.get('activity_area') and len(nameless) >= 1:
+      Select(nameless[0]).select_by_visible_text(chara_data['activity_area'])
+      time.sleep(1)
+      # 詳細selectの中身がAjaxで更新される可能性があるため取り直し
+      selects = driver.find_elements(By.TAG_NAME, 'select')
+      nameless = [s for s in selects if not (s.get_attribute('name') or '').strip()]
+      print(f'  活動エリア = {chara_data["activity_area"]} ✓')
+    if chara_data.get('detail_activity_area') and len(nameless) >= 2:
+      Select(nameless[1]).select_by_visible_text(chara_data['detail_activity_area'])
+      print(f'  活動エリア詳細 = {chara_data["detail_activity_area"]} ✓')
   except Exception as e:
     print(f'  活動エリア詳細 ✗ ({e})')
 
