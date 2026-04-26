@@ -2880,5 +2880,21 @@ def pcmax_profile_edit(chara_data, driver, wait):
   time.sleep(2)
   print(f'血液型変更完了: {driver.current_url}')
 
+  # 7. メイン活動エリア（area_pref_no）を修正
+  main_area = chara_data.get('activity_area') or '東京都'
+  try:
+    driver.get('https://pcmax.jp/mobile/basic_info_change.php?area=1')
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    Select(driver.find_element(By.NAME, 'area_pref_no')).select_by_visible_text(main_area)
+    print(f'  メイン活動エリア = {main_area} ✓')
+    time.sleep(1)
+    driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'p_reg_btn'))
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f'メイン活動エリア変更完了: {driver.current_url}')
+  except Exception as e:
+    print(f'  メイン活動エリア ✗ ({e})')
+
   print(f'\n{name} のプロフィール編集がすべて完了しました')
 
