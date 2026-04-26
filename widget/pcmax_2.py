@@ -12,6 +12,7 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from widget import func
 import re
+import json
 from selenium.common.exceptions import TimeoutException
 import sqlite3
 from datetime import datetime, timedelta
@@ -2778,15 +2779,16 @@ def pcmax_profile_edit(chara_data, driver, wait):
   set_select_by_name('housework', chara_data['housework'])
   set_select_by_name('sociality', chara_data['sociability'])
 
-  # 自己PR（絵文字などBMP外文字対応のためJSで直接set）
+  # 自己PR（絵文字などBMP外文字対応：JS本文に\uXXXXエスケープで直接埋め込む）
   try:
     el = driver.find_element(By.NAME, 'self_pr')
+    js_value = json.dumps(chara_data['self_promotion'] or '', ensure_ascii=True)
     driver.execute_script(
-      "arguments[0].value = '';"
-      "arguments[0].value = arguments[1];"
-      "arguments[0].dispatchEvent(new Event('input', {bubbles:true}));"
-      "arguments[0].dispatchEvent(new Event('change', {bubbles:true}));",
-      el, chara_data['self_promotion']
+      f"var el = arguments[0];"
+      f"el.value = {js_value};"
+      f"el.dispatchEvent(new Event('input', {{bubbles:true}}));"
+      f"el.dispatchEvent(new Event('change', {{bubbles:true}}));",
+      el
     )
     print('  self_pr 入力完了 ✓')
   except Exception as e:
@@ -2797,16 +2799,28 @@ def pcmax_profile_edit(chara_data, driver, wait):
   try:
     selects = driver.find_elements(By.TAG_NAME, 'select')
     nameless = [s for s in selects if not (s.get_attribute('name') or '').strip()]
-    if chara_data.get('activity_area') and len(nameless) >= 1:
-      Select(nameless[0]).select_by_visible_text(chara_data['activity_area'])
+    activity_area = chara_data.get('activity_area')
+    detail_area = chara_data.get('detail_activity_area')
+    # activity_areaがNoneの場合、detail_areaが現在の都道府県候補に含まれるかをチェック
+    if not activity_area and detail_area and len(nameless) >= 2:
+      try:
+        current_options = [o.text for o in Select(nameless[1]).options]
+        if detail_area not in current_options:
+          # 現在の都道府県には含まれないので、東京都にfallback
+          activity_area = '東京都'
+          print(f'  ⚠ activity_area未設定 + 現都道府県に「{detail_area}」なし → {activity_area}にfallback')
+      except Exception:
+        pass
+    if activity_area and len(nameless) >= 1:
+      Select(nameless[0]).select_by_visible_text(activity_area)
       time.sleep(1)
       # 詳細selectの中身がAjaxで更新される可能性があるため取り直し
       selects = driver.find_elements(By.TAG_NAME, 'select')
       nameless = [s for s in selects if not (s.get_attribute('name') or '').strip()]
-      print(f'  活動エリア = {chara_data["activity_area"]} ✓')
-    if chara_data.get('detail_activity_area') and len(nameless) >= 2:
-      Select(nameless[1]).select_by_visible_text(chara_data['detail_activity_area'])
-      print(f'  活動エリア詳細 = {chara_data["detail_activity_area"]} ✓')
+      print(f'  活動エリア = {activity_area} ✓')
+    if detail_area and len(nameless) >= 2:
+      Select(nameless[1]).select_by_visible_text(detail_area)
+      print(f'  活動エリア詳細 = {detail_area} ✓')
   except Exception as e:
     print(f'  活動エリア詳細 ✗ ({e})')
 
