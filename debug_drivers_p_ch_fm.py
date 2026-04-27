@@ -338,6 +338,12 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ 掲示板投稿エラー: {e}")
                 traceback.print_exc()
+            if "pcmax" in driver.current_url:
+              driver.get("https://pcmax.jp/pcm/index.php")
+            elif "linkleweb" in driver.current_url:
+              driver.get("https://linkleweb.jp/pcm/index.php")
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1.5)
           if now.hour in (10, 14, 18, 22):
             if send_flug:
               try:
