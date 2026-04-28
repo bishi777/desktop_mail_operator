@@ -117,15 +117,13 @@ def main_syori():
         print(f"⚠️ タブクラッシュ検知、リロード試行: {e}")
         try:
           driver.refresh()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
           time.sleep(3)
           current_url = driver.current_url
           print(f"  リロード成功: {current_url}")
         except Exception as e2:
           print(f"  リロード失敗、タブを閉じてスキップ: {e2}")
-          try:
-            driver.close()
-          except Exception:
-            pass
+          
           continue
       except Exception:
         continue
