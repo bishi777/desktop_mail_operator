@@ -13,8 +13,12 @@ REM このBATのあるフォルダをカレントに
 cd /d "%~dp0"
 
 :loop
-REM settings.py から pcmax_mf_port を取得
-for /f "usebackq delims=" %%P in (`python -c "import settings; print(getattr(settings, 'pcmax_ch_port', ''))"`) do set "PORT=%%P"
+REM 第1引数があればそれを使用、なければ settings.py から pcmax_ch_port を取得
+if not "%~1"=="" (
+  set "PORT=%~1"
+) else (
+  for /f "usebackq delims=" %%P in (`python -c "import settings; print(getattr(settings, 'pcmax_ch_port', ''))"`) do set "PORT=%%P"
+)
 
 
 
