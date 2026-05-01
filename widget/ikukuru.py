@@ -722,7 +722,7 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
 def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image=""):
   """足跡リストのユーザーにreturn_foot_messageを送る。36〜59歳は最大4人削除・5人目以降スキップ、35歳以下と60歳以上は足跡返し"""
   FOOT_LIST_URL = "https://pc.194964.com/sns/snsashiato/show.html"
-  MAX_DELETE = 4
+  MAX_DELETE = 5
   rf_cnt = 0
   image_path = _prepare_chara_image(name, chara_image)
   items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
@@ -734,8 +734,8 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
     _delete_checked_on_list(driver, wait, FOOT_LIST_URL, age_delete_targets, name, "足跡", MAX_DELETE)
     items = _collect_profile_links(driver, wait, FOOT_LIST_URL)
 
-  # 履歴ありで削除する対象を記録
-  history_delete_targets = []
+  # 送信完了 or 履歴ありで削除する対象を記録
+  delete_targets = []
 
   for href, opponent_name, age in items:
     if rf_cnt >= send_cnt:
@@ -752,15 +752,17 @@ def return_foot(driver, wait, return_foot_message, name, send_cnt=1, chara_image
       if sent is True:
         rf_cnt += 1
         print(f"イククル:{name} 足跡返しメッセージ送信 {rf_cnt}件")
+        # 送信完了（popup到達）→ リスト画面で削除対象に追加
+        delete_targets.append((href, opponent_name, age))
       elif sent == 'history':
         # 既送信あり → リスト画面に戻って削除対象に追加
-        history_delete_targets.append((href, opponent_name, age))
+        delete_targets.append((href, opponent_name, age))
     except Exception as e:
       print(f"イククル:{name} 足跡返しエラー: {e}")
 
-  # 履歴ありスキップ分をリスト画面でチェック→削除（最大4人）
-  if history_delete_targets:
-    _delete_checked_on_list(driver, wait, FOOT_LIST_URL, history_delete_targets, name, "足跡(履歴あり)", MAX_DELETE)
+  # 送信完了/履歴ありをリスト画面でチェック→削除（最大5人）
+  if delete_targets:
+    _delete_checked_on_list(driver, wait, FOOT_LIST_URL, delete_targets, name, "足跡(送信済/履歴あり)", MAX_DELETE)
 
   return rf_cnt
 
