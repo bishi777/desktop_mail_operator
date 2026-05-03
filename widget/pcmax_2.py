@@ -1020,17 +1020,18 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               # # メール送信  
               # if mail_info:
               #   func.send_mail(text, mail_info, title, screenshot_path)
-            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
-            icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(0.5) 
-            image_button2 = driver.find_elements(By.ID, "image_button2")
-            if len(image_button2):
-              image_button2[0].click()
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(0.5) 
-            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-            time.sleep(1.5) 
+            else:
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
+              icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(0.5) 
+              image_button2 = driver.find_elements(By.ID, "image_button2")
+              if len(image_button2):
+                image_button2[0].click()
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(0.5) 
+              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+              time.sleep(1.5) 
             catch_warning_pop(name, driver)
       elif chat_ai_flug:
         if False:

@@ -1,0 +1,34 @@
+[CONFIG] login_id=50022949331 udid=a02aca5e appium=4723 system_port=8200
+[CHARA] name=麻衣子 login_id=50022949331
+[ADB] svc power stayon true 投入
+[Appium:4723] 既存サーバを使用
+[Appium] driver 作成中…
+
+==================================================
+本日の処理開始: 2026-05-03 20:34:28
+  開始:06:38 終了:22:14
+  daily_limit (return_foot): 9件
+  fst_daily_limit:           1件
+  通報メール宛先:            ryapya694@ruru.be
+==================================================
+
+--- 1周目 (20:34:28) ---
+
+  ===== 麻衣子 (20:34:28) =====
+  [麻衣子] 能動候補=['return_foot', 'fst'] 選択=return_foot
+[麻衣子] 4分未経過のためループ終了 (post_time=           20:33)
+  [麻衣子] type: タイプ返し OK (Ryo) 1/1
+[麻衣子] return_footpoint type 完了 +1 (カウント対象外)
+[麻衣子] matching: typelist タブが見つからない (メインタブに居ない)
+[麻衣子] return_footpoint matching 0 件 → 足跡返しへフォールバック
+[麻衣子] 足あと画面に遷移できず: Message: An element could not be located on the page using the given search parameters.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#no-such-element-exception
+Stacktrace:
+NoSuchElementError: An element could not be located on the page using the given search parameters.
+    at AndroidUiautomator2Driver.findElOrEls (/Users/yamamotokenta/.appium/node_modules/appium-uiautomator2-driver/node_modules/appium-android-driver/lib/commands/find.ts:86:11)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at AndroidUiautomator2Driver.findElOrElsWithProcessing (/Users/yamamotokenta/.nodebrew/node/v20.19.0/lib/node_modules/appium/node_modules/@appium/base-driver/lib/basedriver/commands/find.ts:60:12)
+    at AndroidUiautomator2Driver.findElement (/Users/yamamotokenta/.nodebrew/node/v20.19.0/lib/node_modules/appium/node_modules/@appium/base-driver/lib/basedriver/commands/find.ts:75:12)
+[麻衣子] return_footpoint footprint: 0 件 (能動送信なしの周)
+  [麻衣子] return_foot: 該当なし
+  1周目完了 (20:35:32, 経過64秒) / 本日 RF=0/9 FST=0/1
+  次の周まで 10.7分待機...

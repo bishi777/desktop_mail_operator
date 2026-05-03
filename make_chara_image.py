@@ -37,7 +37,7 @@ CHARA_BASE = Path(
     "/Users/yamamotokenta/Library/CloudStorage/"
     "GoogleDrive-kenta.bishi777@gmail.com/マイドライブ/キャラ画像"
 )
-STAMP_PATH = CHARA_BASE / "アクセサリ" / "stamps.jpg"
+STAMPS_DIR = CHARA_BASE / "アクセサリ" / "stamps"
 
 NO_STAMP_CHARS = {"yukko", "yuki", "erika", "ayu", "tumugi"}
 FOLDER_ALIAS = {
@@ -71,14 +71,29 @@ def load_image_part(path: Path) -> types.Part:
     return types.Part.from_bytes(data=path.read_bytes(), mime_type=mime)
 
 
+def pick_random_stamp() -> Path:
+    candidates = sorted(
+        p for p in STAMPS_DIR.glob("*")
+        if p.suffix.lower() in (".png", ".jpg", ".jpeg", ".webp")
+    )
+    if not candidates:
+        raise FileNotFoundError(f"スタンプ画像が見つかりません: {STAMPS_DIR}")
+    return random.choice(candidates)
+
+
 def build_prompt(chara: str) -> tuple[str, str]:
     """(プロンプト本文, 選択されたスタンプパターン) を返す。"""
     base_transform = (
-        "編集後の画像を1枚だけ出力してください。\n"
+        "【出力形式（厳守）】\n"
+        "  - 出力は編集後の画像【1枚のみ】。\n"
+        "  - 比較画像・before/after・左右分割・グリッド・コラージュ等は絶対に作らないこと。\n"
+        "  - 出力画像のキャンバス・アスペクト比・構図・背景は【1枚目の人物画像と完全に同一】にすること。\n"
+        "  - 1枚目の画像にない要素（白フチ・余白・枠・他の素材）を周囲に追加しないこと。\n"
+        "\n"
         "【微細変形（必須）】\n"
-        "  - 画像全体を ±0.5〜1度 のごく僅かな角度で回転\n"
+        "  - 画像全体を ±0.5〜1度 のごく僅かな角度で回転（回転で出る隙間は元画像の内容を引き伸ばして埋め、白フチや枠を絶対に出さない）\n"
         "  - 明るさ・コントラスト・色調を ±1〜2% 程度ごく僅かに変化\n"
-        "  - 元画像と並べて初めて気づく程度の変化に留めること\n"
+        "  - 変化はごく僅か（パッと見では気づかないレベル）に留めること\n"
         "  - 人物の表情・髪・服装・背景・構図・ポーズは一切変更しないこと\n"
     )
 
@@ -93,13 +108,13 @@ def build_prompt(chara: str) -> tuple[str, str]:
     if chara == "iori":
         prompt = (
             "1枚目: 人物の元画像（顔の上にピンクのハートが3つ配置されている）\n"
-            "2枚目: スタンプシート（複数のスタンプが並んでいる）\n\n"
+            "2枚目: 使用するスタンプ画像（このデザインのみ使用）\n\n"
             + base_transform
             + "\n【スタンプ合成】\n"
-            "  - 2枚目のシートから1種類のスタンプを選ぶ\n"
-            "  - 元画像にある3つのピンクハートそれぞれを、選んだ同じスタンプで完全に上書きする\n"
+            "  - 元画像にある3つのピンクハートそれぞれを、2枚目のスタンプで完全に上書きする\n"
             "  - 元のピンクハートが一切見えなくなるよう、各スタンプはハートをやや大きめに覆うサイズにする\n"
-            "  - 3箇所すべて同じ種類のスタンプを使うこと（種類を混ぜない）\n"
+            "  - 3箇所すべて同じスタンプを使うこと\n"
+            "  - 出力画像には【1枚目の人物画像 + そのスタンプ3個】以外を一切描かない。\n"
         )
         return prompt, "iori_hearts"
 
@@ -116,14 +131,14 @@ def build_prompt(chara: str) -> tuple[str, str]:
             )
         prompt = (
             "1枚目: 人物の元画像\n"
-            "2枚目: スタンプシート（複数のスタンプが並んでいる）\n\n"
+            "2枚目: 使用するスタンプ画像（このデザインのみ使用）\n\n"
             + base_transform
             + f"\n【スタンプ合成】\n"
-            f"  - 2枚目のシートから1種類のスタンプを選ぶ\n"
-            f"  - そのスタンプを使って人物の【{target}】を隠す\n"
+            f"  - 2枚目のスタンプを使って人物の【{target}】を隠す\n"
             f"  - 配置: {detail}\n"
             f"  - スタンプのサイズ感: 該当パーツの1.2倍程度（パーツが確実に隠れる）\n"
             f"  - 元画像に既に口や鼻を覆う別のスタンプがある場合、それが完全に見えなくなるよう上書きすること\n"
+            f"  - 出力画像には【1枚目の人物画像 + 2枚目のスタンプ】以外を一切描かない。\n"
         )
         return prompt, f"reina_{pattern}"
 
@@ -136,14 +151,14 @@ def build_prompt(chara: str) -> tuple[str, str]:
     }[pattern]
     prompt = (
         "1枚目: 人物の元画像\n"
-        "2枚目: スタンプシート（複数のスタンプが並んでいる）\n\n"
+        "2枚目: 使用するスタンプ画像（このデザインのみ使用）\n\n"
         + base_transform
         + f"\n【スタンプ合成】\n"
-        f"  - 2枚目のシートから1種類のスタンプを選ぶ\n"
-        f"  - そのスタンプ1個を使って人物の【{target_label}】を隠す\n"
+        f"  - 2枚目のスタンプ1個を使って人物の【{target_label}】を隠す\n"
         f"  - スタンプは1個だけ使用すること\n"
         f"  - スタンプのサイズ感: 該当パーツの1.2倍程度（パーツが確実に隠れる）\n"
         f"  - 元画像に既に口や鼻を覆う別のスタンプがある場合、それが完全に見えなくなるよう上書きすること\n"
+        f"  - 出力画像には【1枚目の人物画像 + 2枚目のスタンプ1個】以外を一切描かない。\n"
     )
     return prompt, pattern
 
@@ -187,11 +202,15 @@ def main() -> int:
     contents: list = []
     contents.append(load_image_part(original_path))
 
+    stamp_path: Path | None = None
     if chara not in NO_STAMP_CHARS:
-        if not STAMP_PATH.exists():
-            print(f"スタンプ画像が見つかりません: {STAMP_PATH}")
+        try:
+            stamp_path = pick_random_stamp()
+        except FileNotFoundError as e:
+            print(e)
             return 1
-        contents.append(load_image_part(STAMP_PATH))
+        contents.append(load_image_part(stamp_path))
+        print(f"スタンプ: {stamp_path.name}")
 
     prompt, pattern = build_prompt(chara)
     contents.append(prompt)
