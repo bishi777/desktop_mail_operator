@@ -1013,13 +1013,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             icon_menu = driver.find_elements(By.ID, "icon_menu")
             if not len(icon_menu):
               print("icon_menuが見つかりません")
-              screenshot_path = f"{name}_icon_menu_none.png"
-              driver.save_screenshot(screenshot_path)
-              title = "icon_menuが見つかりません"
-              text = f"{driver.current_url}"   
-              # メール送信  
-              if mail_info:
-                func.send_mail(text, mail_info, title, screenshot_path)
+              # screenshot_path = f"{name}_icon_menu_none.png"
+              # driver.save_screenshot(screenshot_path)
+              # title = "icon_menuが見つかりません"
+              # text = f"{driver.current_url}"   
+              # # メール送信  
+              # if mail_info:
+              #   func.send_mail(text, mail_info, title, screenshot_path)
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", icon_menu[0])
             icon_menu[0].find_elements(By.TAG_NAME, "a")[-1].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
