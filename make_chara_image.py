@@ -39,7 +39,7 @@ CHARA_BASE = Path(
 )
 STAMP_PATH = CHARA_BASE / "アクセサリ" / "stamps.jpg"
 
-NO_STAMP_CHARS = {"yukko", "yuki", "erika"}
+NO_STAMP_CHARS = {"yukko", "yuki", "erika", "ayu", "tumugi"}
 FOLDER_ALIAS = {
     "yukko": "yukko_yuki",
     "yuki": "yukko_yuki",

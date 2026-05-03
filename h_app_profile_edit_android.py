@@ -72,9 +72,64 @@ def create_driver():
   options.app_activity = APP_ACTIVITY
   options.no_reset = True
   options.auto_grant_permissions = True
-  options.new_command_timeout = 300
+  options.new_command_timeout = 600
   options.uiautomator2_server_install_timeout = 120000
   return webdriver.Remote(APPIUM_URL, options=options)
+
+
+def recover_driver(holder):
+  """driver を作り直す。Appium プロセスが応答しないなら kill して再起動。"""
+  try:
+    holder["driver"].quit()
+  except Exception:
+    pass
+  time.sleep(2)
+  if not _appium_alive():
+    subprocess.call(["pkill", "-9", "-f", "node.*appium"])
+    time.sleep(2)
+    start_appium_if_needed()
+  time.sleep(2)
+  holder["driver"] = create_driver()
+  time.sleep(3)
+  happymail_android.dismiss_popups(holder["driver"])
+
+
+def edit_chara_with_retry(chara_data, holder, max_attempts=5):
+  """1 キャラに対して re_registration → 検証 → 未反映だけ partial 再実行を最大5回。
+  UiAutomator2 クラッシュ時は driver 再作成して継続。
+  返り値: 全項目反映で True、失敗で False。
+  """
+  name = chara_data.get("name", "")
+  missing_labels = None
+  for attempt in range(1, max_attempts + 1):
+    print(f"\n--- [{name}] 試行 {attempt}/{max_attempts} ---")
+    try:
+      if attempt == 1:
+        happymail_android.re_registration(chara_data, holder["driver"])
+      else:
+        happymail_android.re_registration_partial(chara_data, holder["driver"], missing_labels)
+    except WebDriverException as e:
+      print(f"[CRASH:{name}] 編集処理: {str(e)[:200]}")
+      print(f"[RECOVERY:{name}] driver 再作成中...")
+      recover_driver(holder)
+    except Exception:
+      print(traceback.format_exc())
+    time.sleep(2)
+    try:
+      diffs = happymail_android.verify_profile(holder["driver"], chara_data)
+    except WebDriverException as e:
+      print(f"[CRASH:{name}] 検証: {str(e)[:200]}")
+      recover_driver(holder)
+      continue
+    if not diffs:
+      print(f"[{name}] ✅ 全項目反映完了 (試行{attempt}回)")
+      return True
+    missing_labels = {label for label, _, _ in diffs}
+    print(f"[{name}] 未反映 {len(diffs)} 項目: {sorted(missing_labels)}")
+  print(f"[{name}] ❌ {max_attempts}回試行しても全反映に至らず")
+  for label, exp, act in diffs:
+    print(f"  - {label}: 期待={exp} 実際={act!r}")
+  return False
 
 
 def main():
@@ -104,28 +159,25 @@ def main():
   print(f"[INFO] 実行対象キャラ数: {len(targets)}")
 
   appium_proc = start_appium_if_needed()
-  driver = None
+  holder = {"driver": None}
   try:
     print("[Appium] driver作成中…")
-    driver = create_driver()
+    holder["driver"] = create_driver()
     time.sleep(3)
-    happymail_android.dismiss_popups(driver)
+    happymail_android.dismiss_popups(holder["driver"])
 
     for chara_data in targets:
       name = chara_data["name"]
       print(f"\n=== Processing user: {name} (login_id: {chara_data.get('login_id')}) ===")
       try:
-        happymail_android.re_registration(chara_data, driver)
-      except WebDriverException as e:
-        print("[ERROR]", e)
-        traceback.print_exc()
+        edit_chara_with_retry(chara_data, holder)
       except Exception:
         print(traceback.format_exc())
 
   finally:
-    if driver is not None:
+    if holder["driver"] is not None:
       try:
-        driver.quit()
+        holder["driver"].quit()
       except Exception:
         pass
       print("[Appium] driver終了")

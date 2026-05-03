@@ -1,0 +1,37 @@
+{
+  "_comment": "login_id <-> UDID/Appium ports のマッピング。h_app_drivers_android.py が参照する。現在は 1 端末 (a02aca5e) で 4 キャラ運用。同時実行は 1 つだけ可能 (端末を切り替えて手動でログインを切替)。モバイルファーム化する際は端末ごとに異なる udid / appium_port / system_port / mjpeg_server_port を指定すること (並列実行時の衝突回避のため必須)。",
+  "mappings": [
+    {
+      "login_id": "50022949331",
+      "name_hint": "麻衣子",
+      "udid": "a02aca5e",
+      "appium_port": 4723,
+      "system_port": 8200,
+      "mjpeg_server_port": 7810
+    },
+    {
+      "login_id": "08082859868",
+      "name_hint": "いおり",
+      "udid": "a02aca5e",
+      "appium_port": 4723,
+      "system_port": 8200,
+      "mjpeg_server_port": 7810
+    },
+    {
+      "login_id": "08019708643",
+      "name_hint": "デバこ",
+      "udid": "a02aca5e",
+      "appium_port": 4723,
+      "system_port": 8200,
+      "mjpeg_server_port": 7810
+    },
+    {
+      "login_id": "50080640584",
+      "name_hint": "えりか",
+      "udid": "a02aca5e",
+      "appium_port": 4723,
+      "system_port": 8200,
+      "mjpeg_server_port": 7810
+    }
+  ]
+}

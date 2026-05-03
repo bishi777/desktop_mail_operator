@@ -252,7 +252,12 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
       if elapsed_time >= timedelta(minutes=4):
         print("4分以上経過しています。")
         # 年齢を取得
-        age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
+        age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")
+        if len(age_element):
+          age_element = driver.find_elements(By.CLASS_NAME, value="list_subtext")[0]
+        else:
+          age_element = driver.find_elements(By.CLASS_NAME, value="list_text")[0]
+
         match = re.search(r"\d+～\d+", age_element.text)
         young_flag = False
         if match:
