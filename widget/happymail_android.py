@@ -1060,6 +1060,8 @@ def check_mail(
 
 def _open_footprint_list(driver):
   """マイページ → 足あとグリッドをタップして 足あと一覧画面に遷移する。"""
+  # マッチング成立モーダル等の強制モーダルを先に処理
+  _dismiss_matching_modal(driver)
   dismiss_popups(driver)
   open_mypage_tab(driver)
   human_sleep(1.0, 2.0)
@@ -1339,6 +1341,8 @@ def _return_footprint_only(driver, chara_data, send_cnt=1):
 
 def _open_typelist_tab(driver):
   """typelist タブに遷移する。"""
+  # マッチング成立モーダル等の強制モーダルを先に処理
+  _dismiss_matching_modal(driver)
   dismiss_popups(driver)
   if not driver.find_elements(AppiumBy.ID, ID_TYPELIST_TAB):
     _ensure_main_tab(driver)
@@ -1403,6 +1407,93 @@ def _confirm_yes_dialog(driver, timeout=4):
   return False
 
 
+def _dismiss_matching_modal(driver):
+  """マッチング成立モーダル ('Best matching ... マッチングしました') を閉じる試み。
+
+  タイプ返しで両片想い成立時に出るオーバーレイモーダル。back キーや一般的な
+  dismiss_popups では閉じない強制モーダル。
+  **アプリの強制終了 (`am force-stop` / `terminate_app`) は使わない方針**のため、
+  以下の手段でアプリ内から正規に閉じる:
+    1. `閉じる` / `Close` 等の content-desc を持つ要素を Appium で探してタップ
+    2. clickable=true の右上 ImageView を bounds で抽出してタップ
+    3. 失敗時はログ出力のみ (上位の判断に委ねる)
+
+  Returns:
+    True: 閉じることに成功 / False: 閉じられなかった or モーダルなし
+  """
+  try:
+    src = driver.page_source
+  except WebDriverException:
+    return False
+  if "マッチングしました" not in src and "Best matching" not in src:
+    return False
+
+  print("  [matching_modal] 'マッチングしました' モーダルを検出 → 閉じる試み")
+  udid = _udid(driver)
+
+  # ── 試行 1: content-desc で × を探して click ──
+  for query in (
+    '//*[@content-desc="閉じる"]',
+    '//*[@content-desc="Close"]',
+    '//*[@content-desc="close"]',
+    '//*[@content-desc="×"]',
+  ):
+    try:
+      els = driver.find_elements(AppiumBy.XPATH, query)
+    except WebDriverException:
+      els = []
+    for el in els:
+      try:
+        if el.is_displayed():
+          el.click()
+          time.sleep(1.5)
+          new_src = driver.page_source
+          if "マッチングしました" not in new_src:
+            print("  [matching_modal] content-desc で閉じた")
+            return True
+      except (StaleElementReferenceException, WebDriverException):
+        continue
+
+  # ── 試行 2: 右上にある clickable な ImageView の bounds をタップ ──
+  try:
+    candidates = driver.find_elements(
+      AppiumBy.XPATH,
+      '//android.widget.ImageView[@clickable="true"]',
+    )
+  except WebDriverException:
+    candidates = []
+  for el in candidates:
+    try:
+      bounds = el.get_attribute("bounds") or ""
+      parsed = _parse_bounds(bounds)
+      if not parsed:
+        continue
+      x1, y1, x2, y2 = parsed
+      # 「右上の小さいアイコン」: x_max が画面右側、y が上半分、サイズ小さめ
+      if x2 > 900 and y1 < 1000 and (x2 - x1) < 250 and (y2 - y1) < 250:
+        if udid:
+          cx = (x1 + x2) // 2
+          cy = (y1 + y2) // 2
+          print(f"  [matching_modal] 右上 ImageView adb tap ({cx},{cy}) bounds={bounds}")
+          subprocess.run(
+            ["adb", "-s", udid, "shell", "input", "tap", str(cx), str(cy)],
+            check=False,
+          )
+          time.sleep(1.5)
+          try:
+            new_src = driver.page_source
+            if "マッチングしました" not in new_src:
+              print("  [matching_modal] 右上 ImageView で閉じた")
+              return True
+          except WebDriverException:
+            pass
+    except (StaleElementReferenceException, WebDriverException):
+      continue
+
+  print("  [matching_modal] 自動で閉じられず — ユーザー手動対応推奨。今回の周は中断扱い。")
+  return False
+
+
 def _return_type_only(driver, chara_data, send_cnt=1):
   """タイプ返し: typelist タブ → 相手から → 現在カードに btn_send_type をタップ。
 
@@ -1455,6 +1546,8 @@ def _return_type_only(driver, chara_data, send_cnt=1):
     # 確認ダイアログがあれば yes
     _confirm_yes_dialog(driver, timeout=4)
     dismiss_popups(driver)
+    # マッチング成立モーダル ('Best matching') が出る可能性あり (両片想い時)。閉じる試み
+    _dismiss_matching_modal(driver)
     sent += 1
     print(f"  [{name}] type: タイプ返し OK ({user_name}) {sent}/{send_cnt}")
     human_sleep(1.5, 3.0)

@@ -843,14 +843,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
     if elapsed_time >= timedelta(minutes=4):
       print("4分以上経過しています。")
       # 年齢チェック
-      match = re.search(r'(\d+)歳', user_name)
-      if match:
-        age = int(match.group(1))
-        print(age)
-        if age < 18 or age > 40:
-          chat_ai_flug = True
-        else:
-          chat_ai_flug = False
+      # match = re.search(r'(\d+)歳', user_name)
+      # if match:
+      #   age = int(match.group(1))
+      #   print(age)
+      #   if age < 18 or age > 40:
+      #     chat_ai_flug = True
+      #   else:
+      #     chat_ai_flug = False
+      chat_ai_flug = False
       print(f"{user_name}さんに返信します")
       user_div_list[-1].find_element(By.TAG_NAME, "a").click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
