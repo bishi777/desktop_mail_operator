@@ -13,3 +13,4 @@ profiles/
 debug_chromedrivers.sh
 debug_chromedrivers.ps1
 settings.py
+.claude/worktrees/
