@@ -412,7 +412,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt,):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt, post_title="",):
     return_list = []
     new_mail_cnt = 0
     loop_cnt = 0
@@ -498,6 +498,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")      
           send_me_length = len(send_message)
           received_elem = driver.find_elements(By.CLASS_NAME, "message__block--receive")
+          all_received_text = ""
+          received_message = ""
           if len(received_elem):
             received_message = received_elem[-1].text
             print(f"受信メッセージ: {received_message}")
@@ -659,18 +661,17 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           # text_without_children = driver.execute_script(script, sent_text_element) 
           print(f"{send_message} len(send_message)")
 
-          if not chat_ai_flug:    
+          if not chat_ai_flug:
+            # 募集経由かを all_received_text + post_title で判定（SPで .text が空の問題を回避）
+            from_board = (
+              ("募集から送信" in all_received_text)
+              or (post_title and post_title in all_received_text)
+            )
             if send_me_length == 0:
-              send_message = fst_message.format(name=user_name) 
-              # print(user_name)
-              # 掲示板からきたか確認
-              text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
-              for t_f_u in text_from_users:
-                if "募集から送信" in t_f_u.text:
-                  if post_return_message:
-                    send_message = post_return_message.format(name=user_name)    
-                    # print(user_name)
-                    # print(send_message)     
+              send_message = fst_message.format(name=user_name)
+              if from_board and post_return_message:
+                send_message = post_return_message.format(name=user_name)
+                print(f"  [{name}] 募集経由 → post_return_message を送信")
               text_area = driver.find_element(By.ID, value="text-message")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
@@ -736,19 +737,15 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print("画像の送信に失敗しました", e)
                 print(traceback.format_exc())
             elif send_me_length == 1:
-              send_message = second_message.format(name=user_name) 
-              # print(user_name)
-              # print(send_message)
-              # 掲示板からきたか確認
-              text_from_users = driver.find_elements(By.CLASS_NAME, value="message__block--receive")
-              for t_f_u in text_from_users:
-                if "募集から送信" in t_f_u.text:
-                  if post_return_message:
-                    send_message = ""
-                    print('やり取りしてます')
-                    receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
-                    return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_contents.text}」"
-                    return_list.append(return_message)      
+              send_message = second_message.format(name=user_name)
+              # 募集経由なら second_message を送らず「やり取りしてます」記録のみ
+              if from_board and post_return_message:
+                send_message = ""
+                print('やり取りしてます')
+                receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
+                receive_text = (driver.execute_script("return arguments[0].textContent;", receive_contents) or receive_contents.text or "").strip()
+                return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_text}」"
+                return_list.append(return_message)
               if send_message:
                 text_area = driver.find_element(By.ID, value="text-message")
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)

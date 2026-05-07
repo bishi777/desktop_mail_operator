@@ -118,13 +118,14 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   pending_hour = _pending_repost_hour(now, name, repost_done_today)
   will_repost = pending_hour is not None
 
-  # タスク決定: re_post 実行ラウンドでは score_and_return_foot は走らせない
+  # タスク決定: 「re_post 直後の2ラウンドで score_and_return_foot」を実現するため、
+  # 残機があるラウンドは score を優先し、re_post は後回しにする
   tasks = ["checkmail"]
-  if will_repost:
-    tasks.append("re_post")
-  elif (score_rf_remaining[name] > 0
-        and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
+  if (score_rf_remaining[name] > 0
+      and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
     tasks.append("score_and_return_foot")
+  elif will_repost:
+    tasks.append("re_post")
 
   random.shuffle(tasks)
   # 20% でランダムスキップ（checkmail は対象外）
@@ -143,7 +144,7 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
           name, driver, wait, login_id, password, return_foot_message,
           fst_message, post_return_message, second_message, conditions_message,
           confirmation_mail, return_foot_img, gmail_address, gmail_password_c,
-          return_check_cnt, android, chara_prompt,
+          return_check_cnt, android, chara_prompt, post_title=post_title,
         )
         if happymail_new:
           happymail_new_list.extend(happymail_new)
