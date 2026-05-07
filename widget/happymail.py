@@ -488,10 +488,13 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           send_me_length = len(send_message)
           received_elem = driver.find_elements(By.CLASS_NAME, "message__block--receive")
           if len(received_elem):
-            received_message = received_elem[-1].text
-            print(f"受信メッセージ: {received_message}")
-            email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
-            email_list = re.findall(email_pattern, received_message)
+            for i in received_message:
+              if "＠" in i.text:
+                i = i.replace("＠", "@")
+                email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
+                email_list = re.findall(email_pattern, i)
+                if email_list:
+                  received_message = i.text
             if email_list:
               if "icloud.com" in received_message:
                 print("icloud.comが含まれています")
@@ -3549,32 +3552,56 @@ def analyze_image_with_claude(image_url, cookies_dict=None):
     image_data = base64.standard_b64encode(resp.content).decode('utf-8')
     media_type = resp.headers.get('content-type', 'image/jpeg').split(';')[0]
 
+    # client = anthropic.Anthropic(api_key=api_key)
+    # message = client.messages.create(
+    #   model='claude-haiku-4-5-20251001',
+    #   max_tokens=256,
+    #   messages=[{
+    #     'role': 'user',
+    #     'content': [
+    #       {
+    #         'type': 'image',
+    #         'source': {'type': 'base64', 'media_type': media_type, 'data': image_data},
+    #       },
+    #       {
+    #         'type': 'text',
+    #         'text': (
+    #           'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
+    #           '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
+    #           '・真面目そう・おとなしそう: 高スコア\n'
+    #           '・女性慣れしていなそう・モテなそう: 高スコア\n'
+    #           '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
+    #           '必ず以下の形式のみで答えてください（説明不要）:\n'
+    #           'SCORE:数字 REASON:一言理由'
+    #         ),
+    #       },
+    #     ],
+    #   }],
+    # )
     client = anthropic.Anthropic(api_key=api_key)
     message = client.messages.create(
       model='claude-haiku-4-5-20251001',
       max_tokens=256,
       messages=[{
         'role': 'user',
-        'content': [
-          {
-            'type': 'image',
-            'source': {'type': 'base64', 'media_type': media_type, 'data': image_data},
-          },
-          {
-            'type': 'text',
-            'text': (
-              'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
-              '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
-              '・真面目そう・おとなしそう: 高スコア\n'
-              '・女性慣れしていなそう・モテなそう: 高スコア\n'
-              '・イケメン・チャラい・自信ありそう: 低スコア\n\n'
-              '必ず以下の形式のみで答えてください（説明不要）:\n'
-              'SCORE:数字 REASON:一言理由'
-            ),
-          },
-        ],
+        'content': [{
+          'type': 'text',
+          'text': (
+            '以下は出会い系サイトの男性プロフィール自己PRです。'
+            '文面から受ける印象を -10〜10点で評価してください。\n'
+            '評価基準:\n'
+            '・落ち着いた雰囲気・誠実で真面目な印象・穏やかな文体: 高スコア\n'
+            '・趣味に没頭している・インドア派な印象: 高スコア\n'
+            '・派手・社交的・アクティブでチャラい印象: 低スコア（マイナスも可）\n'
+            '・遊び目的・SNS慣れしている印象・露骨な性目的: 低スコア\n\n'
+            f'自己PR:\n{profile_text[:1500]}\n\n'
+            '必ず以下の形式のみで答えてください（説明不要）:\n'
+            'SCORE:数字 REASON:一言理由'
+          ),
+        }],
       }],
     )
+  
     text = message.content[0].text.strip()
     import re
     m = re.search(r'SCORE:(\d+)\s+REASON:(.+)', text)
