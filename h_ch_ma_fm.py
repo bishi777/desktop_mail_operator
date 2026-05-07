@@ -21,22 +21,43 @@ from datetime import datetime
 import settings
 
 
-def _parse_repost_times(arg):
-  """`6,12,18` 形式のCSVをパース。失敗時は既定の [6,12,18] を返す。"""
-  try:
-    hours = sorted({int(x.strip()) for x in arg.split(",") if x.strip()})
-    hours = [h for h in hours if 0 <= h <= 23]
-    return hours if hours else [6, 12, 18]
-  except Exception:
-    return [6, 12, 18]
+_DEFAULT_REPOST_TIMES = [(6, 0), (10, 0), (19, 0)]
+
+
+def _parse_repost_times(args):
+  """`6:16` `10:33` `19:00` のような H:MM 形式の複数引数を (hour, minute) リストに。
+  空 or 全て不正なら既定の [(6,0), (10,0), (19,0)] を返す。"""
+  result = []
+  for arg in args:
+    s = (arg or "").strip()
+    if not s:
+      continue
+    try:
+      if ":" in s:
+        h_str, m_str = s.split(":", 1)
+      else:
+        h_str, m_str = s, "0"
+      h = int(h_str)
+      m = int(m_str)
+      if 0 <= h <= 23 and 0 <= m <= 59:
+        result.append((h, m))
+    except Exception:
+      continue
+  if not result:
+    return list(_DEFAULT_REPOST_TIMES)
+  return sorted(set(result))
+
+
+def _fmt_time(hm):
+  return f"{hm[0]:02d}:{hm[1]:02d}"
 
 
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 first_half = happy_info
 port = sys.argv[1] if len(sys.argv) > 1 else settings.happymail_drivers_port
-repost_times = _parse_repost_times(sys.argv[2]) if len(sys.argv) > 2 else [6, 12, 18]
-print(f"再投稿時刻: {repost_times}")
+repost_times = _parse_repost_times(sys.argv[2:])
+print(f"再投稿時刻: {[_fmt_time(t) for t in repost_times]}")
 
 service = Service(ChromeDriverManager().install())
 options = Options()
@@ -84,11 +105,15 @@ def _should_take_break(round_cnt):
   return False
 
 
-def _pending_repost_hour(now, name, repost_done_today):
-  """now時点で未実行かつ過ぎている再投稿時刻のうち最古を返す。なければ None。"""
-  for hour in repost_times:
-    if now.hour >= hour and not repost_done_today[name][hour]:
-      return hour
+def _pending_repost_time(now, name, repost_done_today):
+  """now 時点で未実行かつ過ぎている再投稿時刻 (h,m) のうち最古を返す。なければ None。"""
+  for hm in repost_times:
+    if repost_done_today[name][hm]:
+      continue
+    h, m = hm
+    target = now.replace(hour=h, minute=m, second=0, microsecond=0)
+    if now >= target:
+      return hm
   return None
 
 
@@ -115,8 +140,8 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   return_check_cnt = 10
 
   # 当該キャラの未実行 re_post 時刻
-  pending_hour = _pending_repost_hour(now, name, repost_done_today)
-  will_repost = pending_hour is not None
+  pending_time = _pending_repost_time(now, name, repost_done_today)
+  will_repost = pending_time is not None
 
   # タスク決定: 「re_post 直後の2ラウンドで score_and_return_foot」を実現するため、
   # 残機があるラウンドは score を優先し、re_post は後回しにする
@@ -174,7 +199,7 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
 
     elif task == "re_post":
       area_list = ["東京都"] + random.sample(OTHER_AREAS, 2)
-      print(f"  [{name}] re_post 開始 (時刻={pending_hour}時 / 地域={area_list})")
+      print(f"  [{name}] re_post 開始 (時刻={_fmt_time(pending_time)} / 地域={area_list})")
       happymail.human_sleep(1.5, 4.0)
       try:
         happymail.re_post(
@@ -185,7 +210,7 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
         func.send_error(f"ハッピーメール掲示板{name}", traceback.format_exc())
       finally:
         # 成否に関わらず実行済みにして無限リトライを防ぐ
-        repost_done_today[name][pending_hour] = True
+        repost_done_today[name][pending_time] = True
         score_rf_remaining[name] = 2
         print(f"  [{name}] re_post 完了 → 次の2ラウンドで足跡返しスコア送信")
 
@@ -241,12 +266,25 @@ try:
         now = datetime.now()
         print(f"\n{'='*50}")
         print(f"本日の処理開始: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / 再投稿:{repost_times}")
+        print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / 再投稿:{[_fmt_time(t) for t in repost_times]}")
         print(f"{'='*50}")
 
         round_cnt = 1
         # 1日ごとの状態リセット
-        repost_done_today = {chara["name"]: {h: False for h in repost_times} for chara in first_half}
+        # 当日処理開始時点で既に過ぎている時刻は当日スキップ（done=True 扱い）。
+        # 例: 14:00 起動なら 6:00, 12:30 はスキップ、19:00 のみ 19:00 到達時に発火。
+        processing_now = datetime.now()
+        def _time_already_past(hm):
+          h, m = hm
+          target = processing_now.replace(hour=h, minute=m, second=0, microsecond=0)
+          return processing_now > target
+        repost_done_today = {
+          chara["name"]: {hm: _time_already_past(hm) for hm in repost_times}
+          for chara in first_half
+        }
+        skipped = [_fmt_time(t) for t in repost_times if _time_already_past(t)]
+        if skipped:
+          print(f"  ※ 起動時刻 {processing_now.strftime('%H:%M')} 時点で過ぎている repost_times をスキップ: {skipped}")
         score_rf_remaining = {chara["name"]: 0 for chara in first_half}
         score_rf_daily_done = {chara["name"]: 0 for chara in first_half}
 

@@ -3674,7 +3674,7 @@ def analyze_image_with_claude(image_url, cookies_dict=None):
           {
             'type': 'text',
             'text': (
-              'この男性の写真を見て、以下の観点で0〜30点のスコアをつけてください。\n'
+              'この男性の写真を見て、以下の観点で-10~10点のスコアをつけてください。\n'
               '・芋っぽい・地味・オタク系の見た目: 高スコア\n'
               '・真面目そう・おとなしそう: 高スコア\n'
               '・女性慣れしていなそう・モテなそう: 高スコア\n'
@@ -3777,18 +3777,18 @@ def score_user(profile):
   # ── 年収スコア ──────────────────────────────
   income = profile.get('年収', '')
   if not income:
-    score += 15
-    reasons.append('年収未記入(+15)')
+    score += 3
+    reasons.append('年収未記入(+0)')
   elif '～300' in income or '300万円未満' in income:
-    score += 20
+    score += 5
     reasons.append(f'年収低め {income}(+20)')
   elif '300～600' in income:
-    score += 10
+    score += 2
     reasons.append(f'年収やや低め {income}(+10)')
   elif '600～1000' in income:
-    score += 0
+    score += 1
   elif '1000万' in income or '5000万' in income:
-    score -= 10
+    score -= 1
     reasons.append(f'高収入 {income}(-10)')
 
   # ── 年齢スコア ──────────────────────────────
