@@ -112,7 +112,7 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   password = chara["password"]
   post_title = chara.get("post_title", "")
   post_contents = chara.get("post_contents", "")
-  return_check_cnt = 2
+  return_check_cnt = 10
 
   # 当該キャラの未実行 re_post 時刻
   pending_hour = _pending_repost_hour(now, name, repost_done_today)
