@@ -22,15 +22,27 @@ import settings
 
 
 _DEFAULT_REPOST_TIMES = [(6, 0), (10, 0), (19, 0)]
+_RUN_KEYWORDS = {"run", "true", "yes", "1"}
+_SKIP_KEYWORDS = {"skip", "false", "no", "0"}
 
 
-def _parse_repost_times(args):
-  """`6:16` `10:33` `19:00` のような H:MM 形式の複数引数を (hour, minute) リストに。
-  空 or 全て不正なら既定の [(6,0), (10,0), (19,0)] を返す。"""
-  result = []
+def _parse_cli_args(args):
+  """引数の中から run/skip キーワードと H:MM 形式の時刻を分離して返す。
+  戻り値: (run_today_initial: bool, repost_times: list[(h,m)])
+  時刻リストが空なら既定 [(6,0),(10,0),(19,0)]。
+  run/skip 指定が無ければ True がデフォルト。"""
+  run_today_initial = True
+  times = []
   for arg in args:
     s = (arg or "").strip()
     if not s:
+      continue
+    sl = s.lower()
+    if sl in _RUN_KEYWORDS:
+      run_today_initial = True
+      continue
+    if sl in _SKIP_KEYWORDS:
+      run_today_initial = False
       continue
     try:
       if ":" in s:
@@ -40,12 +52,12 @@ def _parse_repost_times(args):
       h = int(h_str)
       m = int(m_str)
       if 0 <= h <= 23 and 0 <= m <= 59:
-        result.append((h, m))
+        times.append((h, m))
     except Exception:
       continue
-  if not result:
-    return list(_DEFAULT_REPOST_TIMES)
-  return sorted(set(result))
+  if not times:
+    times = list(_DEFAULT_REPOST_TIMES)
+  return run_today_initial, sorted(set(times))
 
 
 def _fmt_time(hm):
@@ -56,8 +68,9 @@ user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 first_half = happy_info
 port = sys.argv[1] if len(sys.argv) > 1 else settings.happymail_drivers_port
-repost_times = _parse_repost_times(sys.argv[2:])
+run_today_initial, repost_times = _parse_cli_args(sys.argv[2:])
 print(f"再投稿時刻: {[_fmt_time(t) for t in repost_times]}")
+print(f"run_today 初期値: {run_today_initial}")
 
 service = Service(ChromeDriverManager().install())
 options = Options()
@@ -243,7 +256,7 @@ try:
   for chara in first_half:
     report_dict[chara["name"]] = [0, send_flug, []]
 
-  run_today = True
+  run_today = run_today_initial
 
   while True:
     now = datetime.now()
