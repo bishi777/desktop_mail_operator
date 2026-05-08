@@ -963,7 +963,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             check_more += 1
             print(f"{user_name}にicloud.com返信メールを送信しました")
           except Exception:
-            pass
+            print(f"{name} {user_name} icloud.com返信メールの送信に失敗しました")
+            error = traceback.format_exc()
+            traceback.print_exc()
+            print(f"user_name:{user_name}  user_address:{email_list}  gmail_address:{gmail_address}  gmail_password:{gmail_password}")
+            print(icloud_text)
+            func.send_error(name, f"icloud.com返信メールの送信に失敗しました\nuser_name:{user_name}\nuser_address:{email_list}\ngmail_address:{gmail_address}\ngmail_password:{gmail_password}\n\n{error}",
+                                  )
         else:
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
