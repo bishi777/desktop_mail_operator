@@ -155,12 +155,17 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   # 当該キャラの未実行 re_post 時刻
   pending_time = _pending_repost_time(now, name, repost_done_today)
   will_repost = pending_time is not None
+  beginner = bool(chara.get("beginner_flag"))
 
   # タスク決定: 「re_post 直後の2ラウンドで score_and_return_foot」を実現するため、
   # 残機があるラウンドは score を優先し、re_post は後回しにする
+  # 初心者キャラは足跡返しを行わず checkmail / re_post のみ
   tasks = ["checkmail"]
-  if (score_rf_remaining[name] > 0
-      and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
+  if beginner:
+    if will_repost:
+      tasks.append("re_post")
+  elif (score_rf_remaining[name] > 0
+        and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
     tasks.append("score_and_return_foot")
   elif will_repost:
     tasks.append("re_post")
