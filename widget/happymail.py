@@ -412,7 +412,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt, post_title="",):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt, post_title="",mailaddress_img=""):
     return_list = []
     new_mail_cnt = 0
     loop_cnt = 0
@@ -775,7 +775,39 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                       driver.refresh()
                       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                       time.sleep(1.5)
-                      break       
+                      break  
+              # メルアド画像があれば送信 
+              try:
+                if mailaddress_img:  
+                  # 画像データを取得してBase64にエンコード
+                  image_response = requests.get(mail_img)
+                  image_base64 = base64.b64encode(image_response.content).decode('utf-8')
+                  # ローカルに一時的に画像ファイルとして保存
+                  image_filename = f"{name}_image.png"
+                  with open(image_filename, 'wb') as f:
+                      f.write(base64.b64decode(image_base64))
+                  # 画像の保存パスを取得
+                  image_path = os.path.abspath(image_filename)
+                  img_conform = driver.find_element(By.ID, value="media-confirm")
+                  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+                  time.sleep(1)
+                  driver.execute_script("arguments[0].click();", plus_icon[0])
+                  time.sleep(1)
+                  upload_file = driver.find_element(By.ID, "upload_file")
+                  upload_file.send_keys(image_path)
+                  time.sleep(2)
+                  submit = driver.find_element(By.ID, value="submit_button")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
+                  driver.execute_script("arguments[0].click();", submit)
+                  while img_conform.is_displayed():
+                    time.sleep(2)
+                    modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
+                    if len(modal_content):
+                      break # modal-content お相手が年齢確認されていない為
+              except Exception as e:
+                print("画像の送信に失敗しました", e)
+                print(traceback.format_exc())     
             else:
               print('やり取りしてます')
               receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
@@ -4180,95 +4212,44 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
     return None
 
 
-def score_and_return_foot(name, driver, wait, return_foot_message, image_path, user_check_cnt=None):
+def score_and_type(name, driver, wait, user_check_cnt=None):
   """
-  足あとリストから user_check_cnt 人をスコアリングして、
-  最高スコアのユーザーに return_foot_message を送信する。
-  score_and_send_fst_message の足跡返し版。
+  プロフ一覧から user_check_cnt 人をスコアリングして、
+  最高スコアのユーザーに「タイプ」を送信する。
 
   Args:
     name: 自キャラ名（ログ用）
     driver: WebDriver
     wait: WebDriverWait
-    return_foot_message: 足跡返しメッセージ（{name} で相手名を埋め込み可）
-    image_path: 添付画像URL（Noneで画像送信スキップ）
     user_check_cnt: スコアリングする候補数（Noneで 8〜14 のランダム）
   Returns:
-    送信先ユーザー名（送信できなかった場合は None）
+    タイプ送信先ユーザー名（送信できなかった場合は None）
   """
   if user_check_cnt is None:
     user_check_cnt = random.randint(8, 14)
 
-  print(f"  [{name}] 足跡リストから最大{user_check_cnt}人をスコアリング中...")
+  print(f"  [{name}] プロフ一覧から{user_check_cnt}人をスコアリング中...")
 
   if catch_warning_screen(driver):
     print(f"  [{name}] 警告画面の可能性")
     return None
 
-  driver.get("https://happymail.co.jp/sp/app/html/ashiato.php")
+  driver.get('https://happymail.co.jp/app/html/profile_list.php?a=a')
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
-  catch_warning_screen(driver)
 
-  driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-  time.sleep(1)
-  f_users = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
-  if not f_users:
-    print(f"  [{name}] 足跡ユーザーが見つかりません")
-    return None
-
-  candidates = []
-  for idx, f_user in enumerate(f_users):
-    if len(candidates) >= user_check_cnt:
-      break
-    try:
-      name_field = f_user.find_element(By.CLASS_NAME, value="ds_like_list_name")
-      # SP の足あとカードは .text が空になるため textContent から取得する
-      user_name = (driver.execute_script("return arguments[0].textContent;", name_field) or "").strip()
-      if not user_name:
-        continue
-      if name_field.find_elements(By.TAG_NAME, value="img"):
-        continue  # 既送信スキップ
-      age_elm = f_user.find_elements(By.CLASS_NAME, value="ds_like_list_age")
-      if age_elm:
-        age_text = (driver.execute_script("return arguments[0].textContent;", age_elm[0]) or "").strip()
-        if "20代" not in age_text and "18~19" not in age_text and "18～19" not in age_text and "10代" not in age_text:
-          continue
-      # 親<li>内の input[name="selTo[]"] から tid を抽出してプロフURLを組み立てる
-      tid = driver.execute_script("""
-        var el = arguments[0];
-        while (el) {
-          if (el.tagName === 'LI') {
-            var inp = el.querySelector('input[name="selTo[]"]');
-            if (inp) return inp.value;
-          }
-          el = el.parentElement;
-        }
-        return null;
-      """, f_user)
-      if not tid:
-        continue
-      candidates.append({'idx': idx, 'name': user_name, 'tid': tid})
-    except Exception:
-      continue
-
-  if not candidates:
-    print(f"  [{name}] 候補ユーザーなし")
-    return None
-
-  cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
   results = []
+  cookies_dict = {c['name']: c['value'] for c in driver.get_cookies()}
 
-  for cand in candidates:
+  for idx in range(1, user_check_cnt + 1):
     try:
-      profile_url = f"https://happymail.co.jp/sp/app/html/profile_detail.php?a=a&tid={cand['tid']}"
-      driver.get(profile_url)
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      driver.get(url)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-      time.sleep(1.5)
+      time.sleep(1)
 
-      m = driver.find_elements(By.XPATH, value="//*[@id='ds_main']/div/p")
-      if m and "プロフィール情報の取得に失敗しました" in m[0].text:
-        continue
+      if 'detail' not in driver.current_url:
+        break
 
       profile = get_profile_detail(driver, wait)
       score, reasons = score_user(profile)
@@ -4276,7 +4257,7 @@ def score_and_return_foot(name, driver, wait, return_foot_message, image_path, u
       intro = profile.get('自己紹介', '')
       ngword_list = ['通報', '業者', '金銭', '条件', 'サクラ']
       if any(ng in intro for ng in ngword_list):
-        print(f"    [{cand['name']}] NGワード検出スキップ")
+        print(f"    [{idx}] NGワード検出スキップ")
         continue
 
       image_urls = profile.get('画像urls', [])
@@ -4286,16 +4267,18 @@ def score_and_return_foot(name, driver, wait, return_foot_message, image_path, u
           score += img_score
           reasons.append(f'画像+{img_score}({img_reason})')
 
+      user_name = profile.get('名前') or f'user{idx}'
+
       results.append({
-        'name': cand['name'],
+        'name': user_name,
         'score': score,
         'reasons': reasons,
-        'profile': profile,
         'url': driver.current_url,
+        'idx': idx,
       })
-      print(f"    [{cand['name']}] スコア:{score} ({', '.join(reasons[:3])})")
+      print(f"    [{idx}] {user_name} スコア:{score} ({', '.join(reasons[:3])})")
     except Exception as e:
-      print(f"    [{cand['name']}] エラー: {e}")
+      print(f"    [{idx}] エラー: {e}")
       continue
 
   if not results:
@@ -4304,90 +4287,32 @@ def score_and_return_foot(name, driver, wait, return_foot_message, image_path, u
 
   results.sort(key=lambda x: x['score'], reverse=True)
   best = results[0]
-  print(f"  [{name}] 最高スコア: {best['name']} ({best['score']}点) → 足跡返し送信")
+  print(f"  [{name}] 最高スコア: {best['name']} ({best['score']}点) → タイプ送信")
 
   driver.get(best['url'])
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
+  catch_warning_screen(driver)
 
-  local_img_path = None
   try:
-    btn_mail = driver.find_elements(By.ID, value="btn-mail")
-    if not btn_mail:
-      print(f"  [{name}] メールボタンが見つかりません")
+    type_button = driver.find_elements(By.ID, value="btn-type")
+    if not type_button:
+      print(f"  [{name}] タイプボタンが見つかりません")
       return None
-    send_mail = btn_mail[0].find_element(By.CLASS_NAME, value="icon-float_message")
-    driver.execute_script("arguments[0].click();", send_mail)
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(1.5)
-    catch_warning_screen(driver)
-
-    text_area = driver.find_element(By.ID, value="text-message")
-    message = return_foot_message.format(name=best['name'])
-    driver.execute_script("arguments[0].value = arguments[1];", text_area, message)
-    driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area)
-    human_sleep(1.0, 2.0)
-
-    submit_btn = driver.find_element(By.ID, value="submitButton")
-    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", submit_btn)
-    driver.execute_script("arguments[0].click();", submit_btn)
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    classes = type_button[0].get_attribute("class") or ""
+    # class に 'on' が無い / 'disabled' があるなら送信不可
+    if "disabled" in classes or " on" not in (" " + classes):
+      print(f"  [{name}] タイプ送信不可（class='{classes}'）")
+      return None
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", type_button[0])
+    driver.execute_script("arguments[0].click();", type_button[0])
     time.sleep(2)
-
-    send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
-    if send_msg_elem:
-      script = """
-        var element = arguments[0];
-        var elementsToRemove = element.querySelectorAll('.transit_info, .message__block__body__time');
-        elementsToRemove.forEach(el => el.remove());
-        var textContent = element.textContent.trim();
-        elementsToRemove.forEach(el => element.appendChild(el));
-        return textContent;
-        """
-      most_recent_msg = driver.execute_script(script, send_msg_elem[-1])
-      most_recent_msg_clean = func.normalize_text(most_recent_msg)
-      message_clean = func.normalize_text(message)
-      if most_recent_msg_clean != message_clean:
-        driver.refresh()
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-
-    if image_path:
-      try:
-        local_img_path = f"{name}_rf_img.png"
-        img_response = requests.get(image_path)
-        with open(local_img_path, 'wb') as f:
-          f.write(img_response.content)
-        local_img_path = os.path.abspath(local_img_path)
-
-        plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-        if plus_icon:
-          driver.execute_script("arguments[0].scrollIntoView({block:'center'});", plus_icon[0])
-          time.sleep(0.5)
-          driver.execute_script("arguments[0].click();", plus_icon[0])
-          time.sleep(1)
-        upload_file = driver.find_elements(By.ID, "upload_file")
-        if upload_file:
-          upload_file[0].send_keys(local_img_path)
-          time.sleep(1.5)
-          submit = driver.find_elements(By.ID, value="submit_button")
-          if submit:
-            driver.execute_script("arguments[0].scrollIntoView({block:'center'});", submit[0])
-            driver.execute_script("arguments[0].click();", submit[0])
-            time.sleep(2)
-            print(f"  [{name}] 画像送信完了")
-      except Exception as e:
-        print(f"  [{name}] 画像送信エラー: {e}")
-
-    print(f"  [{name}] → {best['name']} に足跡返し送信完了")
+    print(f"  [{name}] → {best['name']} にタイプ送信完了")
     return best['name']
   except Exception as e:
-    print(f"  [{name}] 送信エラー: {e}")
+    print(f"  [{name}] タイプ送信エラー: {e}")
     print(traceback.format_exc())
     return None
-  finally:
-    if local_img_path and os.path.exists(local_img_path):
-      os.remove(local_img_path)
 
 
 def return_foot_message_roll(name, driver, wait, login_id, password, return_foot_message, return_foot_img):

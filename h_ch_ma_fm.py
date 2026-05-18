@@ -64,6 +64,28 @@ def _fmt_time(hm):
   return f"{hm[0]:02d}:{hm[1]:02d}"
 
 
+BEGINNER_DAYS = 7
+
+
+def _is_beginner(chara):
+  """date_created から1週間未満なら True（足跡返しスキップ対象）。
+  None / 不正値 / 1週間以上経過なら False。"""
+  raw = chara.get("date_created")
+  if not raw:
+    return False
+  try:
+    if isinstance(raw, datetime):
+      dt = raw
+    elif isinstance(raw, str):
+      dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    else:
+      return False
+  except (ValueError, TypeError):
+    return False
+  now = datetime.now(dt.tzinfo) if dt.tzinfo else datetime.now()
+  return (now - dt) < timedelta(days=BEGINNER_DAYS)
+
+
 user_data = func.get_user_data()
 happy_info = user_data["happymail"]
 first_half = happy_info
@@ -99,7 +121,7 @@ spare_mail_info = [
 # キャラ名 → キャラデータ の高速ルックアップ用 dict
 chara_by_name = {i["name"]: i for i in first_half}
 
-SCORE_RF_DAILY_LIMIT = 6
+SCORE_RF_DAILY_LIMIT = 15
 OTHER_AREAS = ["千葉県", "埼玉県", "神奈川県", "栃木県", "静岡県"]
 
 
@@ -132,7 +154,7 @@ def _pending_repost_time(now, name, repost_done_today):
 
 def _process_chara(name, chara, driver, wait, mail_info, report_dict,
                    repost_done_today, score_rf_remaining, score_rf_daily_done):
-  """1キャラ分の処理: checkmail / re_post / score_and_return_foot"""
+  """1キャラ分の処理: checkmail / re_post / score_and_type"""
   now = datetime.now()
   print(f"  ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
   happymail_new_list = []
@@ -150,23 +172,24 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   password = chara["password"]
   post_title = chara.get("post_title", "")
   post_contents = chara.get("post_contents", "")
+  mailaddress_img = chara.get("mail_address_image", "")
   return_check_cnt = 10
 
   # 当該キャラの未実行 re_post 時刻
   pending_time = _pending_repost_time(now, name, repost_done_today)
   will_repost = pending_time is not None
-  beginner = bool(chara.get("beginner_flag"))
+  beginner = _is_beginner(chara)
 
-  # タスク決定: 「re_post 直後の2ラウンドで score_and_return_foot」を実現するため、
+  # タスク決定: 「re_post 直後の2ラウンドで score_and_type」を実現するため、
   # 残機があるラウンドは score を優先し、re_post は後回しにする
-  # 初心者キャラは足跡返しを行わず checkmail / re_post のみ
+  # 作成から1週間未満のキャラはタイプ送信を行わず checkmail / re_post のみ
   tasks = ["checkmail"]
   if beginner:
     if will_repost:
       tasks.append("re_post")
   elif (score_rf_remaining[name] > 0
         and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
-    tasks.append("score_and_return_foot")
+    tasks.append("score_and_type")
   elif will_repost:
     tasks.append("re_post")
 
@@ -188,6 +211,7 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
           fst_message, post_return_message, second_message, conditions_message,
           confirmation_mail, return_foot_img, gmail_address, gmail_password_c,
           return_check_cnt, android, chara_prompt, post_title=post_title,
+          mailaddress_img=mailaddress_img
         )
         if happymail_new:
           happymail_new_list.extend(happymail_new)
@@ -230,18 +254,18 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
         # 成否に関わらず実行済みにして無限リトライを防ぐ
         repost_done_today[name][pending_time] = True
         score_rf_remaining[name] = 2
-        print(f"  [{name}] re_post 完了 → 次の2ラウンドで足跡返しスコア送信")
+        print(f"  [{name}] re_post 完了 → 次の2ラウンドでタイプ送信")
 
-    elif task == "score_and_return_foot":
+    elif task == "score_and_type":
       happymail.human_sleep(2.0, 5.0)
       try:
-        sent_to = happymail.score_and_return_foot(
-          name, driver, wait, return_foot_message, return_foot_img,
+        sent_to = happymail.score_and_type(
+          name, driver, wait,
           user_check_cnt=random.randint(8, 14),
         )
         if sent_to:
           score_rf_daily_done[name] += 1
-          print(f"  [{name}] 足跡返し送信済み {score_rf_daily_done[name]}/{SCORE_RF_DAILY_LIMIT}件")
+          print(f"  [{name}] タイプ送信済み {score_rf_daily_done[name]}/{SCORE_RF_DAILY_LIMIT}件")
       except NoSuchWindowException:
         print("NoSuchWindowExceptionエラーが出ました")
       except ReadTimeoutError as e:
