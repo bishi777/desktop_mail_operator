@@ -153,8 +153,10 @@ def _pending_repost_time(now, name, repost_done_today):
 
 
 def _process_chara(name, chara, driver, wait, mail_info, report_dict,
-                   repost_done_today, score_rf_remaining, score_rf_daily_done):
-  """1キャラ分の処理: checkmail / re_post / score_and_type"""
+                   repost_done_today, score_rf_remaining, score_rf_daily_done,
+                   checkmail_only=False):
+  """1キャラ分の処理: checkmail / re_post / score_and_type
+  checkmail_only=True なら checkmail のみ実行（スキップ日用）"""
   now = datetime.now()
   print(f"  ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
   happymail_new_list = []
@@ -175,23 +177,28 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   mailaddress_img = chara.get("mail_address_image", "")
   return_check_cnt = 10
 
-  # 当該キャラの未実行 re_post 時刻
-  pending_time = _pending_repost_time(now, name, repost_done_today)
-  will_repost = pending_time is not None
-  beginner = _is_beginner(chara)
+  pending_time = None
+  if checkmail_only:
+    # スキップ日: checkmail のみ
+    tasks = ["checkmail"]
+  else:
+    # 当該キャラの未実行 re_post 時刻
+    pending_time = _pending_repost_time(now, name, repost_done_today)
+    will_repost = pending_time is not None
+    beginner = _is_beginner(chara)
 
-  # タスク決定: 「re_post 直後の2ラウンドで score_and_type」を実現するため、
-  # 残機があるラウンドは score を優先し、re_post は後回しにする
-  # 作成から1週間未満のキャラはタイプ送信を行わず checkmail / re_post のみ
-  tasks = ["checkmail"]
-  if beginner:
-    if will_repost:
+    # タスク決定: 「re_post 直後の2ラウンドで score_and_type」を実現するため、
+    # 残機があるラウンドは score を優先し、re_post は後回しにする
+    # 作成から1週間未満のキャラはタイプ送信を行わず checkmail / re_post のみ
+    tasks = ["checkmail"]
+    if beginner:
+      if will_repost:
+        tasks.append("re_post")
+    elif (score_rf_remaining[name] > 0
+          and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
+      tasks.append("score_and_type")
+    elif will_repost:
       tasks.append("re_post")
-  elif (score_rf_remaining[name] > 0
-        and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
-    tasks.append("score_and_type")
-  elif will_repost:
-    tasks.append("re_post")
 
   random.shuffle(tasks)
   # 20% でランダムスキップ（checkmail は対象外）
@@ -294,24 +301,28 @@ try:
     today_start = now.replace(hour=7, minute=0, second=0, microsecond=0) + timedelta(minutes=start_offset)
     today_end = now.replace(hour=22, minute=0, second=0, microsecond=0) + timedelta(minutes=end_offset)
 
-    if run_today:
-      if now < today_start:
-        wait_sec = (today_start - now).total_seconds()
-        print(f"本日の開始時刻({today_start.strftime('%H:%M')})まで待機... ({wait_sec/60:.0f}分後)")
-        time.sleep(wait_sec)
-        now = datetime.now()
+    if now < today_start:
+      wait_sec = (today_start - now).total_seconds()
+      print(f"本日の開始時刻({today_start.strftime('%H:%M')})まで待機... ({wait_sec/60:.0f}分後)")
+      time.sleep(wait_sec)
+      now = datetime.now()
 
-      if now >= today_end:
-        print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
-      else:
-        mail_info = random.choice([user_mail_info, spare_mail_info])
-        now = datetime.now()
-        print(f"\n{'='*50}")
-        print(f"本日の処理開始: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / 再投稿:{[_fmt_time(t) for t in repost_times]}")
-        print(f"{'='*50}")
+    if now >= today_end:
+      print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
+    else:
+      mail_info = random.choice([user_mail_info, spare_mail_info])
+      now = datetime.now()
+      mode_label = "通常" if run_today else "スキップ日(checkmailのみ)"
+      print(f"\n{'='*50}")
+      print(f"本日の処理開始 [{mode_label}]: {now.strftime('%Y-%m-%d %H:%M:%S')}")
+      print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / 再投稿:{[_fmt_time(t) for t in repost_times]}")
+      print(f"{'='*50}")
 
-        round_cnt = 1
+      round_cnt = 1
+      repost_done_today = None
+      score_rf_remaining = None
+      score_rf_daily_done = None
+      if run_today:
         # 1日ごとの状態リセット
         # 当日処理開始時点で既に過ぎている時刻は当日スキップ（done=True 扱い）。
         # 例: 14:00 起動なら 6:00, 12:30 はスキップ、19:00 のみ 19:00 到達時に発火。
@@ -330,59 +341,60 @@ try:
         score_rf_remaining = {chara["name"]: 0 for chara in first_half}
         score_rf_daily_done = {chara["name"]: 0 for chara in first_half}
 
-        while datetime.now() < today_end:
-          now = datetime.now()
-          round_start = now
-          print(f"\n--- {round_cnt}周目 ({now.strftime('%H:%M:%S')}) ---")
+      while datetime.now() < today_end:
+        now = datetime.now()
+        round_start = now
+        print(f"\n--- {round_cnt}周目 ({now.strftime('%H:%M:%S')}) ---")
 
-          # [A] 離席模倣
-          if _should_take_break(round_cnt):
-            break_min = random.randint(20, 40)
-            print(f"  離席模倣: {break_min}分休憩")
-            time.sleep(break_min * 60)
-            if datetime.now() >= today_end:
-              break
+        # [A] 離席模倣
+        if _should_take_break(round_cnt):
+          break_min = random.randint(20, 40)
+          print(f"  離席模倣: {break_min}分休憩")
+          time.sleep(break_min * 60)
+          if datetime.now() >= today_end:
+            break
 
-          # タブ順をシャッフル
-          shuffled_handles = list(handles)
-          random.shuffle(shuffled_handles)
+        # タブ順をシャッフル
+        shuffled_handles = list(handles)
+        random.shuffle(shuffled_handles)
 
-          for handle in shuffled_handles:
-            try:
-              driver.switch_to.window(handle)
-            except NoSuchWindowException:
-              continue
-            happymail.human_sleep(0.5, 1.5)
-            current_url = driver.current_url
-            if "happymail.co.jp/app/html/mbmenu.php" not in current_url:
-              driver.get("https://happymail.co.jp/app/html/mbmenu.php")
-              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-              happymail.human_sleep(1.0, 2.5)
-            name_ele = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
-            if not name_ele:
-              print("名前の取得に失敗しました")
-              continue
-            name = name_ele[0].text
-            chara = chara_by_name.get(name)
-            if not chara:
-              print(f"  キャラデータに {name} が見つかりません（タブをスキップ）")
-              continue
-            _process_chara(
-              name, chara, driver, wait, mail_info, report_dict,
-              repost_done_today, score_rf_remaining, score_rf_daily_done,
-            )
+        for handle in shuffled_handles:
+          try:
+            driver.switch_to.window(handle)
+          except NoSuchWindowException:
+            continue
+          happymail.human_sleep(0.5, 1.5)
+          current_url = driver.current_url
+          if "happymail.co.jp/app/html/mbmenu.php" not in current_url:
+            driver.get("https://happymail.co.jp/app/html/mbmenu.php")
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            happymail.human_sleep(1.0, 2.5)
+          name_ele = driver.find_elements(By.CLASS_NAME, value="ds_user_display_name")
+          if not name_ele:
+            print("名前の取得に失敗しました")
+            continue
+          name = name_ele[0].text
+          chara = chara_by_name.get(name)
+          if not chara:
+            print(f"  キャラデータに {name} が見つかりません（タブをスキップ）")
+            continue
+          _process_chara(
+            name, chara, driver, wait, mail_info, report_dict,
+            repost_done_today, score_rf_remaining, score_rf_daily_done,
+            checkmail_only=not run_today,
+          )
 
-          elapsed = (datetime.now() - round_start).total_seconds()
-          print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒)")
-          # [A] 周回間隔を正規分布でランダム化
-          min_round_sec = _human_round_interval()
-          wait_sec = min_round_sec - elapsed
-          if wait_sec > 0 and datetime.now() < today_end:
-            print(f"  次の周まで {wait_sec/60:.0f}分待機...")
-            time.sleep(wait_sec)
-          round_cnt += 1
+        elapsed = (datetime.now() - round_start).total_seconds()
+        print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒)")
+        # [A] 周回間隔を正規分布でランダム化
+        min_round_sec = _human_round_interval()
+        wait_sec = min_round_sec - elapsed
+        if wait_sec > 0 and datetime.now() < today_end:
+          print(f"  次の周まで {wait_sec/60:.0f}分待機...")
+          time.sleep(wait_sec)
+        round_cnt += 1
 
-        print(f"\n本日の処理完了: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+      print(f"\n本日の処理完了: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
 
     run_today = not run_today
 
