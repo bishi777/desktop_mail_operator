@@ -706,7 +706,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(3)
                   break
-              
               if post_return_message_flug:
                 if mailaddress_img:
                   print(f"  [{name}] 募集経由  → post_return_message と 画像 を送信")
@@ -741,39 +740,39 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   except Exception as e:
                     print("画像の送信に失敗しました", e)
                     print(traceback.format_exc())    
-              else:
-                # 画像があれば送信 
-                try:
-                  if mail_img:  
-                    # 画像データを取得してBase64にエンコード
-                    image_response = requests.get(mail_img)
-                    image_base64 = base64.b64encode(image_response.content).decode('utf-8')
-                    # ローカルに一時的に画像ファイルとして保存
-                    image_filename = f"{name}_image.png"
-                    with open(image_filename, 'wb') as f:
-                        f.write(base64.b64decode(image_base64))
-                    # 画像の保存パスを取得
-                    image_path = os.path.abspath(image_filename)
-                    img_conform = driver.find_element(By.ID, value="media-confirm")
-                    plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-                    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                    time.sleep(1)
-                    driver.execute_script("arguments[0].click();", plus_icon[0])
-                    time.sleep(1)
-                    upload_file = driver.find_element(By.ID, "upload_file")
-                    upload_file.send_keys(image_path)
+              
+              # 画像があれば送信 
+              try:
+                if mail_img:  
+                  # 画像データを取得してBase64にエンコード
+                  image_response = requests.get(mail_img)
+                  image_base64 = base64.b64encode(image_response.content).decode('utf-8')
+                  # ローカルに一時的に画像ファイルとして保存
+                  image_filename = f"{name}_image.png"
+                  with open(image_filename, 'wb') as f:
+                      f.write(base64.b64decode(image_base64))
+                  # 画像の保存パスを取得
+                  image_path = os.path.abspath(image_filename)
+                  img_conform = driver.find_element(By.ID, value="media-confirm")
+                  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+                  time.sleep(1)
+                  driver.execute_script("arguments[0].click();", plus_icon[0])
+                  time.sleep(1)
+                  upload_file = driver.find_element(By.ID, "upload_file")
+                  upload_file.send_keys(image_path)
+                  time.sleep(2)
+                  submit = driver.find_element(By.ID, value="submit_button")
+                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
+                  driver.execute_script("arguments[0].click();", submit)
+                  while img_conform.is_displayed():
                     time.sleep(2)
-                    submit = driver.find_element(By.ID, value="submit_button")
-                    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                    driver.execute_script("arguments[0].click();", submit)
-                    while img_conform.is_displayed():
-                      time.sleep(2)
-                      modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-                      if len(modal_content):
-                        break # modal-content お相手が年齢確認されていない為
-                except Exception as e:
-                  print("画像の送信に失敗しました", e)
-                  print(traceback.format_exc()) 
+                    modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
+                    if len(modal_content):
+                      break # modal-content お相手が年齢確認されていない為
+              except Exception as e:
+                print("画像の送信に失敗しました", e)
+                print(traceback.format_exc()) 
             elif send_me_length == 1:
               send_message = second_message.format(name=user_name)
               # 募集経由なら second_message を送らず「やり取りしてます」記録のみ
@@ -818,7 +817,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               try:
                 if mailaddress_img:  
                   # 画像データを取得してBase64にエンコード
-                  image_response = requests.get(mail_img)
+                  image_response = requests.get(mailaddress_img)
                   image_base64 = base64.b64encode(image_response.content).decode('utf-8')
                   # ローカルに一時的に画像ファイルとして保存
                   image_filename = f"{name}_image.png"
