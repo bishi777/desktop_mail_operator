@@ -10,9 +10,9 @@ description: キャラクター画像生成（自動実行版）
     - プロジェクト内の `.tmp` フォルダをクリアまたは作成し、作業スペースを確保します。
 
 2. **ファイルのコピー**
-    - 指定されたキャラクターのフォルダ（`/Users/yamamotokenta/Library/CloudStorage/GoogleDrive-kenta.bishi777@gmail.com/マイドライブ/キャラ画像/{キャラクター名}/`）から元画像を `.tmp/original.jpg` にコピーします。
+    - 指定されたキャラクターのフォルダ（`/Users/yamamotokenta/Library/CloudStorage/GoogleDrive-y216154@gmail.com/マイドライブ/キャラ画像/{キャラクター名}/`）から元画像を `.tmp/original.jpg` にコピーします。
     - 元画像は `original.jpg` を優先し、存在しない場合は最新の画像またはユーザーが指定したファイルを使用します。
-    - スタンプ画像（`/Users/yamamotokenta/Library/CloudStorage/GoogleDrive-kenta.bishi777@gmail.com/マイドライブ/キャラ画像/アクセサリ/stamps.jpg`）を `.tmp/stamp.jpg` にコピーします。
+    - スタンプ画像（`/Users/yamamotokenta/Library/CloudStorage/GoogleDrive-y216154@gmail.com/マイドライブ/キャラ画像/アクセサリ/stamps.jpg`）を `.tmp/stamp.jpg` にコピーします。
 
 3. **画像処理（AI編集）**
     - `generate_image` ツールを使用して、以下の編集を行います。

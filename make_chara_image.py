@@ -37,7 +37,7 @@ from settings import Gemini_API_KEY
 
 CHARA_BASE = Path(
     "/Users/yamamotokenta/Library/CloudStorage/"
-    "GoogleDrive-kenta.bishi777@gmail.com/マイドライブ/キャラ画像"
+    "GoogleDrive-y216154@gmail.com/マイドライブ/キャラ画像"
 )
 STAMPS_DIR = CHARA_BASE / "アクセサリ" / "stamps"
 

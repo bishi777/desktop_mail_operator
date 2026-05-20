@@ -479,9 +479,9 @@ def send_error(chara, error_message, attachment_paths=None):
     :param attachment_paths: 文字列 or 文字列のリスト（添付するファイルパス）
     """
     # ★本番は環境変数に置き換えるのを強く推奨
-    mailaddress = 'kenta.bishi777@gmail.com'
-    password = 'rjdzkswuhgfvslvd'   # アプリパスワード推奨（2段階認証ON）
-    address_from = 'kenta.bishi777@gmail.com'
+    mailaddress = 'y216154@gmail.com'
+    password = '9xb3wmpc'   # アプリパスワード推奨（2段階認証ON）
+    address_from = 'y216154@gmail.com'
     address_to = "gifopeho@kmail.li"
     subject = "エラーメッセージ"
 

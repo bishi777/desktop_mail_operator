@@ -153,9 +153,9 @@ def _pending_repost_time(now, name, repost_done_today):
 
 
 def _process_chara(name, chara, driver, wait, mail_info, report_dict,
-                   repost_done_today, score_rf_remaining, score_rf_daily_done,
+                   score_rounds_until_next, score_rf_daily_done,
                    checkmail_only=False):
-  """1キャラ分の処理: checkmail / re_post / score_and_type
+  """1キャラ分の処理: checkmail / score_and_type
   checkmail_only=True なら checkmail のみ実行（スキップ日用）"""
   now = datetime.now()
   print(f"  ---------- {name} ------------{now.strftime('%Y-%m-%d %H:%M:%S')}")
@@ -177,28 +177,20 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   mailaddress_img = chara.get("mail_address_image", "")
   return_check_cnt = 10
 
-  pending_time = None
   if checkmail_only:
     # スキップ日: checkmail のみ
     tasks = ["checkmail"]
   else:
-    # 当該キャラの未実行 re_post 時刻
-    pending_time = _pending_repost_time(now, name, repost_done_today)
-    will_repost = pending_time is not None
     beginner = _is_beginner(chara)
-
-    # タスク決定: 「re_post 直後の2ラウンドで score_and_type」を実現するため、
-    # 残機があるラウンドは score を優先し、re_post は後回しにする
-    # 作成から1週間未満のキャラはタイプ送信を行わず checkmail / re_post のみ
+    # 幼期キャラ（作成から1週間未満）はタイプ送信を行わず checkmail のみ。
+    # それ以外は 4〜7 ラウンドに1回 score_and_type を発火（上限 SCORE_RF_DAILY_LIMIT）。
     tasks = ["checkmail"]
-    if beginner:
-      if will_repost:
-        tasks.append("re_post")
-    elif (score_rf_remaining[name] > 0
+    if not beginner:
+      score_rounds_until_next[name] -= 1
+      if (score_rounds_until_next[name] <= 0
           and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
-      tasks.append("score_and_type")
-    elif will_repost:
-      tasks.append("re_post")
+        tasks.append("score_and_type")
+        score_rounds_until_next[name] = random.randint(4, 7)
 
   random.shuffle(tasks)
   # 20% でランダムスキップ（checkmail は対象外）
@@ -246,23 +238,6 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
       except Exception:
         print(traceback.format_exc())
 
-    elif task == "re_post":
-      area_list = ["東京都"] + random.sample(OTHER_AREAS, 2)
-      print(f"  [{name}] re_post 開始 (時刻={_fmt_time(pending_time)} / 地域={area_list})")
-      happymail.human_sleep(1.5, 4.0)
-      try:
-        happymail.re_post(
-          name, driver, wait, post_title, post_contents, area_list=area_list,
-        )
-      except Exception:
-        print(traceback.format_exc())
-        func.send_error(f"ハッピーメール掲示板{name}", traceback.format_exc())
-      finally:
-        # 成否に関わらず実行済みにして無限リトライを防ぐ
-        repost_done_today[name][pending_time] = True
-        score_rf_remaining[name] = 2
-        print(f"  [{name}] re_post 完了 → 次の2ラウンドでタイプ送信")
-
     elif task == "score_and_type":
       happymail.human_sleep(2.0, 5.0)
       try:
@@ -281,8 +256,6 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       except Exception:
         print(traceback.format_exc())
-      finally:
-        score_rf_remaining[name] = max(0, score_rf_remaining[name] - 1)
 
     happymail.human_sleep(1.5, 4.0)
 
@@ -315,30 +288,16 @@ try:
       mode_label = "通常" if run_today else "スキップ日(checkmailのみ)"
       print(f"\n{'='*50}")
       print(f"本日の処理開始 [{mode_label}]: {now.strftime('%Y-%m-%d %H:%M:%S')}")
-      print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / 再投稿:{[_fmt_time(t) for t in repost_times]}")
+      print(f"開始:{today_start.strftime('%H:%M')} / 終了:{today_end.strftime('%H:%M')} / タイプ上限:{SCORE_RF_DAILY_LIMIT}")
       print(f"{'='*50}")
 
       round_cnt = 1
-      repost_done_today = None
-      score_rf_remaining = None
+      score_rounds_until_next = None
       score_rf_daily_done = None
       if run_today:
         # 1日ごとの状態リセット
-        # 当日処理開始時点で既に過ぎている時刻は当日スキップ（done=True 扱い）。
-        # 例: 14:00 起動なら 6:00, 12:30 はスキップ、19:00 のみ 19:00 到達時に発火。
-        processing_now = datetime.now()
-        def _time_already_past(hm):
-          h, m = hm
-          target = processing_now.replace(hour=h, minute=m, second=0, microsecond=0)
-          return processing_now > target
-        repost_done_today = {
-          chara["name"]: {hm: _time_already_past(hm) for hm in repost_times}
-          for chara in first_half
-        }
-        skipped = [_fmt_time(t) for t in repost_times if _time_already_past(t)]
-        if skipped:
-          print(f"  ※ 起動時刻 {processing_now.strftime('%H:%M')} 時点で過ぎている repost_times をスキップ: {skipped}")
-        score_rf_remaining = {chara["name"]: 0 for chara in first_half}
+        # 各キャラ「次に score_and_type を発火するまでの残ラウンド数」を 4〜7 で初期化
+        score_rounds_until_next = {chara["name"]: random.randint(4, 7) for chara in first_half}
         score_rf_daily_done = {chara["name"]: 0 for chara in first_half}
 
       while datetime.now() < today_end:
@@ -380,7 +339,7 @@ try:
             continue
           _process_chara(
             name, chara, driver, wait, mail_info, report_dict,
-            repost_done_today, score_rf_remaining, score_rf_daily_done,
+            score_rounds_until_next, score_rf_daily_done,
             checkmail_only=not run_today,
           )
 
