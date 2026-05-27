@@ -177,11 +177,12 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
     tasks = ["checkmail"]
   else:
     beginner = _is_beginner(chara)
-    # 毎ラウンド: マッチング返しを試行（上限なし）
-    # 幼期キャラ（作成から1週間未満）はタイプ送信を行わず checkmail / return_matching のみ。
-    # それ以外は 4〜7 ラウンドに1回 score_and_type を発火（上限 SCORE_RF_DAILY_LIMIT）。
-    tasks = ["checkmail", "return_matching"]
+    # 幼期キャラ（作成から1週間未満）は checkmail のみ。
+    # それ以外は毎ラウンド return_matching を試行し、4〜7 ラウンドに1回
+    # score_and_type を発火（上限 SCORE_RF_DAILY_LIMIT）。
+    tasks = ["checkmail"]
     if not beginner:
+      tasks.append("return_matching")
       score_rounds_until_next[name] -= 1
       if (score_rounds_until_next[name] <= 0
           and score_rf_daily_done[name] < SCORE_RF_DAILY_LIMIT):
