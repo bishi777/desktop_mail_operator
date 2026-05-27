@@ -4249,6 +4249,112 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
     return None
 
 
+def return_matching_one(name, driver, wait, fst_message):
+  """
+  マッチング一覧（タイプ→マッチングタブ）から未返信の先頭ユーザー1人に
+  fst_message を送信する。1ラウンド1件版（軽量・上限なし）。
+
+  Args:
+    name: 自キャラ名（ログ用）
+    driver: WebDriver
+    wait: WebDriverWait
+    fst_message: 初回メッセージ（{name} で相手名埋め込み可）
+  Returns:
+    送信先ユーザー名 / 送れなければ None
+  """
+  if not fst_message:
+    print(f"  [{name}] fst_message 未設定のためスキップ")
+    return None
+
+  if catch_warning_screen(driver):
+    print(f"  [{name}] 警告画面の可能性")
+    return None
+
+  driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1.5)
+  catch_warning_screen(driver)
+
+  # マッチングタブ（ds_common_tab_item[2]）をクリック
+  tab_items = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")
+  if len(tab_items) < 3:
+    print(f"  [{name}] マッチングタブが見つかりません")
+    return None
+  driver.execute_script("arguments[0].click();", tab_items[2])
+  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+  time.sleep(1)
+
+  active = driver.find_elements(By.CLASS_NAME, value="active")
+  if not active:
+    print(f"  [{name}] active タブが見つかりません")
+    return None
+  matching_users = active[0].find_elements(By.CLASS_NAME, value="type_list_outer")
+  if not matching_users:
+    print(f"  [{name}] マッチングユーザーなし")
+    return None
+
+  target_idx = None
+  for i, u in enumerate(matching_users):
+    try:
+      name_field = u.find_element(By.CLASS_NAME, value="ds_like_list_name")
+      # 送信済みは name 横に img アイコンが付くのでスキップ
+      if name_field.find_elements(By.TAG_NAME, value="img"):
+        continue
+      target_idx = i
+      break
+    except Exception:
+      continue
+
+  if target_idx is None:
+    print(f"  [{name}] 未返信マッチングなし")
+    return None
+
+  try:
+    name_field = matching_users[target_idx].find_element(By.CLASS_NAME, value="ds_like_list_name")
+    user_name = (name_field.text or "").strip()
+    msg_btn = matching_users[target_idx].find_element(By.CLASS_NAME, value="message_button")
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", msg_btn)
+    time.sleep(0.5)
+    driver.execute_script("arguments[0].click();", msg_btn)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(1.5)
+    catch_warning_screen(driver)
+  except Exception as e:
+    print(f"  [{name}] message_button クリック失敗: {e}")
+    return None
+
+  # NGワードチェック
+  prof_text = driver.find_elements(By.CLASS_NAME, value="ds_common_text")
+  if prof_text:
+    intro_raw = prof_text[0].text or ""
+    if "プロフィール情報の取得に失敗しました" in intro_raw:
+      print(f"  [{name}] プロフィール取得失敗スキップ: {user_name}")
+      return None
+    intro = intro_raw.replace(" ", "").replace("\n", "")
+    if any(ng in intro for ng in ["通報", "業者", "金銭", "条件"]):
+      print(f"  [{name}] NGワード検出スキップ: {user_name}")
+      return None
+
+  try:
+    text_area = driver.find_element(By.ID, value="text-message")
+    msg = fst_message.format(name=user_name) if user_name else fst_message
+    driver.execute_script("arguments[0].value = arguments[1];", text_area, msg)
+    driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area)
+    human_sleep(1.0, 2.0)
+
+    submit_btn = driver.find_element(By.ID, value="submitButton")
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", submit_btn)
+    driver.execute_script("arguments[0].click();", submit_btn)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+    print(f"  [{name}] → {user_name} にマッチング返し送信完了")
+    return user_name
+  except Exception as e:
+    print(f"  [{name}] マッチング返し送信エラー: {e}")
+    print(traceback.format_exc())
+    return None
+
+
 def score_and_type(name, driver, wait, user_check_cnt=None):
   """
   プロフ一覧から user_check_cnt 人をスコアリングして、
@@ -4280,7 +4386,7 @@ def score_and_type(name, driver, wait, user_check_cnt=None):
 
   for idx in range(1, user_check_cnt + 1):
     try:
-      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=prof&idx={idx}'
+      url = f'https://happymail.co.jp/app/html/profile_detail_list.php?a=a&from=profp&idx={idx}'
       driver.get(url)
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
       time.sleep(1)

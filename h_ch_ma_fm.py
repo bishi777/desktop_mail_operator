@@ -182,9 +182,10 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
     tasks = ["checkmail"]
   else:
     beginner = _is_beginner(chara)
-    # 幼期キャラ（作成から1週間未満）はタイプ送信を行わず checkmail のみ。
+    # 毎ラウンド: マッチング返しを試行（上限なし）
+    # 幼期キャラ（作成から1週間未満）はタイプ送信を行わず checkmail / return_matching のみ。
     # それ以外は 4〜7 ラウンドに1回 score_and_type を発火（上限 SCORE_RF_DAILY_LIMIT）。
-    tasks = ["checkmail"]
+    tasks = ["checkmail", "return_matching"]
     if not beginner:
       score_rounds_until_next[name] -= 1
       if (score_rounds_until_next[name] <= 0
@@ -231,6 +232,19 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
             func.send_mail(text, mail_info, title, img_path)
       except NoSuchWindowException:
         pass
+      except ReadTimeoutError as e:
+        print("ページの読み込みがタイムアウトしました:", e)
+        driver.refresh()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      except Exception:
+        print(traceback.format_exc())
+
+    elif task == "return_matching":
+      happymail.human_sleep(1.5, 4.0)
+      try:
+        happymail.return_matching_one(name, driver, wait, fst_message)
+      except NoSuchWindowException:
+        print("NoSuchWindowExceptionエラーが出ました")
       except ReadTimeoutError as e:
         print("ページの読み込みがタイムアウトしました:", e)
         driver.refresh()
