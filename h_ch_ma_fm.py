@@ -1,7 +1,5 @@
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.options import Options
 import random
 import time
@@ -9,11 +7,9 @@ from selenium.webdriver.common.by import By
 import os
 import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-from selenium.webdriver.support.ui import WebDriverWait
 import traceback
 from widget import happymail, func
 import sqlite3
-from selenium.webdriver.chrome.service import Service
 from datetime import timedelta
 from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from urllib3.exceptions import ReadTimeoutError
@@ -94,10 +90,9 @@ run_today_initial, repost_times = _parse_cli_args(sys.argv[2:])
 print(f"再投稿時刻: {[_fmt_time(t) for t in repost_times]}")
 print(f"run_today 初期値: {run_today_initial}")
 
-service = Service(ChromeDriverManager().install())
 options = Options()
 options.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
-driver = webdriver.Chrome(service=service, options=options)
+driver = webdriver.Chrome(options=options)
 # [F] CDP経由でnavigator.webdriverを除去
 happymail.stealth_setup(driver)
 wait = WebDriverWait(driver, 10)
