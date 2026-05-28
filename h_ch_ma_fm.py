@@ -177,6 +177,8 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
     tasks = ["checkmail"]
   else:
     beginner = _is_beginner(chara)
+    print(777)
+    print(beginner)
     # 幼期キャラ（作成から1週間未満）は checkmail のみ。
     # それ以外は毎ラウンド return_matching を試行し、4〜7 ラウンドに1回
     # score_and_type を発火（上限 SCORE_RF_DAILY_LIMIT）。
