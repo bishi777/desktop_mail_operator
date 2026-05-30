@@ -667,13 +667,19 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               ("募集から送信" in all_received_text)
               or (post_title and post_title in all_received_text)
             )
+            print(f"  [DEBUG {name}] send_me_length={send_me_length} from_board={from_board} url={driver.current_url}")
             if send_me_length == 0:
+              print(f"  [DEBUG {name}] fst_message 送信ブロックに入りました")
               send_message = fst_message.format(name=user_name)
               post_return_message_flug = False
               if from_board and post_return_message:
                 send_message = post_return_message.format(name=user_name)
                 print(f"  [{name}] 募集経由 → post_return_message を送信")
                 post_return_message_flug = True
+              text_area_list = driver.find_elements(By.ID, value="text-message")
+              print(f"  [DEBUG {name}] text-message 要素数={len(text_area_list)}")
+              if not text_area_list:
+                print(f"  [DEBUG {name}] text-message 見つからず、ページ HTML 抜粋: {driver.execute_script('return document.body.innerText;')[:300]!r}")
               text_area = driver.find_element(By.ID, value="text-message")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
               script = "arguments[0].value = arguments[1];"
@@ -682,8 +688,11 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               driver.execute_script("arguments[0].click();", text_area)
               time.sleep(0.5)
               # 送信
+              send_mail_list = driver.find_elements(By.ID, value="submitButton")
+              print(f"  [DEBUG {name}] submitButton 要素数={len(send_mail_list)}")
               send_mail = driver.find_element(By.ID, value="submitButton")
               send_mail.click()
+              print(f"  [DEBUG {name}] submitButton.click() 実行後 url={driver.current_url}")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")

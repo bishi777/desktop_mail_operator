@@ -186,13 +186,37 @@ def build_prompt(chara: str) -> tuple[str, str]:
     return prompt, pattern
 
 
+class NoImageInResponse(RuntimeError):
+    pass
+
+
 def extract_image(response) -> tuple[bytes, str]:
-    for part in response.candidates[0].content.parts:
-        inline = getattr(part, "inline_data", None)
-        if inline and inline.data:
-            mime = inline.mime_type or "image/jpeg"
-            return inline.data, mime
-    raise RuntimeError("レスポンスに画像が含まれていません")
+    candidates = getattr(response, "candidates", None) or []
+    if not candidates:
+        feedback = getattr(response, "prompt_feedback", None)
+        block = getattr(feedback, "block_reason", None) if feedback else None
+        raise NoImageInResponse(
+            f"候補なし / prompt_feedback.block_reason={block}"
+        )
+
+    cand = candidates[0]
+    content = getattr(cand, "content", None)
+    parts = getattr(content, "parts", None) if content else None
+    finish = getattr(cand, "finish_reason", None)
+
+    if parts:
+        for part in parts:
+            inline = getattr(part, "inline_data", None)
+            if inline and inline.data:
+                mime = inline.mime_type or "image/jpeg"
+                return inline.data, mime
+            text = getattr(part, "text", None)
+            if text:
+                print(f"  [text part] {text[:200]}")
+
+    raise NoImageInResponse(
+        f"レスポンスに画像が含まれていません (finish_reason={finish})"
+    )
 
 
 def mime_to_ext(mime: str) -> str:
@@ -252,18 +276,30 @@ def main() -> int:
     client = genai.Client(api_key=Gemini_API_KEY)
     print(f"Nano Banana Pro 呼び出し中... (model={MODEL})")
     max_attempts = 3
+    img_bytes = None
+    mime = None
     for attempt in range(1, max_attempts + 1):
         try:
             response = client.models.generate_content(model=MODEL, contents=contents)
-            break
         except genai_errors.ServerError as e:
             if attempt == max_attempts:
                 raise
             wait = 2 ** attempt
             print(f"ServerError {e.code if hasattr(e, 'code') else ''} → {wait}秒待ってリトライ ({attempt}/{max_attempts})")
             time.sleep(wait)
+            continue
 
-    img_bytes, mime = extract_image(response)
+        try:
+            img_bytes, mime = extract_image(response)
+            break
+        except NoImageInResponse as e:
+            if attempt == max_attempts:
+                raise
+            wait = 2 ** attempt
+            print(f"{e} → {wait}秒待ってリトライ ({attempt}/{max_attempts})")
+            time.sleep(wait)
+
+    assert img_bytes is not None and mime is not None
     ext = mime_to_ext(mime)
 
     base = reiwa_filename_base(date.today())
