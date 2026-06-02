@@ -3523,11 +3523,11 @@ def profile_edit_without_login(chara_data, driver, wait):
     if textarea:
       # textareaはモバイルビューではdisabledになっているためJSで解除
       driver.execute_script("arguments[0].removeAttribute('disabled'); arguments[0].removeAttribute('readonly');", textarea[0])
-      # テキストを設定してinputイベントで保存ボタンを有効化
-      driver.execute_script("arguments[0].value = '';", textarea[0])
-      textarea[0].send_keys(self_promotion)
+      # send_keys は BMP 範囲外（絵文字等）を扱えないため JS で直接代入
+      driver.execute_script("arguments[0].value = arguments[1];", textarea[0], self_promotion)
       time.sleep(0.5)
       driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", textarea[0])
+      driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", textarea[0])
       time.sleep(0.5)
       # 審査ボタン（#save）をクリック
       save_btn = driver.find_elements(By.ID, "save")

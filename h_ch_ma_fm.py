@@ -354,7 +354,14 @@ try:
           )
 
         elapsed = (datetime.now() - round_start).total_seconds()
-        print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒)")
+        if score_rf_daily_done:
+          type_summary = ", ".join(
+            f"{n} {score_rf_daily_done[n]}/{SCORE_RF_DAILY_LIMIT}"
+            for n in score_rf_daily_done
+          )
+          print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒) [タイプ付け {type_summary}]")
+        else:
+          print(f"  {round_cnt}周目完了: {datetime.now().strftime('%H:%M:%S')} (経過: {elapsed:.0f}秒)")
         # [A] 周回間隔を正規分布でランダム化
         min_round_sec = _human_round_interval()
         wait_sec = min_round_sec - elapsed
