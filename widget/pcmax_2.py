@@ -214,7 +214,7 @@ def profile_search(driver, search_edit):
   area_id_dict = {
     "静岡県": 27,
     "栃木県": 20,
-    "群馬県": 21,
+    # "群馬県": 21,
     "神奈川県": 23,
     "千葉県": 25,
     "埼玉県": 24,
@@ -349,15 +349,16 @@ def profile_search(driver, search_edit):
       checkbox.click()
     time.sleep(1)
   # 身長設定
+  m_height_value = None
   try:
     time.sleep(2)
     max_height_select_box = driver.find_element(By.ID, "makerItem1")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", max_height_select_box)
-    value = random.choice(search_edit["m_height"])
-    if value == 180:
+    m_height_value = random.choice(search_edit["m_height"])
+    if m_height_value == 180:
       max_height = "180cm以上"
     else:
-      max_height = f"{value}cm"
+      max_height = f"{m_height_value}cm"
     max_height_select_box.send_keys(max_height)
   except NoSuchElementException:
     print("身長設定できません")
@@ -373,9 +374,11 @@ def profile_search(driver, search_edit):
   # 年収
   annual_income_select_box = driver.find_element(By.ID, "sa1")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", annual_income_select_box)
-  value = random.choice(search_edit["annual_income"])
-  annual_income_select_box.send_keys(value)
+  annual_income_value = random.choice(search_edit["annual_income"])
+  annual_income_select_box.send_keys(annual_income_value)
   time.sleep(0.5)
+
+  print(f"検索条件: o_age={old_value} / m_height={m_height_value} / annual_income={annual_income_value}")
 
   # 検索順を 最新ログイン順 → 登録順 → 最新ログイン順 と切替えてリフレッシュを強制
   # （デフォルト最新ログイン順のままだと並び替えが反映されない事があるため）
@@ -383,15 +386,12 @@ def profile_search(driver, search_edit):
     sort_select = driver.find_element(By.ID, "so1")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", sort_select)
     Select(sort_select).select_by_value("3")  # 最新ログイン順
-    print("検索順 → 最新ログイン順")
     time.sleep(random.uniform(1.0, 2.0))
     sort_select = driver.find_element(By.ID, "so1")
     Select(sort_select).select_by_value("2")  # 登録順
-    print("検索順 → 登録順")
     time.sleep(random.uniform(1.0, 2.0))
     sort_select = driver.find_element(By.ID, "so1")
     Select(sort_select).select_by_value("3")  # 最新ログイン順に戻す（最終状態）
-    print("検索順 → 最新ログイン順（最終）")
     time.sleep(0.5)
   except NoSuchElementException:
     print("検索順の設定ができません")
@@ -1977,7 +1977,7 @@ def re_post(driver, wait, post_title, post_content):
                     "武蔵野市",  "西東京市", "三鷹市", "調布市", "小金井市", "小平市",
                     "立川市", "八王子市",  "府中市",
                    ]
-  nearby_prefs = ["神奈川県", "埼玉県", "千葉県", "群馬県", "栃木県"]
+  nearby_prefs = ["神奈川県", "埼玉県", "千葉県"]
   if not _go_to_post_list(driver, wait):
     print("re_post: 掲示板一覧へ遷移失敗")
     return
@@ -2015,7 +2015,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   search_edit = {
     "y_age": [18],
     "o_age": [29,34,60],
-    "m_height": [165,170,175,180],
+    "m_height": [170,175,180],
     "area_flug": 2,
     "search_target": ["送信歴無し"],
     "exclude_words": ["不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
