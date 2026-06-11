@@ -2116,10 +2116,10 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
       user_age =  user_list[current_step].find_elements(By.CLASS_NAME, value="age")[0].text
       user_area = user_list[current_step].find_elements(By.CLASS_NAME, value="conf")[0].text.replace("登録地域", "")
       age_num_m = re.search(r'(\d+)', user_age)
-      if age_num_m and int(age_num_m.group(1)) > 34:
-        print(f"年齢スキップ {user_name} {user_age}")
-        current_step += 1
-        continue
+      # if age_num_m and int(age_num_m.group(1)) > 34:
+      #   print(f"年齢スキップ {user_name} {user_age}")
+      #   current_step += 1
+      #   continue
       user_list[current_step].find_element(By.CLASS_NAME, "profile_link_btn").click()   
       catch_warning_pop(name, driver)
       iikamo_text = ""
