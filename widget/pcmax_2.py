@@ -2014,8 +2014,8 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   random_wait = random.uniform(3.4, 6.4)
   search_edit = {
     "y_age": [18],
-    "o_age": [29,30,34],
-    "m_height": [165,170,175],
+    "o_age": [29,34,60],
+    "m_height": [165,170,175,180],
     "area_flug": 2,
     "search_target": ["送信歴無し"],
     "exclude_words": ["不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
