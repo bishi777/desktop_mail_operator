@@ -1625,8 +1625,26 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
       )
       pass
-    memo_ele = driver.find_elements(By.CSS_SELECTOR, '.side_btn.memo_open')
-    memo_ele[0].click()
+    # memo_open ボタン: 空チェック + Stale 1回リトライ
+    memo_clicked = False
+    for _attempt in range(2):
+      memo_ele = driver.find_elements(By.CSS_SELECTOR, '.side_btn.memo_open')
+      if not memo_ele:
+        break
+      try:
+        memo_ele[0].click()
+        memo_clicked = True
+        break
+      except StaleElementReferenceException:
+        time.sleep(0.5)
+        continue
+    if not memo_clicked:
+      print(f"{ditail_page_user_name} memo_open ボタン取得不可、スキップ")
+      driver.back()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
+      user_row_cnt += 1
+      continue
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     driver.find_element(By.ID, 'memotxt').send_keys("もふ")
