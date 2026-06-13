@@ -1478,6 +1478,104 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
     
       
 
+def _extract_pcmax_profile(driver):
+  """pcmax の profile_detail ページから自己PR / ニックネーム / 求める出会い・利用目的 /
+  基本情報(年齢・職業・活動エリア) を抽出。失敗フィールドは None。"""
+  try:
+    text = driver.execute_script("return document.body.innerText || '';")
+  except Exception:
+    return {}
+
+  profile = {
+    '自己PR': None, 'ニックネーム': None,
+    '利用目的': None, '求める出会い': None,
+    '年齢': None, '職業': None, '活動エリア': None,
+  }
+
+  # 自己PR: 「自己PR」の次の非空行を 1〜数行取得（最新の書き込み / プロフィール の手前まで）
+  m = re.search(r'自己PR\s*\n+(.+?)(?:\n\s*(?:最新の書き込み|プロフィール)|\Z)', text, re.S)
+  if m:
+    profile['自己PR'] = m.group(1).strip()
+
+  # 各フィールド: 行頭ラベル + 空白/タブ + 値
+  for label in ['ニックネーム', '年齢', '職業', '活動エリア', '利用目的', '求める出会い']:
+    pat = re.compile(rf'^{re.escape(label)}[ \t　]+(.+?)$', re.M)
+    found = pat.search(text)
+    if found:
+      val = found.group(1).strip()
+      # ニックネーム値の「送信歴有」など末尾ノイズを削る
+      val = re.sub(r'\s*送信歴.*$', '', val).strip()
+      if val:
+        profile[label] = val
+  return profile
+
+
+def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
+  """Claude API でプロフを参照した足跡返しメッセージを生成。
+  成功で書き換え後文字列、失敗で None（func.send_error 通知済み）。"""
+  import anthropic
+  import settings as _settings
+  api_key = getattr(_settings, 'anthropic_api_key', None) or os.environ.get('ANTHROPIC_API_KEY', '')
+  if not api_key:
+    func.send_error(name, "rf message personalization skip: ANTHROPIC_API_KEY 未設定")
+    return None
+
+  # 4 カテゴリのうち値ありをランダムに最大2件選ぶ
+  categories = {
+    '自己PR': profile.get('自己PR'),
+    'ニックネーム': profile.get('ニックネーム'),
+    '求める出会い・利用目的': '\n'.join(filter(None, [
+      f"求める出会い: {profile['求める出会い']}" if profile.get('求める出会い') else None,
+      f"利用目的: {profile['利用目的']}" if profile.get('利用目的') else None,
+    ])) or None,
+    '基本情報': '\n'.join(filter(None, [
+      f"年齢: {profile['年齢']}" if profile.get('年齢') else None,
+      f"職業: {profile['職業']}" if profile.get('職業') else None,
+      f"活動エリア: {profile['活動エリア']}" if profile.get('活動エリア') else None,
+    ])) or None,
+  }
+  available = [(k, v) for k, v in categories.items() if v]
+  if not available:
+    return None
+  random.shuffle(available)
+  selected = available[:2]
+  profile_text = "\n\n".join(f"【{k}】\n{v}" for k, v in selected)
+
+  prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返すメッセージを書くアシスタントです。
+以下のベース定型メッセージを、相手のプロフィール情報を参照して自然に書き換えてください。
+
+【ベース定型メッセージ】
+{base_msg.format(name=user_name)}
+
+【相手のプロフィール（抜粋）】
+{profile_text}
+
+【書き換えルール】
+- 冒頭の「足跡ありがとうございます♪」のような挨拶は、相手プロフから感じた印象を一言入れた挨拶に置き換える
+- 本文中もしくは末尾近くに、プロフを踏まえた一文を1つだけ自然に挿入する
+- 質問の意図（会う人決まってる？など）はそのまま残す
+- 過度に親しげにならず、絵文字・口調はベースの雰囲気を保つ
+- 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
+
+  client = anthropic.Anthropic(api_key=api_key)
+  last_err = None
+  for attempt in range(max_retry):
+    try:
+      response = client.messages.create(
+        model='claude-haiku-4-5-20251001',
+        max_tokens=1024,
+        messages=[{'role': 'user', 'content': prompt}],
+      )
+      return response.content[0].text.strip()
+    except Exception as e:
+      last_err = e
+      print(f"⚠️ rf personalization 失敗 (試行 {attempt+1}/{max_retry}): {e}")
+      time.sleep(2)
+
+  func.send_error(name, f"rf message personalization failed after {max_retry} attempts: {last_err}")
+  return None
+
+
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug):
   two_message_users = []
   wait = WebDriverWait(driver, 10)
@@ -1577,6 +1675,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
         EC.presence_of_element_located((By.ID, "overview"))
     )
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
+    # AI 書き換え用に詳細ページからプロフを取得（memo クリック後だと別ページに遷移する可能性があるため）
+    rf_profile = _extract_pcmax_profile(driver)
     if user_name.replace(" ", "").replace("　", "") not in ditail_page_user_name.replace(" ", "").replace("　", ""):
       print(f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}")
       func.send_error(name, f"ユーザー名が一致しません user_name:{user_name}  ditail_page_user_name:{ditail_page_user_name}\n",                            )
@@ -1658,8 +1758,13 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     script = "arguments[0].value = arguments[1];"
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
-    driver.execute_script(script, text_area[0], return_foot_message.format(name=ditail_page_user_name))
-    time.sleep(0.5)  
+    # プロフを参照して Claude でパーソナライズ。失敗時はベース定型にフォールバック
+    ai_msg = _personalize_rf_message(name, return_foot_message, rf_profile, ditail_page_user_name)
+    final_msg = ai_msg if ai_msg else return_foot_message.format(name=ditail_page_user_name)
+    if ai_msg:
+      print(f"  [{name}] rf message AI personalized")
+    driver.execute_script(script, text_area[0], final_msg)
+    time.sleep(0.5)
     # まじ送信　
     if "pcmax" in driver.current_url:
       mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
