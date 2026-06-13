@@ -928,6 +928,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         func.send_error(f"{name} ユーザー名取得できません\n{traceback.format_exc()}")
         return [user_name], check_first, check_second, check_more, gmail_condition, check_date
       sent_by_me = driver.find_elements(By.CSS_SELECTOR, ".fukidasi.right.right_balloon")
+      # 「いいかも!ありがとう」自動メッセージはカウントから除外（実質的な fst/rf 送信ではないため）
+      # NFKC 後は全角 ！ → 半角 ! になるため半角形で判定
+      auto_thanks_cnt = sum(
+        1 for m in sent_by_me
+        if "いいかも!ありがとう" in func.normalize_text(m.text)
+      )
+      effective_sent_len = len(sent_by_me) - auto_thanks_cnt
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       email_list = None
       email_pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
@@ -1185,7 +1192,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             driver.find_element(By.ID, "image_button2").click()
           except Exception:
             pass
-      elif not len(sent_by_me):
+      elif effective_sent_len == 0:
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
@@ -1263,133 +1270,71 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         check_first += 1
         print(f"{user_name}に1stメールを送信しました")
         catch_warning_pop(name, driver)
-      elif len(sent_by_me) == 1:
+      elif effective_sent_len == 1:
         try:
           if "送信はできません" in driver.find_element(By.CLASS_NAME, "bluebtn_no").text:
             print("ユーザーが退会している可能性があります")
         except Exception:
           pass
-        # print("~~~~~~~~~こちらから送信したメッセージチェック中~~~~~~~~~")
-        # print(func.normalize_text(sent_by_me[-1].text))
-        # いいかも!ありがとう♪よろしくお願いします。
-        # print(func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text))
-        if "いいかも!ありがとう" in func.normalize_text(sent_by_me[-1].text):
-          send_message = fst_message.format(name=user_name)
-        elif func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
-          send_message = second_message
-          text_area = driver.find_element(By.ID, value="mdc")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-          time.sleep(1)
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, send_message)
-          t_a_v_cnt = 0
+        # effective=1 → 既に fst/rf 1通送信済み → second_message を送る
+        text_area = driver.find_element(By.ID, value="mdc")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+        time.sleep(1)
+        script = "arguments[0].value = arguments[1];"
+        driver.execute_script(script, text_area, second_message)
+        t_a_v_cnt = 0
+        text_area_value = text_area.get_attribute("value")
+        while not text_area_value:
+          t_a_v_cnt += 1
+          time.sleep(2)
           text_area_value = text_area.get_attribute("value")
-          while not text_area_value:
-            t_a_v_cnt += 1
-            time.sleep(2)
-            text_area_value = text_area.get_attribute("value")
-            if t_a_v_cnt == 5:
-              print("テキストエリアにsend_message入力できません")
-              break          
+          if t_a_v_cnt == 5:
+            print("テキストエリアにsecond_message入力できません")
+            break
+        driver.find_element(By.ID, "send_n").click()
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1)
+        if driver.find_elements(By.CLASS_NAME, "banned-word"):
+          time.sleep(6)
           driver.find_element(By.ID, "send_n").click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          if driver.find_elements(By.CLASS_NAME, "banned-word"):
-            time.sleep(6)
-            driver.find_element(By.ID, "send_n").click()
-          catch_warning_pop(name, driver)
-          mailform_box = driver.find_elements(By.ID, value="mailform_box")
-          if len(mailform_box):
-            if "連続防止" in mailform_box[0].text:
-              print("連続防止　待機中...")
-              time.sleep(7)
-              text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, send_message)
-              time.sleep(1)
-              driver.find_element(By.ID, "send_n").click()
-              time.sleep(1)
-          print(f"{user_name}に2ndメールを送信しました")
-          check_second += 1
-        else:
-          # print("やり取り中")
-          received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
-          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
-          try:
-            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
-            print("通知メールを送信しました")
-            check_more += 1
-          except Exception as e:
-            print(f"{name} 通知メールの送信に失敗しました")
-            traceback.print_exc()  
-          try:
-            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
+        catch_warning_pop(name, driver)
+        mailform_box = driver.find_elements(By.ID, value="mailform_box")
+        if len(mailform_box):
+          if "連続防止" in mailform_box[0].text:
+            print("連続防止　待機中...")
+            time.sleep(7)
+            text_area = driver.find_element(By.ID, value="mdc")
+            driver.execute_script(script, text_area, second_message)
             time.sleep(1)
-            driver.find_element(By.ID, "image_button2").click()
-          except Exception:
-            pass
-      elif len(sent_by_me) > 1:
-        # print(456456)
-        # print(func.normalize_text(sent_by_me[-1].text))
-        # print(func.normalize_text(fst_message) in func.normalize_text(sent_by_me[-1].text))
-        # print(func.normalize_text(fst_message))
-        # print("------------------------------")
-        # print(func.normalize_text(return_foot_message) in func.normalize_text(sent_by_me[-1].text))
-        # print(func.normalize_text(return_foot_message))
-        if func.normalize_text(fst_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text) or func.normalize_text(return_foot_message.format(name=user_name)) in func.normalize_text(sent_by_me[-1].text):
-          # print(len(sent_by_me))
-          text_area = driver.find_element(By.ID, value="mdc")
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, second_message)
-          t_a_v_cnt = 0
-          text_area_value = text_area.get_attribute("value")
-          while not text_area_value:
-            t_a_v_cnt += 1
-            time.sleep(2)
-            text_area_value = text_area.get_attribute("value")
-            if t_a_v_cnt == 5:
-              print("テキストエリアにsecond_message入力できません")
-              break        
-          driver.find_element(By.ID, "send_n").click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          if driver.find_elements(By.CLASS_NAME, "banned-word"):
-            time.sleep(6)
             driver.find_element(By.ID, "send_n").click()
-          catch_warning_pop(name, driver)
-          mailform_box = driver.find_elements(By.ID, value="mailform_box")
-          if len(mailform_box):
-            if "連続防止" in mailform_box[0].text:
-              print("連続防止　待機中...")
-              time.sleep(7)
-              text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, second_message)
-              time.sleep(1)
-              driver.find_element(By.ID, "send_n").click()
-              time.sleep(1)
-          print(f"{user_name}に2ndメールを送信しました")
-          check_second += 1
-        else:
-          print("やり取り中")
-
+            time.sleep(1)
+        print(f"{user_name}に2ndメールを送信しました")
+        check_second += 1
+      elif effective_sent_len >= 2:
+        # 既に 2 通以上送信済み → 通知メールのみ
+        print("やり取り中")
+        try:
           messages = driver.find_element(By.CLASS_NAME, "bggray").text
-          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{messages}」"
-          # received_mail = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
-          # return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{received_mail}」"
-
+        except Exception:
           try:
-            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
-            print("通知メールを送信しました")
-            check_more += 1
-          except Exception as e:
-            print(f"{name} 通知メールの送信に失敗しました")
-            traceback.print_exc()  
-            print(mail_info)
-          try:
-            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
-            time.sleep(1)
-            driver.find_element(By.ID, "image_button2").click()
+            messages = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
           except Exception:
-            pass
+            messages = ""
+        return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{messages}」"
+        try:
+          func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password], f"pcmax新着{name}")
+          print("通知メールを送信しました")
+          check_more += 1
+        except Exception as e:
+          print(f"{name} 通知メールの送信に失敗しました")
+          traceback.print_exc()
+          print(mail_info)
+        try:
+          driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
+          time.sleep(1)
+          driver.find_element(By.ID, "image_button2").click()
+        except Exception:
+          pass
       if "pcmax" in driver.current_url:
         driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
       elif "linkleweb" in driver.current_url:
@@ -1601,7 +1546,9 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 - 本文中もしくは末尾近くに、プロフを踏まえた一文を1つだけ自然に挿入する
 - 質問の意図（会う人決まってる？など）はそのまま残す
 - 過度に親しげにならず、絵文字・口調はベースの雰囲気を保つ
-- 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
+- 出力はメッセージ本文のみ。前置き・解説・コロン・「以下のように」「書き換えました」のような文言は絶対に含めないこと
+- NG例: 「ユキさんのプロフィールが少ないため、以下のように書き換えました：」「ご要望に沿って書き換えました」
+- 出力の先頭1文字目から、そのまま送信できる挨拶（または1文目）で始めること"""
 
   # 拒否時に使う緩和プロンプト（ベース定型をソフトに言い換えつつパーソナライズ）
   relaxed_prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返すメッセージを書くアシスタントです。
@@ -1621,7 +1568,9 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 - 本文中もしくは末尾近くにプロフを踏まえた一文を1つだけ自然に挿入する
 - 質問の意図はそのまま残す
 - 文字数はベースとほぼ同等（±20%）
-- 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
+- 出力はメッセージ本文のみ。前置き・解説・コロン・「以下のように」「書き換えました」のような文言は絶対に含めないこと
+- NG例: 「ユキさんのプロフィールが少ないため、以下のように書き換えました：」「ご要望に沿って書き換えました」
+- 出力の先頭1文字目から、そのまま送信できる挨拶（または1文目）で始めること"""
 
   refusal_markers = [
     # 日本語
@@ -1642,8 +1591,46 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
   ]
 
   def _is_refusal(text):
-    # 拒否はメッセージの前半に出るが念のため 200 文字まで見る
-    return any(m in text[:200] for m in refusal_markers)
+    head = text[:200]
+    # マーカー検出
+    if any(m in head for m in refusal_markers):
+      return True
+    # 日本語サイト宛のメッセージで本文が英文（ひらがな/カタカナ/漢字なし）なら拒否扱い
+    if not re.search(r'[぀-ゟ゠-ヿ一-鿿]', text[:300]):
+      return True
+    return False
+
+  # AI が本文の前に置く可能性のあるメタ説明文のマーカー
+  preamble_markers = [
+    "以下のように", "次のように", "のように書き換え", "書き換えました",
+    "プロフィールが少ない", "プロフィールから", "ご要望", "ご希望",
+    "アレンジ", "修正版", "提案", "案として",
+    "となります", "になります",
+  ]
+
+  def _strip_ai_preamble(text):
+    """AI が本文前に付ける説明文を剥がす。
+    先頭〜最初の段落区切り(\\n\\n) までに preamble マーカーがあり、
+    かつ段落の末尾が「：」「:」「。」のような区切り記号で終わるなら、その段落ごと削除。"""
+    if not text:
+      return text
+    # 段落分割
+    paragraphs = re.split(r'\n\s*\n', text, maxsplit=1)
+    if len(paragraphs) < 2:
+      # 段落区切りがない場合は単一行の最初の「：」までを判定
+      m = re.match(r'^(.{1,120}?[：:])\s*\n+', text)
+      if m and any(p in m.group(1) for p in preamble_markers):
+        stripped = text[m.end():].lstrip()
+        print(f"  [AI preamble 剥離(行): {m.group(1)[:60]!r}]")
+        return stripped
+      return text
+    first = paragraphs[0]
+    rest = paragraphs[1].lstrip()
+    # 先頭段落に preamble マーカーがあれば剥がす
+    if any(p in first for p in preamble_markers):
+      print(f"  [AI preamble 剥離(段落): {first[:80]!r}]")
+      return rest
+    return text
 
   def _ask(p):
     r = client.messages.create(
@@ -1669,8 +1656,8 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
         if _is_refusal(relaxed_reply):
           print(f"⚠️ [{name}] 緩和プロンプトでも拒否 → ベース定型にフォールバック")
           return None
-        return relaxed_reply
-      return reply
+        return _strip_ai_preamble(relaxed_reply)
+      return _strip_ai_preamble(reply)
     except Exception as e:
       last_err = e
       print(f"⚠️ rf personalization 失敗 (試行 {attempt+1}/{max_retry}): {e}")
