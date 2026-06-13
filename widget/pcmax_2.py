@@ -209,7 +209,7 @@ def imahima_on(driver,wait):
   driver.back()
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
 
-def profile_search(driver, search_edit):
+def profile_search(driver, search_edit, skip_body_type=False):
   get_header_menu(driver, "プロフ検索")
   area_id_dict = {
     "静岡県": 27,
@@ -365,12 +365,20 @@ def profile_search(driver, search_edit):
   time.sleep(0.5)
   # 体型
   body_type_labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[6].find_elements(By.TAG_NAME, "label")
-  for label in body_type_labels:
-    if label.text.replace(" ", "") in search_edit["search_body_type"]:
+  if skip_body_type:
+    # チェック対象指定なし: 既にチェック済みのものがあれば外す
+    for label in body_type_labels:
       checkbox = label.find_element(By.TAG_NAME, "input")
-      if not checkbox.is_selected():
+      if checkbox.is_selected():
         checkbox.click()
-      time.sleep(0.5)
+        time.sleep(0.3)
+  else:
+    for label in body_type_labels:
+      if label.text.replace(" ", "") in search_edit["search_body_type"]:
+        checkbox = label.find_element(By.TAG_NAME, "input")
+        if not checkbox.is_selected():
+          checkbox.click()
+        time.sleep(0.5)
   # 年収
   annual_income_select_box = driver.find_element(By.ID, "sa1")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", annual_income_select_box)
@@ -2138,7 +2146,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   search_edit = {
     "y_age": [18],
     "o_age": [29,34,60],
-    "m_height": [170,175,180],
+    "m_height": [170,175],
     "area_flug": 2,
     "search_target": ["送信歴無し"],
     "exclude_words": ["不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
@@ -2149,7 +2157,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
     search_edit["o_age"] = [34, 60]
     print(f"特殊設定　{name}　年齢{search_edit['y_age']}~{search_edit['o_age']}")
   catch_warning_pop(name, driver)
-  if not profile_search(driver, search_edit):
+  if not profile_search(driver, search_edit, skip_body_type=True):
     return
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   # # 地域セレクト: 東京都50%、栃木/静岡/群馬/埼玉/千葉/神奈川 各約8%
