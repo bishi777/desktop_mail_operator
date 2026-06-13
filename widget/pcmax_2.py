@@ -1566,16 +1566,62 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 - 過度に親しげにならず、絵文字・口調はベースの雰囲気を保つ
 - 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
 
+  # 拒否時に使う緩和プロンプト（ベース定型をソフトに言い換えつつパーソナライズ）
+  relaxed_prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返すメッセージを書くアシスタントです。
+以下のベース定型メッセージを、相手のプロフィール情報を参照して自然に書き換えてください。
+
+ベース定型メッセージに性的・直接的すぎる表現が含まれる場合は、雰囲気と意図を保ちつつソフトな表現に置き換えて構いません。
+（例: 「性欲」→「寂しさ」「刺激が欲しい」、「Hな経験」→「大人な経験」、「セックスパートナー」→「一緒に過ごせるパートナー」、「攻められたい」→「お話ししたい」など）
+
+【ベース定型メッセージ】
+{base_msg.format(name=user_name)}
+
+【相手のプロフィール（抜粋）】
+{profile_text}
+
+【書き換えルール】
+- 冒頭の挨拶は相手プロフを踏まえた一言に置き換える
+- 本文中もしくは末尾近くにプロフを踏まえた一文を1つだけ自然に挿入する
+- 質問の意図はそのまま残す
+- 文字数はベースとほぼ同等（±20%）
+- 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
+
+  refusal_markers = [
+    "申し訳ありませんが", "申し訳ございません",
+    "お応えできません", "お答えできません",
+    "協力できません", "お手伝いできません", "対応できません",
+    "作成支援", "I cannot", "I can't", "I'm unable", "Sorry, I",
+  ]
+
+  def _is_refusal(text):
+    return any(m in text[:120] for m in refusal_markers)
+
+  def _ask(p):
+    r = client.messages.create(
+      model='claude-haiku-4-5-20251001',
+      max_tokens=1024,
+      messages=[{'role': 'user', 'content': p}],
+    )
+    return r.content[0].text.strip()
+
   client = anthropic.Anthropic(api_key=api_key)
   last_err = None
   for attempt in range(max_retry):
     try:
-      response = client.messages.create(
-        model='claude-haiku-4-5-20251001',
-        max_tokens=1024,
-        messages=[{'role': 'user', 'content': prompt}],
-      )
-      return response.content[0].text.strip()
+      reply = _ask(prompt)
+      if _is_refusal(reply):
+        # 1回だけ緩和プロンプトで再試行
+        print(f"⚠️ [{name}] rf personalization: AI 拒否 → 緩和プロンプトで再試行")
+        try:
+          relaxed_reply = _ask(relaxed_prompt)
+        except Exception as e2:
+          print(f"⚠️ [{name}] 緩和プロンプト失敗: {e2} → ベース定型にフォールバック")
+          return None
+        if _is_refusal(relaxed_reply):
+          print(f"⚠️ [{name}] 緩和プロンプトでも拒否 → ベース定型にフォールバック")
+          return None
+        return relaxed_reply
+      return reply
     except Exception as e:
       last_err = e
       print(f"⚠️ rf personalization 失敗 (試行 {attempt+1}/{max_retry}): {e}")
