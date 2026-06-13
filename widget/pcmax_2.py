@@ -349,6 +349,16 @@ def profile_search(driver, search_edit, skip_body_type=False):
       checkbox.click()
     time.sleep(1)
   # 身長設定
+  # 下限を 140cm以下（実質指定なし）に固定
+  try:
+    height_from = driver.find_element(By.ID, "commondityItem1")
+    cur = Select(height_from).first_selected_option.text.strip()
+    if cur != "140cm以下":
+      Select(height_from).select_by_visible_text("140cm以下")
+      print(f"身長下限を {cur} → 140cm以下 に修正")
+  except NoSuchElementException:
+    print("身長下限要素 (commondityItem1) が見つかりません")
+  time.sleep(0.3)
   m_height_value = None
   try:
     time.sleep(2)
@@ -1501,18 +1511,25 @@ def _extract_pcmax_profile(driver):
     '年齢': None, '職業': None, '活動エリア': None,
   }
 
-  # 自己PR: 「自己PR」の次の非空行を 1〜数行取得（最新の書き込み / プロフィール の手前まで）
-  m = re.search(r'自己PR\s*\n+(.+?)(?:\n\s*(?:最新の書き込み|プロフィール)|\Z)', text, re.S)
+  # 自己PR: 「自己PR」の次の非空行を 1〜数行取得（プロフィール / 最新の書き込み / ピックアップ の手前まで）
+  m = re.search(
+    r'自己PR\s*\n+(.+?)(?:\n\s*(?:プロフィール|最新の書き込み|ピックアップ)|\Z)',
+    text, re.S,
+  )
   if m:
     profile['自己PR'] = m.group(1).strip()
 
-  # 各フィールド: 行頭ラベル + 空白/タブ + 値
+  # 各フィールド: pcmax は「ラベル行」の次の行に値が来るレイアウト
+  # 例:
+  #   ニックネーム
+  #   hamachi
+  # 利用目的のような複数行値も1行目だけ拾う
   for label in ['ニックネーム', '年齢', '職業', '活動エリア', '利用目的', '求める出会い']:
-    pat = re.compile(rf'^{re.escape(label)}[ \t　]+(.+?)$', re.M)
+    pat = re.compile(rf'^{re.escape(label)}\s*\n+([^\n]+)', re.M)
     found = pat.search(text)
     if found:
       val = found.group(1).strip()
-      # ニックネーム値の「送信歴有」など末尾ノイズを削る
+      # 末尾ノイズ（送信歴有 等）を削る
       val = re.sub(r'\s*送信歴.*$', '', val).strip()
       if val:
         profile[label] = val
