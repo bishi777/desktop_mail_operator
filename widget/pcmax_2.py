@@ -328,15 +328,16 @@ def profile_search(driver, search_edit, skip_body_type=False):
   #   purpose_id13.click()
   # time.sleep(0.5)
 
-  # 検索から外す項目
+  # 検索から外す項目（セックスフレンド=10130/except13 は除外しない方針のためコメントアウト）
   exclusion_ids = [
-    ("10120", "except12"),
-    ("10130", "except13"),
-    ("", "except14"),
-    ("10150", "except15"),
-    ("10160", "except16"),
-    ("10190", "except19"),
-    ("10200", "except20"),
+    ("",      "except9"),   # 合コン・オフ会
+    ("10120", "except12"),  # 不倫・浮気
+    # ("10130", "except13"),  # セックスフレンド → 除外しない
+    ("",      "except14"),  # エロトーク・TELH
+    ("10150", "except15"),  # SMパートナー
+    ("10160", "except16"),  # アブノーマル
+    ("10190", "except19"),  # 同性愛
+    ("10200", "except20"),  # 写真・ビデオ撮影
   ]
   for primary_id, fallback_id in exclusion_ids:
     try:
@@ -346,8 +347,9 @@ def profile_search(driver, search_edit, skip_body_type=False):
     if not checkbox.is_selected():
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
       time.sleep(0.5)
-      checkbox.click()
-    time.sleep(1)
+      # native click が効かないため JS click を使用
+      driver.execute_script("arguments[0].click();", checkbox)
+    time.sleep(0.5)
   # 身長設定
   # 下限を 140cm以下（実質指定なし）に固定
   try:
@@ -440,7 +442,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
     "m_height": [165,170,175],
     "area_flug": 1,
     "search_target": ["プロフィール写真あり", "送信歴無し"],
-    "exclude_words": ["セックスフレンド", "不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
+    "exclude_words": ["不倫・浮気", "エロトーク・TELH", "SMパートナー", "写真・動画撮影", "同性愛", "アブノーマル"],
     "search_body_type": [ "スリム", "やや細め", "普通", "ふくよか", "太め" ],
     "annual_income":["200万円未満", "200万円以上〜400万円未満", ]
   }
