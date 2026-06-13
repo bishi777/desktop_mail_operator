@@ -1624,14 +1624,26 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 - 出力はメッセージ本文のみ。前置きや解説は一切含めない"""
 
   refusal_markers = [
+    # 日本語
     "申し訳ありませんが", "申し訳ございません",
     "お応えできません", "お答えできません",
     "協力できません", "お手伝いできません", "対応できません",
-    "作成支援", "I cannot", "I can't", "I'm unable", "Sorry, I",
+    "作成支援", "詐欺的", "操作的", "誘導",
+    # 英語
+    "I cannot", "I can't", "I won't",
+    "I'm unable", "I am unable",
+    "I'm not able", "I am not able",
+    "I appreciate your request", "I appreciate, but",
+    "I can't assist", "I cannot assist", "I won't assist",
+    "I can't help", "I cannot help",
+    "Sorry, I", "I'm sorry, but", "I apologize",
+    "designed to facilitate", "deceptive interactions",
+    "sexual solicitation",
   ]
 
   def _is_refusal(text):
-    return any(m in text[:120] for m in refusal_markers)
+    # 拒否はメッセージの前半に出るが念のため 200 文字まで見る
+    return any(m in text[:200] for m in refusal_markers)
 
   def _ask(p):
     r = client.messages.create(
