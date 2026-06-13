@@ -367,10 +367,11 @@ def profile_search(driver, search_edit, skip_body_type=False):
   body_type_labels = driver.find_elements(By.CLASS_NAME, "bbs_table_td-in2")[6].find_elements(By.TAG_NAME, "label")
   if skip_body_type:
     # チェック対象指定なし: 既にチェック済みのものがあれば外す
+    # （native click はこの checkbox では効かないため JS click を使う）
     for label in body_type_labels:
       checkbox = label.find_element(By.TAG_NAME, "input")
       if checkbox.is_selected():
-        checkbox.click()
+        driver.execute_script("arguments[0].click();", checkbox)
         time.sleep(0.3)
   else:
     for label in body_type_labels:
