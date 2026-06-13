@@ -328,16 +328,19 @@ def profile_search(driver, search_edit, skip_body_type=False):
   #   purpose_id13.click()
   # time.sleep(0.5)
 
-  # 検索から外す項目（セックスフレンド=10130/except13 は除外しない方針のためコメントアウト）
+  # 検索から外す項目
   exclusion_ids = [
     ("",      "except9"),   # 合コン・オフ会
     ("10120", "except12"),  # 不倫・浮気
-    # ("10130", "except13"),  # セックスフレンド → 除外しない
     ("",      "except14"),  # エロトーク・TELH
     ("10150", "except15"),  # SMパートナー
     ("10160", "except16"),  # アブノーマル
     ("10190", "except19"),  # 同性愛
     ("10200", "except20"),  # 写真・ビデオ撮影
+  ]
+  # 「除外しない」ことを保証する項目: 前回 ON のまま残っていたら OFF に矯正
+  unexclude_ids = [
+    ("10130", "except13"),  # セックスフレンド
   ]
   for primary_id, fallback_id in exclusion_ids:
     try:
@@ -350,6 +353,21 @@ def profile_search(driver, search_edit, skip_body_type=False):
       # native click が効かないため JS click を使用
       driver.execute_script("arguments[0].click();", checkbox)
     time.sleep(0.5)
+  # unexclude: 既に ON だったら OFF にする（前回設定の残骸対策）
+  for primary_id, fallback_id in unexclude_ids:
+    try:
+      checkbox = driver.find_element(By.ID, primary_id)
+    except NoSuchElementException:
+      try:
+        checkbox = driver.find_element(By.ID, fallback_id)
+      except NoSuchElementException:
+        continue
+    if checkbox.is_selected():
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
+      time.sleep(0.3)
+      driver.execute_script("arguments[0].click();", checkbox)
+      print(f"  unexclude: {primary_id or fallback_id} を OFF に矯正")
+      time.sleep(0.3)
   # 身長設定
   # 下限を 140cm以下（実質指定なし）に固定
   try:
