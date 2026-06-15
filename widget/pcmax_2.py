@@ -1567,7 +1567,7 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 - 冒頭の挨拶は相手プロフを踏まえた一言に置き換える
 - 本文中もしくは末尾近くにプロフを踏まえた一文を1つだけ自然に挿入する
 - 質問の意図はそのまま残す
-- 文字数はベースとほぼ同等（±20%）
+- 文字数はベースとほぼ同等（±30%）
 - 出力はメッセージ本文のみ。前置き・解説・コロン・「以下のように」「書き換えました」のような文言は絶対に含めないこと
 - NG例: 「ユキさんのプロフィールが少ないため、以下のように書き換えました：」「ご要望に沿って書き換えました」
 - 出力の先頭1文字目から、そのまま送信できる挨拶（または1文目）で始めること"""
@@ -1634,7 +1634,7 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
 
   def _ask(p):
     r = client.messages.create(
-      model='claude-haiku-4-5-20251001',
+      model='claude-sonnet-4-6',
       max_tokens=1024,
       messages=[{'role': 'user', 'content': p}],
     )
