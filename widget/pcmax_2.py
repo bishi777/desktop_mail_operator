@@ -1667,7 +1667,28 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
   return None
 
 
-def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug):
+def _click_iikamo(driver, wait):
+  """プロフ詳細ページで いいかもありがとう / いいかも をクリック。クリックしたら label を返し、対象なしなら空文字を返す。"""
+  try:
+    iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+    if iikamo_arigatou:
+      iikamo_arigatou[0].click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      return "いいかもありがとう"
+    iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
+    if iikamo:
+      WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
+      iikamo[0].click()
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(0.7)
+      return "いいかも"
+  except Exception as e:
+    print(f"  _click_iikamo エラー: {e}")
+  return ""
+
+
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug, mail_info=None):
   two_message_users = []
   wait = WebDriverWait(driver, 10)
   if "pcmax" in driver.current_url:
@@ -1765,6 +1786,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.ID, "overview"))
     )
+    # 送信検証用にプロフ詳細 URL を保存
+    profile_detail_url = driver.current_url
     ditail_page_user_name = driver.find_element(By.ID, 'overview').find_element(By.TAG_NAME, 'p').text
     # AI 書き換え用に詳細ページからプロフを取得（memo クリック後だと別ページに遷移する可能性があるため）
     rf_profile = _extract_pcmax_profile(driver)
@@ -1778,21 +1801,9 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       continue
     if two_messages_flug:
       two_message_users.append(ditail_page_user_name)
-    iikamo = driver.find_elements(By.CLASS_NAME, 'type1')
-    iikamo_arigatou = driver.find_elements(By.CLASS_NAME, 'type4')
+    # いいかも/いいねクリックは送信成功確認後に行うようにしたため、ここでは実行しない
     iikamo_text = ""
-    if len(iikamo_arigatou):
-      iikamo_arigatou[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.7)
-      iikamo_text = f"いいかもありがとう"
-    elif len(iikamo):
-      WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.CLASS_NAME, 'type1')))
-      iikamo[0].click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(0.7)
-      iikamo_text = f"いいかも"
-    
+
     try:
       catch_warning_pop(name, driver)
       memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
@@ -1918,13 +1929,113 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       if len(driver.find_elements(By.CLASS_NAME, value='comp_title')):
         # print(driver.find_element(By.CLASS_NAME, value='comp_title').text)
         if "送信完了" in driver.find_element(By.CLASS_NAME, value='comp_title').text:
-          rf_cnt += 1   
+          rf_cnt += 1
           print(f"{rf_cnt}件送信　ユーザー名:{ditail_page_user_name} {iikamo_text} マジ送信{maji_soushin}  {now}")
           user_row_cnt += 1
           unread_user.append(user_name)
           catch_warning_pop(name, driver)
-          back2 = driver.find_element(By.ID, value="back2")
-          driver.execute_script("arguments[0].click();", back2)
+
+          # 送信検証: プロフ詳細に戻って「送信歴」が表示されているか確認、
+          # ある → いいかも/いいねをクリック
+          # ない → よろしくお願いします〜（バリエーション）で再送信 → もう一度検証
+          #        確認できれば いいかも、できなければ通知メール
+          try:
+            driver.get(profile_detail_url)
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+            catch_warning_pop(name, driver)
+            body_text = driver.find_element(By.TAG_NAME, "body").text
+            if "送信歴" in body_text:
+              print(f"  [{name}] {ditail_page_user_name} 送信歴 確認 OK")
+              iikamo_text = _click_iikamo(driver, wait)
+              if iikamo_text:
+                print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+            else:
+              retry_msg = random.choice([
+                "よろしくお願いします♡",
+                "よろしくお願いします😊",
+                "よろしくお願いします♪",
+                "よろしくお願いします(*^^*)",
+                "よろしくお願いします🙇‍♀️",
+                "よろしくお願いします☺️",
+                "よろしくお願いします〜♡",
+                "よろしくお願いします٩(^‿^)۶",
+                "よろしくお願いします(*´ω`*)",
+                "よろしくお願いします✨",
+              ])
+              print(f"  [{name}] {ditail_page_user_name} 送信歴未検出 → {retry_msg} で再送信")
+              ta_id = "mail_com" if "pcmax" in driver.current_url else "comme"
+              ta_retry = driver.find_elements(By.ID, value=ta_id)
+              retry_sent = False
+              if ta_retry:
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ta_retry[0])
+                time.sleep(0.5)
+                driver.execute_script("arguments[0].value = arguments[1];", ta_retry[0], retry_msg)
+                time.sleep(0.5)
+                try:
+                  driver.find_element(By.ID, 'send3').click()
+                  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                  time.sleep(2)
+                  # 連続防止が出ていれば待機 → 再クリック
+                  mailform_box_retry = driver.find_elements(By.ID, value="mailform_box")
+                  if mailform_box_retry and "連続防止" in mailform_box_retry[0].text:
+                    print(f"  [{name}] 再送信中に連続防止検出 → 6秒待機して再試行")
+                    time.sleep(6)
+                    try:
+                      ta_retry2 = driver.find_elements(By.ID, value=ta_id)
+                      if ta_retry2:
+                        driver.execute_script("arguments[0].value = arguments[1];", ta_retry2[0], retry_msg)
+                        time.sleep(0.5)
+                      driver.find_element(By.ID, 'send3').click()
+                      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                      time.sleep(2)
+                    except Exception as e_retry2:
+                      print(f"  [{name}] 連続防止後の再クリック失敗: {e_retry2}")
+                  print(f"  [{name}] {ditail_page_user_name} 再送信完了")
+                  retry_sent = True
+                except Exception as e_retry:
+                  print(f"  [{name}] 再送信 send3 クリック失敗: {e_retry}")
+              else:
+                print(f"  [{name}] 再送信用 text_area ({ta_id}) が見つかりません")
+
+              # 再送信後にもう一度プロフ詳細で送信歴を確認
+              try:
+                driver.get(profile_detail_url)
+                wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                time.sleep(2)
+                catch_warning_pop(name, driver)
+                body_text2 = driver.find_element(By.TAG_NAME, "body").text
+                if "送信歴" in body_text2:
+                  print(f"  [{name}] {ditail_page_user_name} 再送信後 送信歴 確認 OK")
+                  iikamo_text = _click_iikamo(driver, wait)
+                  if iikamo_text:
+                    print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+                else:
+                  print(f"  [{name}] {ditail_page_user_name} 再送信後も送信歴未検出 → 通知メール送信")
+                  if mail_info:
+                    try:
+                      notify_body = f"{name}pcmax 送信失敗\nユーザー: {ditail_page_user_name}\nプロフ詳細: {profile_detail_url}\n再送信実行: {retry_sent}\n試行時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                      func.send_mail(notify_body, mail_info, f"pcmax送信失敗{name}")
+                      print(f"  [{name}] 通知メール送信完了")
+                    except Exception as e_mail:
+                      print(f"  [{name}] 通知メール送信失敗: {e_mail}")
+                      traceback.print_exc()
+                  else:
+                    print(f"  [{name}] mail_info 未指定のため通知メールはスキップ")
+              except Exception as e_verify2:
+                print(f"  [{name}] 再送信後の検証エラー: {e_verify2}")
+          except Exception as e_verify:
+            print(f"  [{name}] 送信検証エラー: {e_verify}")
+
+          # あしあと一覧へ復帰（profile_detail 経由のため back2 ではなく user_list_url へ）
+          if user_list_url:
+            driver.get(user_list_url)
+          else:
+            try:
+              back2 = driver.find_element(By.ID, value="back2")
+              driver.execute_script("arguments[0].click();", back2)
+            except NoSuchElementException:
+              pass
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(3)
     elif "linkleweb" in driver.current_url:
@@ -2228,7 +2339,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   random_wait = random.uniform(3.4, 6.4)
   search_edit = {
     "y_age": [18],
-    "o_age": [29,34,60],
+    "o_age": [29,34,30, 60],
     "m_height": [170,175],
     "area_flug": 2,
     "search_target": ["送信歴無し"],
