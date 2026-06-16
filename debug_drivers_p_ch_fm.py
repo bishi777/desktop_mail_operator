@@ -258,7 +258,7 @@ def main_syori():
             returnfoot_cnt = 2
           else:
             iikamo_cnt = random.randint(1,2)
-            footprint_count = random.randint(8,13)
+            footprint_count = random.randint(8,11)
             returnfoot_cnt = 1
           if fst_flug:
             if 6 <= now.hour < 24:  
