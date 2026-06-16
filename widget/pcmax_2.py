@@ -2014,7 +2014,8 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
                   print(f"  [{name}] {ditail_page_user_name} 再送信後も送信歴未検出 → 通知メール送信")
                   if mail_info:
                     try:
-                      notify_body = f"{name}pcmax 送信失敗\nユーザー: {ditail_page_user_name}\nプロフ詳細: {profile_detail_url}\n再送信実行: {retry_sent}\n試行時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+                      user_age_for_mail = (rf_profile or {}).get("年齢") or "不明"
+                      notify_body = f"{name}pcmax 送信失敗\nユーザー: {ditail_page_user_name}\n年齢: {user_age_for_mail}\nプロフ詳細: {profile_detail_url}\n再送信実行: {retry_sent}\n試行時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
                       func.send_mail(notify_body, mail_info, f"pcmax送信失敗{name}")
                       print(f"  [{name}] 通知メール送信完了")
                     except Exception as e_mail:
