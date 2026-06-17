@@ -313,6 +313,14 @@ def main_syori():
               except Exception as e:
                 print(f"{name}❌ 足跡付け  の操作でエラー: {e}")
                 traceback.print_exc()
+          # 0:00〜5:59 はループ3回に1回だけ足跡付けを実行（深夜帯ガス抜き）
+          if 0 <= now.hour < 6 and roll_cnt % 3 == 0:
+            try:
+              print(f"🌙🐾深夜帯足跡付け開始(make_footprint) roll_cnt={roll_cnt} {footprint_count}件 いいかも{iikamo_cnt}件🐾🌙")
+              pcmax_2.make_footprint(name, driver, footprint_count, iikamo_cnt)
+            except Exception as e:
+              print(f"{name}❌ 深夜帯足跡付け の操作でエラー: {e}")
+              traceback.print_exc()
           # # 掲示板投稿（6:30, 9:00, 17:00, 20:00 の各スロットで1回ずつ）
           # if not (post_title and post_content):
           #   print(f"{name} 掲示板投稿スキップ: postデータ空 title={bool(post_title)} content={bool(post_content)}")
