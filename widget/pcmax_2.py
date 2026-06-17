@@ -1501,76 +1501,62 @@ def _extract_pcmax_profile(driver):
   return profile
 
 
-def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
-  """Claude API でプロフを参照した足跡返しメッセージを生成。
-  成功で書き換え後文字列、失敗で None（func.send_error 通知済み）。"""
+def _generate_short_intro(name, profile, user_name, max_retry=2):
+  """Claude API でプロフを参照した 1〜3 行の短い挨拶メッセージを生成。
+  成功で文字列、失敗で None（func.send_error 通知済み）。"""
   import anthropic
   import settings as _settings
   api_key = getattr(_settings, 'anthropic_api_key', None) or os.environ.get('ANTHROPIC_API_KEY', '')
   if not api_key:
-    func.send_error(name, "rf message personalization skip: ANTHROPIC_API_KEY 未設定")
+    func.send_error(name, "rf intro generation skip: ANTHROPIC_API_KEY 未設定")
     return None
 
-  # 4 カテゴリのうち値ありをランダムに最大2件選ぶ
+  # 6 カテゴリのうち値ありをランダムに最大2件選ぶ
   categories = {
     '自己PR': profile.get('自己PR'),
     'ニックネーム': profile.get('ニックネーム'),
-    '求める出会い・利用目的': '\n'.join(filter(None, [
-      f"求める出会い: {profile['求める出会い']}" if profile.get('求める出会い') else None,
-      f"利用目的: {profile['利用目的']}" if profile.get('利用目的') else None,
-    ])) or None,
-    '基本情報': '\n'.join(filter(None, [
-      f"年齢: {profile['年齢']}" if profile.get('年齢') else None,
-      f"職業: {profile['職業']}" if profile.get('職業') else None,
-      f"活動エリア: {profile['活動エリア']}" if profile.get('活動エリア') else None,
-    ])) or None,
+    '求める出会い': profile.get('求める出会い'),
+    '利用目的': profile.get('利用目的'),
+    '年齢': profile.get('年齢'),
+    '職業': profile.get('職業'),
   }
   available = [(k, v) for k, v in categories.items() if v]
   if not available:
     return None
   random.shuffle(available)
   selected = available[:2]
-  profile_text = "\n\n".join(f"【{k}】\n{v}" for k, v in selected)
+  profile_text = "\n".join(f"{k}: {v}" for k, v in selected)
 
-  prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返すメッセージを書くアシスタントです。
-以下のベース定型メッセージを、相手のプロフィール情報を参照して自然に書き換えてください。
+  prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返す短い挨拶メッセージを書くアシスタントです。
 
-【ベース定型メッセージ】
-{base_msg.format(name=user_name)}
+以下の相手プロフィール情報を踏まえて、1〜3行の短い挨拶メッセージを書いてください。
 
 【相手のプロフィール（抜粋）】
 {profile_text}
 
-【書き換えルール】
-- 冒頭の「足跡ありがとうございます♪」のような挨拶は、相手プロフから感じた印象を一言入れた挨拶に置き換える
-- 本文中もしくは末尾近くに、プロフを踏まえた一文を1つだけ自然に挿入する
-- 質問の意図（会う人決まってる？など）はそのまま残す
-- 過度に親しげにならず、絵文字・口調はベースの雰囲気を保つ
+【ルール】
+- 1〜3行の短いメッセージのみ
+- 相手のプロフから感じた印象や関心を一言入れる（{user_name} さん）
+- カジュアルで親しみやすい口調、絵文字や顔文字を 1〜2 個程度
+- 「足跡から来ました」「気になってメールしちゃいました」のような軽い挨拶を入れて OK
+- 自己紹介や質問は不要（このあとに本文の足跡返しメッセージを別途送信する）
 - 出力はメッセージ本文のみ。前置き・解説・コロン・「以下のように」「書き換えました」のような文言は絶対に含めないこと
-- NG例: 「ユキさんのプロフィールが少ないため、以下のように書き換えました：」「ご要望に沿って書き換えました」
-- 出力の先頭1文字目から、そのまま送信できる挨拶（または1文目）で始めること"""
+- NG例: 「以下のように書きました：」「ご要望に沿って...」
+- 出力の先頭1文字目から、そのまま送信できる挨拶で始めること"""
 
-  # 拒否時に使う緩和プロンプト（ベース定型をソフトに言い換えつつパーソナライズ）
-  relaxed_prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返すメッセージを書くアシスタントです。
-以下のベース定型メッセージを、相手のプロフィール情報を参照して自然に書き換えてください。
-
-ベース定型メッセージに性的・直接的すぎる表現が含まれる場合は、雰囲気と意図を保ちつつソフトな表現に置き換えて構いません。
-（例: 「性欲」→「寂しさ」「刺激が欲しい」、「Hな経験」→「大人な経験」、「セックスパートナー」→「一緒に過ごせるパートナー」、「攻められたい」→「お話ししたい」など）
-
-【ベース定型メッセージ】
-{base_msg.format(name=user_name)}
+  # 拒否時に使う緩和プロンプト
+  relaxed_prompt = f"""あなたは女性キャラクターになりきってマッチングアプリで足跡を返す短い挨拶メッセージを書くアシスタントです。
+相手プロフィールに直接的・性的すぎる表現が含まれる場合は、雰囲気だけ汲み取ってソフトに表現してください。
 
 【相手のプロフィール（抜粋）】
 {profile_text}
 
-【書き換えルール】
-- 冒頭の挨拶は相手プロフを踏まえた一言に置き換える
-- 本文中もしくは末尾近くにプロフを踏まえた一文を1つだけ自然に挿入する
-- 質問の意図はそのまま残す
-- 文字数はベースとほぼ同等（±30%）
-- 出力はメッセージ本文のみ。前置き・解説・コロン・「以下のように」「書き換えました」のような文言は絶対に含めないこと
-- NG例: 「ユキさんのプロフィールが少ないため、以下のように書き換えました：」「ご要望に沿って書き換えました」
-- 出力の先頭1文字目から、そのまま送信できる挨拶（または1文目）で始めること"""
+【ルール】
+- 1〜3行の短いメッセージのみ
+- 相手のプロフから感じた印象を一言入れる（{user_name} さん）
+- カジュアルな口調、絵文字や顔文字を 1〜2 個程度
+- 出力はメッセージ本文のみ。前置きや解説は一切含めない
+- 出力の先頭から、そのまま送信できる挨拶で始める"""
 
   refusal_markers = [
     # 日本語
@@ -1660,10 +1646,10 @@ def _personalize_rf_message(name, base_msg, profile, user_name, max_retry=2):
       return _strip_ai_preamble(reply)
     except Exception as e:
       last_err = e
-      print(f"⚠️ rf personalization 失敗 (試行 {attempt+1}/{max_retry}): {e}")
+      print(f"⚠️ rf intro generation 失敗 (試行 {attempt+1}/{max_retry}): {e}")
       time.sleep(2)
 
-  func.send_error(name, f"rf message personalization failed after {max_retry} attempts: {last_err}")
+  func.send_error(name, f"rf intro generation failed after {max_retry} attempts: {last_err}")
   return None
 
 
@@ -1699,15 +1685,24 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   time.sleep(1)
   catch_warning_pop(name, driver)
   ashiato_list_link_ = driver.find_element(By.ID, 'mydata_pcm').find_elements(By.TAG_NAME, "a")
+  ashiato_list_link = None
   for link in ashiato_list_link_:
     if "あしあと" in link.text:
       ashiato_list_link = link
       break
-  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
-  time.sleep(0.5)
-  ashiato_list_link.click()
+  if ashiato_list_link is None:
+    print(f"[{name}] あしあとリンクが見つかりません")
+    return rf_cnt
+  # native click が効かないことがあるため href から直接遷移
+  ashiato_href = ashiato_list_link.get_attribute("href")
+  if ashiato_href:
+    driver.get(ashiato_href)
+  else:
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
+    time.sleep(0.5)
+    driver.execute_script("arguments[0].click();", ashiato_list_link)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-  time.sleep(0.5)
+  time.sleep(1)
   rf_cnt = 0
   user_row_cnt = 0
   now_hour = datetime.now().hour
@@ -1718,30 +1713,37 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     bottom_scroll_cnt = 2
   bottom_roll_cnt = 0
 
+  print(f"[rf_debug {name}] あしあと list 初期 URL={driver.current_url}, bottom_scroll_cnt={bottom_scroll_cnt}")
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+    print(f"[rf_debug {name}] 初期 foot_user_list 件数={len(foot_user_list)}, user_row_cnt={user_row_cnt}")
     while user_row_cnt >= len(foot_user_list):
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
       bottom_roll_cnt += 1
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
+      print(f"[rf_debug {name}] スクロール {bottom_roll_cnt}/{bottom_scroll_cnt}, foot_user_list 件数={len(foot_user_list)}")
       if bottom_roll_cnt == bottom_scroll_cnt:
+        print(f"[rf_debug {name}] スクロール上限到達 → return rf_cnt={rf_cnt}")
         return rf_cnt
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
     # 女性はスキップ
     woman = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'woman')
     if len(woman):
+      print(f"[rf_debug {name}] [{user_row_cnt}] 女性スキップ")
       user_row_cnt += 1
       continue
 
     # いいかも済みはスキップ
     if foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type5'):
+      print(f"[rf_debug {name}] [{user_row_cnt}] いいかも済みスキップ")
       user_row_cnt += 1
       continue
     # マッチングもスキップ
     if foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type6'):
+      print(f"[rf_debug {name}] [{user_row_cnt}] マッチング済みスキップ")
       user_row_cnt += 1
       continue
 
@@ -1755,6 +1757,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       if 18 <= age <= 69:
         print(f"年齢確認OK{age}")
       else:
+        print(f"[rf_debug {name}] [{user_row_cnt}] 年齢範囲外スキップ ({age}歳)")
         user_row_cnt += 1
         continue
     user_name = foot_user_list[user_row_cnt].find_element(By.TAG_NAME,"a").get_attribute('data-va5')
@@ -1860,14 +1863,57 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     script = "arguments[0].value = arguments[1];"
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
-    # プロフを参照して Claude でパーソナライズ。失敗時はベース定型にフォールバック
-    ai_msg = _personalize_rf_message(name, return_foot_message, rf_profile, ditail_page_user_name)
-    final_msg = ai_msg if ai_msg else return_foot_message.format(name=ditail_page_user_name)
-    if ai_msg:
-      print(f"  [{name}] rf message AI personalized")
+    # === 1通目: Claude で生成した 1〜3 行の短い AI 挨拶 ===
+    short_intro = _generate_short_intro(name, rf_profile, ditail_page_user_name)
+    if short_intro:
+      print(f"  [{name}] 1通目 AI 挨拶生成: {short_intro[:80]!r}")
+      driver.execute_script(script, text_area[0], short_intro)
+      time.sleep(0.5)
+      try:
+        driver.find_element(By.ID, 'send3').click()
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        # 1通目送信後、無条件で 6〜8秒待機
+        wait_sec = random.uniform(6, 8)
+        print(f"  [{name}] 1通目送信完了 → {wait_sec:.1f}秒待機")
+        time.sleep(wait_sec)
+        # 連続防止チェック（既存パターン）
+        mailform_box_intro = driver.find_elements(By.ID, value="mailform_box")
+        if mailform_box_intro and "連続防止" in mailform_box_intro[0].text:
+          print(f"  [{name}] 1通目連続防止検出 → 6秒待機して再クリック")
+          time.sleep(6)
+          try:
+            driver.find_element(By.ID, 'send3').click()
+            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            time.sleep(2)
+          except Exception:
+            pass
+        # 2通目用に profile_detail に戻る
+        driver.get(profile_detail_url)
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+        catch_warning_pop(name, driver)
+        # 2通目送信前に いいかも/いいね をクリック
+        iikamo_text = _click_iikamo(driver, wait)
+        if iikamo_text:
+          print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+        catch_warning_pop(name, driver)
+        if "pcmax" in driver.current_url:
+          text_area = driver.find_elements(By.ID, value="mail_com")
+        elif "linkleweb" in driver.current_url:
+          text_area = driver.find_elements(By.ID, value="comme")
+        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+        time.sleep(0.5)
+      except Exception as e_intro:
+        print(f"  [{name}] 1通目送信エラー: {e_intro} → 本送信のみ続行")
+    else:
+      print(f"  [{name}] AI 挨拶生成失敗 → 本送信のみ実行")
+
+    # === 2通目: ベース定型の足跡返し本文 ===
+    final_msg = return_foot_message.format(name=ditail_page_user_name)
     driver.execute_script(script, text_area[0], final_msg)
     time.sleep(0.5)
-    # まじ送信　
+    # まじ送信
     if "pcmax" in driver.current_url:
       mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
     elif "linkleweb" in driver.current_url:
@@ -1935,100 +1981,100 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           unread_user.append(user_name)
           catch_warning_pop(name, driver)
 
-          # 送信検証: プロフ詳細に戻って「送信歴」が表示されているか確認、
-          # ある → いいかも/いいねをクリック
-          # ない → よろしくお願いします〜（バリエーション）で再送信 → もう一度検証
-          #        確認できれば いいかも、できなければ通知メール
-          try:
-            driver.get(profile_detail_url)
-            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-            time.sleep(2)
-            catch_warning_pop(name, driver)
-            body_text = driver.find_element(By.TAG_NAME, "body").text
-            if "送信歴" in body_text:
-              print(f"  [{name}] {ditail_page_user_name} 送信歴 確認 OK")
-              iikamo_text = _click_iikamo(driver, wait)
-              if iikamo_text:
-                print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
-            else:
-              retry_msg = random.choice([
-                "よろしくお願いします♡",
-                "よろしくお願いします😊",
-                "よろしくお願いします♪",
-                "よろしくお願いします(*^^*)",
-                "よろしくお願いします🙇‍♀️",
-                "よろしくお願いします☺️",
-                "よろしくお願いします〜♡",
-                "よろしくお願いします٩(^‿^)۶",
-                "よろしくお願いします(*´ω`*)",
-                "よろしくお願いします✨",
-              ])
-              print(f"  [{name}] {ditail_page_user_name} 送信歴未検出 → {retry_msg} で再送信")
-              ta_id = "mail_com" if "pcmax" in driver.current_url else "comme"
-              ta_retry = driver.find_elements(By.ID, value=ta_id)
-              retry_sent = False
-              if ta_retry:
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ta_retry[0])
-                time.sleep(0.5)
-                driver.execute_script("arguments[0].value = arguments[1];", ta_retry[0], retry_msg)
-                time.sleep(0.5)
-                try:
-                  driver.find_element(By.ID, 'send3').click()
-                  wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-                  time.sleep(2)
-                  # 連続防止が出ていれば待機 → 再クリック
-                  mailform_box_retry = driver.find_elements(By.ID, value="mailform_box")
-                  if mailform_box_retry and "連続防止" in mailform_box_retry[0].text:
-                    print(f"  [{name}] 再送信中に連続防止検出 → 6秒待機して再試行")
-                    time.sleep(6)
-                    try:
-                      ta_retry2 = driver.find_elements(By.ID, value=ta_id)
-                      if ta_retry2:
-                        driver.execute_script("arguments[0].value = arguments[1];", ta_retry2[0], retry_msg)
-                        time.sleep(0.5)
-                      driver.find_element(By.ID, 'send3').click()
-                      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-                      time.sleep(2)
-                    except Exception as e_retry2:
-                      print(f"  [{name}] 連続防止後の再クリック失敗: {e_retry2}")
-                  print(f"  [{name}] {ditail_page_user_name} 再送信完了")
-                  retry_sent = True
-                except Exception as e_retry:
-                  print(f"  [{name}] 再送信 send3 クリック失敗: {e_retry}")
-              else:
-                print(f"  [{name}] 再送信用 text_area ({ta_id}) が見つかりません")
+          # === 送信検証 / よろしくお願いします再送信 / いいかも / 通知メール は一旦無効化 ===
+          # if False:
+          #   # 送信検証: プロフ詳細に戻って「送信歴」が表示されているか確認、
+          #   # ある → いいかも/いいねをクリック
+          #   # ない → よろしくお願いします〜（バリエーション）で再送信 → もう一度検証
+          #   #        確認できれば いいかも、できなければ通知メール
+          #   try:
+          #     driver.get(profile_detail_url)
+          #     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #     time.sleep(2)
+          #     driver.refresh()
+          #     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #     time.sleep(3)
+          #     catch_warning_pop(name, driver)
+          #     body_text = driver.find_element(By.TAG_NAME, "body").text
+          #     if "送信歴" in body_text:
+          #       print(f"  [{name}] {ditail_page_user_name} 送信歴 確認 OK")
+          #       iikamo_text = _click_iikamo(driver, wait)
+          #       if iikamo_text:
+          #         print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+          #     else:
+          #       retry_msg = random.choice([
+          #         "よろしくお願いします♡", "よろしくお願いします😊",
+          #         "よろしくお願いします♪", "よろしくお願いします(*^^*)",
+          #         "よろしくお願いします🙇‍♀️", "よろしくお願いします☺️",
+          #         "よろしくお願いします〜♡", "よろしくお願いします٩(^‿^)۶",
+          #         "よろしくお願いします(*´ω`*)", "よろしくお願いします✨",
+          #       ])
+          #       print(f"  [{name}] {ditail_page_user_name} 送信歴未検出 → {retry_msg} で再送信")
+          #       ta_id = "mail_com" if "pcmax" in driver.current_url else "comme"
+          #       ta_retry = driver.find_elements(By.ID, value=ta_id)
+          #       retry_sent = False
+          #       if ta_retry:
+          #         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ta_retry[0])
+          #         time.sleep(0.5)
+          #         driver.execute_script("arguments[0].value = arguments[1];", ta_retry[0], retry_msg)
+          #         time.sleep(0.5)
+          #         try:
+          #           driver.find_element(By.ID, 'send3').click()
+          #           wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #           time.sleep(2)
+          #           mailform_box_retry = driver.find_elements(By.ID, value="mailform_box")
+          #           if mailform_box_retry and "連続防止" in mailform_box_retry[0].text:
+          #             print(f"  [{name}] 再送信中に連続防止検出 → 6秒待機して再試行")
+          #             time.sleep(6)
+          #             try:
+          #               ta_retry2 = driver.find_elements(By.ID, value=ta_id)
+          #               if ta_retry2:
+          #                 driver.execute_script("arguments[0].value = arguments[1];", ta_retry2[0], retry_msg)
+          #                 time.sleep(0.5)
+          #               driver.find_element(By.ID, 'send3').click()
+          #               wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #               time.sleep(2)
+          #             except Exception as e_retry2:
+          #               print(f"  [{name}] 連続防止後の再クリック失敗: {e_retry2}")
+          #           print(f"  [{name}] {ditail_page_user_name} 再送信完了")
+          #           retry_sent = True
+          #         except Exception as e_retry:
+          #           print(f"  [{name}] 再送信 send3 クリック失敗: {e_retry}")
+          #       else:
+          #         print(f"  [{name}] 再送信用 text_area ({ta_id}) が見つかりません")
+          #       try:
+          #         driver.get(profile_detail_url)
+          #         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #         time.sleep(2)
+          #         driver.refresh()
+          #         wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          #         time.sleep(3)
+          #         catch_warning_pop(name, driver)
+          #         body_text2 = driver.find_element(By.TAG_NAME, "body").text
+          #         if "送信歴" in body_text2:
+          #           print(f"  [{name}] {ditail_page_user_name} 再送信後 送信歴 確認 OK")
+          #           iikamo_text = _click_iikamo(driver, wait)
+          #           if iikamo_text:
+          #             print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+          #         else:
+          #           print(f"  [{name}] {ditail_page_user_name} 再送信後も送信歴未検出 → 通知メール送信")
+          #           if mail_info:
+          #             try:
+          #               user_age_for_mail = (rf_profile or {}).get("年齢") or "不明"
+          #               notify_body = f"{name}pcmax 送信失敗\nユーザー: {ditail_page_user_name}\n年齢: {user_age_for_mail}\nプロフ詳細: {profile_detail_url}\n再送信実行: {retry_sent}\n試行時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+          #               func.send_mail(notify_body, mail_info, f"pcmax送信失敗{name}")
+          #               print(f"  [{name}] 通知メール送信完了")
+          #             except Exception as e_mail:
+          #               print(f"  [{name}] 通知メール送信失敗: {e_mail}")
+          #               traceback.print_exc()
+          #           else:
+          #             print(f"  [{name}] mail_info 未指定のため通知メールはスキップ")
+          #       except Exception as e_verify2:
+          #         print(f"  [{name}] 再送信後の検証エラー: {e_verify2}")
+          #   except Exception as e_verify:
+          #     print(f"  [{name}] 送信検証エラー: {e_verify}")
 
-              # 再送信後にもう一度プロフ詳細で送信歴を確認
-              try:
-                driver.get(profile_detail_url)
-                wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-                time.sleep(2)
-                catch_warning_pop(name, driver)
-                body_text2 = driver.find_element(By.TAG_NAME, "body").text
-                if "送信歴" in body_text2:
-                  print(f"  [{name}] {ditail_page_user_name} 再送信後 送信歴 確認 OK")
-                  iikamo_text = _click_iikamo(driver, wait)
-                  if iikamo_text:
-                    print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
-                else:
-                  print(f"  [{name}] {ditail_page_user_name} 再送信後も送信歴未検出 → 通知メール送信")
-                  if mail_info:
-                    try:
-                      user_age_for_mail = (rf_profile or {}).get("年齢") or "不明"
-                      notify_body = f"{name}pcmax 送信失敗\nユーザー: {ditail_page_user_name}\n年齢: {user_age_for_mail}\nプロフ詳細: {profile_detail_url}\n再送信実行: {retry_sent}\n試行時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-                      func.send_mail(notify_body, mail_info, f"pcmax送信失敗{name}")
-                      print(f"  [{name}] 通知メール送信完了")
-                    except Exception as e_mail:
-                      print(f"  [{name}] 通知メール送信失敗: {e_mail}")
-                      traceback.print_exc()
-                  else:
-                    print(f"  [{name}] mail_info 未指定のため通知メールはスキップ")
-              except Exception as e_verify2:
-                print(f"  [{name}] 再送信後の検証エラー: {e_verify2}")
-          except Exception as e_verify:
-            print(f"  [{name}] 送信検証エラー: {e_verify}")
-
-          # あしあと一覧へ復帰（profile_detail 経由のため back2 ではなく user_list_url へ）
+          # あしあと一覧へ復帰
           if user_list_url:
             driver.get(user_list_url)
           else:
