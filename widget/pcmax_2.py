@@ -827,6 +827,59 @@ def check_top_image(name,driver):
       return True
   return False
 
+_EMOJI_AND_NOISE = re.compile(
+  "["
+  "\U0001F300-\U0001FAFF"   # 絵文字メインブロック (😊🌸🐰 など)
+  "\U00002600-\U000027BF"   # 記号 (♡ ♪ ☺ ♀ ♂ ✨ など)
+  "\U0001F900-\U0001F9FF"   # 補助絵文字 (🙇 🙏 等)
+  "\U0001F3FB-\U0001F3FF"   # 肌色修飾子 (👍🏻 など)
+  "‍"                  # ZWJ (絵文字結合)
+  "︎️"            # 異体字セレクタ VS15/VS16
+  "]+",
+  flags=re.UNICODE,
+)
+
+
+def _strip_emoji(text):
+  """絵文字・記号・ZWJ・異体字セレクタ・肌色修飾子を全除去（文字列比較の揺らぎ吸収用）。"""
+  if not text:
+    return ""
+  return _EMOJI_AND_NOISE.sub("", text)
+
+
+# Cyrillic / Greek の Latin 同形文字を ASCII にまるめる対応表
+# (PCMAX が送信時に Cyrillic М→Latin M 等に変換するため)
+_LOOKALIKE_TO_ASCII = str.maketrans({
+  # --- Cyrillic uppercase → Latin ---
+  "А": "A", "В": "B", "С": "C", "Е": "E", "Н": "H",
+  "І": "I", "Ј": "J", "К": "K", "М": "M", "О": "O",
+  "Р": "P", "Ѕ": "S", "Т": "T", "У": "Y", "Х": "X",
+  # --- Cyrillic lowercase → Latin ---
+  "а": "a", "е": "e", "о": "o", "р": "p", "с": "c",
+  "у": "y", "х": "x", "ј": "j",
+  # --- Greek uppercase → Latin ---
+  "Α": "A", "Β": "B", "Ε": "E", "Ζ": "Z", "Η": "H",
+  "Ι": "I", "Κ": "K", "Μ": "M", "Ν": "N", "Ο": "O",
+  "Ρ": "P", "Τ": "T", "Υ": "Y", "Χ": "X",
+  # --- Greek lowercase → Latin ---
+  "α": "a", "β": "b", "ε": "e", "ι": "i", "κ": "k",
+  "μ": "m", "ν": "v", "ο": "o", "ρ": "p", "τ": "t",
+  "υ": "u", "χ": "x", "ω": "w",
+})
+
+
+def _normalize_lookalike(text):
+  """Cyrillic/Greek の Latin 同形文字を Latin にまるめる。"""
+  if not text:
+    return ""
+  return text.translate(_LOOKALIKE_TO_ASCII)
+
+
+def _normalize_for_match(text):
+  """文字列比較のための統合正規化: NFKC + 改行/空白除去 + 絵文字剥離 + 同形文字統一。"""
+  return _normalize_lookalike(_strip_emoji(func.normalize_text(text)))
+
+
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail,
                mail_info, chara_prompt):
@@ -1311,30 +1364,76 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         print(f"{user_name}に2ndメールを送信しました")
         check_second += 1
       elif effective_sent_len >= 2:
-        # 既に 2 通以上送信済み → 通知メールのみ
-        print("やり取り中")
-        try:
-          messages = driver.find_element(By.CLASS_NAME, "bggray").text
-        except Exception:
+        # 直近に送ったメッセージが fst / 足跡返し (rf) だった場合は second_message を送る
+        # 絵文字/顔文字/同形文字 (Cyrillic М ↔ Latin M 等) の差を吸収して比較
+        last_sent_text = _normalize_for_match(sent_by_me[-1].text) if sent_by_me else ""
+        fst_last = _normalize_for_match(fst_message.format(name=user_name)) in last_sent_text
+        rf_last = _normalize_for_match(return_foot_message.format(name=user_name)) in last_sent_text
+        if fst_last or rf_last:
+          kind = "fst" if fst_last else "rf"
+          print(f"effective_sent_len>=2 だが 直近送信は {kind} → second_message を送信")
           try:
-            messages = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
+            text_area = driver.find_element(By.ID, value="mdc")
+            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+            time.sleep(1)
+            script = "arguments[0].value = arguments[1];"
+            driver.execute_script(script, text_area, second_message)
+            t_a_v_cnt = 0
+            text_area_value = text_area.get_attribute("value")
+            while not text_area_value:
+              t_a_v_cnt += 1
+              time.sleep(2)
+              text_area_value = text_area.get_attribute("value")
+              if t_a_v_cnt == 5:
+                print("テキストエリアにsecond_message入力できません")
+                break
+            driver.find_element(By.ID, "send_n").click()
+            wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+            time.sleep(1)
+            if driver.find_elements(By.CLASS_NAME, "banned-word"):
+              time.sleep(6)
+              driver.find_element(By.ID, "send_n").click()
+            catch_warning_pop(name, driver)
+            mailform_box = driver.find_elements(By.ID, value="mailform_box")
+            if len(mailform_box):
+              if "連続防止" in mailform_box[0].text:
+                print("連続防止　待機中...")
+                time.sleep(7)
+                text_area = driver.find_element(By.ID, value="mdc")
+                driver.execute_script(script, text_area, second_message)
+                time.sleep(1)
+                driver.find_element(By.ID, "send_n").click()
+                time.sleep(1)
+            print(f"{user_name}に2ndメールを送信しました")
+            check_second += 1
           except Exception:
-            messages = ""
-        return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{messages}」"
-        try:
-          func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password], f"pcmax新着{name}")
-          print("通知メールを送信しました")
-          check_more += 1
-        except Exception as e:
-          print(f"{name} 通知メールの送信に失敗しました")
-          traceback.print_exc()
-          print(mail_info)
-        try:
-          driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
-          time.sleep(1)
-          driver.find_element(By.ID, "image_button2").click()
-        except Exception:
-          pass
+            print(f"{name} second_message 送信失敗")
+            traceback.print_exc()
+        else:
+          # 既に 2 通以上 + 直近が fst/rf 以外 → 通知メールのみ
+          print("やり取り中")
+          try:
+            messages = driver.find_element(By.CLASS_NAME, "bggray").text
+          except Exception:
+            try:
+              messages = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
+            except Exception:
+              messages = ""
+          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{messages}」"
+          try:
+            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password], f"pcmax新着{name}")
+            print("通知メールを送信しました")
+            check_more += 1
+          except Exception as e:
+            print(f"{name} 通知メールの送信に失敗しました")
+            traceback.print_exc()
+            print(mail_info)
+          try:
+            driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
+            time.sleep(1)
+            driver.find_element(By.ID, "image_button2").click()
+          except Exception:
+            pass
       if "pcmax" in driver.current_url:
         driver.get("https://pcmax.jp/mobile/mail_recive_list.php?receipt_status=0")
       elif "linkleweb" in driver.current_url:
