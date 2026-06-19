@@ -222,7 +222,22 @@ def profile_search(driver, search_edit, skip_body_type=False):
   wait = WebDriverWait(driver, 10)
   if not "/mobile/profile_reference.php" in driver.current_url:
     if "/mobile/profile_rest_reference.php" in driver.current_url:
-      print(f"❌ プロフ検索制限メニューのURLです") 
+      print(f"❌ プロフ検索制限メニューのURLです")
+      try:
+        chara_name_for_mail = ""
+        name_ele = driver.find_elements(By.CLASS_NAME, "mydata_name")
+        if name_ele:
+          chara_name_for_mail = name_ele[0].text
+        body = (
+          f"PCMAX プロフ検索制限メニューに到達しました\n"
+          f"キャラ: {chara_name_for_mail or '(取得失敗)'}\n"
+          f"URL: {driver.current_url}\n"
+          f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        )
+        func.send_error(chara_name_for_mail, body)
+      except Exception as e:
+        print(f"プロフ検索制限通知メール送信失敗: {e}")
+        traceback.print_exc()
       return False
     else:
       time.sleep(2)
