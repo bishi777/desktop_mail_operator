@@ -1827,37 +1827,30 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     bottom_scroll_cnt = 2
   bottom_roll_cnt = 0
 
-  print(f"[rf_debug {name}] あしあと list 初期 URL={driver.current_url}, bottom_scroll_cnt={bottom_scroll_cnt}")
   while rf_cnt < send_limit_cnt:
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-    print(f"[rf_debug {name}] 初期 foot_user_list 件数={len(foot_user_list)}, user_row_cnt={user_row_cnt}")
     while user_row_cnt >= len(foot_user_list):
       driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
       bottom_roll_cnt += 1
       foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
-      print(f"[rf_debug {name}] スクロール {bottom_roll_cnt}/{bottom_scroll_cnt}, foot_user_list 件数={len(foot_user_list)}")
       if bottom_roll_cnt == bottom_scroll_cnt:
-        print(f"[rf_debug {name}] スクロール上限到達 → return rf_cnt={rf_cnt}")
         return rf_cnt
     foot_user_list = driver.find_elements(By.CLASS_NAME, 'list_box')
     user_list_url = driver.current_url
     # 女性はスキップ
     woman = foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'woman')
     if len(woman):
-      print(f"[rf_debug {name}] [{user_row_cnt}] 女性スキップ")
       user_row_cnt += 1
       continue
 
     # いいかも済みはスキップ
     if foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type5'):
-      print(f"[rf_debug {name}] [{user_row_cnt}] いいかも済みスキップ")
       user_row_cnt += 1
       continue
     # マッチングもスキップ
     if foot_user_list[user_row_cnt].find_elements(By.CLASS_NAME, 'type6'):
-      print(f"[rf_debug {name}] [{user_row_cnt}] マッチング済みスキップ")
       user_row_cnt += 1
       continue
 
@@ -1871,7 +1864,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       if 18 <= age <= 69:
         print(f"年齢確認OK{age}")
       else:
-        print(f"[rf_debug {name}] [{user_row_cnt}] 年齢範囲外スキップ ({age}歳)")
         user_row_cnt += 1
         continue
     user_name = foot_user_list[user_row_cnt].find_element(By.TAG_NAME,"a").get_attribute('data-va5')
