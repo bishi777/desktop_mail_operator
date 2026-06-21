@@ -625,17 +625,18 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
           driver.back()
-        else:  
+        else:
+          # 「送信歴有」がプロフ詳細に出ていれば既送信のためスキップ
           try:
-            memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-            if "もふ" in memo_edit.text:
-              time.sleep(random_wait)
-              profile_search(driver, search_edit)
-
-              user_row_cnt += 1
-              continue
-          except NoSuchElementException:
-            pass
+            page_body_text = driver.find_element(By.TAG_NAME, "body").text
+          except Exception:
+            page_body_text = ""
+          if "送信歴有" in page_body_text:
+            print(f"{user_name} 送信歴有 → スキップ")
+            time.sleep(random_wait)
+            profile_search(driver, search_edit)
+            user_row_cnt += 1
+            continue
           # メモ「もふ」書き込みは一時的に無効化
           # driver.find_element(By.CLASS_NAME, 'memo_open').click()
           # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1505,13 +1506,13 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
       else:
         return 0
     
+    # 「送信歴有」が出ていれば既送信のためスキップ
     try:
-      memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-      if "もふ" in memo_edit.text:
-        return 0  
-    except NoSuchElementException:
-      print("ユーザー個別ページにアクセスしてない可能性があります")
-      pass
+      page_body_text = driver.find_element(By.TAG_NAME, "body").text
+    except Exception:
+      page_body_text = ""
+    if "送信歴有" in page_body_text:
+      return 0
     # メモ「もふ」書き込みは一時的に無効化
     # driver.find_element(By.CLASS_NAME, 'memo_open').click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1949,11 +1950,12 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # いいかも/いいねクリックは送信成功確認後に行うようにしたため、ここでは実行しない
     iikamo_text = ""
 
+    # 「送信歴有」がプロフ詳細に出ていれば既送信のためスキップ
     try:
       catch_warning_pop(name, driver)
-      memo_edit = driver.find_element(By.CLASS_NAME, 'memo_edit')
-      if "もふ" in memo_edit.text:
-        print(f"{user_name} もふあり")
+      page_body_text = driver.find_element(By.TAG_NAME, "body").text
+      if "送信歴有" in page_body_text:
+        print(f"{user_name} 送信歴有 → スキップ")
         driver.back()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)
