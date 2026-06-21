@@ -636,13 +636,14 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
               continue
           except NoSuchElementException:
             pass
-          driver.find_element(By.CLASS_NAME, 'memo_open').click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
-          driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-          driver.find_element(By.ID, 'memo_send').click()
-          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(1)
+          # メモ「もふ」書き込みは一時的に無効化
+          # driver.find_element(By.CLASS_NAME, 'memo_open').click()
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # time.sleep(1)
+          # driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+          # driver.find_element(By.ID, 'memo_send').click()
+          # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # time.sleep(1)
           prof_ditail_user_name = driver.find_element(By.CLASS_NAME, value="li_content")
           if user_name not in prof_ditail_user_name.text:
             print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>ユーザー名不一致のためスキップします<<<<<<<<<<<<<<<<<<<<<<<<<<<<")
@@ -841,6 +842,9 @@ def check_top_image(name,driver):
     if "no-image" in top_image_back_ground:
       return True
   return False
+
+# Anthropic クレジット切れ検出時の通知メールを 1 プロセス 1 回に抑制するフラグ
+_anthropic_credit_low_notified = False
 
 _EMOJI_AND_NOISE = re.compile(
   "["
@@ -1278,14 +1282,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
           return [user_name], check_first, check_second, check_more, gmail_condition, check_date
         
         # print(len(sent_by_me))
-        driver.find_element(By.CLASS_NAME, 'memo_open').click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
-        driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-        time.sleep(0.5)
-        driver.find_element(By.ID, 'memo_send').click()
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-        time.sleep(1)
+        # メモ「もふ」書き込みは一時的に無効化
+        # driver.find_element(By.CLASS_NAME, 'memo_open').click()
+        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # time.sleep(1)
+        # driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+        # time.sleep(0.5)
+        # driver.find_element(By.ID, 'memo_send').click()
+        # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        # time.sleep(1)
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         script = "arguments[0].value = arguments[1];"
@@ -1507,13 +1512,14 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
     except NoSuchElementException:
       print("ユーザー個別ページにアクセスしてない可能性があります")
       pass
-    driver.find_element(By.CLASS_NAME, 'memo_open').click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-    driver.find_element(By.ID, 'memo_send').click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
+    # メモ「もふ」書き込みは一時的に無効化
+    # driver.find_element(By.CLASS_NAME, 'memo_open').click()
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    # time.sleep(1)
+    # driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+    # driver.find_element(By.ID, 'memo_send').click()
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    # time.sleep(1)
     text_area = driver.find_element(By.ID, value="mail_com")
     script = "arguments[0].value = arguments[1];"
     driver.execute_script(script, text_area, fst_message)
@@ -1763,7 +1769,37 @@ def _generate_short_intro(name, profile, user_name, max_retry=2):
       print(f"⚠️ rf intro generation 失敗 (試行 {attempt+1}/{max_retry}): {e}")
       time.sleep(2)
 
-  func.send_error(name, f"rf intro generation failed after {max_retry} attempts: {last_err}")
+  # Anthropic クレジット切れを検出した場合は専用通知（プロセス内で1回のみ）
+  global _anthropic_credit_low_notified
+  err_text = str(last_err) if last_err else ""
+  is_credit_low = any(kw in err_text.lower() for kw in [
+    "credit balance is too low",
+    "credit balance",
+    "purchase credits",
+    "billing",
+    "insufficient_quota",
+  ])
+  if is_credit_low and not _anthropic_credit_low_notified:
+    try:
+      func.send_error(
+        name,
+        "🚨 Anthropic API クレジット切れ\n\n"
+        "rf intro 生成のための Claude API 呼び出しがクレジット残高不足で失敗しました。\n"
+        "https://console.anthropic.com/settings/billing で残高をチャージしてください。\n"
+        "（残高補充までは AI パーソナライズなしでベース定型のみが送信されます）\n\n"
+        f"検出エラー: {err_text}\n"
+        f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+      )
+      _anthropic_credit_low_notified = True
+      print(f"🚨 [{name}] Anthropic クレジット切れ通知メール送信（このプロセスでは以降抑制）")
+    except Exception as e_mail:
+      print(f"⚠️ [{name}] クレジット切れ通知メール送信失敗: {e_mail}")
+  else:
+    # 通知メール送信が失敗しても rf フローを止めないようにガード
+    try:
+      func.send_error(name, f"rf intro generation failed after {max_retry} attempts: {last_err}")
+    except Exception as e_mail:
+      print(f"⚠️ [{name}] rf intro 失敗通知メール送信に失敗: {e_mail}")
   return None
 
 
@@ -1936,32 +1972,33 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           attachment_paths=img_path  # 複数なら ["a.png","b.log"] のようにリストで
       )
       pass
-    # memo_open ボタン: 空チェック + Stale 1回リトライ
-    memo_clicked = False
-    for _attempt in range(2):
-      memo_ele = driver.find_elements(By.CSS_SELECTOR, '.side_btn.memo_open')
-      if not memo_ele:
-        break
-      try:
-        memo_ele[0].click()
-        memo_clicked = True
-        break
-      except StaleElementReferenceException:
-        time.sleep(0.5)
-        continue
-    if not memo_clicked:
-      print(f"{ditail_page_user_name} memo_open ボタン取得不可、スキップ")
-      driver.back()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2)
-      user_row_cnt += 1
-      continue
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    driver.find_element(By.ID, 'memotxt').send_keys("もふ")
-    driver.find_element(By.ID, 'memo_send').click()
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
+    # メモ「もふ」書き込みは一時的に無効化（memo_open / 入力 / memo_send をまとめてコメントアウト）
+    # # memo_open ボタン: 空チェック + Stale 1回リトライ
+    # memo_clicked = False
+    # for _attempt in range(2):
+    #   memo_ele = driver.find_elements(By.CSS_SELECTOR, '.side_btn.memo_open')
+    #   if not memo_ele:
+    #     break
+    #   try:
+    #     memo_ele[0].click()
+    #     memo_clicked = True
+    #     break
+    #   except StaleElementReferenceException:
+    #     time.sleep(0.5)
+    #     continue
+    # if not memo_clicked:
+    #   print(f"{ditail_page_user_name} memo_open ボタン取得不可、スキップ")
+    #   driver.back()
+    #   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    #   time.sleep(2)
+    #   user_row_cnt += 1
+    #   continue
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    # time.sleep(1)
+    # driver.find_element(By.ID, 'memotxt').send_keys("もふ")
+    # driver.find_element(By.ID, 'memo_send').click()
+    # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+    # time.sleep(1)
     if "pcmax" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="mail_com")
     elif "linkleweb" in driver.current_url:

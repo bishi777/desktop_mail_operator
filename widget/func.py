@@ -478,9 +478,9 @@ def send_error(chara, error_message, attachment_paths=None):
     :param error_message: 本文に載せるエラー文字列
     :param attachment_paths: 文字列 or 文字列のリスト（添付するファイルパス）
     """
-    # ★本番は環境変数に置き換えるのを強く推奨
+    # 認証情報は settings.py 側に分離（settings.user_option_gmail_pass にアプリパスワード）
     mailaddress = 'y216154@gmail.com'
-    password = '9xb3wmpc'   # アプリパスワード推奨（2段階認証ON）
+    password = settings.user_option_gmail_pass
     address_from = 'y216154@gmail.com'
     address_to = "gifopeho@kmail.li"
     subject = "エラーメッセージ"
@@ -521,15 +521,21 @@ def send_error(chara, error_message, attachment_paths=None):
                                 f'attachment; filename="{os.path.basename(path)}"')
             msg.attach(part)
 
-    # 送信
-    smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
+    # 送信（SMTP 失敗で呼び出し側を巻き込まないよう全例外を吸収）
     try:
-        # smtpobj.set_debuglevel(1)  # 必要ならオン
-        smtpobj.starttls()
-        smtpobj.login(mailaddress, password)
-        smtpobj.send_message(msg)
-    finally:
-        smtpobj.close()
+        smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
+        try:
+            # smtpobj.set_debuglevel(1)  # 必要ならオン
+            smtpobj.starttls()
+            smtpobj.login(mailaddress, password)
+            smtpobj.send_message(msg)
+        finally:
+            try:
+                smtpobj.close()
+            except Exception:
+                pass
+    except Exception as e:
+        print(f"⚠️ send_error (chara={chara!r}) SMTP 失敗: {e}")
    
 def send_mail(message, mail_info, title, image_paths=None):
   mailaddress = mail_info[1]
