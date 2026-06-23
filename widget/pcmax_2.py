@@ -1950,11 +1950,15 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # いいかも/いいねクリックは送信成功確認後に行うようにしたため、ここでは実行しない
     iikamo_text = ""
 
-    # 「送信歴有」がプロフ詳細に出ていれば既送信のためスキップ
+    # 「送信歴有」がプロフ詳細に出ていれば既送信のためいいかも → スキップ
     try:
       catch_warning_pop(name, driver)
       page_body_text = driver.find_element(By.TAG_NAME, "body").text
       if "送信歴有" in page_body_text:
+        print(f"{user_name} 送信歴有 検出")
+        iikamo_text_skip = _click_iikamo(driver, wait)
+        if iikamo_text_skip:
+          print(f"  [{name}] {ditail_page_user_name} → {iikamo_text_skip} 完了")
         print(f"{user_name} 送信歴有 → スキップ")
         driver.back()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
