@@ -264,7 +264,7 @@ def main():
                     if roll_cnt % 6 == 0:   
                       print(f"🏃‍♀️rfメール送信開始 送信数:{returnfoot_cnt}") 
                       try:
-                        rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug, mail_info=mail_info)
+                        rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug, mail_info=mail_info, use_ai_intro=i.get("rf_ai_intro_flug", True))
                         report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
                         one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
                         print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")
@@ -279,7 +279,7 @@ def main():
                     print(f"🏃‍♀️rfメール送信開始 送信上限:{returnfoot_cnt}") 
                     rf_cnt = 0
                     try:
-                      rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug, mail_info=mail_info)
+                      rf_cnt = pcmax_2.return_footmessage(name, driver, return_foot_message, returnfoot_cnt, mail_img, unread_user, two_messages_flug, mail_info=mail_info, use_ai_intro=i.get("rf_ai_intro_flug", True))
                       report_dict[name]["rf"] = report_dict[name]["rf"] + rf_cnt
                       one_hour_report_dict[name]["rf"] = one_hour_report_dict[name]["rf"] + rf_cnt
                       print(f"rfメール送信終了　送信数{rf_cnt}🏃‍♀️")

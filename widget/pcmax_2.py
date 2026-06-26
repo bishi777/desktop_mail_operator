@@ -1825,7 +1825,11 @@ def _click_iikamo(driver, wait):
   return ""
 
 
-def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug, mail_info=None):
+def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug, mail_info=None, use_ai_intro=True):
+  """足跡返し送信。
+  use_ai_intro=True (デフォルト): 1通目に Claude で生成した短い AI 挨拶、2通目にベース定型を送信
+  use_ai_intro=False: AI 挨拶をスキップ、1通目からベース定型のみ送信
+  """
   two_message_users = []
   wait = WebDriverWait(driver, 10)
   if "pcmax" in driver.current_url:
@@ -2012,53 +2016,57 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     script = "arguments[0].value = arguments[1];"
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
-    # === 1通目: Claude で生成した 1〜3 行の短い AI 挨拶 ===
-    short_intro = _generate_short_intro(name, rf_profile, ditail_page_user_name)
-    if short_intro:
-      print(f"  [{name}] 1通目 AI 挨拶生成: {short_intro[:80]!r}")
-      driver.execute_script(script, text_area[0], short_intro)
-      time.sleep(0.5)
-      try:
-        driver.find_element(By.ID, 'send3').click()
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-        # 1通目送信後、無条件で 6〜8秒待機
-        wait_sec = random.uniform(6, 8)
-        print(f"  [{name}] 1通目送信完了 → {wait_sec:.1f}秒待機")
-        time.sleep(wait_sec)
-        # 連続防止チェック（既存パターン）
-        mailform_box_intro = driver.find_elements(By.ID, value="mailform_box")
-        if mailform_box_intro and "連続防止" in mailform_box_intro[0].text:
-          print(f"  [{name}] 1通目連続防止検出 → 6秒待機して再クリック")
-          time.sleep(6)
-          try:
-            driver.find_element(By.ID, 'send3').click()
-            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-            time.sleep(2)
-          except Exception:
-            pass
-        # 2通目用に profile_detail に戻る
-        driver.get(profile_detail_url)
-        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-        time.sleep(2)
-        catch_warning_pop(name, driver)
-        # 2通目送信前に いいかも/いいね をクリック
-        iikamo_text = _click_iikamo(driver, wait)
-        if iikamo_text:
-          print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
-        catch_warning_pop(name, driver)
-        if "pcmax" in driver.current_url:
-          text_area = driver.find_elements(By.ID, value="mail_com")
-        elif "linkleweb" in driver.current_url:
-          text_area = driver.find_elements(By.ID, value="comme")
-        driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+    # === 1通目: Claude で生成した 1〜3 行の短い AI 挨拶（use_ai_intro=True のときのみ）===
+    if use_ai_intro:
+      short_intro = _generate_short_intro(name, rf_profile, ditail_page_user_name)
+      if short_intro:
+        print(f"  [{name}] 1通目 AI 挨拶生成: {short_intro[:80]!r}")
+        driver.execute_script(script, text_area[0], short_intro)
         time.sleep(0.5)
-      except Exception as e_intro:
-        print(f"  [{name}] 1通目送信エラー: {e_intro} → 本送信のみ続行")
+        try:
+          driver.find_element(By.ID, 'send3').click()
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          # 1通目送信後、無条件で 6〜8秒待機
+          wait_sec = random.uniform(6, 8)
+          print(f"  [{name}] 1通目送信完了 → {wait_sec:.1f}秒待機")
+          time.sleep(wait_sec)
+          # 連続防止チェック
+          mailform_box_intro = driver.find_elements(By.ID, value="mailform_box")
+          if mailform_box_intro and "連続防止" in mailform_box_intro[0].text:
+            print(f"  [{name}] 1通目連続防止検出 → 6秒待機して再クリック")
+            time.sleep(6)
+            try:
+              driver.find_element(By.ID, 'send3').click()
+              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+            except Exception:
+              pass
+          # ベース送信用に profile_detail に戻る
+          driver.get(profile_detail_url)
+          wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+          time.sleep(2)
+          catch_warning_pop(name, driver)
+        except Exception as e_intro:
+          print(f"  [{name}] 1通目送信エラー: {e_intro} → 本送信のみ続行")
+      else:
+        print(f"  [{name}] AI 挨拶生成失敗 → ベース送信のみ実行")
     else:
-      print(f"  [{name}] AI 挨拶生成失敗 → 本送信のみ実行")
+      print(f"  [{name}] use_ai_intro=False → AI 挨拶スキップ、ベース定型のみ送信")
 
-    # === 2通目: ベース定型の足跡返し本文 ===
+    # いいかも/いいね クリック（AI 有無に関わらず常に実行）
+    iikamo_text = _click_iikamo(driver, wait)
+    if iikamo_text:
+      print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
+    catch_warning_pop(name, driver)
+    if "pcmax" in driver.current_url:
+      text_area = driver.find_elements(By.ID, value="mail_com")
+    elif "linkleweb" in driver.current_url:
+      text_area = driver.find_elements(By.ID, value="comme")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
+    time.sleep(0.5)
+
+    # === ベース定型 足跡返し本文を送信 (use_ai_intro=True なら 2通目、False なら 1通目) ===
     final_msg = return_foot_message.format(name=ditail_page_user_name)
     driver.execute_script(script, text_area[0], final_msg)
     time.sleep(0.5)
