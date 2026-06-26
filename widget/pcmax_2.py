@@ -2623,7 +2623,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   while ft_cnt < footprint_count:
     if current_step < len(user_list):
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", user_list[current_step])
-      time.sleep(0.4)
+      time.sleep(0.8)
       exchange = user_list[current_step].find_elements(By.CLASS_NAME, value="exchange")
       user_name = user_list[current_step].find_elements(By.CLASS_NAME, value="name")[0].text
       if len(exchange):
@@ -2717,12 +2717,17 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
           time.sleep(0.6)
       else:
         continue
-    if not user_list_url in driver.current_url:
-      driver.get(user_list_url)
+    reload_cnt = 0
+    while not user_list_url in driver.current_url:
+      # driver.get(user_list_url)
+      driver.back()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(1)
-    user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
-
+      time.sleep(1)
+      user_list = driver.find_elements(By.CLASS_NAME, 'profile_card')
+      reload_cnt += 1
+      if reload_cnt > 4:
+        print(f"{name} 足跡付けのユーザー一覧に戻れません({reload_cnt}回)")
+        break
 
 def make_footprint_shinjin(name, driver, footprint_count=5, iikamo_count=0):
   """新人プロフィール検索から足跡をつける。東京→他地域を2回繰り返す"""
