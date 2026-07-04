@@ -245,6 +245,8 @@ def get_driver(headless):
   options.add_argument("--window-size=456,912")
   options.add_experimental_option("detach", True)
   options.add_argument("--disable-cache")
+  options.add_argument("--disk-cache-size=104857600")   # ディスクキャッシュ 100MB 上限
+  options.add_argument("--media-cache-size=52428800")   # メディアキャッシュ 50MB 上限
   options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
   # ChromeDriver のログを非表示
   service = Service(ChromeDriverManager().install(), log_output=os.devnull)

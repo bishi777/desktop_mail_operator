@@ -12,4 +12,6 @@ echo デバッグ用Chromeを起動します (port: %PORT%)
 start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
   --remote-debugging-port=%PORT% ^
   --user-data-dir="%USERPROFILE%\AppData\Local\Google\Chrome\DebugProfile_%PORT%" ^
-  --disable-popup-blocking
+  --disable-popup-blocking ^
+  --disk-cache-size=104857600 ^
+  --media-cache-size=52428800

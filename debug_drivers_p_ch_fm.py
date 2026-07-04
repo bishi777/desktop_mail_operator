@@ -83,8 +83,13 @@ def main_syori():
     handles = driver.window_handles
     print(f"タブ数:{len(handles)}")
     print("<<<<<<<ループスタート🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️🏃‍♀️>>>>>>>>>>>>>>>>>>>>>>>>>")
-    for idx, handle in enumerate(handles): 
-      driver.switch_to.window(handle)
+    for idx, handle in enumerate(handles):
+      # タブが途中で閉じられて handle が無効になっていたらスキップ
+      try:
+        driver.switch_to.window(handle)
+      except Exception as e_switch:
+        print(f"⚠️ タブ {idx+1}/{len(handles)} に切り替えできません（閉じられた可能性）: {type(e_switch).__name__}: {e_switch}")
+        continue
       if "pcmax" not in driver.current_url and "linkleweb" not in driver.current_url:
         continue
       login_flug = pcmax_2.catch_warning_pop("", driver)
