@@ -1095,16 +1095,21 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       email_list = None
       email_pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
-      received_mail = ""
-      last_received_raw = ""
-      for received_mail in received_elems:
-        received_mail = received_mail.text
-        last_received_raw = received_mail  # AI フォールバック用に原文保持
-        received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
-        email_list = re.findall(email_pattern, received_mail)
-      # regex で取れなかった場合は AI で 1 回だけフォールバック
-      if not email_list and last_received_raw:
-        ai_emails = _extract_email_with_ai(name, last_received_raw)
+      # 受信メッセージを全て結合してから抽出する（最終メッセージだけ見ると前後のアドレスを取りこぼすため）
+      all_received_text = ""
+      for received_elem in received_elems:
+        txt = received_elem.text
+        if txt:
+          all_received_text += txt + "\n"
+      received_mail = all_received_text  # 後方互換
+      normalized_text = all_received_text.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
+      email_list = re.findall(email_pattern, normalized_text)
+      # 重複除去（順序維持）
+      if email_list:
+        email_list = list(dict.fromkeys(email_list))
+      # regex で取れなかった場合は AI で 1 回だけフォールバック（結合済みの全文に対して）
+      if not email_list and all_received_text.strip():
+        ai_emails = _extract_email_with_ai(name, all_received_text)
         if ai_emails:
           print(f"  [{name}] regex miss → AI がメアド抽出成功: {ai_emails}")
           email_list = ai_emails
