@@ -846,6 +846,7 @@ def check_top_image(name,driver):
 
 # Anthropic クレジット切れ検出時の通知メールを 1 プロセス 1 回に抑制するフラグ
 _anthropic_credit_low_notified = False
+_ai_email_extract_error_notified = False
 
 _EMOJI_AND_NOISE = re.compile(
   "["
@@ -898,6 +899,89 @@ def _normalize_lookalike(text):
 def _normalize_for_match(text):
   """文字列比較のための統合正規化: NFKC + 改行/空白除去 + 絵文字剥離 + 同形文字統一。"""
   return _normalize_lookalike(_strip_emoji(func.normalize_text(text)))
+
+
+def _extract_email_with_ai(name, text):
+  """AI (Claude Haiku 4.5) で受信テキストからメールアドレスを抽出。
+  取れなければ空リストを返す。クレジット切れ等の失敗時は通知メール (プロセス内で 1 回のみ)。"""
+  if not text or not text.strip():
+    return []
+  import anthropic
+  import settings as _settings
+  global _ai_email_extract_error_notified
+  api_key = getattr(_settings, 'anthropic_api_key', None) or os.environ.get('ANTHROPIC_API_KEY', '')
+  if not api_key:
+    return []
+
+  prompt = f"""以下のメッセージからメールアドレスを抽出してください。
+
+【メッセージ】
+{text}
+
+【抽出ルール】
+- 改行やスペースで区切られていても意図されたアドレスとして再構成すること
+- 日本語表記も変換すること:
+  ・「あっとまーく」「アットマーク」「at」「アット」「＠」→ @
+  ・「どっと」「ドット」「dot」→ .
+  ・「じーめーる」「Gメール」「ジーメール」→ gmail
+  ・「ヤフー」「やほー」→ yahoo
+  ・「どこも」「ドコモ」→ docomo
+  ・「あいくらうど」→ icloud
+  ・「あうと」「アウト」→ outlook
+  ・「こむ」「コム」→ com
+  ・「ねっと」「ネット」→ net
+  ・「じぇーぴー」「JP」→ jp
+- 曖昧な場合は無視すること（確信できるものだけ）
+- 出力：メールアドレスを 1 行につき 1 つずつ列挙、なければ何も出力しない
+- 前置き・解説・コロン・引用符・囲み文字などは一切禁止"""
+
+  try:
+    client = anthropic.Anthropic(api_key=api_key)
+    r = client.messages.create(
+      model='claude-haiku-4-5-20251001',
+      max_tokens=256,
+      messages=[{'role': 'user', 'content': prompt}],
+    )
+    reply = r.content[0].text.strip()
+  except Exception as e:
+    err_text = str(e)
+    is_credit_low = any(kw in err_text.lower() for kw in [
+      "credit balance is too low", "credit balance", "purchase credits",
+      "billing", "insufficient_quota",
+    ])
+    print(f"⚠️ [{name}] AI email extract 失敗: {e}")
+    if not _ai_email_extract_error_notified:
+      try:
+        if is_credit_low:
+          body = (
+            "🚨 AI メールアドレス抽出 - Anthropic API クレジット切れ\n\n"
+            "受信テキストからのメールアドレス抽出に失敗しました。既存の regex 結果 (空) にフォールバックします。\n"
+            "https://console.anthropic.com/settings/billing で残高をチャージしてください。\n\n"
+            f"検出エラー: {err_text}\n"
+            f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+          )
+        else:
+          body = (
+            "⚠️ AI メールアドレス抽出 - Claude API 呼び出し失敗\n\n"
+            "既存の regex 結果 (空) にフォールバックします。\n\n"
+            f"エラー: {err_text}\n"
+            f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+          )
+        func.send_error(name, body)
+        _ai_email_extract_error_notified = True
+        print(f"⚠️ [{name}] AI email extract 失敗通知メール送信 (以降抑制)")
+      except Exception as e_mail:
+        print(f"⚠️ [{name}] AI email extract 失敗通知メール送信失敗: {e_mail}")
+    return []
+
+  # 応答から email 形式のものだけ拾う
+  pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
+  found = []
+  for line in reply.splitlines():
+    for m in re.findall(pattern, line.strip()):
+      if m not in found:
+        found.append(m)
+  return found
 
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
@@ -1012,10 +1096,18 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       email_list = None
       email_pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
       received_mail = ""
+      last_received_raw = ""
       for received_mail in received_elems:
-        received_mail = received_mail.text 
+        received_mail = received_mail.text
+        last_received_raw = received_mail  # AI フォールバック用に原文保持
         received_mail = received_mail.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
         email_list = re.findall(email_pattern, received_mail)
+      # regex で取れなかった場合は AI で 1 回だけフォールバック
+      if not email_list and last_received_raw:
+        ai_emails = _extract_email_with_ai(name, last_received_raw)
+        if ai_emails:
+          print(f"  [{name}] regex miss → AI がメアド抽出成功: {ai_emails}")
+          email_list = ai_emails
       # print(f"~sent_by_me~ {len(sent_by_me)}")
       # DEBUG
       # if True:
