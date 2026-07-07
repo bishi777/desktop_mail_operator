@@ -1095,13 +1095,16 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       received_elems = driver.find_elements(By.CSS_SELECTOR, ".message-body.fukidasi.left.left_balloon")
       email_list = None
       email_pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
-      # 受信メッセージを全て結合してから抽出する（最終メッセージだけ見ると前後のアドレスを取りこぼすため）
+      # 受信メッセージを全て結合してから抽出する（email_list は履歴含めて拾う）
+      # ただし received_mail は「最新メッセージのみ」に絞る（icloud 判定等が過去履歴に反応して再発火するのを防ぐ）
       all_received_text = ""
+      last_message_text = ""
       for received_elem in received_elems:
         txt = received_elem.text
         if txt:
           all_received_text += txt + "\n"
-      received_mail = all_received_text  # 後方互換
+          last_message_text = txt
+      received_mail = last_message_text  # 後方互換 (キーワードチェックは最新メッセージのみ)
       normalized_text = all_received_text.replace("＠", "@").replace("あっとまーく", "@").replace("アットマーク", "@")
       email_list = re.findall(email_pattern, normalized_text)
       # 重複除去（順序維持）
@@ -1113,6 +1116,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         if ai_emails:
           print(f"  [{name}] regex miss → AI がメアド抽出成功: {ai_emails}")
           email_list = ai_emails
+      # 過去に icloud 返信フォールバック (「ブロックされちゃって」) を送信済みか（再送防止）
+      already_sent_icloud_response = any(
+        "ブロックされちゃって" in (m.text or "")
+        for m in sent_by_me
+      )
       # print(f"~sent_by_me~ {len(sent_by_me)}")
       # DEBUG
       # if True:
@@ -1164,28 +1172,35 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             time.sleep(1)
         # print(f"メールアドレスが見つかりました: {email_list}")
         if "icloud" in received_mail:
-          # print("icloudが含まれています")
-          icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
-          try:
-            text_area = driver.find_element(By.ID, value="mdc")
-            driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-            script = "arguments[0].value = arguments[1];"
-            driver.execute_script(script, text_area, icloud_text)
-            time.sleep(4)
-            driver.find_element(By.ID, "send_n").click()
-            if driver.find_elements(By.CLASS_NAME, "banned-word"):
-              time.sleep(6)
+          if already_sent_icloud_response:
+            # 既に icloud 返信は送信済み → 再送スキップ
+            print(f"{name} {user_name} icloud 返信は既に送信済み、再送スキップ")
+          else:
+            # print("icloudが含まれています")
+            icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
+            try:
+              text_area = driver.find_element(By.ID, value="mdc")
+              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
+              script = "arguments[0].value = arguments[1];"
+              driver.execute_script(script, text_area, icloud_text)
+              time.sleep(4)
               driver.find_element(By.ID, "send_n").click()
-            check_more += 1
-            print(f"{user_name}にicloud.com返信メールを送信しました")
-          except Exception:
-            print(f"{name} {user_name} icloud.com返信メールの送信に失敗しました")
-            error = traceback.format_exc()
-            traceback.print_exc()
-            print(f"user_name:{user_name}  user_address:{email_list}  gmail_address:{gmail_address}  gmail_password:{gmail_password}")
-            print(icloud_text)
-            func.send_error(name, f"icloud.com返信メールの送信に失敗しました\nuser_name:{user_name}\nuser_address:{email_list}\ngmail_address:{gmail_address}\ngmail_password:{gmail_password}\n\n{error}",
-                                  )
+              if driver.find_elements(By.CLASS_NAME, "banned-word"):
+                time.sleep(6)
+                driver.find_element(By.ID, "send_n").click()
+              check_more += 1
+              print(f"{user_name}にicloud.com返信メールを送信しました")
+            except Exception:
+              print(f"{name} {user_name} icloud.com返信メールの送信に失敗しました")
+              error = traceback.format_exc()
+              traceback.print_exc()
+              print(f"user_name:{user_name}  user_address:{email_list}  gmail_address:{gmail_address}  gmail_password:{gmail_password}")
+              print(icloud_text)
+              func.send_error(name, f"icloud.com返信メールの送信に失敗しました\nuser_name:{user_name}\nuser_address:{email_list}\ngmail_address:{gmail_address}\ngmail_password:{gmail_password}\n\n{error}",
+                                    )
+        elif already_sent_icloud_response:
+          # 過去に icloud 返信を送っている＝進行中の icloud 交換 → 条件メール再送信をスキップ
+          print(f"{name} {user_name} icloud 交換中のため condition_message 再送スキップ")
         else:
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
@@ -2201,11 +2216,26 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       if "pcmax" in driver.current_url:
-        link_OK = driver.find_element(By.ID, value="link_OK")
+        link_OK_locator = (By.ID, "link_OK")
       elif "linkleweb" in driver.current_url:
-        link_OK = driver.find_element(By.CSS_SELECTOR, ".majibt.yes")
-      link_OK.click()
-      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')   
+        link_OK_locator = (By.CSS_SELECTOR, ".majibt.yes")
+      # モーダルが表示 & クリック可能になるまで待つ → ダメなら JS クリックで確定
+      try:
+        link_OK = WebDriverWait(driver, 10).until(EC.element_to_be_clickable(link_OK_locator))
+        driver.execute_script("arguments[0].scrollIntoView({block:'center'});", link_OK)
+        time.sleep(0.3)
+        link_OK.click()
+      except Exception as e_native:
+        try:
+          link_OK = driver.find_element(*link_OK_locator)
+          driver.execute_script("arguments[0].scrollIntoView({block:'center'});", link_OK)
+          time.sleep(0.3)
+          driver.execute_script("arguments[0].click();", link_OK)
+          print(f"  [{name}] link_OK は JS クリックで送信確定（native click 失敗: {type(e_native).__name__}）")
+        except Exception as e_js:
+          print(f"  [{name}] link_OK クリック失敗（native/JS どちらも駄目）: {e_js}")
+          raise
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     else:
       driver.find_element(By.ID, 'send3').click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
