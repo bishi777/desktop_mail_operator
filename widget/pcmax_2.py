@@ -657,7 +657,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           script = "arguments[0].value = arguments[1];"
           driver.execute_script(script, text_area, fst_message.format(name=user_name))
           time.sleep(1)
-          # まじ送信　
+          # まじ送信
           mile_point_text = driver.find_elements(By.CLASS_NAME, value="side_point_pcm_data")
           if len(mile_point_text):
             pattern = r'\d+'
@@ -667,6 +667,10 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             else:
               maji_soushin = False
           else:
+            maji_soushin = False
+          # マジ送信メンテナンス中フォールバック
+          if maji_soushin and _is_maji_maintenance(driver):
+            print(f"  [{name}] マジ送信メンテナンス中 → 通常送信に切替 (check_mail 初回)")
             maji_soushin = False
           time.sleep(random_wait)
           # mail_imgがあれば送付
@@ -1636,14 +1640,18 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
     text_area = driver.find_element(By.ID, value="mail_com")
     script = "arguments[0].value = arguments[1];"
     driver.execute_script(script, text_area, fst_message)
-    time.sleep(1)  
-    # まじ送信　
+    time.sleep(1)
+    # まじ送信
     mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
     pattern = r'\d+'
     match = re.findall(pattern, mile_point_text)
     if int(match[0]) > 20:
       maji_soushin = True
     else:
+      maji_soushin = False
+    # マジ送信メンテナンス中フォールバック
+    if maji_soushin and _is_maji_maintenance(driver):
+      print(f"  [{name}] マジ送信メンテナンス中 → 通常送信に切替 (fst_message)")
       maji_soushin = False
     time.sleep(4)
     if mail_img:
@@ -1914,6 +1922,20 @@ def _generate_short_intro(name, profile, user_name, max_retry=2):
     except Exception as e_mail:
       print(f"⚠️ [{name}] rf intro 失敗通知メール送信に失敗: {e_mail}")
   return None
+
+
+def _is_maji_maintenance(driver):
+  """majiBtn (マジ送信) がメンテナンス中かどうかを判定。value に「メンテナンス」が含まれていれば True。"""
+  try:
+    if "pcmax" not in driver.current_url:
+      return False
+    btn = driver.find_elements(By.ID, "majiBtn")
+    if not btn:
+      return False
+    val = btn[0].get_attribute("value") or ""
+    return "メンテナンス" in val
+  except Exception:
+    return False
 
 
 def _click_iikamo(driver, wait):
@@ -2192,6 +2214,10 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if int(match[0]) > 20:
       maji_soushin = True
     else:
+      maji_soushin = False
+    # マジ送信メンテナンス中フォールバック
+    if maji_soushin and _is_maji_maintenance(driver):
+      print(f"  [{name}] マジ送信メンテナンス中 → 通常送信に切替 (return_foot)")
       maji_soushin = False
     time.sleep(4)
     if mail_img:
