@@ -1175,6 +1175,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
         # print(f"メールアドレスが見つかりました: {email_list}")
+        # 相手メモを確認（「メアド送信あり」マーカーがあれば condition_message 送信済み）
+        partner_memo = _read_partner_memo(driver)
         if "icloud" in received_mail:
           if already_sent_icloud_response:
             # 既に icloud 返信は送信済み → 再送スキップ
@@ -1205,7 +1207,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         elif already_sent_icloud_response:
           # 過去に icloud 返信を送っている＝進行中の icloud 交換 → 条件メール再送信をスキップ
           print(f"{name} {user_name} icloud 交換中のため condition_message 再送スキップ")
+        elif MAIL_SENT_MEMO_MARKER in partner_memo:
+          # 相手メモに「メアド送信あり」マーカー → 過去に condition_message 送信済みなので再送しない
+          print(f"{name} {user_name} メモ「{MAIL_SENT_MEMO_MARKER}」検出 → condition_message 再送スキップ")
         else:
+          sent_condition = False
           for user_address in email_list:
             user_address = func.normalize_text(user_address)
             site = "リンクル(PCMAX)"
@@ -1214,6 +1220,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               func.send_conditional(user_name, user_address, gmail_address, gmail_password, send_text, site)
               print(f"{user_name}にアドレス内1stメールを送信しました")
               gmail_condition += 1
+              sent_condition = True
             except Exception:
               print(f"{name} アドレス内1stメールの送信に失敗しました")
               error = traceback.format_exc()
@@ -1222,6 +1229,15 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print(condition_message.format(name=user_name))
               func.send_error(name, f"アドレス内1stメールの送信に失敗しました\n{user_address}\n {gmail_address}\n {gmail_password}\n\n{error}",
                                     )
+          # 送信成功したら相手メモに「メアド送信あり」を書き込み（再送防止マーカー）
+          if sent_condition:
+            partner_uid = _get_partner_uid(driver)
+            if partner_uid:
+              new_memo = f"{partner_memo}　{MAIL_SENT_MEMO_MARKER}" if partner_memo else MAIL_SENT_MEMO_MARKER
+              if _register_partner_memo(driver, partner_uid, new_memo):
+                print(f"{name} {user_name} メモに「{MAIL_SENT_MEMO_MARKER}」を登録しました")
+            else:
+              print(f"{name} {user_name} user_id 取得不可のためメモ登録スキップ")
           if confirmation_mail:
             try:
               text_area = driver.find_element(By.ID, value="mdc")
@@ -1922,6 +1938,63 @@ def _generate_short_intro(name, profile, user_name, max_retry=2):
     except Exception as e_mail:
       print(f"⚠️ [{name}] rf intro 失敗通知メール送信に失敗: {e_mail}")
   return None
+
+
+# condition_message (メアド宛メール) 送信済みマーカー。相手メモに書き込んで再送を防ぐ
+MAIL_SENT_MEMO_MARKER = "メアド送信あり"
+
+
+def _read_partner_memo(driver):
+  """メール詳細ページの .memo_edit から相手メモを読む。無い/空/未登録なら空文字。"""
+  try:
+    els = driver.find_elements(By.CLASS_NAME, "memo_edit")
+    if els:
+      txt = (els[0].text or "").strip()
+      if txt and "メモはありません" not in txt:
+        return txt
+  except Exception:
+    pass
+  return ""
+
+
+def _get_partner_uid(driver):
+  """相手の user_id を取得。memo_open の data-muid → 現在URL → .title リンクの順で探す。"""
+  try:
+    memo_open = driver.find_elements(By.CLASS_NAME, "memo_open")
+    if memo_open:
+      muid = memo_open[0].get_attribute("data-muid") or ""
+      if muid.isdigit():
+        return muid
+    m = re.search(r'user_id=(\d+)', driver.current_url)
+    if m:
+      return m.group(1)
+    title = driver.find_elements(By.CLASS_NAME, "title")
+    if title:
+      a_tags = title[0].find_elements(By.TAG_NAME, "a")
+      if a_tags:
+        m = re.search(r'user_id=(\d+)', a_tags[0].get_attribute("href") or "")
+        if m:
+          return m.group(1)
+  except Exception:
+    pass
+  return None
+
+
+def _register_partner_memo(driver, uid, memo_text):
+  """memo_reg.php API で相手メモを登録（上書き・ページ遷移なし）。成功で True。"""
+  import urllib.parse
+  try:
+    base = "https://pcmax.jp" if "pcmax" in driver.current_url else "https://linkleweb.jp"
+    # メモは全角200文字まで。改行は全角スペースへ、shift_jis 非対応文字(絵文字等)は捨てる
+    one_line = re.sub(r'[\r\n]+', '　', memo_text).strip()[:200]
+    encoded = urllib.parse.quote(one_line, encoding='shift_jis', errors='ignore')
+    driver.execute_script(
+      f"$.get('{base}/mobile/memo_reg.php?memo_user_id={uid}&memo={encoded}&regist=1');")
+    time.sleep(0.5)
+    return True
+  except Exception as e:
+    print(f"メモ登録エラー: {e}")
+    return False
 
 
 def _is_maji_maintenance(driver):
