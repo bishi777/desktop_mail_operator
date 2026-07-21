@@ -905,9 +905,26 @@ def _normalize_for_match(text):
   return _normalize_lookalike(_strip_emoji(func.normalize_text(text)))
 
 
+def _is_transient_api_error(err):
+  """Anthropic API の一時エラー (529 overloaded / 429 rate limit / 5xx / 接続断) か判定。
+  一時エラーは時間を置けば直るので通知メール対象外にする。"""
+  try:
+    import anthropic
+    if isinstance(err, (anthropic.APIConnectionError, anthropic.RateLimitError)):
+      return True
+    if isinstance(err, anthropic.APIStatusError):
+      return err.status_code >= 500 or err.status_code == 429
+  except Exception:
+    pass
+  # 型判定できない場合はメッセージで判定
+  err_text = str(err).lower()
+  return any(kw in err_text for kw in ["overloaded", "rate limit", "529", "connection error", "timed out", "timeout"])
+
+
 def _extract_email_with_ai(name, text):
   """AI (Claude Haiku 4.5) で受信テキストからメールアドレスを抽出。
-  取れなければ空リストを返す。クレジット切れ等の失敗時は通知メール (プロセス内で 1 回のみ)。"""
+  取れなければ空リストを返す。クレジット切れ等の失敗時は通知メール (プロセス内で 1 回のみ)。
+  529 overloaded 等の一時エラーは通知せず regex フォールバックのみ。"""
   if not text or not text.strip():
     return []
   import anthropic
@@ -940,7 +957,8 @@ def _extract_email_with_ai(name, text):
 - 前置き・解説・コロン・引用符・囲み文字などは一切禁止"""
 
   try:
-    client = anthropic.Anthropic(api_key=api_key)
+    # max_retries=4: 529 overloaded / 429 / 5xx を SDK が指数バックオフで自動再試行
+    client = anthropic.Anthropic(api_key=api_key, max_retries=4)
     r = client.messages.create(
       model='claude-haiku-4-5-20251001',
       max_tokens=256,
@@ -954,6 +972,10 @@ def _extract_email_with_ai(name, text):
       "billing", "insufficient_quota",
     ])
     print(f"⚠️ [{name}] AI email extract 失敗: {e}")
+    # 一時エラー (529 overloaded / 429 / 5xx / 接続断) はリトライ済みでも通知しない
+    if not is_credit_low and _is_transient_api_error(e):
+      print(f"⚠️ [{name}] 一時エラーのため通知メールなし → regex 結果にフォールバック")
+      return []
     if not _ai_email_extract_error_notified:
       try:
         if is_credit_low:
@@ -1883,7 +1905,8 @@ def _generate_short_intro(name, profile, user_name, max_retry=2):
     )
     return r.content[0].text.strip()
 
-  client = anthropic.Anthropic(api_key=api_key)
+  # max_retries=4: 529 overloaded / 429 / 5xx を SDK が指数バックオフで自動再試行
+  client = anthropic.Anthropic(api_key=api_key, max_retries=4)
   last_err = None
   for attempt in range(max_retry):
     try:
@@ -1931,6 +1954,9 @@ def _generate_short_intro(name, profile, user_name, max_retry=2):
       print(f"🚨 [{name}] Anthropic クレジット切れ通知メール送信（このプロセスでは以降抑制）")
     except Exception as e_mail:
       print(f"⚠️ [{name}] クレジット切れ通知メール送信失敗: {e_mail}")
+  elif last_err is not None and _is_transient_api_error(last_err):
+    # 529 overloaded / 429 / 5xx / 接続断はリトライ済みでも通知しない（ベース定型で続行）
+    print(f"⚠️ [{name}] rf intro 一時エラーのため通知メールなし → ベース定型にフォールバック")
   else:
     # 通知メール送信が失敗しても rf フローを止めないようにガード
     try:
