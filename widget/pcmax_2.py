@@ -2792,7 +2792,7 @@ def make_footprint(name, driver, footprint_count, iikamo_count):
   import urllib.parse
   current_step = 0
   wait = WebDriverWait(driver, 10)
-  random_wait = random.uniform(3.4, 6.4)
+  random_wait = random.uniform(4.4, 8.4)
   search_edit = {
     "y_age": [18],
     "o_age": [29,34,30, 60],
