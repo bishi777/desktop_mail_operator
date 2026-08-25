@@ -77,18 +77,87 @@ def main_syori():
   except Exception as e:
     print(f"[cdc_パッチ] スキップ（{type(e).__name__}: {e}）")
   driver = webdriver.Chrome(options=options)
-  # --- 接続後 stealth: navigator.webdriver 等を JS で上書き（新規ドキュメント読込前に注入）---
+  # --- 接続後 stealth: 自動化痕跡を JS で上書き（新規ドキュメント読込前に注入）---
+  # UA に自動追従: iPhone UA のときだけ platform/touch/vendor を iPhone 相当にし、
+  # それ以外(Windows等)では OS 由来の値をそのまま保つ（UAとの矛盾を作らない）。
+  _stealth_js = r'''
+    (function() {
+      const ua = navigator.userAgent || "";
+      const isIphone = /iPhone|iPad|iPod/i.test(ua);
+
+      // --- UA に依存しない共通の痕跡除去 ---
+      // navigator.webdriver を消す（最重要）
+      try { Object.defineProperty(navigator, 'webdriver', {get: () => undefined}); } catch(e){}
+      // window.chrome を最低限それらしく（iPhone Safari には無いので iPhone時は付けない）
+      try {
+        if (!isIphone && !window.chrome) { window.chrome = {runtime: {}}; }
+      } catch(e){}
+      // languages（日本語環境の自然な並び）
+      try { Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP','ja','en-US','en']}); } catch(e){}
+      // permissions.query の矛盾を修正（notifications が prompt を返すのが自然）
+      try {
+        const origQuery = window.navigator.permissions && window.navigator.permissions.query;
+        if (origQuery) {
+          window.navigator.permissions.query = (params) => (
+            params && params.name === 'notifications'
+              ? Promise.resolve({ state: Notification.permission })
+              : origQuery(params)
+          );
+        }
+      } catch(e){}
+
+      if (isIphone) {
+        // --- iPhone UA のときだけ iPhone 相当の値に偽装（UAと整合させる）---
+        try { Object.defineProperty(navigator, 'platform', {get: () => 'iPhone'}); } catch(e){}
+        try { Object.defineProperty(navigator, 'vendor', {get: () => 'Apple Computer, Inc.'}); } catch(e){}
+        try { Object.defineProperty(navigator, 'maxTouchPoints', {get: () => 5}); } catch(e){}
+        // iPhone Safari は plugins が空
+        try { Object.defineProperty(navigator, 'plugins', {get: () => []}); } catch(e){}
+        try { Object.defineProperty(navigator, 'mimeTypes', {get: () => []}); } catch(e){}
+        // WebGL レンダラを Apple GPU に偽装（Mac の GPU 名が漏れるのを防ぐ）
+        try {
+          const getParam = WebGLRenderingContext.prototype.getParameter;
+          WebGLRenderingContext.prototype.getParameter = function(p) {
+            // UNMASKED_VENDOR_WEBGL=37445, UNMASKED_RENDERER_WEBGL=37446
+            if (p === 37445) return 'Apple Inc.';
+            if (p === 37446) return 'Apple GPU';
+            return getParam.apply(this, arguments);
+          };
+          if (window.WebGL2RenderingContext) {
+            const getParam2 = WebGL2RenderingContext.prototype.getParameter;
+            WebGL2RenderingContext.prototype.getParameter = function(p) {
+              if (p === 37445) return 'Apple Inc.';
+              if (p === 37446) return 'Apple GPU';
+              return getParam2.apply(this, arguments);
+            };
+          }
+        } catch(e){}
+      } else {
+        // --- 非iPhone(Windows等): plugins が空だと不自然なので実物っぽいダミーを入れる ---
+        try {
+          if (navigator.plugins.length === 0) {
+            Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+          }
+        } catch(e){}
+      }
+    })();
+  '''
   try:
-    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
-      'source': '''
-        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-        window.navigator.chrome = {runtime: {}};
-        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-        Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP', 'ja', 'en-US', 'en']});
-      '''
-    })
+    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {'source': _stealth_js})
   except Exception as e:
     print(f"[stealth] JS注入スキップ（{type(e).__name__}: {e}）")
+  # navigator.platform は read-only で JS 上書きが効かない環境があるため、
+  # UA が iPhone のときだけ CDP レベルで platform=iPhone を確実に設定する。
+  try:
+    _real_ua = driver.execute_script("return navigator.userAgent;") or ""
+    if any(k in _real_ua for k in ("iPhone", "iPad", "iPod")):
+      driver.execute_cdp_cmd('Emulation.setUserAgentOverride', {
+        'userAgent': _real_ua,
+        'platform': 'iPhone',
+      })
+      print("[stealth] iPhone UA 検出 → platform=iPhone を CDP で設定")
+  except Exception as e:
+    print(f"[stealth] platform 設定スキップ（{type(e).__name__}: {e}）")
   wait = WebDriverWait(driver, 10)
   report_dict = {}
   one_hour_report_dict = {}
@@ -285,7 +354,7 @@ def main_syori():
             returnfoot_cnt = 2
           else:
             iikamo_cnt = random.randint(0,1)
-            footprint_count = random.randint(5,6)
+            footprint_count = random.randint(7,11)
             returnfoot_cnt = 1
           if fst_flug:
             if 6 <= now.hour < 24:  
