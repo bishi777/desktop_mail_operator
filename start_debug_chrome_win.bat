@@ -16,11 +16,9 @@ REM  with that UA. Profile dir: DebugProfile_(port)_(uatag).
 REM
 REM  Anti-bot detection:
 REM    1) --disable-blink-features=AutomationControlled makes
-REM       navigator.webdriver=false and hides the automation banner
-REM       (the only effective flag on the bat side).
+REM       navigator.webdriver=false and hides the automation banner.
 REM    2) Runs patch_chromedriver_cdc.py before launch to strip the
-REM       cdc_ fingerprint from chromedriver (re-applied every launch,
-REM       so a Chrome update that pulls a new driver stays covered).
+REM       cdc_ fingerprint from chromedriver (re-applied every launch).
 REM ============================================================
 
 set PORT=%1
@@ -40,46 +38,61 @@ echo [cdc_ patch] patching chromedriver ...
 REM iPhone14-like UA (same string as widget/jmail.py and happymail.py)
 set "IPHONE14_UA=Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
 
-REM Resolve UA preset
-if /i "%UA_PRESET%"=="iphone14" (
-  set "USER_AGENT=%IPHONE14_UA%"
-  set "UA_TAG=iphone14"
-) else if /i "%UA_PRESET%"=="mac" (
-  set "USER_AGENT="
-  set "UA_TAG=mac"
-) else (
-  set "USER_AGENT=%UA_PRESET%"
-  set "UA_TAG=custom"
-)
+REM Resolve UA preset (goto labels avoid the if() block breaking on UA parens)
+if /i "%UA_PRESET%"=="iphone14" goto ua_iphone14
+if /i "%UA_PRESET%"=="mac" goto ua_mac
+REM custom: use the 2nd arg verbatim as UA
+set "USER_AGENT=%UA_PRESET%"
+set "UA_TAG=custom"
+goto ua_done
+
+:ua_iphone14
+set "USER_AGENT=%IPHONE14_UA%"
+set "UA_TAG=iphone14"
+goto ua_done
+
+:ua_mac
+set "USER_AGENT="
+set "UA_TAG=mac"
+goto ua_done
+
+:ua_done
 
 set "PROFILE_DIR=%USERPROFILE%\AppData\Local\Google\Chrome\DebugProfile_%PORT%_%UA_TAG%"
 
 REM Anti-bot flag that actually works as a bat launch flag.
 REM --disable-blink-features=AutomationControlled : hides webdriver + banner
 REM Note: --exclude-switches=enable-automation is a ChromeDriver-only option,
-REM   invalid as a raw bat flag (it previously caused the launch error).
+REM   invalid as a raw bat flag.
 set "BOT_OPTS=--disable-blink-features=AutomationControlled"
 
-if defined USER_AGENT (
-  echo Launching debug Chrome (port: %PORT%, UA: %UA_TAG%, anti-bot: ON)
-  echo   UA: !USER_AGENT!
-  start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
-    --remote-debugging-port=%PORT% ^
-    --user-data-dir="%PROFILE_DIR%" ^
-    --user-agent="!USER_AGENT!" ^
-    %BOT_OPTS% ^
-    --disable-popup-blocking ^
-    --disk-cache-size=104857600 ^
-    --media-cache-size=52428800
-) else (
-  echo Launching debug Chrome (port: %PORT%, UA: default Windows, anti-bot: ON)
-  start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
-    --remote-debugging-port=%PORT% ^
-    --user-data-dir="%PROFILE_DIR%" ^
-    %BOT_OPTS% ^
-    --disable-popup-blocking ^
-    --disk-cache-size=104857600 ^
-    --media-cache-size=52428800
-)
+REM Branch by whether a UA override is set (goto avoids if() paren issues)
+if defined USER_AGENT goto launch_ua
+goto launch_no_ua
 
+:launch_ua
+echo Launching debug Chrome port %PORT% UA %UA_TAG% anti-bot ON
+echo   UA: !USER_AGENT!
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
+  --remote-debugging-port=%PORT% ^
+  --user-data-dir="%PROFILE_DIR%" ^
+  --user-agent="!USER_AGENT!" ^
+  %BOT_OPTS% ^
+  --disable-popup-blocking ^
+  --disk-cache-size=104857600 ^
+  --media-cache-size=52428800
+goto end
+
+:launch_no_ua
+echo Launching debug Chrome port %PORT% UA default-Windows anti-bot ON
+start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
+  --remote-debugging-port=%PORT% ^
+  --user-data-dir="%PROFILE_DIR%" ^
+  %BOT_OPTS% ^
+  --disable-popup-blocking ^
+  --disk-cache-size=104857600 ^
+  --media-cache-size=52428800
+goto end
+
+:end
 endlocal
