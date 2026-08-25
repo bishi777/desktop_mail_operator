@@ -3,12 +3,13 @@ setlocal enabledelayedexpansion
 REM ============================================================
 REM  Debug Chrome launcher (Windows)
 REM  Usage: start_debug_chrome_win.bat [PORT] [UA_PRESET]
-REM  Ex:    start_debug_chrome_win.bat 9222 iphone14
-REM         start_debug_chrome_win.bat 9222 mac
+REM  Ex:    start_debug_chrome_win.bat 9222
+REM         start_debug_chrome_win.bat 9222 iphone14
 REM
 REM  UA_PRESET (2nd arg):
-REM    iphone14 (default) : iPhone14-like UA
-REM    mac                : no UA override (default Windows UA)
+REM    none (default)     : no UA override (default Chrome/Windows UA)
+REM    iphone14           : iPhone14-like UA
+REM    mac                : same as none (no UA override)
 REM
 REM  PCMAX ties the UA to the login session, so changing UA after
 REM  login drops the session. Use a separate profile per UA and log in
@@ -24,7 +25,7 @@ REM ============================================================
 set PORT=%1
 if "%PORT%"=="" set PORT=9222
 set UA_PRESET=%2
-if "%UA_PRESET%"=="" set UA_PRESET=iphone14
+if "%UA_PRESET%"=="" set UA_PRESET=none
 
 REM Directory of this bat (trailing backslash included)
 set "SCRIPT_DIR=%~dp0"
@@ -39,21 +40,23 @@ REM iPhone14-like UA (same string as widget/jmail.py and happymail.py)
 set "IPHONE14_UA=Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
 
 REM Resolve UA preset (goto labels avoid the if() block breaking on UA parens)
+if /i "%UA_PRESET%"=="none" goto ua_none
+if /i "%UA_PRESET%"=="mac" goto ua_none
 if /i "%UA_PRESET%"=="iphone14" goto ua_iphone14
-if /i "%UA_PRESET%"=="mac" goto ua_mac
 REM custom: use the 2nd arg verbatim as UA
 set "USER_AGENT=%UA_PRESET%"
 set "UA_TAG=custom"
 goto ua_done
 
+:ua_none
+REM no UA override (default Chrome/Windows UA)
+set "USER_AGENT="
+set "UA_TAG=none"
+goto ua_done
+
 :ua_iphone14
 set "USER_AGENT=%IPHONE14_UA%"
 set "UA_TAG=iphone14"
-goto ua_done
-
-:ua_mac
-set "USER_AGENT="
-set "UA_TAG=mac"
 goto ua_done
 
 :ua_done

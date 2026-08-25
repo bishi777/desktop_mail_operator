@@ -1,13 +1,14 @@
 #!/bin/bash
 # デバッグ用Chrome起動スクリプト
 # 使い方: ./start_debug_chrome_mac.sh [ポート番号] [UAプリセット]
-# 例:     ./start_debug_chrome_mac.sh 9222 iphone14
-#         ./start_debug_chrome_mac.sh 9222 mac
+# 例:     ./start_debug_chrome_mac.sh 9222
+#         ./start_debug_chrome_mac.sh 9222 iphone14
 #         ./start_debug_chrome_mac.sh 9222 "Mozilla/5.0 (...任意のUA文字列...)"
 #
 # UAプリセット (第2引数):
-#   iphone14 (デフォルト) → iPhone14 相当のUA
-#   mac                   → UA上書きなし (Chrome標準のMac UA)
+#   none (デフォルト)      → UA上書きなし (Chrome標準のMac UA)
+#   iphone14              → iPhone14 相当のUA
+#   mac                   → none と同じ (UA上書きなし)
 #   それ以外の文字列       → その文字列をそのままUAとして使用
 #
 # ※ PCMAX は UA とログインセッションを紐付けているため、ログイン後にUAを
@@ -19,20 +20,21 @@
 # セッションが終了するとChromeが道連れで終了していた。
 
 PORT=${1:-9222}
-UA_PRESET=${2:-iphone14}
+UA_PRESET=${2:-none}
 
 # iPhone14 相当UA（widget/jmail.py・happymail.py と同一文字列で統一）
 IPHONE14_UA="Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/537.36 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/537.36"
 
 # UAプリセットを解決
 case "$UA_PRESET" in
+  none|mac|"")
+    # UA上書きなし (Chrome標準のUA)
+    USER_AGENT=""
+    UA_TAG="none"
+    ;;
   iphone14)
     USER_AGENT="$IPHONE14_UA"
     UA_TAG="iphone14"
-    ;;
-  mac|"")
-    USER_AGENT=""
-    UA_TAG="mac"
     ;;
   *)
     # 任意のUA文字列
