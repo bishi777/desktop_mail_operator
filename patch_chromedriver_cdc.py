@@ -73,19 +73,21 @@ def random_namespace(length):
     return (first + rest).encode()
 
 
-def patch_one(path):
+def patch_one(path, quiet=False):
     """1つの chromedriver をパッチ。パッチした→True / 不要(既に無い)→False。"""
     with open(path, "rb") as f:
         data = f.read()
     cnt = data.count(CDC_TARGET)
     if cnt == 0:
-        print(f"  [skip] cdc_ なし（パッチ済みか対象外）: {path}")
+        if not quiet:
+            print(f"  [skip] cdc_ なし（パッチ済みか対象外）: {path}")
         return False
     # バックアップ（既にあれば上書きしない = 最初の未パッチ状態を保持）
     bak = path + ".bak"
     if not os.path.exists(bak):
         shutil.copy2(path, bak)
-        print(f"  [backup] {bak}")
+        if not quiet:
+            print(f"  [backup] {bak}")
     repl = random_namespace(len(CDC_TARGET))
     assert len(repl) == len(CDC_TARGET), "置換文字列の長さが不一致"
     data2 = data.replace(CDC_TARGET, repl)
@@ -95,7 +97,8 @@ def patch_one(path):
     with open(path, "wb") as f:
         f.write(data2)
     os.chmod(path, mode)
-    print(f"  [patched] cdc_ {cnt}箇所 → '{repl.decode()}' : {path}")
+    if not quiet:
+        print(f"  [patched] cdc_ {cnt}箇所 → '{repl.decode()}' : {path}")
     return True
 
 
@@ -108,6 +111,32 @@ def restore_one(path):
     shutil.copy2(bak, path)
     print(f"  [restored] {path}  ← {bak}")
     return True
+
+
+def patch_all(quiet=True):
+    """外部モジュールから呼ぶ用: 見つかった全 chromedriver をパッチする。
+    debug_drivers 等の起動処理から接続前に呼ぶことを想定。
+    戻り値: パッチした個数。例外は握りつぶして 0 を返す（起動を止めない）。"""
+    try:
+        targets = find_chromedrivers()
+        if not targets:
+            return 0
+        done = 0
+        for t in targets:
+            try:
+                if patch_one(t, quiet=quiet):
+                    done += 1
+            except PermissionError:
+                if not quiet:
+                    print(f"  [cdc_パッチ] 書き込み不可(使用中?): {t}")
+            except Exception as e:
+                if not quiet:
+                    print(f"  [cdc_パッチ] {type(e).__name__}: {e} : {t}")
+        return done
+    except Exception as e:
+        if not quiet:
+            print(f"  [cdc_パッチ] 探索失敗: {e}")
+        return 0
 
 
 def main():

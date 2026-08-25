@@ -66,7 +66,29 @@ def main_syori():
       options.add_experimental_option("debuggerAddress", f"127.0.0.1:{PORT}")
   else:
       print("[INFO] No remote-debugging port provided. Launching Chrome normally.")
+  # --- cdc_ パッチ: 接続に使う chromedriver から自動化痕跡(cdc_)を除去 ---
+  # Chrome が更新されて新ドライバが来ても、debug_drivers 起動のたびに再パッチされる。
+  # bat を経由せず直接 python 実行した場合の保険も兼ねる。
+  try:
+    import patch_chromedriver_cdc
+    n = patch_chromedriver_cdc.patch_all(quiet=True)
+    if n:
+      print(f"[cdc_パッチ] {n}個の chromedriver をパッチしました")
+  except Exception as e:
+    print(f"[cdc_パッチ] スキップ（{type(e).__name__}: {e}）")
   driver = webdriver.Chrome(options=options)
+  # --- 接続後 stealth: navigator.webdriver 等を JS で上書き（新規ドキュメント読込前に注入）---
+  try:
+    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+      'source': '''
+        Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+        window.navigator.chrome = {runtime: {}};
+        Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
+        Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP', 'ja', 'en-US', 'en']});
+      '''
+    })
+  except Exception as e:
+    print(f"[stealth] JS注入スキップ（{type(e).__name__}: {e}）")
   wait = WebDriverWait(driver, 10)
   report_dict = {}
   one_hour_report_dict = {}
