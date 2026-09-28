@@ -21,3 +21,9 @@ logs/proxy_relay_*.log
 # '~' をクォートした結果リポジトリ内に作られた Chrome プロファイル
 # (ホームのつもりで "~/Library/..." と書くとここに実体ができる)
 /~/
+
+# launchd の実行ログ（実行のたびに追記される）
+launchd_stderr.log
+launchd_stdout.log
+logs/launchd_err.log
+logs/launchd_out.log
