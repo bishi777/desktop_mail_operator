@@ -14,3 +14,6 @@ debug_chromedrivers.sh
 debug_chromedrivers.ps1
 settings.py
 .claude/worktrees/
+
+# プロキシ認証中継のログ（実行時に生成される）
+logs/proxy_relay_*.log

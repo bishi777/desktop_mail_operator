@@ -40,6 +40,7 @@ import random
 import string
 import shutil
 import argparse
+import subprocess
 
 # 検知される固定の cdc_ 名前空間（ChromeDriver にハードコードされている）
 CDC_TARGET = b"cdc_adoQpoasnfa76pfcZLmcfl"
@@ -73,6 +74,34 @@ def random_namespace(length):
     return (first + rest).encode()
 
 
+def resign_macos(path, quiet=False):
+    """macOS でバイナリ書き換え後に ad-hoc 署名を付け直す。
+
+    Apple Silicon は署名必須で、書き換えると署名が壊れて起動時に SIGKILL
+    される（Selenium からは "Service ... unexpectedly exited. Status code
+    was: -9" に見える）。codesign --force --sign - で再署名して回避する。
+    """
+    if sys.platform != "darwin":
+        return
+    try:
+        r = subprocess.run(
+            ["codesign", "--force", "--sign", "-", path],
+            capture_output=True,
+            text=True,
+            timeout=60,
+        )
+        if r.returncode == 0:
+            if not quiet:
+                print(f"  [codesign] ad-hoc 署名を付与: {path}")
+        else:
+            print(f"  [codesign] 失敗({r.returncode}): {r.stderr.strip()[:200]}")
+            print("    → この chromedriver は起動時に強制終了される可能性があります")
+    except FileNotFoundError:
+        print("  [codesign] codesign コマンドが見つかりません（Xcode CLT 未導入?）")
+    except Exception as e:
+        print(f"  [codesign] {type(e).__name__}: {e}")
+
+
 def patch_one(path, quiet=False):
     """1つの chromedriver をパッチ。パッチした→True / 不要(既に無い)→False。"""
     with open(path, "rb") as f:
@@ -99,6 +128,8 @@ def patch_one(path, quiet=False):
     os.chmod(path, mode)
     if not quiet:
         print(f"  [patched] cdc_ {cnt}箇所 → '{repl.decode()}' : {path}")
+    # 書き換えで署名が壊れるため、macOS では必ず再署名する
+    resign_macos(path, quiet=quiet)
     return True
 
 

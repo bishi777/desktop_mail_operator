@@ -4525,15 +4525,79 @@ def human_dwell(driver, interest_level="normal"):
 
 
 def stealth_setup(driver):
-  """WebDriver検知フラグを除去する"""
-  driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
-    'source': '''
-      Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
-      window.navigator.chrome = {runtime: {}};
-      Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3, 4, 5]});
-      Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP', 'ja', 'en-US', 'en']});
-    '''
-  })
+  """自動化痕跡を除去する (debug_drivers_p_ch_fm.py と同一の強化版)。
+  UA に自動追従: iPhone UA のときだけ platform/touch/vendor/WebGL を iPhone 相当にし、
+  それ以外(Windows/Mac等)では OS 由来の値をそのまま保つ(UAとの矛盾を作らない)。"""
+  _stealth_js = r'''
+    (function() {
+      const ua = navigator.userAgent || "";
+      const isIphone = /iPhone|iPad|iPod/i.test(ua);
+
+      // --- UA に依存しない共通の痕跡除去 ---
+      try { Object.defineProperty(navigator, 'webdriver', {get: () => undefined}); } catch(e){}
+      try {
+        if (!isIphone && !window.chrome) { window.chrome = {runtime: {}}; }
+      } catch(e){}
+      try { Object.defineProperty(navigator, 'languages', {get: () => ['ja-JP','ja','en-US','en']}); } catch(e){}
+      try {
+        const origQuery = window.navigator.permissions && window.navigator.permissions.query;
+        if (origQuery) {
+          window.navigator.permissions.query = (params) => (
+            params && params.name === 'notifications'
+              ? Promise.resolve({ state: Notification.permission })
+              : origQuery(params)
+          );
+        }
+      } catch(e){}
+
+      if (isIphone) {
+        // --- iPhone UA のときだけ iPhone 相当の値に偽装(UAと整合させる) ---
+        try { Object.defineProperty(navigator, 'platform', {get: () => 'iPhone'}); } catch(e){}
+        try { Object.defineProperty(navigator, 'vendor', {get: () => 'Apple Computer, Inc.'}); } catch(e){}
+        try { Object.defineProperty(navigator, 'maxTouchPoints', {get: () => 5}); } catch(e){}
+        try { Object.defineProperty(navigator, 'plugins', {get: () => []}); } catch(e){}
+        try { Object.defineProperty(navigator, 'mimeTypes', {get: () => []}); } catch(e){}
+        try {
+          const getParam = WebGLRenderingContext.prototype.getParameter;
+          WebGLRenderingContext.prototype.getParameter = function(p) {
+            if (p === 37445) return 'Apple Inc.';
+            if (p === 37446) return 'Apple GPU';
+            return getParam.apply(this, arguments);
+          };
+          if (window.WebGL2RenderingContext) {
+            const getParam2 = WebGL2RenderingContext.prototype.getParameter;
+            WebGL2RenderingContext.prototype.getParameter = function(p) {
+              if (p === 37445) return 'Apple Inc.';
+              if (p === 37446) return 'Apple GPU';
+              return getParam2.apply(this, arguments);
+            };
+          }
+        } catch(e){}
+      } else {
+        try {
+          if (navigator.plugins.length === 0) {
+            Object.defineProperty(navigator, 'plugins', {get: () => [1,2,3,4,5]});
+          }
+        } catch(e){}
+      }
+    })();
+  '''
+  try:
+    driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {'source': _stealth_js})
+  except Exception as e:
+    print(f"[stealth] JS注入スキップ（{type(e).__name__}: {e}）")
+  # navigator.platform は read-only で JS 上書きが効かない環境があるため、
+  # UA が iPhone のときだけ CDP レベルで platform=iPhone を確実に設定する。
+  try:
+    _real_ua = driver.execute_script("return navigator.userAgent;") or ""
+    if any(k in _real_ua for k in ("iPhone", "iPad", "iPod")):
+      driver.execute_cdp_cmd('Emulation.setUserAgentOverride', {
+        'userAgent': _real_ua,
+        'platform': 'iPhone',
+      })
+      print("[stealth] iPhone UA 検出 → platform=iPhone を CDP で設定")
+  except Exception as e:
+    print(f"[stealth] platform 設定スキップ（{type(e).__name__}: {e}）")
 
 
 def generate_fst_message_with_ai(chara_name, base_message, profile):
