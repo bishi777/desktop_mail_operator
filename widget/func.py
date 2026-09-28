@@ -247,7 +247,6 @@ def get_driver(headless):
   options.add_argument("--disable-cache")
   options.add_argument("--disk-cache-size=104857600")   # ディスクキャッシュ 100MB 上限
   options.add_argument("--media-cache-size=52428800")   # メディアキャッシュ 50MB 上限
-  options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
   # ChromeDriver のログを非表示
   service = Service(ChromeDriverManager().install(), log_output=os.devnull)
   
@@ -343,7 +342,6 @@ def get_multi_driver(profile_path, headless_flag, user_agent="", max_retries=3):
       options.add_argument("--window-size=456,912")
       options.add_experimental_option("detach", True)
       options.add_argument("--disable-cache")
-      options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
 
       # ログ抑制
       options.add_argument("--disable-logging")  # Chromeのログを抑制
@@ -424,7 +422,6 @@ def test_get_driver(tmp_dir, headless_flag, max_retries=3, profile_path="", user
         options.add_argument("--window-size=456,912")
         options.add_experimental_option("detach", True)
         options.add_argument("--disable-cache")
-        options.add_argument("--disable-blink-features=AutomationControlled")  # 自動化検出回避のためのオプション
         service = Service(executable_path=ChromeDriverManager().install())
         driver = webdriver.Chrome(options=options, service=service)
         wait = WebDriverWait(driver, 18)

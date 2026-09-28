@@ -23,11 +23,16 @@
 #   同じキャラは常に同じプロキシキーで起動すること。
 #
 # 自動化(ロボット)判定の回避 (start_debug_chrome_win.bat と同一構成):
-#   1) --disable-blink-features=AutomationControlled で
-#      navigator.webdriver=false になり自動化バナーも消える。
-#   2) 起動前に patch_chromedriver_cdc.py を実行し、chromedriver の
+#   1) 起動前に patch_chromedriver_cdc.py を実行し、chromedriver の
 #      cdc_ 痕跡を除去する(Chromeが更新されても起動のたびに再パッチ)。
 #   ※ platform/touch/vendor/WebGL 等の stealth は接続側(debug_drivers)で注入。
+#
+# 2026-09-28: --disable-blink-features=AutomationControlled を削除した。
+#   Chrome 153 で検証したところ、フラグの有無にかかわらず
+#   navigator.webdriver は false になり、フラグは既に無効化されていた
+#   (Chrome 自身も "サポートされていないコマンドライン フラグ" と警告を出す)。
+#   むしろ警告バーが表示される分 outerHeight-innerHeight が 87px→143px と
+#   広がり、「ヘッダが異様に厚いブラウザ」として検知材料になっていたため外した。
 #
 # 2026-07-19修正: Chromeを open 経由（launchd管理下）で起動する。
 # 以前はシェルの子プロセスとして起動していたため、起動元のClaude Code
@@ -49,9 +54,6 @@ if [ -n "$PYEXE" ] && [ -f "$SCRIPT_DIR/patch_chromedriver_cdc.py" ]; then
   echo "[cdc_パッチ] chromedriver をパッチします..."
   "$PYEXE" "$SCRIPT_DIR/patch_chromedriver_cdc.py"
 fi
-
-# ロボット判定回避フラグ (起動フラグとして実効性があるものだけ)
-BOT_OPTS="--disable-blink-features=AutomationControlled"
 
 # --- プロキシ設定を解決 ---
 # Chrome に渡す --proxy-server 系フラグ（プロキシ未指定なら空配列）
@@ -108,11 +110,10 @@ fi
 # プロキシ有無・キーごとにプロファイルを分ける(IPとセッションの紐付け対策)
 PROFILE_DIR="$HOME/Library/Application Support/Google/Chrome/DebugProfile_${PORT}_${PROXY_TAG}"
 
-echo "デバッグ用Chromeを起動します (port: $PORT, proxy: $PROXY_TAG, bot回避: ON)"
+echo "デバッグ用Chromeを起動します (port: $PORT, proxy: $PROXY_TAG)"
 open -na "Google Chrome" --args \
   --remote-debugging-port=$PORT \
   --user-data-dir="$PROFILE_DIR" \
-  $BOT_OPTS \
   ${PROXY_OPTS[@]+"${PROXY_OPTS[@]}"} \
   --disable-popup-blocking \
   --disk-cache-size=104857600 \

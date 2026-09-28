@@ -16,10 +16,15 @@ REM  login drops the session. Use a separate profile per UA and log in
 REM  with that UA. Profile dir: DebugProfile_(port)_(uatag).
 REM
 REM  Anti-bot detection:
-REM    1) --disable-blink-features=AutomationControlled makes
-REM       navigator.webdriver=false and hides the automation banner.
-REM    2) Runs patch_chromedriver_cdc.py before launch to strip the
+REM    1) Runs patch_chromedriver_cdc.py before launch to strip the
 REM       cdc_ fingerprint from chromedriver (re-applied every launch).
+REM
+REM  2026-09-28: removed --disable-blink-features=AutomationControlled.
+REM    Verified on Chrome 153: navigator.webdriver is false with or without
+REM    the flag, so it no longer does anything (Chrome itself warns that it
+REM    is an unsupported flag). Worse, the warning bar it triggers widened
+REM    outerHeight-innerHeight from 87px to 143px, which is itself a
+REM    detectable signal.
 REM ============================================================
 
 set PORT=%1
@@ -63,35 +68,30 @@ goto ua_done
 
 set "PROFILE_DIR=%USERPROFILE%\AppData\Local\Google\Chrome\DebugProfile_%PORT%_%UA_TAG%"
 
-REM Anti-bot flag that actually works as a bat launch flag.
-REM --disable-blink-features=AutomationControlled : hides webdriver + banner
 REM Note: --exclude-switches=enable-automation is a ChromeDriver-only option,
 REM   invalid as a raw bat flag.
-set "BOT_OPTS=--disable-blink-features=AutomationControlled"
 
 REM Branch by whether a UA override is set (goto avoids if() paren issues)
 if defined USER_AGENT goto launch_ua
 goto launch_no_ua
 
 :launch_ua
-echo Launching debug Chrome port %PORT% UA %UA_TAG% anti-bot ON
+echo Launching debug Chrome port %PORT% UA %UA_TAG%
 echo   UA: !USER_AGENT!
 start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
   --remote-debugging-port=%PORT% ^
   --user-data-dir="%PROFILE_DIR%" ^
   --user-agent="!USER_AGENT!" ^
-  %BOT_OPTS% ^
   --disable-popup-blocking ^
   --disk-cache-size=104857600 ^
   --media-cache-size=52428800
 goto end
 
 :launch_no_ua
-echo Launching debug Chrome port %PORT% UA default-Windows anti-bot ON
+echo Launching debug Chrome port %PORT% UA default-Windows
 start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
   --remote-debugging-port=%PORT% ^
   --user-data-dir="%PROFILE_DIR%" ^
-  %BOT_OPTS% ^
   --disable-popup-blocking ^
   --disk-cache-size=104857600 ^
   --media-cache-size=52428800
