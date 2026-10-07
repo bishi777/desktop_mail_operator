@@ -39,6 +39,12 @@ from selenium.common.exceptions import (
   TimeoutException,
 )
 
+# --- 年齢フィルタ用の正規表現 ---
+# ハッピーメールの年齢表記はレンジ（"18~19" / "20代前半" / "30代前半" など）なので
+# 数値比較ではなく表記のパターンで絞り込む。
+AGE_PATTERN_20S = r"20代|18.?19"                    # 従来の既定（10代後半〜20代）
+AGE_PATTERN_UNDER_35 = r"20代|18.?19|30代前半|30前半"  # 34歳以下相当（30代半ば以降は除外）
+
 # 元のメソッドを退避
 _original_find_element = WebDriver.find_element
 _original_find_elements = WebDriver.find_elements
@@ -1660,7 +1666,10 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
   user_icon = 0
   return return_matching_counted, limit_flug, send_user_list
 
-def return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, return_foot_img, type_cnt):
+def return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, return_foot_img, type_cnt, age_pattern=None):
+  # age_pattern 未指定なら従来どおり 10代後半〜20代のみを対象にする
+  if not age_pattern:
+    age_pattern = AGE_PATTERN_20S
   return_type_counted = 0
   mail_icon_cnt = 0
   user_icon_type = 0
@@ -1748,8 +1757,8 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # 年齢チェック
     user_age = type_users[user_icon_type].find_element(By.CLASS_NAME, value="ds_like_list_age")
     # print(f"年齢チェック {user_age.text} {user_name}")
-    if not re.search(r"20代|18.?19", user_age.text):
-      # print("年齢が１０〜２０代ではないユーザー　スキップします") 
+    if not re.search(age_pattern, user_age.text):
+      # print("年齢が対象外のユーザー　スキップします")
       # print(len(type_users), user_icon_type)
       user_icon_type += 1
       continue
@@ -1789,8 +1798,16 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     
   return return_type_counted
       
-def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt):
+def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type_cnt, return_foot_cnt, return_foot_img, fst_message, matching_daily_limit, daily_limit, oneday_total_match, oneday_total_returnfoot, send_cnt, total_limit=None, age_pattern=None):
+  """タイプ返し → マッチング返し → 足跡返し をまとめて実行する。
+
+  total_limit: タイプ返しと足跡返しの合計上限。指定するとタイプ返しの実績件数を
+               足跡返しの上限から差し引く（None なら従来どおり個別上限のみ）。
+  age_pattern: 年齢フィルタの正規表現。None なら従来どおり 10代後半〜20代のみ。
+  """
   wait_time = random.uniform(1.5, 3.5)
+  # 年齢フィルタ（未指定なら従来どおり 10代後半〜20代のみ）
+  foot_age_pattern = age_pattern or AGE_PATTERN_20S
   warning_pop = catch_warning_screen(driver)
   return_cnt = 0
   mail_icon_cnt = 0
@@ -1813,17 +1830,25 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
     image_path = ""
     image_filename = None 
   # タイプ返し
+  # total_limit 指定時はタイプ返し単体の上限も合計上限で頭打ちにする
+  if total_limit is not None:
+    type_cnt = min(type_cnt, total_limit)
   type_counted = 0
   try:
-    type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt)
+    type_counted = return_type(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, type_cnt, age_pattern=age_pattern)
     print(f"タイプ返し総数 {type_counted}")
-  except Exception as e:  
+  except Exception as e:
     print("タイプ返しエラー")
     print(traceback.format_exc())
+  # 合計上限がある場合、タイプ返しで使った分を足跡返しの上限から差し引く
+  if total_limit is not None:
+    type_counted = type_counted or 0
+    return_foot_cnt = max(0, min(return_foot_cnt, total_limit - type_counted))
+    print(f"合計上限{total_limit}件 → タイプ返し{type_counted}件 / 足跡返し上限{return_foot_cnt}件")
   # マッチング返し
+  matching_counted = 0
+  matching_limit_flug = True
   if matching_daily_limit >= oneday_total_match:
-    matching_counted = 0
-    matching_limit_flug = True
     try:
       print(f"マッチングリストチェック...")
       matching_counted, matching_limit_flug, send_users= return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, image_path, matching_cnt, matching_daily_limit, oneday_total_match, send_cnt)     
@@ -1839,6 +1864,10 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       time.sleep(wait_time)
   if send_cnt == matching_counted:
     return matching_counted
+  # 合計上限をタイプ返しで使い切った場合は足跡返しを行わない
+  if total_limit is not None and return_foot_cnt <= 0:
+    print(f"合計上限{total_limit}件に達したため足跡返しをスキップします")
+    return [matching_counted, type_counted, 0, matching_limit_flug, True]
   returnfoot_limit_flug = True
   if daily_limit  >= oneday_total_returnfoot:
     returnfoot_limit_flug = False
@@ -1922,8 +1951,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         # 年齢チェック
 
         age_elm = f_user[user_icon].find_elements(By.CLASS_NAME, value="ds_like_list_age")
-        if "20代" not in age_elm[0].text and "18~19" not in age_elm[0].text:
-          # print("年齢が１０〜２０代ではないユーザーです")
+        if not age_elm or not re.search(foot_age_pattern, age_elm[0].text):
+          # print("年齢が対象外のユーザーです")
           # print(len(f_user))
           user_icon += 1
           if len(f_user) <= user_icon:
@@ -4525,7 +4554,7 @@ def human_dwell(driver, interest_level="normal"):
 
 
 def stealth_setup(driver):
-  """自動化痕跡を除去する (debug_drivers_p_ch_fm.py と同一の強化版)。
+  """自動化痕跡を除去する (debug_drivers_ph_ch_fm.py と同一の強化版)。
   UA に自動追従: iPhone UA のときだけ platform/touch/vendor/WebGL を iPhone 相当にし、
   それ以外(Windows/Mac等)では OS 由来の値をそのまま保つ(UAとの矛盾を作らない)。"""
   _stealth_js = r'''

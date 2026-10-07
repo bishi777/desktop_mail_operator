@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
-from widget import func, pcmax_2
+from widget import func, pcmax_2, happymail
 import settings
 import random
 import os
@@ -18,6 +18,19 @@ import argparse
 import re
 
 POST_SLOTS = [(6, 30), (9, 0), (17, 0), (20, 0)]
+
+# --- ハッピーメール巡回の設定 ---
+HAPPY_TOP_URL = "https://happymail.co.jp/sp/app/html/mbmenu.php"
+HAPPY_RETURN_CHECK_CNT = 10      # 新着メール確認のループ上限
+HAPPY_MATCHING_CNT = 2           # マッチング返しのチェック件数
+HAPPY_REPLY_TOTAL_LIMIT = 2      # タイプ返し＋足跡返しの1ループ合計上限
+HAPPY_REPLY_DAILY_LIMIT = 50     # タイプ返し＋足跡返しの1日合計上限（キャラごと）
+HAPPY_TYPE_CNT = 2               # タイプ返しの上限（合計上限で頭打ちになる）
+HAPPY_RETURN_FOOT_CNT = 2        # 足跡返しの上限（合計上限から差し引かれる）
+HAPPY_MATCHING_DAILY_LIMIT = 30  # マッチング返しの1日上限
+HAPPY_RETURNFOOT_DAILY_LIMIT = 30  # 足跡返しの1日上限
+# タイプ返し・足跡返しの実行間隔。1ループ=約10分なので 2 で約20分おき。
+HAPPY_REPLY_EVERY_N_ROLL = 2
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
     metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
@@ -40,6 +53,181 @@ def parse_port():
         return args.port
     return getattr(settings, "pcmax_ch_port", None)
 
+def happy_daily_used(daily_counter, name, today):
+  """キャラ name の本日分のタイプ返し＋足跡返し送信数を返す。日付が変わっていたらリセットする。"""
+  rec = daily_counter.get(name)
+  if rec is None or rec["date"] != today:
+    rec = {"date": today, "count": 0}
+    daily_counter[name] = rec
+  return rec["count"]
+
+
+def happy_daily_add(daily_counter, name, today, n):
+  """キャラ name の本日分の送信数に n 件を加算する。"""
+  happy_daily_used(daily_counter, name, today)  # 日付リセットを先に通す
+  daily_counter[name]["count"] += n
+
+
+def count_reply_result(result):
+  """return_footpoint() の戻り値から タイプ返し＋足跡返し の実績件数を取り出す。
+
+  戻り値は [matching_counted, type_counted, return_cnt, ...] のリストだが、
+  途中 return で int が返るパスもあるため防御的に扱う。
+  """
+  if isinstance(result, (list, tuple)):
+    type_counted = result[1] if len(result) > 1 else 0
+    return_cnt = result[2] if len(result) > 2 else 0
+    return (type_counted or 0) + (return_cnt or 0)
+  if isinstance(result, int):
+    return result
+  return 0
+
+
+def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cnt, now, happy_daily_counter):
+  """ハッピーメールのタブを巡回して メールチェック → タイプ返し/足跡返し → タイプ付け/足跡付け を行う。
+
+  PCMAX のタブ巡回が終わったあと、同じループ内から呼ばれる。
+  タイプ返し・マッチング返し・足跡返しは happymail.return_footpoint() が内包しており、
+  タイプ付け・足跡付けは happymail.mutidriver_make_footprints() が担当する。
+
+  happy_daily_counter: キャラごとのタイプ返し＋足跡返しの日次実績 {name: {"date", "count"}}。
+                       呼び出し元で保持し、日付が変わると自動的にリセットされる。
+  """
+  if not happy_chara_by_name:
+    return
+  handles = driver.window_handles
+  print("<<<<<<<ハッピーメール巡回スタート💌💌💌>>>>>>>>>>>>")
+  for idx, handle in enumerate(handles):
+    try:
+      driver.switch_to.window(handle)
+    except Exception as e_switch:
+      print(f"⚠️ [happy] タブ {idx+1}/{len(handles)} に切り替えできません: {type(e_switch).__name__}: {e_switch}")
+      continue
+    if "happymail.co.jp" not in driver.current_url:
+      continue
+    try:
+      if "mbmenu.php" not in driver.current_url:
+        driver.get(HAPPY_TOP_URL)
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+        happymail.human_sleep(1.0, 2.5)
+      ban_flug = happymail.catch_warning_screen(driver)
+      if ban_flug:
+        print(f"[happy] 警告画面を検知したためスキップ: {ban_flug}")
+        continue
+      name_ele = driver.find_elements(By.CLASS_NAME, 'ds_user_display_name')
+      if not name_ele:
+        print("[happy] キャラ名の取得に失敗しました")
+        continue
+      name = name_ele[0].text
+    except Exception as e:
+      print(f"[happy] ❌ タブ判定でエラー: {type(e).__name__}: {e}")
+      traceback.print_exc()
+      continue
+    chara = happy_chara_by_name.get(name)
+    if not chara:
+      print(f"[happy] キャラデータに {name} が見つかりません（タブをスキップ）")
+      continue
+    print(f"~~~~~~~~~~~[happy] {name}~~~~~{now.strftime('%m-%d %H:%M:%S')}~~~~~~~~~~")
+
+    login_id = chara["login_id"]
+    password = chara["password"]
+    return_foot_message = chara["return_foot_message"]
+    fst_message = chara["fst_message"]
+    post_return_message = chara["post_return_message"]
+    second_message = chara["second_message"]
+    conditions_message = chara["condition_message"]
+    confirmation_mail = chara["confirmation_mail"]
+    return_foot_img = chara["chara_image"]
+    gmail_address = chara["mail_address"]
+    gmail_password = chara["gmail_password"]
+    chara_prompt = chara["system_prompt"]
+    post_title = chara.get("post_title", "")
+    mailaddress_img = chara.get("mail_address_image", "")
+
+    # --- メールチェック ---
+    if 6 <= now.hour < 24:
+      try:
+        print("💌新着メールチェック開始")
+        happymail_new = happymail.multidrivers_checkmail(
+          name, driver, wait, login_id, password, return_foot_message,
+          fst_message, post_return_message, second_message, conditions_message,
+          confirmation_mail, return_foot_img, gmail_address, gmail_password,
+          HAPPY_RETURN_CHECK_CNT, False, chara_prompt,
+          post_title=post_title, mailaddress_img=mailaddress_img,
+        )
+        print("新着メールチェック終了💌")
+        if happymail_new:
+          title = f"happy新着 {name}"
+          text = ""
+          img_path = None
+          for new_mail in happymail_new:
+            text = text + new_mail + ",\n"
+            if "警告" in text or "NoImage" in text or "利用" in text:
+              if mail_info:
+                img_path = f"{name}_ban.png"
+                driver.save_screenshot(img_path)
+                img_path = func.compress_image(img_path)
+                title = "メッセージ"
+                text = f"ハッピーメール {name}:{login_id}:{password}:  {text}"
+          if mail_info:
+            func.send_mail(text, mail_info, title, img_path)
+      except Exception as e:
+        print(f"[happy] {name}❌ メールチェックでエラー: {type(e).__name__}: {e}")
+        traceback.print_exc()
+
+    # --- タイプ返し / マッチング返し / 足跡返し ---
+    # 約20分おき（1ループ=約10分なので HAPPY_REPLY_EVERY_N_ROLL 回に1回）に実行し、
+    # タイプ返し＋足跡返しの合計が1日 HAPPY_REPLY_DAILY_LIMIT 件を超えないようにする。
+    if 6 <= now.hour < 23:
+      today = now.date()
+      used = happy_daily_used(happy_daily_counter, name, today)
+      remaining = HAPPY_REPLY_DAILY_LIMIT - used
+      if roll_cnt % HAPPY_REPLY_EVERY_N_ROLL != 0:
+        print(f"[happy] タイプ返し・足跡返しスキップ (roll_cnt={roll_cnt} / {HAPPY_REPLY_EVERY_N_ROLL}回に1回)")
+      elif remaining <= 0:
+        print(f"[happy] {name} 本日のタイプ返し・足跡返しは上限{HAPPY_REPLY_DAILY_LIMIT}件に達しました (実績{used}件)")
+      else:
+        # 1ループ上限と本日の残枠の小さい方を今回の合計上限にする
+        total_limit = min(HAPPY_REPLY_TOTAL_LIMIT, remaining)
+        send_cnt = total_limit
+        try:
+          print(f"🏃‍♀️[happy] タイプ返し・足跡返し開始 今回上限:{total_limit}件 本日{used}/{HAPPY_REPLY_DAILY_LIMIT}件")
+          result = happymail.return_footpoint(
+            name, driver, wait, return_foot_message,
+            HAPPY_MATCHING_CNT, HAPPY_TYPE_CNT, HAPPY_RETURN_FOOT_CNT,
+            return_foot_img, fst_message,
+            HAPPY_MATCHING_DAILY_LIMIT, HAPPY_RETURNFOOT_DAILY_LIMIT,
+            0, 0, send_cnt,
+            total_limit=total_limit,
+            age_pattern=happymail.AGE_PATTERN_UNDER_35,
+          )
+          sent = count_reply_result(result)
+          happy_daily_add(happy_daily_counter, name, today, sent)
+          print(f"[happy] タイプ返し・足跡返し終了 今回{sent}件 / 本日{happy_daily_used(happy_daily_counter, name, today)}件🏃‍♀️")
+        except Exception as e:
+          print(f"[happy] {name}❌ タイプ返し・足跡返しでエラー: {type(e).__name__}: {e}")
+          traceback.print_exc()
+
+    # --- タイプ付け / 足跡付け ---
+    # 6〜22時台は毎周、深夜(0〜5時台)はループ3回に1回だけ実行
+    do_footprint = (6 <= now.hour < 23) or (0 <= now.hour < 6 and roll_cnt % 3 == 0)
+    if do_footprint:
+      mf_cnt = random.randint(3, 9)
+      type_cnt = random.randint(0, 2)
+      try:
+        print(f"🐾[happy] 足跡付け{mf_cnt}件 タイプ付け{type_cnt}件開始🐾")
+        happymail.mutidriver_make_footprints(
+          name, login_id, password, driver, wait, mf_cnt, type_cnt,
+        )
+        print("[happy] 足跡付け・タイプ付け終了🐾")
+      except Exception as e:
+        print(f"[happy] {name}❌ 足跡付け・タイプ付けでエラー: {type(e).__name__}: {e}")
+        traceback.print_exc()
+
+    happymail.human_sleep(1.5, 4.0)
+  print("💌💌💌<<<<<<<ハッピーメール巡回終了>>>>>>>>💌💌💌")
+
+
 def main_syori():
   PORT = parse_port()
   user_data = func.get_user_data()
@@ -60,6 +248,9 @@ def main_syori():
   ]
   
   pcmax_datas = user_data["pcmax"]
+  happymail_datas = user_data.get("happymail", []) or []
+  # ハッピーメールのキャラ名 → キャラデータ の高速ルックアップ
+  happy_chara_by_name = {h["name"]: h for h in happymail_datas}
   options = Options()
 
   if PORT is not None:
@@ -158,6 +349,11 @@ def main_syori():
       print("[stealth] iPhone UA 検出 → platform=iPhone を CDP で設定")
   except Exception as e:
     print(f"[stealth] platform 設定スキップ（{type(e).__name__}: {e}）")
+  # ハッピーメール側の stealth（navigator.webdriver 除去など）も適用
+  try:
+    happymail.stealth_setup(driver)
+  except Exception as e:
+    print(f"[stealth/happymail] スキップ（{type(e).__name__}: {e}）")
   wait = WebDriverWait(driver, 10)
   report_dict = {}
   one_hour_report_dict = {}
@@ -166,6 +362,8 @@ def main_syori():
   start_time = datetime.now()
   active_chara_list = []
   last_post_slot = {}  # キャラごとの最終投稿スロット {name: (date, slot_idx)}
+  # ハッピーメールのタイプ返し＋足跡返しの日次カウンタ {name: {"date": date, "count": int}}
+  happy_daily_counter = {}
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
@@ -468,7 +666,14 @@ def main_syori():
           else:
             send_flug = True
 
-    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
+    # --- ハッピーメール巡回（PCMAXのタブ巡回が終わってから）---
+    try:
+      process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cnt, datetime.now(), happy_daily_counter)
+    except Exception as e:
+      print(f"❌ ハッピーメール巡回でエラー: {type(e).__name__}: {e}")
+      traceback.print_exc()
+
+    elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
     wait_cnt = 0
     while elapsed_time < 600:
       time.sleep(10)

@@ -18,8 +18,8 @@ myenv/bin/python <スクリプト名>.py
 # iKukuru自動処理
 myenv/bin/python debug_drivers_ikukuru.py 9222
 
-# PCMAX自動処理
-myenv/bin/python debug_drivers_p_ch_fm.py 9223
+# PCMAX + ハッピーメール自動処理
+myenv/bin/python debug_drivers_ph_ch_fm.py 9223
 
 # プロフィール編集
 myenv/bin/python i_profile_edit.py <port> <キャラ名>
