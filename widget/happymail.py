@@ -45,6 +45,9 @@ from selenium.common.exceptions import (
 AGE_PATTERN_20S = r"20代|18.?19"                    # 従来の既定（10代後半〜20代）
 AGE_PATTERN_UNDER_35 = r"20代|18.?19|30代前半|30前半"  # 34歳以下相当（30代半ば以降は除外）
 
+# マッチング返しの待機時間の範囲（秒）。1件ごとに引き直して機械的な等間隔を避ける。
+MATCHING_WAIT_RANGE = (1.5, 3.5)
+
 # 元のメソッドを退避
 _original_find_element = WebDriver.find_element
 _original_find_elements = WebDriver.find_elements
@@ -1477,6 +1480,8 @@ def re_post(name,  driver, wait, title, post_text, area_list=None):
         driver.quit()
 
 def return_matching(name, wait, wait_time, driver, user_name_list, duplication_user, fst_message, return_foot_img, matching_cnt,  matching_daily_limit, oneday_total_match, send_cnt):
+  # 待機時間の範囲。引数の wait_time を中心に、1件ごとにループ内で引き直す
+  wait_min, wait_max = MATCHING_WAIT_RANGE
   return_matching_counted = 0
   mail_icon_cnt = 0
   user_icon = 0
@@ -1493,6 +1498,8 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.4)
   while return_matching_counted < matching_cnt:
+    # 1件ごとに待機時間を引き直す（同じ間隔が続くと機械的に見えるため）
+    wait_time = random.uniform(wait_min, wait_max)
     active = driver.find_element(By.CLASS_NAME, value="active")
     send_status = True
     matching_users = active.find_elements(By.CLASS_NAME, value="type_list_outer")
@@ -1805,7 +1812,9 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
                足跡返しの上限から差し引く（None なら従来どおり個別上限のみ）。
   age_pattern: 年齢フィルタの正規表現。None なら従来どおり 10代後半〜20代のみ。
   """
-  wait_time = random.uniform(1.5, 3.5)
+  # 待機時間の範囲。実際の値は送信1件ごとに引き直す（下の足跡返しループ内）
+  wait_min, wait_max = MATCHING_WAIT_RANGE
+  wait_time = random.uniform(wait_min, wait_max)
   # 年齢フィルタ（未指定なら従来どおり 10代後半〜20代のみ）
   foot_age_pattern = age_pattern or AGE_PATTERN_20S
   warning_pop = catch_warning_screen(driver)
@@ -1897,6 +1906,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       catch_warning_screen(driver)
       while return_foot_cnt >= return_cnt + 1:
         # print("足跡返しループ")
+        # 1件ごとに待機時間を引き直す（同じ間隔が続くと機械的に見えるため）
+        wait_time = random.uniform(wait_min, wait_max)
         send_status = True
         f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
         # ページが完全に読み込まれるまで待機
@@ -2196,7 +2207,9 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     driver.get("https://happymail.co.jp/sp/app/html/mbmenu.php")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
-  wait_time = random.uniform(0.25, 0.75)
+  # 足跡と足跡の待機時間の範囲。実際の値は足跡1件ごとに引き直す（下の for ループ内）
+  wait_min, wait_max = 0.25, 1.77
+  wait_time = random.uniform(wait_min, wait_max)
   warning = catch_warning_screen(driver)
   bottom_scroll_cnt = 0
   if warning:
@@ -2224,6 +2237,8 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     # return
   print(f"{mf_cnt}件足あと {type_cnt}件タイプ付けします")
   for i in range(mf_cnt):
+    # 足跡1件ごとに待機時間を引き直す（周内で同じ間隔が続くと機械的に見えるため）
+    wait_time = random.uniform(wait_min, wait_max)
     catch_warning_screen(driver)
     # 並びの表示を設定
     active_tab = driver.find_elements(By.CLASS_NAME, value="active")

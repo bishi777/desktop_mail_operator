@@ -212,7 +212,7 @@ def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cn
     # 6〜22時台は毎周、深夜(0〜5時台)はループ3回に1回だけ実行
     do_footprint = (6 <= now.hour < 23) or (0 <= now.hour < 6 and roll_cnt % 3 == 0)
     if do_footprint:
-      mf_cnt = random.randint(3, 9)
+      mf_cnt = random.randint(8, 11)
       type_cnt = random.randint(0, 2)
       try:
         print(f"🐾[happy] 足跡付け{mf_cnt}件 タイプ付け{type_cnt}件開始🐾")
