@@ -2263,7 +2263,10 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       if mail_icon_cnt == 5:
         ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
         top_link = ds_logo.find_element(By.TAG_NAME, value="a")
-        top_link.click()
+        try:
+          top_link.click()
+        except ElementClickInterceptedException:
+          driver.execute_script("arguments[0].click();", top_link)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(wait_time)
         print("送信履歴のあるユーザーが5回続きました")
@@ -2294,7 +2297,14 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
-    candidate_footprint.find_element(By.TAG_NAME, "a").click()
+    # プロフ検索の絞り込みバー(filter_wrapper)が固定表示で重なり、通常クリックが
+    # ElementClickInterceptedException になることがあるため JS クリックにフォールバックする
+    target_link = candidate_footprint.find_element(By.TAG_NAME, "a")
+    try:
+      target_link.click()
+    except ElementClickInterceptedException:
+      print("クリックが遮られたため JS クリックで再試行します")
+      driver.execute_script("arguments[0].click();", target_link)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
@@ -2319,7 +2329,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       print(f'{name}:足跡付け＋タイプ付け  {user_name}  {now}')
     else:
       print(f'{name}:足跡付け,  {user_name}  {now}')
-    driver.find_element(By.CLASS_NAME, value="ds_link_back").click()
+    back_link = driver.find_element(By.CLASS_NAME, value="ds_link_back")
+    try:
+      back_link.click()
+    except ElementClickInterceptedException:
+      print("戻るリンクのクリックが遮られたため JS クリックで再試行します")
+      driver.execute_script("arguments[0].click();", back_link)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
 
