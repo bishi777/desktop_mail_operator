@@ -525,15 +525,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 icloud_text = "メール送ったんですけど、ブロックされちゃって届かないのでこちらのアドレスにお名前添えて送ってもらえますか？\n" + gmail_address
                 try:
                   text_area = driver.find_element(By.ID, value="text-message")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-                  driver.execute_script("arguments[0].value = arguments[1];", text_area, icloud_text)
-                  driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area)
-                  driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", text_area)
-                  time.sleep(0.5)
-                  driver.execute_script("arguments[0].click();", text_area)
+                  # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+                  human_type(driver, text_area, icloud_text)
                   print(f"  [{name}] icloud_text 入力済み → 送信")
                   send_mail = driver.find_element(By.ID, value="submitButton")
-                  driver.execute_script("arguments[0].click();", send_mail)
+                  human_sleep(0.6, 1.8)
+                  human_click(driver, send_mail)
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(2)
                   # 送信確認: textContent で SP の .text 空問題に対応
@@ -574,14 +571,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 if confirmation_mail:
                   try:
                     text_area = driver.find_element(By.ID, value="text-message")
-                    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-                    script = "arguments[0].value = arguments[1];"  
-                    driver.execute_script(script, text_area, confirmation_mail)
-                    time.sleep(0.5)
-                    driver.execute_script("arguments[0].click();", text_area)
+                    # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+                    human_type(driver, text_area, confirmation_mail)
                     # 送信
                     send_mail = driver.find_element(By.ID, value="submitButton")
-                    send_mail.click()
+                    human_sleep(0.6, 1.8)
+                    human_click(driver, send_mail)
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(1.5) 
                     send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
@@ -612,7 +607,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
                   if plus_icon:
                     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", plus_icon[0])
-                    driver.execute_script("arguments[0].click();", plus_icon[0])
+                    human_click(driver, plus_icon[0])
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(2)
                     mityaiya = None
@@ -624,12 +619,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     if mityaiya:
                       print(f"  [{name}] みちゃいや登録")
                       driver.execute_script("arguments[0].scrollIntoView({block:'center'});", mityaiya)
-                      driver.execute_script("arguments[0].click();", mityaiya)
+                      human_click(driver, mityaiya)
                       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                       time.sleep(2)
                       mityaiya_send = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__send")
                       if mityaiya_send:
-                        driver.execute_script("arguments[0].click();", mityaiya_send[0])
+                        human_click(driver, mityaiya_send[0])
                         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                         time.sleep(1)
                         print(f"  [{name}] みちゃいや送信完了")
@@ -690,17 +685,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               if not text_area_list:
                 print(f"  [DEBUG {name}] text-message 見つからず、ページ HTML 抜粋: {driver.execute_script('return document.body.innerText;')[:300]!r}")
               text_area = driver.find_element(By.ID, value="text-message")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area, send_message)
-              time.sleep(0.5)
-              driver.execute_script("arguments[0].click();", text_area)
-              time.sleep(0.5)
+              # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+              human_type(driver, text_area, send_message)
               # 送信
               send_mail_list = driver.find_elements(By.ID, value="submitButton")
               print(f"  [DEBUG {name}] submitButton 要素数={len(send_mail_list)}")
               send_mail = driver.find_element(By.ID, value="submitButton")
-              send_mail.click()
+              human_sleep(0.6, 1.8)
+              human_click(driver, send_mail)
               print(f"  [DEBUG {name}] submitButton.click() 実行後 url={driver.current_url}")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
@@ -742,14 +734,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
                     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
                     time.sleep(1)
-                    driver.execute_script("arguments[0].click();", plus_icon[0])
+                    human_click(driver, plus_icon[0])
                     time.sleep(1)
                     upload_file = driver.find_element(By.ID, "upload_file")
                     upload_file.send_keys(image_path)
                     time.sleep(2)
                     submit = driver.find_element(By.ID, value="submit_button")
                     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                    driver.execute_script("arguments[0].click();", submit)
+                    human_click(driver, submit)
                     while img_conform.is_displayed():
                       time.sleep(2)
                       modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
@@ -775,14 +767,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
                   time.sleep(1)
-                  driver.execute_script("arguments[0].click();", plus_icon[0])
+                  human_click(driver, plus_icon[0])
                   time.sleep(1)
                   upload_file = driver.find_element(By.ID, "upload_file")
                   upload_file.send_keys(image_path)
                   time.sleep(2)
                   submit = driver.find_element(By.ID, value="submit_button")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                  driver.execute_script("arguments[0].click();", submit)
+                  human_click(driver, submit)
                   while img_conform.is_displayed():
                     time.sleep(2)
                     modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
@@ -803,14 +795,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 return_list.append(return_message)
               if send_message:
                 text_area = driver.find_element(By.ID, value="text-message")
-                driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-                script = "arguments[0].value = arguments[1];"  
-                driver.execute_script(script, text_area, send_message)
-                time.sleep(0.5)
-                driver.execute_script("arguments[0].click();", text_area)
+                # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+                human_type(driver, text_area, send_message)
                 # 送信
                 send_mail = driver.find_element(By.ID, value="submitButton")
-                send_mail.click()
+                human_sleep(0.6, 1.8)
+                human_click(driver, send_mail)
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 time.sleep(1.5) 
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
@@ -847,14 +837,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
                   time.sleep(1)
-                  driver.execute_script("arguments[0].click();", plus_icon[0])
+                  human_click(driver, plus_icon[0])
                   time.sleep(1)
                   upload_file = driver.find_element(By.ID, "upload_file")
                   upload_file.send_keys(image_path)
                   time.sleep(2)
                   submit = driver.find_element(By.ID, value="submit_button")
                   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                  driver.execute_script("arguments[0].click();", submit)
+                  human_click(driver, submit)
                   while img_conform.is_displayed():
                     time.sleep(2)
                     modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
@@ -876,7 +866,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   plus_icon = plus_icon_parent[0].find_elements(By.CLASS_NAME, value="icon-message_plus")
                   if plus_icon:
                     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", plus_icon[0])
-                    driver.execute_script("arguments[0].click();", plus_icon[0])
+                    human_click(driver, plus_icon[0])
                     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                     time.sleep(2)
                     mityaiya = None
@@ -888,12 +878,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                     if mityaiya:
                       print(f"  [{name}] みちゃいや登録")
                       driver.execute_script("arguments[0].scrollIntoView({block:'center'});", mityaiya)
-                      driver.execute_script("arguments[0].click();", mityaiya)
+                      human_click(driver, mityaiya)
                       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                       time.sleep(2)
                       mityaiya_send = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__send")
                       if mityaiya_send:
-                        driver.execute_script("arguments[0].click();", mityaiya_send[0])
+                        human_click(driver, mityaiya_send[0])
                         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                         time.sleep(1)
                         print(f"  [{name}] みちゃいや送信完了")
@@ -927,14 +917,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print("Gemini制限中のため返信しません")
                 return
               text_area = driver.find_element(By.ID, value="text-message")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-              script = "arguments[0].value = arguments[1];"  
-              driver.execute_script(script, text_area, ai_response)
-              time.sleep(0.5)
-              driver.execute_script("arguments[0].click();", text_area)
+              # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+              human_type(driver, text_area, ai_response)
               # 送信
               send_mail = driver.find_element(By.ID, value="submitButton")
-              send_mail.click()
+              human_sleep(0.6, 1.8)
+              human_click(driver, send_mail)
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5) 
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
@@ -1604,7 +1592,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           time.sleep(0.5)
           submit = driver.find_element(By.CLASS_NAME, value="input__form__action__button__pink")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-          driver.execute_script("arguments[0].click();", submit)
+          human_click(driver, submit)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(0.5)
         
@@ -1613,17 +1601,15 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       fst_message = fst_message.format(name=user_name)
       catch_warning_screen(driver)
       text_area = driver.find_element(By.ID, value="text-message")
-      script = "arguments[0].value = arguments[1];"
-      driver.execute_script(script, text_area, fst_message)
-      time.sleep(0.5)
-      driver.execute_script("arguments[0].click();", text_area)
-      time.sleep(0.5)
+      # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+      human_type(driver, text_area, fst_message)
+      time.sleep(random.uniform(0.3, 0.9))
       text_area.send_keys("\n")
-      time.sleep(0.5)
-      # 送信
+      time.sleep(random.uniform(0.3, 0.8))
+      # 送信（送信前に一呼吸おくのが人間らしい）
       send_mail = driver.find_element(By.ID, value="submitButton")
-      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
-      send_mail.click()
+      human_sleep(0.6, 1.8)
+      human_click(driver, send_mail)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
       # 画像があれば送信 
@@ -1633,14 +1619,14 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
           time.sleep(1)
-          driver.execute_script("arguments[0].click();", plus_icon[0])
+          human_click(driver, plus_icon[0])
           time.sleep(1)
           upload_file = driver.find_element(By.ID, "upload_file")
           upload_file.send_keys(return_foot_img)
           time.sleep(2)
           submit = driver.find_element(By.ID, value="submit_button")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-          driver.execute_script("arguments[0].click();", submit)
+          human_click(driver, submit)
           while img_conform.is_displayed():
             time.sleep(2)
             modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
@@ -1899,7 +1885,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
       time.sleep(wait_time)
       # 足あとをクリック
       return_footpoint = driver.find_element(By.CLASS_NAME, value="icon-ico_footprint")
-      driver.execute_script("arguments[0].click();", return_footpoint)
+      human_click(driver, return_footpoint)
       # return_footpoint.click()
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
@@ -2005,14 +1991,14 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
             print(f'自己紹介文に危険なワードが含まれていました {user_name}')
             icon_other_div = driver.find_element(By.ID, value="btn-other")
             other_icon = icon_other_div.find_element(By.TAG_NAME, value="img")
-            driver.execute_script("arguments[0].click();", other_icon)
+            human_click(driver, other_icon)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
             driver.find_elements(By.CLASS_NAME, value="footer_menu-list-item")[3].click()
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
             regist_mushi = driver.find_element(By.CLASS_NAME, value="input__form__action__button__pink")
-            driver.execute_script("arguments[0].click();", regist_mushi)
+            human_click(driver, regist_mushi)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
             time.sleep(1)
             user_name_list.append(user_name)
@@ -2040,19 +2026,17 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           
           catch_warning_screen(driver)
           text_area = driver.find_element(By.ID, value="text-message")
-          script = "arguments[0].value = arguments[1];"
           return_foot_message = return_foot_message.format(name=user_name)
-          driver.execute_script(script, text_area, return_foot_message)
-          time.sleep(0.5)
-          driver.execute_script("arguments[0].click();", text_area)
-          time.sleep(0.5)
+          # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+          human_type(driver, text_area, return_foot_message)
+          time.sleep(random.uniform(0.3, 0.9))
           text_area.send_keys("\n")
-          time.sleep(0.5)
-          
-          # 送信
+          time.sleep(random.uniform(0.3, 0.8))
+
+          # 送信（送信前に一呼吸おくのが人間らしい）
           send_mail = driver.find_element(By.ID, value="submitButton")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", send_mail)
-          send_mail.click()
+          human_sleep(0.6, 1.8)
+          human_click(driver, send_mail)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
           send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
@@ -2099,7 +2083,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
               plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
               time.sleep(1)
-              driver.execute_script("arguments[0].click();", plus_icon[0])         
+              human_click(driver, plus_icon[0])
               time.sleep(1)
               upload_file = driver.find_element(By.ID, "upload_file")
               # DEBUG
@@ -2108,7 +2092,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
               time.sleep(1.5)
               submit = driver.find_element(By.ID, value="submit_button")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-              driver.execute_script("arguments[0].click();", submit)
+              human_click(driver, submit)
               img_wait_cnt = 0
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
@@ -2143,7 +2127,7 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           # TOPに戻る
           ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
           top_link = ds_logo.find_element(By.TAG_NAME, value="a")
-          driver.execute_script("arguments[0].click();", top_link)
+          human_click(driver, top_link)
           # top_link.click()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(wait_time)
@@ -2281,7 +2265,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
         try:
           top_link.click()
         except ElementClickInterceptedException:
-          driver.execute_script("arguments[0].click();", top_link)
+          human_click(driver, top_link)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(wait_time)
         print("送信履歴のあるユーザーが5回続きました")
@@ -2312,14 +2296,10 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
-    # プロフ検索の絞り込みバー(filter_wrapper)が固定表示で重なり、通常クリックが
-    # ElementClickInterceptedException になることがあるため JS クリックにフォールバックする
+    # CDP で実際のマウス操作を再現してクリックする（JS クリックは isTrusted:false で Bot 判定されるため）。
+    # 絞り込みバー(filter_wrapper)に遮られた場合は human_click 内でフォールバックする。
     target_link = candidate_footprint.find_element(By.TAG_NAME, "a")
-    try:
-      target_link.click()
-    except ElementClickInterceptedException:
-      print("クリックが遮られたため JS クリックで再試行します")
-      driver.execute_script("arguments[0].click();", target_link)
+    human_click(driver, target_link)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
     catch_warning_screen(driver)
@@ -2334,7 +2314,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
         if type_loop_cnt == 4:
           break
       if len(type_button):
-        driver.execute_script("arguments[0].click();", type_button[0])
+        human_click(driver, type_button[0])
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(4)
         type_cnt -= 1
@@ -2344,12 +2324,11 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       print(f'{name}:足跡付け＋タイプ付け  {user_name}  {now}')
     else:
       print(f'{name}:足跡付け,  {user_name}  {now}')
+    # プロフを開いたら実際に読んでいるように滞在・スクロールする
+    # （開いて即戻るのは閲覧行動として不自然なため）
+    human_dwell(driver, random.choice(["low", "normal", "normal", "high"]))
     back_link = driver.find_element(By.CLASS_NAME, value="ds_link_back")
-    try:
-      back_link.click()
-    except ElementClickInterceptedException:
-      print("戻るリンクのクリックが遮られたため JS クリックで再試行します")
-      driver.execute_script("arguments[0].click();", back_link)
+    human_click(driver, back_link)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
 
@@ -4553,13 +4532,7 @@ def return_foot_message_roll(name, driver, wait, login_id, password, return_foot
 
 # ===== Bot対策ヘルパー関数群 =====
 
-def human_sleep(min_sec=1.0, max_sec=3.0):
-  """人間的なランダム待機（正規分布寄り）"""
-  mean = (min_sec + max_sec) / 2
-  std = (max_sec - min_sec) / 4
-  t = max(min_sec, min(max_sec, random.gauss(mean, std)))
-  time.sleep(t)
-
+# human_sleep は widget/human_input.py に共通化（下の import で再公開）
 
 def human_scroll(driver, times=None):
   """人間的なスクロール動作を模倣"""
@@ -4581,6 +4554,22 @@ def human_dwell(driver, interest_level="normal"):
   else:
     human_scroll(driver, random.randint(1, 2))
     human_sleep(2.0, 6.0)
+
+
+# ===== CDP ベースの入力（Bot 検出対策） ==================================
+# execute_script("arguments[0].value = ...") による直接代入は
+#   - keydown/keypress/input/keyup が一切発生しない
+#   - 0ms で全文が出現する（日本語なら composition イベントも無い）
+#   - click も isTrusted:false になる
+# ため Bot 判定の決定的な材料になる。
+# CDP の Input.* はブラウザの入力層に直接イベントを注入するので
+# isTrusted:true になり、実際の打鍵・クリックと区別がつかない。
+
+# CDP ベースの入力は widget/human_input.py に共通化した。
+# 既存コードが happymail.human_click(...) のまま呼べるよう再公開する。
+from widget.human_input import (  # noqa: E402,F401
+  _element_center, human_click, human_type, human_sleep,
+)
 
 
 def stealth_setup(driver):
