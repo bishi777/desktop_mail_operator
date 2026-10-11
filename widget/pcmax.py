@@ -25,6 +25,7 @@ import shutil
 from selenium.common.exceptions import NoSuchElementException
 from DrissionPage import ChromiumPage
 from DrissionPage.errors import BrowserConnectError, PageDisconnectedError, ElementNotFoundError
+from widget.human_input import human_click, human_type, human_sleep
 
 
 
@@ -58,7 +59,7 @@ def catch_warning_pop(name, driver, wait):
     if len(kiyaku_btn):
       kiyaku_btn_text = kiyaku_btn[0].text    
       if kiyaku_btn_text == "上記を了承する":
-        driver.execute_script("arguments[0].click();", kiyaku_btn[0])
+        human_click(driver, kiyaku_btn[0])
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)
         # 番号ロック確認　setting-title mail-setting-title
@@ -137,12 +138,12 @@ def nav_item_click(name, nav_item, driver, wait):
       if nav_item == "メッセージ":
         new_icon = nav_text_elem.find_elements(By.CLASS_NAME, value="badge1")
         if len(new_icon):
-          driver.execute_script("arguments[0].click();", nav_text_elem)
+          human_click(driver, nav_text_elem)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)
           
           return "new_message"
-      driver.execute_script("arguments[0].click();", nav_text_elem)
+      human_click(driver, nav_text_elem)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
       print(999999)
@@ -780,7 +781,7 @@ def make_footprints(chara_data, driver, wait, select_areas, youngest_age, oldest
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", region)
       check = region.find_elements(By.ID, value=int(area_id))
       time.sleep(1)
-      driver.execute_script("arguments[0].click();", check[0])
+      human_click(driver, check[0])
     save_area = driver.find_elements(By.NAME, value="change")
     time.sleep(1)
     save_area[0].click()
@@ -1070,8 +1071,7 @@ def check_new_mail(pcmax_info, driver, wait):
               icloud_text = icloud_text + "\n" + mail_address
               text_area = driver.find_elements(By.ID, value="mdc")
               if len(text_area):
-                script = "arguments[0].value = arguments[1];"
-                driver.execute_script(script, text_area[0], icloud_text)
+                human_type(driver, text_area[0], icloud_text)
                 # text_area[0].send_keys(icloud_text)
                 time.sleep(4)
                 send = driver.find_element(By.ID, value="send_n")
@@ -1140,8 +1140,7 @@ def check_new_mail(pcmax_info, driver, wait):
           elif len(sent_by_me) == 0 and len(sent_by_me_maji) == 0:
             text_area = driver.find_elements(By.ID, value="mdc")
             if len(text_area):
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area[0], fst_message)
+              human_type(driver, text_area[0], fst_message)
               # text_area[0].send_keys(fst_message)
               time.sleep(6)
               send = driver.find_element(By.ID, value="send_n")
@@ -1182,8 +1181,7 @@ def check_new_mail(pcmax_info, driver, wait):
               if second_message:
                 text_area = driver.find_elements(By.ID, value="mdc")
                 if len(text_area):
-                  script = "arguments[0].value = arguments[1];"
-                  driver.execute_script(script, text_area[0], second_message)
+                  human_type(driver, text_area[0], second_message)
                   # text_area[0].send_keys(second_message)
                   time.sleep(6)
                   send = driver.find_element(By.ID, value="send_n")
@@ -1558,8 +1556,7 @@ def re_registration(chara_data, driver, wait):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     text_area = driver.find_elements(By.ID, value="comment")
-    script = "arguments[0].value = arguments[1];"
-    driver.execute_script(script, text_area[0], self_promotion)
+    human_type(driver, text_area[0], self_promotion)
     # text_area[0].send_keys(self_promotion)
     time.sleep(2)
     set_button = driver.find_elements(By.ID, value="p_reg_btn")
@@ -2087,7 +2084,7 @@ def send_fst_mail(pcmax_chara, maji_soushin, select_areas, youngest_age, oldest_
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", region)
           check = region.find_elements(By.ID, value=int(area_id))
           time.sleep(1)
-          driver.execute_script("arguments[0].click();", check[0])
+          human_click(driver, check[0])
         save_area = driver.find_elements(By.NAME, value="change")
         time.sleep(1)
         save_area[0].click()
@@ -2279,8 +2276,7 @@ def send_fst_mail(pcmax_chara, maji_soushin, select_areas, youngest_age, oldest_
             select.select_by_visible_text(pcmax_chara["mail_img"])
           # メッセージを入力
           text_area = driver.find_element(By.ID, value="mdc")
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, pcmax_chara["fst_mail"])
+          human_type(driver, text_area, pcmax_chara["fst_mail"])
           # text_area.send_keys(fst_message)
           time.sleep(4)
         
@@ -2539,7 +2535,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
       # いいねする
       with_like = driver.find_elements(By.CLASS_NAME, value="type1")
       if len(with_like):
-        driver.execute_script("arguments[0].click();", with_like[0])
+        human_click(driver, with_like[0])
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(1)
       time.sleep(2)
@@ -2561,7 +2557,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
         if refusal_elem:
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", refusal_elem)
           time.sleep(1)
-          driver.execute_script("arguments[0].click();", refusal_elem)
+          human_click(driver, refusal_elem)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           refusal_registration = driver.find_elements(By.CLASS_NAME, value="del")
@@ -2589,14 +2585,14 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
     with_like = driver.find_elements(By.CLASS_NAME, value="type1")
     if len(with_like):
       time.sleep(1)
-      driver.execute_script("arguments[0].click();", with_like[0])
+      human_click(driver, with_like[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
     # メッセージをクリック
 
     message = driver.find_elements(By.ID, value="message1")
     if len(message):
-      driver.execute_script("arguments[0].click();", message[0])
+      human_click(driver, message[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(3)
     else:
@@ -2612,8 +2608,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
       
     # メッセージを入力
     text_area = driver.find_element(By.ID, value="mdc")
-    script = "arguments[0].value = arguments[1];"
-    driver.execute_script(script, text_area, return_foot_message)
+    human_type(driver, text_area, return_foot_message)
     # text_area.send_keys(return_foot_message)
     time.sleep(5)
     # メッセージを送信
@@ -2770,7 +2765,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", region)
         check = region.find_elements(By.ID, value=int(area_id))
         time.sleep(1)
-        driver.execute_script("arguments[0].click();", check[0])
+        human_click(driver, check[0])
       save_area = driver.find_elements(By.NAME, value="change")
       time.sleep(1)
       save_area[0].click()
@@ -2972,8 +2967,7 @@ def returnfoot_fst(sorted_pcmax, driver, wait,send_limit, ):
             print("送付画像のタイトルが一致しません")
         # メッセージを入力
         text_area = driver.find_element(By.ID, value="mdc")
-        script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, fst_message)
+        human_type(driver, text_area, fst_message)
         # text_area.send_keys(fst_message)
         time.sleep(4)
       

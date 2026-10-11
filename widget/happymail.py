@@ -158,7 +158,7 @@ def catch_warning_screen(driver):
       # print("待機しました")
       swiper_button = driver.find_elements(By.CLASS_NAME, value="swiper-button-next")
       if len(swiper_button):
-        driver.execute_script("arguments[0].click();", swiper_button[0])
+        human_click(driver, swiper_button[0])
         time.sleep(1)
   ds_t_center = driver.find_elements(By.CLASS_NAME, value="ds_t_center")
   if len(ds_t_center):
@@ -233,7 +233,7 @@ def nav_item_click(nav_name, driver, wait):
         if not len(new_message):
           return "新着メールなし"   
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
-      driver.execute_script("arguments[0].click();", nav_link[0])
+      human_click(driver, nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2) 
       if nav_name == "メッセージ":   
@@ -242,7 +242,7 @@ def nav_item_click(nav_name, driver, wait):
             "https://happymail.co.jp/sp/app/html/message_list.php",
         ):    
           catch_warning_screen(driver)
-          driver.execute_script("arguments[0].click();", nav_link[0])
+          human_click(driver, nav_link[0])
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(1)    
         return True
@@ -1032,12 +1032,12 @@ def _write_new_bulletin_post(name, driver, wait, title, post_text, area, wait_ti
     # タイトル
     input_title = driver.find_element(By.NAME, value="Subj")
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", input_title)
-    driver.execute_script("arguments[0].value = arguments[1];", input_title, title)
+    human_type(driver, input_title, title)
     time.sleep(1)
     # 本文
     text_field = driver.find_element(By.ID, value="text-message")
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", text_field)
-    driver.execute_script("arguments[0].value = arguments[1];", text_field, post_text)
+    human_type(driver, text_field, post_text)
     time.sleep(1)
     # エリア
     select_area = driver.find_element(By.NAME, value="wrtarea")
@@ -1303,7 +1303,7 @@ def re_post(name,  driver, wait, title, post_text, area_list=None):
           break   
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", blue_round_button)
       time.sleep(wait_time)
-      driver.execute_script('arguments[0].click();', blue_round_button)
+      human_click(driver, blue_round_button)
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
       # 再掲載する
@@ -1369,15 +1369,13 @@ def re_post(name,  driver, wait, title, post_text, area_list=None):
                 # タイトルを書き込む
                 input_title = driver.find_element(By.NAME, value="Subj")
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", input_title)
-                script = "arguments[0].value = arguments[1];"
-                driver.execute_script(script, input_title, title)
+                human_type(driver, input_title, title)
                 # input_title.send_keys(title)
                 time.sleep(1)
                 # 本文を書き込む
                 text_field = driver.find_element(By.ID, value="text-message")
                 driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_field)
-                script = "arguments[0].value = arguments[1];"
-                driver.execute_script(script, text_field, post_text)
+                human_type(driver, text_field, post_text)
                 # text_field.send_keys(post_text)
                 time.sleep(1)
                 # 書き込みエリアを選択
@@ -1548,7 +1546,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", message_button)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
-    driver.execute_script('arguments[0].click();', message_button)
+    human_click(driver, message_button)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
     catch_warning_screen(driver)
@@ -2182,7 +2180,7 @@ def set_mutidriver_make_footprints(driver,wait):
     print(f"足跡リストにユーザーがいません")
     return
   user_link = user_list[0].find_elements(By.TAG_NAME, value="a")
-  driver.execute_script("arguments[0].click();", user_link[0])
+  human_click(driver, user_link[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
   
@@ -2578,7 +2576,7 @@ def make_footprints(name, happymail_id, happymail_pass, driver, wait, foot_count
     # 戻る
     catch_warning_screen(driver)
     back = driver.find_elements(By.CLASS_NAME, value="ds_prev_arrow")
-    driver.execute_script("arguments[0].click();", back[0])
+    human_click(driver, back[0])
     # back[0].click()
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
@@ -2693,7 +2691,7 @@ def send_fst_message(happy_user_list, driver, wait):
           time.sleep(2)
           submit = driver.find_element(By.ID, value="submit_button")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-          driver.execute_script("arguments[0].click();", submit)
+          human_click(driver, submit)
           while img_conform.is_displayed():
             time.sleep(2)
         send_cnt += 1
@@ -2866,8 +2864,7 @@ def check_new_mail(happy_info, driver, wait, android=False):
                 # text_area.send_keys(return_foot_message)
                 driver.execute_script("document.body.click();")
                 time.sleep(0.5)
-                script = "arguments[0].value = arguments[1];"
-                driver.execute_script(script, text_area, conditions_message)
+                human_type(driver, text_area, conditions_message)
                 time.sleep(0.5)
                 text_area.send_keys("\n")
                 time.sleep(0.5)
@@ -2961,9 +2958,8 @@ def check_new_mail(happy_info, driver, wait, android=False):
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             driver.execute_script("document.body.click();")
             time.sleep(0.5)
-            script = "arguments[0].value = arguments[1];"
-            driver.execute_script("arguments[0].click();", text_area)
-            driver.execute_script(script, text_area, fst_message.format(name=user_name))
+            human_click(driver, text_area)
+            human_type(driver, text_area, fst_message.format(name=user_name))
             time.sleep(0.5)
             text_area.send_keys("\n")
             time.sleep(0.5)
@@ -3018,7 +3014,7 @@ def re_registration(chara_data, driver, wait):
     return
   # プロフィールをクリック 
   profile = driver.find_element(By.CLASS_NAME, value="icon-ico_profile ")
-  driver.execute_script("arguments[0].click();", profile)
+  human_click(driver, profile)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(6)
   # name 
@@ -3113,7 +3109,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["height"]:
     height_text_area = driver.find_elements(By.NAME, value="height")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", height_text_area[0])
-    driver.execute_script("arguments[0].click();", height_text_area[0])
+    human_click(driver, height_text_area[0])
     time.sleep(2)
     height_choicises_elem = driver.find_elements(By.ID, value="height_choice")
     height_choices = height_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3133,7 +3129,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["style"]:
     style_text_area = driver.find_elements(By.NAME, value="style")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", style_text_area[0])
-    driver.execute_script("arguments[0].click();", style_text_area[0])
+    human_click(driver, style_text_area[0])
     time.sleep(1)
     style_choicises_elem = driver.find_elements(By.ID, value="style_choice")
     style_choices = style_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3153,7 +3149,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["looks"]:
     looks_text_area = driver.find_elements(By.NAME, value="type")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", looks_text_area[0])
-    driver.execute_script("arguments[0].click();", looks_text_area[0])
+    human_click(driver, looks_text_area[0])
     time.sleep(1)
     looks_choicises_elem = driver.find_elements(By.ID, value="type_choice")
     looks_choices = looks_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3173,7 +3169,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["cup"]:
     cup_text_area = driver.find_elements(By.NAME, value="bust_size")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", cup_text_area[0])
-    driver.execute_script("arguments[0].click();", cup_text_area[0])
+    human_click(driver, cup_text_area[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1)
     cup_choicises_elem = driver.find_elements(By.ID, value="bust_size_choice")
@@ -3183,7 +3179,7 @@ def re_registration(chara_data, driver, wait):
         classes = i.get_attribute("class")
         if not "chose" in classes.split():
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-          driver.execute_script("arguments[0].click();", i)
+          human_click(driver, i)
           time.sleep(2)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     # menu_modal_cancel
@@ -3195,7 +3191,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["job"]:
     job_text_area = driver.find_elements(By.NAME, value="job")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", job_text_area[0])
-    driver.execute_script("arguments[0].click();", job_text_area[0])
+    human_click(driver, job_text_area[0])
     time.sleep(1)
     job_choicises_elem = driver.find_elements(By.ID, value="job_choice")
     job_choices = job_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3215,7 +3211,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["education"]:
     education_text_area = driver.find_elements(By.NAME, value="educational_background")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", education_text_area[0])
-    driver.execute_script("arguments[0].click();", education_text_area[0])
+    human_click(driver, education_text_area[0])
     time.sleep(1)
     education_choicises_elem = driver.find_elements(By.ID, value="educational_background_choice")
     education_choices = education_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3234,7 +3230,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["holiday"]:
     holiday_text_area = driver.find_elements(By.NAME, value="holiday")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", holiday_text_area[0])
-    driver.execute_script("arguments[0].click();", holiday_text_area[0])
+    human_click(driver, holiday_text_area[0])
     time.sleep(1)
     holiday_choicises_elem = driver.find_elements(By.ID, value="holiday_choice")
     holiday_choices = holiday_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3243,7 +3239,7 @@ def re_registration(chara_data, driver, wait):
         classes = i.get_attribute("class")
         if not "chose" in classes.split():
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-          driver.execute_script("arguments[0].click();", i)
+          human_click(driver, i)
           time.sleep(2)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3254,7 +3250,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["relationship_status"]:
     relationship_status_text_area = driver.find_elements(By.NAME, value="marriage")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", relationship_status_text_area[0])
-    driver.execute_script("arguments[0].click();", relationship_status_text_area[0])
+    human_click(driver, relationship_status_text_area[0])
     time.sleep(1)
     relationship_status_elem = driver.find_elements(By.ID, value="marriage_choice")
     relationship_status_choices = relationship_status_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3273,7 +3269,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["having_children"]:
     child_text_area = driver.find_elements(By.NAME, value="child")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", child_text_area[0])
-    driver.execute_script("arguments[0].click();", child_text_area[0])
+    human_click(driver, child_text_area[0])
     time.sleep(1)
     child_choicises_elem = driver.find_elements(By.ID, value="child_choice")
     child_choices = child_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3292,7 +3288,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["intention_to_marry"]:
     intention_to_marry_text_area = driver.find_elements(By.NAME, value="intention_to_marry")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", intention_to_marry_text_area[0])
-    driver.execute_script("arguments[0].click();", intention_to_marry_text_area[0])
+    human_click(driver, intention_to_marry_text_area[0])
     time.sleep(1)
     intention_to_marry_choicises_elem = driver.find_elements(By.ID, value="intention_to_marry_choice")
     intention_to_marry_choices = intention_to_marry_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3311,7 +3307,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["smoking"]:
     tobacco_text_area = driver.find_elements(By.NAME, value="tobacco")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", tobacco_text_area[0])
-    driver.execute_script("arguments[0].click();", tobacco_text_area[0])
+    human_click(driver, tobacco_text_area[0])
     time.sleep(1)
     tobacco_choicises_elem = driver.find_elements(By.ID, value="tobacco_choice")
     tobacco_choices = tobacco_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3330,7 +3326,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["sake"]:
     liquor_text_area = driver.find_elements(By.NAME, value="liquor")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", liquor_text_area[0])
-    driver.execute_script("arguments[0].click();", liquor_text_area[0])
+    human_click(driver, liquor_text_area[0])
     time.sleep(1)
     liquor_choicises_elem = driver.find_elements(By.ID, value="liquor_choice")
     liquor_choices = liquor_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3339,7 +3335,7 @@ def re_registration(chara_data, driver, wait):
           classes = i.get_attribute("class")
           if not "chose" in classes.split():
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-            driver.execute_script("arguments[0].click();", i)
+            human_click(driver, i)
             time.sleep(2)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3350,7 +3346,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["car_ownership"]:
     car_text_area = driver.find_elements(By.NAME, value="car")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", car_text_area[0])
-    driver.execute_script("arguments[0].click();", car_text_area[0])
+    human_click(driver, car_text_area[0])
     time.sleep(1)
     car_choicises_elem = driver.find_elements(By.ID, value="car_choice")
     car_choices = car_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3359,7 +3355,7 @@ def re_registration(chara_data, driver, wait):
         classes = i.get_attribute("class")
         if not "chose" in classes.split():
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-          driver.execute_script("arguments[0].click();", i)
+          human_click(driver, i)
           time.sleep(2)
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3370,7 +3366,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["roommate"]:
     housemate_text_area = driver.find_elements(By.NAME, value="housemate")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", housemate_text_area[0])
-    driver.execute_script("arguments[0].click();", housemate_text_area[0])
+    human_click(driver, housemate_text_area[0])
     time.sleep(1)
     housemate_choicises_elem = driver.find_elements(By.ID, value="housemate_choice")
     housemate_choices = housemate_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3379,7 +3375,7 @@ def re_registration(chara_data, driver, wait):
           classes = i.get_attribute("class")
           if not "chose" in classes.split():
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-            driver.execute_script("arguments[0].click();", i)
+            human_click(driver, i)
             time.sleep(2)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3390,7 +3386,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["brothers_and_sisters"]:
     brother_text_area = driver.find_elements(By.NAME, value="brother")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", brother_text_area[0])
-    driver.execute_script("arguments[0].click();", brother_text_area[0])
+    human_click(driver, brother_text_area[0])
     time.sleep(1)
     brother_choicises_elem = driver.find_elements(By.ID, value="brother_choice")
     brother_choices = brother_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3399,7 +3395,7 @@ def re_registration(chara_data, driver, wait):
           classes = i.get_attribute("class")
           if not "chose" in classes.split():
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-            driver.execute_script("arguments[0].click();", i)
+            human_click(driver, i)
             time.sleep(2)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3410,7 +3406,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["until_we_met"]:
     hope_before_meet_text_area = driver.find_elements(By.NAME, value="hope_before_meet")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", hope_before_meet_text_area[0])
-    driver.execute_script("arguments[0].click();", hope_before_meet_text_area[0])
+    human_click(driver, hope_before_meet_text_area[0])
     time.sleep(1)
     hope_before_meet_choicises_elem = driver.find_elements(By.ID, value="hope_before_meet_choice")
     hope_before_meet_choices = hope_before_meet_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3419,7 +3415,7 @@ def re_registration(chara_data, driver, wait):
           classes = i.get_attribute("class")
           if not "chose" in classes.split():
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-            driver.execute_script("arguments[0].click();", i)
+            human_click(driver, i)
             time.sleep(2)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3430,7 +3426,7 @@ def re_registration(chara_data, driver, wait):
   if chara_data["date_expenses"]:
     first_date_cost_text_area = driver.find_elements(By.NAME, value="first_date_cost")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", first_date_cost_text_area[0])
-    driver.execute_script("arguments[0].click();", first_date_cost_text_area[0])
+    human_click(driver, first_date_cost_text_area[0])
     time.sleep(1)
     first_date_cost_choicises_elem = driver.find_elements(By.ID, value="first_date_cost_choice")
     first_date_cost_choices = first_date_cost_choicises_elem[0].find_elements(By.TAG_NAME, value="span")
@@ -3439,7 +3435,7 @@ def re_registration(chara_data, driver, wait):
           classes = i.get_attribute("class")
           if not "chose" in classes.split():
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", i)
-            driver.execute_script("arguments[0].click();", i)
+            human_click(driver, i)
             time.sleep(2)
             wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     modal_cancel = driver.find_elements(By.CLASS_NAME, value="menu_modal_cancel")
@@ -3466,13 +3462,13 @@ def profile_edit_without_login(chara_data, driver, wait):
   time.sleep(2)
   # プロフィールをクリック
   profile = driver.find_element(By.CLASS_NAME, value="icon-ico_profile ")
-  driver.execute_script("arguments[0].click();", profile)
+  human_click(driver, profile)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(6)
   # name
   name_form = driver.find_elements(By.ID, value="nickname_frame")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", name_form[0])
-  driver.execute_script("arguments[0].click();", name_form[0])
+  human_click(driver, name_form[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
   # text_content
@@ -3562,7 +3558,7 @@ def profile_edit_without_login(chara_data, driver, wait):
       # textareaはモバイルビューではdisabledになっているためJSで解除
       driver.execute_script("arguments[0].removeAttribute('disabled'); arguments[0].removeAttribute('readonly');", textarea[0])
       # send_keys は BMP 範囲外（絵文字等）を扱えないため JS で直接代入
-      driver.execute_script("arguments[0].value = arguments[1];", textarea[0], self_promotion)
+      human_type(driver, textarea[0], self_promotion)
       time.sleep(0.5)
       driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", textarea[0])
       driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", textarea[0])
@@ -3571,12 +3567,12 @@ def profile_edit_without_login(chara_data, driver, wait):
       save_btn = driver.find_elements(By.ID, "save")
       if save_btn:
         driver.execute_script("arguments[0].scrollIntoView({block:'center'});", save_btn[0])
-        driver.execute_script("arguments[0].click();", save_btn[0])
+        human_click(driver, save_btn[0])
         time.sleep(2)
         # 確認モーダルの「提出する」ボタンをクリック
         submit_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'提出する')]")
         if submit_btn:
-          driver.execute_script("arguments[0].click();", submit_btn[0])
+          human_click(driver, submit_btn[0])
           time.sleep(3)
           print(f"  自己紹介: 審査に提出しました")
         else:
@@ -3661,7 +3657,7 @@ def set_search_conditions(chara_data, driver, wait):
     all_area_cbs = driver.find_elements(By.NAME, "area[]")
     for cb in all_area_cbs:
       if cb.is_selected():
-        driver.execute_script("arguments[0].click();", cb)
+        human_click(driver, cb)
     time.sleep(0.3)
     # 指定エリアをチェック
     for area_name in area_names:
@@ -3672,7 +3668,7 @@ def set_search_conditions(chara_data, driver, wait):
       cb = driver.find_elements(By.ID, f"area-{area_val}")
       if cb:
         if not cb[0].is_selected():
-          driver.execute_script("arguments[0].click();", cb[0])
+          human_click(driver, cb[0])
         print(f"  エリア: {area_name} (val={area_val})")
       else:
         print(f"  エリア '{area_name}': 要素が見つかりません")
@@ -3684,7 +3680,7 @@ def set_search_conditions(chara_data, driver, wait):
     search_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'検索する')]")
   if search_btn:
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", search_btn[0])
-    driver.execute_script("arguments[0].click();", search_btn[0])
+    human_click(driver, search_btn[0])
     time.sleep(2)
     print(f"  検索しました")
   else:
@@ -3714,7 +3710,7 @@ def set_footprint_settings(driver, wait):
   # 変更ボタンをクリック
   submit_btn = driver.find_elements(By.ID, "submit")
   if submit_btn:
-    driver.execute_script("arguments[0].click();", submit_btn[0])
+    human_click(driver, submit_btn[0])
     time.sleep(2)
     print("  足あと設定を保存しました")
   else:
@@ -4165,7 +4161,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
     if not mail_btn:
       print(f"  [{name}] メッセージボタンが見つかりません")
       return None
-    driver.execute_script('arguments[0].click();', mail_btn[0])
+    human_click(driver, mail_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     # メッセージ入力
@@ -4174,7 +4170,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
       print(f"  [{name}] テキストエリアが見つかりません")
       return None
     message = generate_fst_message_with_ai(name, fst_message, best['profile'])
-    driver.execute_script('arguments[0].value = arguments[1];', text_area[0], message)
+    human_type(driver, text_area[0], message)
     driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area[0])
     driver.execute_script("arguments[0].dispatchEvent(new Event('change', {bubbles:true}));", text_area[0])
     human_sleep(1.0, 3.0)
@@ -4187,7 +4183,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None
     driver.execute_script('arguments[0].scrollIntoView({block:"center"});', send_icon[0])
-    driver.execute_script('arguments[0].click();', send_icon[0])
+    human_click(driver, send_icon[0])
     time.sleep(3)
 
     # 年齢確認ポップアップ対応
@@ -4212,7 +4208,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
             time.sleep(2)
             confirm_btn = driver.find_elements(By.CSS_SELECTOR, '.preview__btn--send, #submit_button')
             if confirm_btn:
-              driver.execute_script('arguments[0].click();', confirm_btn[0])
+              human_click(driver, confirm_btn[0])
               time.sleep(2)
               print(f"  [{name}] → 画像送信完了")
         except Exception as img_e:
@@ -4272,7 +4268,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
         # +アイコンをクリックして画像アップロード
         plus_icon = driver.find_elements(By.CLASS_NAME, 'icon-message_plus')
         if plus_icon:
-          driver.execute_script('arguments[0].click();', plus_icon[0])
+          human_click(driver, plus_icon[0])
           time.sleep(1)
         upload_file = driver.find_elements(By.ID, 'upload_file')
         if upload_file:
@@ -4281,7 +4277,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, user
           img_submit = driver.find_elements(By.ID, 'submit_button')
           if img_submit:
             driver.execute_script('arguments[0].scrollIntoView({block:"center"});', img_submit[0])
-            driver.execute_script('arguments[0].click();', img_submit[0])
+            human_click(driver, img_submit[0])
             time.sleep(2)
             print(f"  [{name}] 画像送信完了")
       except Exception as e:
@@ -4327,7 +4323,7 @@ def return_matching_one(name, driver, wait, fst_message):
   if len(tab_items) < 3:
     print(f"  [{name}] マッチングタブが見つかりません")
     return None
-  driver.execute_script("arguments[0].click();", tab_items[2])
+  human_click(driver, tab_items[2])
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
 
@@ -4362,7 +4358,7 @@ def return_matching_one(name, driver, wait, fst_message):
     msg_btn = matching_users[target_idx].find_element(By.CLASS_NAME, value="message_button")
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", msg_btn)
     time.sleep(0.5)
-    driver.execute_script("arguments[0].click();", msg_btn)
+    human_click(driver, msg_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     catch_warning_screen(driver)
@@ -4385,13 +4381,13 @@ def return_matching_one(name, driver, wait, fst_message):
   try:
     text_area = driver.find_element(By.ID, value="text-message")
     msg = fst_message.format(name=user_name) if user_name else fst_message
-    driver.execute_script("arguments[0].value = arguments[1];", text_area, msg)
+    human_type(driver, text_area, msg)
     driver.execute_script("arguments[0].dispatchEvent(new Event('input', {bubbles:true}));", text_area)
     human_sleep(1.0, 2.0)
 
     submit_btn = driver.find_element(By.ID, value="submitButton")
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", submit_btn)
-    driver.execute_script("arguments[0].click();", submit_btn)
+    human_click(driver, submit_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     print(f"  [{name}] → {user_name} にマッチング返し送信完了")
@@ -4495,7 +4491,7 @@ def score_and_type(name, driver, wait, user_check_cnt=None):
       print(f"  [{name}] タイプ送信不可（class='{classes}'）")
       return None
     driver.execute_script("arguments[0].scrollIntoView({block:'center'});", type_button[0])
-    driver.execute_script("arguments[0].click();", type_button[0])
+    human_click(driver, type_button[0])
     time.sleep(2)
     print(f"  [{name}] → {best['name']} にタイプ送信完了")
     return best['name']
@@ -4525,7 +4521,7 @@ def return_foot_message_roll(name, driver, wait, login_id, password, return_foot
   nav_item_click("マイページ", driver, wait)
   # 足あとをクリック
   return_footpoint = driver.find_element(By.CLASS_NAME, value="icon-ico_footprint")
-  driver.execute_script("arguments[0].click();", return_footpoint)
+  human_click(driver, return_footpoint)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 

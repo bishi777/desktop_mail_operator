@@ -25,6 +25,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import StaleElementReferenceException
 import uuid
 from PIL import Image
+from widget.human_input import human_click, human_type, human_sleep
 
 
 def _encode_for_sjis_form(text):
@@ -305,8 +306,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                 time.sleep(2)
                 # メッセージを入力　name=comment
                 text_area = driver.find_elements(By.NAME, value="comment")
-                script = "arguments[0].value = arguments[1];"
-                driver.execute_script(script, text_area[0], icloud_text)
+                human_type(driver, text_area[0], icloud_text)
                 time.sleep(4)
                 
                 send_button = driver.find_elements(By.NAME, value="sendbutton")
@@ -405,8 +405,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
           time.sleep(2)
           # メッセージを入力　name=comment
           text_area = driver.find_elements(By.NAME, value="comment")
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area[0], send_message)
+          human_type(driver, text_area[0], send_message)
           time.sleep(4)
           # 画像があれば送信
           if image_path:
@@ -549,8 +548,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
                   time.sleep(2)
                   # メッセージを入力　name=comment
                   text_area = driver.find_elements(By.NAME, value="comment")
-                  script = "arguments[0].value = arguments[1];"
-                  driver.execute_script(script, text_area[0], send_message)
+                  human_type(driver, text_area[0], send_message)
                   time.sleep(4)
                   
                   send_button = driver.find_elements(By.NAME, value="sendbutton")
@@ -629,8 +627,7 @@ def check_mail(name, jmail_info, driver, wait, mail_info):
               time.sleep(2)
               # メッセージを入力　name=comment
               text_area = driver.find_elements(By.NAME, value="comment")
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area[0], send_message)
+              human_type(driver, text_area[0], send_message)
               time.sleep(4)
               # 画像があれば送信 
               if image_path:
@@ -1276,8 +1273,7 @@ def return_footprint(data, driver,wait,submitted_users):
     text_area = driver.find_elements(By.ID, value="textarea")
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(1)
-    script = "arguments[0].value = arguments[1];"
-    driver.execute_script(script, text_area[0], return_foot_message)
+    human_type(driver, text_area[0], return_foot_message)
     time.sleep(4)
     # 画像があれば送信 
     if image_path:
@@ -1286,7 +1282,7 @@ def return_footprint(data, driver,wait,submitted_users):
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(2)
     send_btn = driver.find_elements(By.ID, value="message_send")
-    driver.execute_script("arguments[0].click();", send_btn[0])
+    human_click(driver, send_btn[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     send_complete_element = driver.find_elements(By.ID, value="modal_title")
@@ -1362,11 +1358,10 @@ def post_set(post_area, post_title, post_contents, driver, wait):
   select.select_by_visible_text("今すぐ会いたい")
   time.sleep(1)
   # 掲示板タイトル入力
-  script = "arguments[0].value = arguments[1];"
-  driver.execute_script(script, driver.find_element(By.NAME, value="Subj"), post_title)
+  human_type(driver, driver.find_element(By.NAME, value="Subj"), post_title)
   time.sleep(0.5)
   # 掲示板投稿文入力
-  driver.execute_script(script, driver.find_element(By.NAME, value="Comment"), post_contents)
+  human_type(driver, driver.find_element(By.NAME, value="Comment"), post_contents)
   time.sleep(0.5)
   # 受信メール数選択
   select = Select(driver.find_element(By.NAME, value="ResMaxCount"))
@@ -1548,16 +1543,16 @@ def profile_edit(chara_data, driver, wait):
     all_checks = driver.find_elements(By.NAME, 'PurposeList')
     for cb in all_checks:
       if cb.is_selected():
-        driver.execute_script('arguments[0].click();', cb)
+        human_click(driver, cb)
     for cb in all_checks:
       if cb.get_attribute('value') in things:
-        driver.execute_script('arguments[0].click();', cb)
+        human_click(driver, cb)
         print(f"  チェック: {cb.get_attribute('value')}")
 
   # --- 更新ボタン ---
   submit = driver.find_element(By.CSS_SELECTOR, 'input[name="PfUpdate"]')
   driver.execute_script('arguments[0].scrollIntoView({block:"center"});', submit)
-  driver.execute_script('arguments[0].click();', submit)
+  human_click(driver, submit)
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   print(f"  マイプロフ更新完了")
@@ -1596,9 +1591,9 @@ def profile_edit(chara_data, driver, wait):
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(0.8)
     pr_textarea = driver.find_element(By.NAME, 'EditedSelfPrText')
-    driver.execute_script('arguments[0].value = arguments[1];', pr_textarea, self_pr)
+    human_type(driver, pr_textarea, self_pr)
     submit_btn = driver.find_element(By.CSS_SELECTOR, 'input[name="PrEdit"]')
-    driver.execute_script('arguments[0].click();', submit_btn)
+    human_click(driver, submit_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(0.8)
     print(f"  自己PR設定完了")
@@ -1815,7 +1810,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   # 詳しく検索をクリック
   detail_query = driver.find_elements(By.ID, 'ac2h2')
   if detail_query:
-    driver.execute_script('arguments[0].click();', detail_query[0])
+    human_click(driver, detail_query[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
 
@@ -1828,7 +1823,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
         continue
       cb = cbs[0]
       if not cb.is_selected():
-        driver.execute_script('arguments[0].click();', cb)
+        human_click(driver, cb)
         time.sleep(0.2)
       if cb.is_selected():
         selected_values.append(cb.get_attribute('value'))
@@ -1838,7 +1833,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   def _open_accordion(acc_id):
     els = driver.find_elements(By.ID, acc_id)
     if els:
-      driver.execute_script('arguments[0].click();', els[0])
+      human_click(driver, els[0])
       time.sleep(0.6)
 
   # 年齢: 18-34
@@ -1859,7 +1854,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   state_cbs = driver.find_elements(By.CSS_SELECTOR, "input[type='checkbox'][name='state']")
   for scb in state_cbs:
     if scb.is_selected():
-      driver.execute_script('arguments[0].click();', scb)
+      human_click(driver, scb)
       time.sleep(0.1)
   extra_area_id = random.choice([
     'CheckState-9',   # 神奈川
@@ -1913,7 +1908,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
   if not query_submit:
     print(f"  [{name}] 検索ボタンが見つかりません")
     return None, submitted_users
-  driver.execute_script('arguments[0].click();', query_submit[0])
+  human_click(driver, query_submit[0])
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
@@ -2091,7 +2086,7 @@ def score_and_send_fst_message(name, driver, wait, fst_message, image_path, subm
     if not send_label:
       print(f"  [{name}] 送信ボタンが見つかりません")
       return None, submitted_users
-    driver.execute_script('arguments[0].click();', send_label[0])
+    human_click(driver, send_label[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     print(f"  [{name}] → {best['name']} に送信完了")

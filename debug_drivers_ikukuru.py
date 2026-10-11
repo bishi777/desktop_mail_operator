@@ -10,6 +10,7 @@ import traceback
 from selenium.webdriver.support.ui import WebDriverWait
 from datetime import datetime
 import argparse
+from widget.human_input import human_click, human_type, human_sleep
 
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
@@ -200,7 +201,7 @@ def main_syori():
             try:
               submit_btn.click()
             except Exception:
-              driver.execute_script("arguments[0].click();", submit_btn)
+              human_click(driver, submit_btn)
             wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
             time.sleep(2)
             print(f"  再ログイン完了: {matched_data['name']}")

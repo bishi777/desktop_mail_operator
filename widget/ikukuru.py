@@ -14,6 +14,7 @@ import os
 import traceback
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from widget import func
+from widget.human_input import human_click, human_type, human_sleep
 
 # area（地域）は別ボタン経由のため自動設定不可 → ブラウザ側で設定しておく
 # 全キャラ共通の固定検索フィルター
@@ -64,7 +65,7 @@ def _set_area_filter(driver, wait, area_values):
   if existing:
     for cb in existing:
       if not cb.is_selected():
-        driver.execute_script("arguments[0].click();", cb)
+        human_click(driver, cb)
     del_btn = driver.find_element(By.XPATH, "//*[contains(text(),'チェックを削除')]")
     del_btn.click()
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
@@ -104,10 +105,10 @@ def _set_area_filter(driver, wait, area_values):
         sel_boxes = driver.find_elements(By.CSS_SELECTOR, "input[name='prefAndCity[]'], input[name='selectedPrefAndCity[]']")
         for cb in sel_boxes:
           if not cb.is_selected():
-            driver.execute_script("arguments[0].click();", cb)
+            human_click(driver, cb)
         del_links = driver.find_elements(By.XPATH, "//*[contains(text(),'チェックを削除') or contains(text(),'削除する') or contains(text(),'クリア')]")
         if del_links:
-          driver.execute_script("arguments[0].click();", del_links[0])
+          human_click(driver, del_links[0])
           wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
           time.sleep(1.5)
       except Exception as re_e:
@@ -116,7 +117,7 @@ def _set_area_filter(driver, wait, area_values):
     try:
       add_btn.click()
     except Exception:
-      driver.execute_script("arguments[0].click();", add_btn)
+      human_click(driver, add_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     pref_name = PREF_NAMES[area_val]
@@ -125,10 +126,10 @@ def _set_area_filter(driver, wait, area_values):
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     cb = driver.find_element(By.CSS_SELECTOR, f"input[value='{area_val}']")
-    driver.execute_script("arguments[0].click();", cb)
+    human_click(driver, cb)
     time.sleep(0.5)
     select_btn = driver.find_element(By.CSS_SELECTOR, "button.greenButton")
-    driver.execute_script("arguments[0].click();", select_btn)
+    human_click(driver, select_btn)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
     # 各 選択する 後は show_profile_search.html に戻る
@@ -148,9 +149,9 @@ def _apply_filters(driver, filters):
         for cb in checkboxes:
           should_check = cb.get_attribute("value") in value
           if should_check and not cb.is_selected():
-            driver.execute_script("arguments[0].click();", cb)
+            human_click(driver, cb)
           elif not should_check and cb.is_selected():
-            driver.execute_script("arguments[0].click();", cb)
+            human_click(driver, cb)
       else:
         sel_elem = driver.find_element(By.NAME, name_attr)
         sel = Select(sel_elem)
@@ -230,7 +231,7 @@ def set_search_filter(driver, wait, filters=None):
   if not search_btns:
     print("検索ボタンが見つかりません")
     return
-  driver.execute_script("arguments[0].click();", search_btns[0])
+  human_click(driver, search_btns[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(wait_time)
 
@@ -520,7 +521,7 @@ def _collect_profile_links(driver, wait, list_url, max_next=3):
     next_btn = driver.find_elements(By.CLASS_NAME, value="nextBtn")
     if not next_btn or "gray555" in (next_btn[0].get_attribute("class") or "") or next_cnt >= max_next:
       break
-    driver.execute_script("arguments[0].click();", next_btn[0])
+    human_click(driver, next_btn[0])
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     next_cnt += 1
@@ -664,7 +665,7 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
       if not cb.is_selected():
         driver.execute_script("arguments[0].scrollIntoView({block:'center'});", cb)
         time.sleep(0.2)
-        driver.execute_script("arguments[0].click();", cb)
+        human_click(driver, cb)
         time.sleep(0.3)
       print(f"イククル:{name} {label} 削除チェック（{oname}）")
       checked += 1
@@ -688,7 +689,7 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
       try:
         del_btn[0].click()
       except Exception:
-        driver.execute_script("arguments[0].click();", del_btn[0])
+        human_click(driver, del_btn[0])
       time.sleep(1.5)
 
       # 確認モーダル/ページの submitBtn or 「削除する」ボタンをクリック
@@ -702,7 +703,7 @@ def _delete_checked_on_list(driver, wait, list_url, items_to_delete, name, label
         try:
           submit_btn[0].click()
         except Exception:
-          driver.execute_script("arguments[0].click();", submit_btn[0])
+          human_click(driver, submit_btn[0])
       else:
         # フォールバック: 削除フォームを直接submit
         submitted = driver.execute_script(
@@ -1010,7 +1011,7 @@ def profile_edit(chara_data, driver, wait):
     time.sleep(3)
     try:
       ta = driver.find_element(By.NAME, 'introduction')
-      driver.execute_script('arguments[0].value = arguments[1];', ta, intro)
+      human_type(driver, ta, intro)
       btn = driver.find_element(By.CSS_SELECTOR, 'button.greenButton')
       btn.click()
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
@@ -1030,7 +1031,7 @@ def profile_edit(chara_data, driver, wait):
       for r in radios:
         if r.get_attribute('value') == '0':
           if not r.is_selected():
-            driver.execute_script("arguments[0].click();", r)
+            human_click(driver, r)
             changed = True
           break
     if changed:

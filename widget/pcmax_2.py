@@ -25,6 +25,7 @@ from apscheduler.events import EVENT_JOB_EXECUTED, EVENT_JOB_ERROR
 import shutil
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 import re
+from widget.human_input import human_click, human_type, human_sleep
 
 
 def catch_warning_pop(name, driver):
@@ -42,7 +43,7 @@ def catch_warning_pop(name, driver):
     if kiyaku_btns:
       print("kiyaku_btns")
       print(kiyaku_btns[0].text)
-      driver.execute_script("arguments[0].click();", kiyaku_btns[0])
+      human_click(driver, kiyaku_btns[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(1)
       if len(driver.find_elements(By.CLASS_NAME, 'kiyaku-btn')):
@@ -70,7 +71,7 @@ def catch_warning_pop(name, driver):
       this_month = driver.find_elements(By.ID, 'this_month')
       if len(this_month):
         time.sleep(1)
-        driver.execute_script('arguments[0].click();', this_month[0])
+        human_click(driver, this_month[0])
         driver.find_element(By.ID, 'this_month').click()
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(2)     
@@ -366,7 +367,7 @@ def profile_search(driver, search_edit, skip_body_type=False):
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
       time.sleep(0.5)
       # native click が効かないため JS click を使用
-      driver.execute_script("arguments[0].click();", checkbox)
+      human_click(driver, checkbox)
     time.sleep(0.5)
   # unexclude: 既に ON だったら OFF にする（前回設定の残骸対策）
   for primary_id, fallback_id in unexclude_ids:
@@ -380,7 +381,7 @@ def profile_search(driver, search_edit, skip_body_type=False):
     if checkbox.is_selected():
       driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", checkbox)
       time.sleep(0.3)
-      driver.execute_script("arguments[0].click();", checkbox)
+      human_click(driver, checkbox)
       print(f"  unexclude: {primary_id or fallback_id} を OFF に矯正")
       time.sleep(0.3)
   # 身長設定
@@ -416,7 +417,7 @@ def profile_search(driver, search_edit, skip_body_type=False):
     for label in body_type_labels:
       checkbox = label.find_element(By.TAG_NAME, "input")
       if checkbox.is_selected():
-        driver.execute_script("arguments[0].click();", checkbox)
+        human_click(driver, checkbox)
         time.sleep(0.3)
   else:
     for label in body_type_labels:
@@ -654,8 +655,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
             user_row_cnt += 1
             continue
           text_area = driver.find_element(By.ID, value="mail_com")
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, fst_message.format(name=user_name))
+          human_type(driver, text_area, fst_message.format(name=user_name))
           time.sleep(1)
           # まじ送信
           mile_point_text = driver.find_elements(By.CLASS_NAME, value="side_point_pcm_data")
@@ -718,7 +718,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
           if two_messages_flug:
             two_message_users.append(user_name)
           back2 = driver.find_element(By.ID, value="back2")
-          driver.execute_script("arguments[0].click();", back2)
+          human_click(driver, back2)
           sent_cnt += 1
           print(f"マジ送信{maji_soushin} {iikamo_text} ユーザー名:{user_info} {user_area} {sent_cnt}件送信  {now}")
           user_row_cnt += 1  
@@ -770,8 +770,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
               return user_name, check_first, check_second, check_more, gmail_condition, check_date
             text_area = driver.find_element(By.ID, value="mdc")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-            script = "arguments[0].value = arguments[1];"
-            driver.execute_script(script, text_area, fst_message.format(name=user_name))
+            human_type(driver, text_area, fst_message.format(name=user_name))
             time.sleep(1)
             text_area_value = text_area.get_attribute("value")
             t_a_v_cnt = 0
@@ -800,7 +799,7 @@ def set_fst_mail(name, driver, fst_message, send_cnt, mail_img, iikamo_cnt, two_
                 print("連続防止　待機中...")
                 time.sleep(7)
                 text_area = driver.find_element(By.ID, value="mdc")
-                driver.execute_script(script, text_area, fst_message.format(name=user_name))
+                human_type(driver, text_area, fst_message.format(name=user_name))
                 time.sleep(1)
                 if mail_img:
                   my_photo_element = driver.find_element(By.ID, "my_photo")
@@ -1209,8 +1208,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             try:
               text_area = driver.find_element(By.ID, value="mdc")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area, icloud_text)
+              human_type(driver, text_area, icloud_text)
               time.sleep(4)
               driver.find_element(By.ID, "send_n").click()
               if driver.find_elements(By.CLASS_NAME, "banned-word"):
@@ -1264,8 +1262,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             try:
               text_area = driver.find_element(By.ID, value="mdc")
               driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-              script = "arguments[0].value = arguments[1];"
-              driver.execute_script(script, text_area, confirmation_mail)
+              human_type(driver, text_area, confirmation_mail)
               text_area_value = text_area.get_attribute("value")
               t_a_v_cnt = 0
               # print(text_area_value)
@@ -1343,8 +1340,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             return
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, ai_response)
+          human_type(driver, text_area, ai_response)
           time.sleep(1)
           text_area_value = text_area.get_attribute("value")
           t_a_v_cnt = 0
@@ -1364,7 +1360,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, fst_message.format(name=user_name))
+              human_type(driver, text_area, fst_message.format(name=user_name))
               time.sleep(1)
               if mail_img:
                 my_photo_element = driver.find_element(By.ID, "my_photo")
@@ -1448,9 +1444,8 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         # time.sleep(1)
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-        script = "arguments[0].value = arguments[1];"
         
-        driver.execute_script(script, text_area, fst_message.format(name=user_name))
+        human_type(driver, text_area, fst_message.format(name=user_name))
         time.sleep(1)
         text_area_value = text_area.get_attribute("value")
         t_a_v_cnt = 0
@@ -1479,7 +1474,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("連続防止　待機中...")
             time.sleep(7)
             text_area = driver.find_element(By.ID, value="mdc")
-            driver.execute_script(script, text_area, fst_message.format(name=user_name))
+            human_type(driver, text_area, fst_message.format(name=user_name))
             time.sleep(1)
             if mail_img:
               my_photo_element = driver.find_element(By.ID, "my_photo")
@@ -1508,8 +1503,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         text_area = driver.find_element(By.ID, value="mdc")
         driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
         time.sleep(1)
-        script = "arguments[0].value = arguments[1];"
-        driver.execute_script(script, text_area, second_message)
+        human_type(driver, text_area, second_message)
         t_a_v_cnt = 0
         text_area_value = text_area.get_attribute("value")
         while not text_area_value:
@@ -1532,7 +1526,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print("連続防止　待機中...")
             time.sleep(7)
             text_area = driver.find_element(By.ID, value="mdc")
-            driver.execute_script(script, text_area, second_message)
+            human_type(driver, text_area, second_message)
             time.sleep(1)
             driver.find_element(By.ID, "send_n").click()
             time.sleep(1)
@@ -1551,8 +1545,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             text_area = driver.find_element(By.ID, value="mdc")
             driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
             time.sleep(1)
-            script = "arguments[0].value = arguments[1];"
-            driver.execute_script(script, text_area, second_message)
+            human_type(driver, text_area, second_message)
             t_a_v_cnt = 0
             text_area_value = text_area.get_attribute("value")
             while not text_area_value:
@@ -1575,7 +1568,7 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
                 print("連続防止　待機中...")
                 time.sleep(7)
                 text_area = driver.find_element(By.ID, value="mdc")
-                driver.execute_script(script, text_area, second_message)
+                human_type(driver, text_area, second_message)
                 time.sleep(1)
                 driver.find_element(By.ID, "send_n").click()
                 time.sleep(1)
@@ -1676,8 +1669,7 @@ def iikamo_list_return_message(name, driver, fst_message, send_cnt, mail_img, un
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     # time.sleep(1)
     text_area = driver.find_element(By.ID, value="mail_com")
-    script = "arguments[0].value = arguments[1];"
-    driver.execute_script(script, text_area, fst_message)
+    human_type(driver, text_area, fst_message)
     time.sleep(1)
     # まじ送信
     mile_point_text = driver.find_element(By.CLASS_NAME, value="side_point_pcm_data").text
@@ -2088,7 +2080,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
   else:
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", ashiato_list_link)
     time.sleep(0.5)
-    driver.execute_script("arguments[0].click();", ashiato_list_link)
+    human_click(driver, ashiato_list_link)
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(1)
   rf_cnt = 0
@@ -2246,7 +2238,6 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       text_area = driver.find_elements(By.ID, value="mail_com")
     elif "linkleweb" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="comme")
-    script = "arguments[0].value = arguments[1];"
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
     # === 1通目: Claude で生成した 1〜3 行の短い AI 挨拶（use_ai_intro=True のときのみ）===
@@ -2254,7 +2245,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
       short_intro = _generate_short_intro(name, rf_profile, ditail_page_user_name)
       if short_intro:
         print(f"  [{name}] 1通目 AI 挨拶生成: {short_intro[:80]!r}")
-        driver.execute_script(script, text_area[0], short_intro)
+        human_type(driver, text_area[0], short_intro)
         time.sleep(0.5)
         try:
           driver.find_element(By.ID, 'send3').click()
@@ -2301,7 +2292,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
 
     # === ベース定型 足跡返し本文を送信 (use_ai_intro=True なら 2通目、False なら 1通目) ===
     final_msg = return_foot_message.format(name=ditail_page_user_name)
-    driver.execute_script(script, text_area[0], final_msg)
+    human_type(driver, text_area[0], final_msg)
     time.sleep(0.5)
     # まじ送信
     if "pcmax" in driver.current_url:
@@ -2355,7 +2346,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           link_OK = driver.find_element(*link_OK_locator)
           driver.execute_script("arguments[0].scrollIntoView({block:'center'});", link_OK)
           time.sleep(0.3)
-          driver.execute_script("arguments[0].click();", link_OK)
+          human_click(driver, link_OK)
           print(f"  [{name}] link_OK は JS クリックで送信確定（native click 失敗: {type(e_native).__name__}）")
         except Exception as e_js:
           print(f"  [{name}] link_OK クリック失敗（native/JS どちらも駄目）: {e_js}")
@@ -2489,7 +2480,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
           else:
             try:
               back2 = driver.find_element(By.ID, value="back2")
-              driver.execute_script("arguments[0].click();", back2)
+              human_click(driver, back2)
             except NoSuchElementException:
               pass
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -2558,8 +2549,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
             return rf_cnt
           text_area = driver.find_element(By.ID, value="mdc")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area)
-          script = "arguments[0].value = arguments[1];"
-          driver.execute_script(script, text_area, return_foot_message.format(name=user_name))
+          human_type(driver, text_area, return_foot_message.format(name=user_name))
           time.sleep(1)
           text_area_value = text_area.get_attribute("value")
           t_a_v_cnt = 0
@@ -2588,7 +2578,7 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
               print("連続防止　待機中...")
               time.sleep(7)
               text_area = driver.find_element(By.ID, value="mdc")
-              driver.execute_script(script, text_area, return_foot_message.format(name=user_name))
+              human_type(driver, text_area, return_foot_message.format(name=user_name))
               time.sleep(1)
               if mail_img:
                 my_photo_element = driver.find_element(By.ID, "my_photo")
@@ -2653,10 +2643,9 @@ def _post_new_with_area(driver, wait, post_title, post_content, pref_name, city_
   bbs_title = driver.find_element(By.NAME, "bbs_title")
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", detail_area)
   time.sleep(0.5)
-  script = "arguments[0].value = arguments[1];"
-  driver.execute_script(script, bbs_title, post_title)
+  human_type(driver, bbs_title, post_title)
   time.sleep(0.5)
-  driver.execute_script(script, driver.find_element(By.ID, "bbs_comment1"), post_content)
+  human_type(driver, driver.find_element(By.ID, "bbs_comment1"), post_content)
   driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", driver.find_element(By.ID, "wri"))
   time.sleep(1)
   driver.find_element(By.ID, "wri").click()
@@ -3157,12 +3146,12 @@ def make_footprint_keyword(name, driver, footprint_count=5, iikamo_count=0):
     v = cb.get_attribute("value")
     want = v in TARGET_PREF_VALUES
     if cb.is_selected() != want:
-      driver.execute_script("arguments[0].click();", cb)
+      human_click(driver, cb)
 
   # 送信歴無しをチェック
   nt = driver.find_elements(By.CSS_SELECTOR, "input[name='no_transmit']")
   if nt and not nt[0].is_selected():
-    driver.execute_script("arguments[0].click();", nt[0])
+    human_click(driver, nt[0])
 
   # 年齢範囲
   try:
@@ -3640,7 +3629,7 @@ def pcmax_profile_edit(chara_data, driver, wait):
       inp.send_keys(name)
       print(f'  ニックネーム = {name} ✓')
       break
-  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  human_click(driver, driver.find_element(By.ID, 'image_button2'))
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   print(f'ニックネーム変更完了: {driver.current_url}')
@@ -3656,7 +3645,7 @@ def pcmax_profile_edit(chara_data, driver, wait):
   except Exception as e:
     print(f'  職業 ✗ ({e})')
   time.sleep(1)
-  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  human_click(driver, driver.find_element(By.ID, 'image_button2'))
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   print(f'職業変更完了: {driver.current_url}')
@@ -3672,7 +3661,7 @@ def pcmax_profile_edit(chara_data, driver, wait):
   except Exception as e:
     print(f'  血液型 ✗ ({e})')
   time.sleep(1)
-  driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+  human_click(driver, driver.find_element(By.ID, 'image_button2'))
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   print(f'血液型変更完了: {driver.current_url}')
@@ -3691,7 +3680,7 @@ def pcmax_profile_edit(chara_data, driver, wait):
     print(f'  メイン活動エリア = {main_area} ✓')
     time.sleep(1)
     # 1段目「次へ」(image_button2) で 2段目に遷移
-    driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'image_button2'))
+    human_click(driver, driver.find_element(By.ID, 'image_button2'))
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     # 2段目: 詳細1 (city_id_1) を detail_area に再設定（次へ通過時にリセットされるため）
@@ -3708,7 +3697,7 @@ def pcmax_profile_edit(chara_data, driver, wait):
       except Exception as e:
         print(f'  詳細1 ✗ ({e})')
     # 2段目「設定」(p_reg_btn) で保存
-    driver.execute_script("arguments[0].click()", driver.find_element(By.ID, 'p_reg_btn'))
+    human_click(driver, driver.find_element(By.ID, 'p_reg_btn'))
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     print(f'メイン活動エリア変更完了: {driver.current_url}')
