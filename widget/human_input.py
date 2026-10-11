@@ -17,6 +17,24 @@ import random
 from selenium.common.exceptions import ElementClickInterceptedException
 
 
+def _fire_mouse_move(driver, x, y, wait=None):
+  """mouseMoved を送る。
+
+  Chrome はアイドル後の最初の mouseMoved に応答を返さず、
+  CDP 側が 5 秒きっかりでタイムアウトすることがある（9222 で実測）。
+  ただし別スレッドに逃がすと Selenium の HTTP 接続を占有して
+  後続コマンドが詰まるため、素直に同期で送る。
+  BAN されるより遅い方がよいという方針なので、待たされても許容する。
+  """
+  try:
+    driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
+      "type": "mouseMoved", "x": x, "y": y, "button": "none"})
+  except Exception:
+    pass  # 応答待ちのタイムアウトは無視（イベント自体は届いている）
+  if wait:
+    time.sleep(wait)
+
+
 def human_sleep(min_sec=1.0, max_sec=3.0):
   """人間的なランダム待機（正規分布寄り）"""
   mean = (min_sec + max_sec) / 2
@@ -40,36 +58,78 @@ def _element_center(driver, element):
   return x, y
 
 
+# 直前のカーソル位置を覚えておく（毎回ワープせず、前の位置から動かすため）
+_last_cursor = {"x": None, "y": None}
+
+
+def _bezier_point(p0, p1, p2, p3, t):
+  """3次ベジェ曲線上の点を返す。"""
+  u = 1 - t
+  return (u * u * u * p0 + 3 * u * u * t * p1
+          + 3 * u * t * t * p2 + t * t * t * p3)
+
+
 def human_click(driver, element, move_steps=None):
   """CDP で実際のマウス操作を再現してクリックする。
 
-  mouseMoved を複数回（軌跡）→ mousePressed → mouseReleased の順に送るので
+  直前のカーソル位置からベジェ曲線を描いて対象まで移動し、
+  mouseMoved（複数回）→ mousePressed → mouseReleased を送る。
   isTrusted:true かつ先行イベント付きになり、JS クリックの痕跡が残らない。
+
+  mouseMoved はホバー処理やレイアウト再計算の完了を待つため
+  1回あたり数秒かかることがあるが、BAN されるよりは遅い方がよいので
+  既定で軌跡を多めに刻む。急ぎたい場合のみ move_steps=1 を指定する。
   CDP が使えない場合は通常クリック → JS クリックの順にフォールバックする。
   """
   try:
     x, y = _element_center(driver, element)
-    # mouseMoved はホバー処理やレイアウト再計算の完了を待つため、
-    # ページによっては1回に数秒かかる（9222 で実測: 1回あたり最大5秒）。
-    # 先行イベントは1回あれば isTrusted:true と「移動してから押した」痕跡が残るので、
-    # 既定では1回だけ送る。軌跡を増やしたい場合のみ move_steps を指定する。
     if move_steps is None:
-      move_steps = 1
-    start_x = x + random.uniform(-120, 120)
-    start_y = y + random.uniform(-120, 120)
+      move_steps = random.randint(8, 18)  # 軌跡の細かさもランダム
+
+    # 始点: 直前のカーソル位置。無ければ画面内の適当な位置から。
+    if _last_cursor["x"] is None:
+      vw = driver.execute_script("return window.innerWidth;") or 390
+      vh = driver.execute_script("return window.innerHeight;") or 844
+      start_x = random.uniform(vw * 0.15, vw * 0.85)
+      start_y = random.uniform(vh * 0.15, vh * 0.85)
+    else:
+      start_x, start_y = _last_cursor["x"], _last_cursor["y"]
+
+    # 制御点を始点〜終点の左右にずらし、わずかに弧を描く軌跡にする
+    dx, dy = x - start_x, y - start_y
+    dist = max(1.0, (dx * dx + dy * dy) ** 0.5)
+    # 弧の深さ。距離が近いと弧が浅くなり直線的になるので下限を厚めに取る。
+    # （同じ要素を連打するときは移動距離がほぼ 0 になるため、下限が効く）
+    bow = max(random.uniform(45, 110), random.uniform(0.15, 0.35) * dist)
+    side = random.choice((1, -1))
+    # 進行方向に対する法線方向へ制御点をずらす
+    nx, ny = -dy / dist, dx / dist
+    c1x = start_x + dx * random.uniform(0.2, 0.4) + nx * bow * side
+    c1y = start_y + dy * random.uniform(0.2, 0.4) + ny * bow * side
+    c2x = start_x + dx * random.uniform(0.6, 0.8) + nx * bow * side * 0.5
+    c2y = start_y + dy * random.uniform(0.6, 0.8) + ny * bow * side * 0.5
+
     for i in range(1, move_steps + 1):
       t = i / move_steps
-      # ease-out 気味に（人は対象に近づくほど減速する）
-      t = 1 - (1 - t) ** 2
-      driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
-        "type": "mouseMoved",
-        "x": start_x + (x - start_x) * t,
-        "y": start_y + (y - start_y) * t,
-        "button": "none",
-      })
-      if move_steps > 1:
-        time.sleep(random.uniform(0.01, 0.05))
-    time.sleep(random.uniform(0.05, 0.18))  # 狙いを定める間
+      # ease-in-out（動き出しと止まり際が遅い、人の手の動き）
+      te = 3 * t * t - 2 * t * t * t
+      px = _bezier_point(start_x, c1x, c2x, x, te)
+      py = _bezier_point(start_y, c1y, c2y, y, te)
+      # 手ぶれ（終点に近いほど小さくなるが、最後まで多少は残る）
+      jitter = (0.25 + 0.75 * (1 - te)) * random.uniform(0, 3.5)
+      px += random.uniform(-jitter, jitter)
+      py += random.uniform(-jitter, jitter)
+      # 移動間隔もランダム。中盤は速く、終盤は減速する
+      base = 0.012 + 0.05 * te          # 終盤ほど長めに止まる
+      gap = random.uniform(base * 0.5, base * 1.8)
+      # 送信の待ち時間を移動間隔そのものに充てる（応答は待たない）
+      _fire_mouse_move(driver, px, py, wait=gap)
+      # ときどき途中で止まる（何かを見た/迷った）
+      if random.random() < 0.08:
+        time.sleep(random.uniform(0.08, 0.45))
+
+    # 狙いを定める間（押す直前の一拍）
+    time.sleep(random.uniform(0.08, 0.45))
     for ev in ("mousePressed", "mouseReleased"):
       driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
         "type": ev,
@@ -78,7 +138,10 @@ def human_click(driver, element, move_steps=None):
         "clickCount": 1,
       })
       if ev == "mousePressed":
-        time.sleep(random.uniform(0.04, 0.12))  # 押してから離すまで
+        time.sleep(random.uniform(0.05, 0.16))  # 押してから離すまで
+    _last_cursor["x"], _last_cursor["y"] = x, y
+    # 押した後の一拍（人はクリック直後すぐ次の操作をしない）
+    time.sleep(random.uniform(0.1, 0.5))
     return True
   except Exception as e:
     print(f"[human_click] CDP クリック失敗({type(e).__name__}) → 通常クリックにフォールバック")
