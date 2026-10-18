@@ -48,6 +48,90 @@ AGE_PATTERN_UNDER_35 = r"20代|18.?19|30代前半|30前半"  # 34歳以下相当
 # マッチング返しの待機時間の範囲（秒）。1件ごとに引き直して機械的な等間隔を避ける。
 MATCHING_WAIT_RANGE = (1.5, 3.5)
 
+# --- 受信メッセージのNGワード ---------------------------------------------
+# 金銭を伴う出会いを示唆するメッセージに返信すると、サイト側の監視に
+# 引っかかって即 BAN される（2026-10-18 に「おいくらになりますか」へ
+# 自動返信した直後に「この登録は利用できません」になった実績あり）。
+# これらを含む受信メッセージには返信せず、相手を無視登録する。
+# 含まれていたら無条件で NG にする語（単体で十分に危険）
+MESSAGE_NG_WORDS = [
+  # 価格交渉
+  "いくら", "イクラ", "おいく", "幾ら",
+  "有償", "謝礼", "お礼は", "予算",
+  "サポ", "割り切", "わりきり", "ワリキリ",
+  "条件は", "条件を", "条件教", "ご条件", "交渉",
+  "援助", "援交", "えんこう",
+  # 直接的な誘い
+  "ラブホ", "今から会", "ホテル行", "ホテルで", "ホテル代",
+  "本番", "ゴム", "生で", "基本料",
+  # 業者・勧誘
+  "通報", "業者", "サクラ", "line交換", "ライン交換",
+]
+# 金額表現（数字＋単位）。これ単体で NG。
+MESSAGE_NG_AMOUNT_RE = r"[0-9０-９]\s*(?:万|千|円|k(?![a-z])|ｋ)"
+# 単体では誤検知しやすいので、金額表現か他の危険語と同時に出たときだけ NG にする語
+# 例: 「応援してます」「即レス」「円満」を無視登録しないため
+MESSAGE_NG_WEAK_WORDS = ["円", "即", "援", "ホテル", "会えます", "相場", "有料"]
+
+
+def contains_ng_word(text):
+  """受信メッセージが返信してはいけない内容かを判定する。
+
+  金銭を伴う出会いの打診に返信すると即 BAN されるため、
+  疑わしいものは返信せず無視登録に回す。
+  返り値: 検出した NG ワード（無ければ None）
+  """
+  if not text:
+    return None
+  flat = str(text).replace(" ", "").replace("　", "").replace("\n", "").lower()
+  for ng in MESSAGE_NG_WORDS:
+    if ng.lower() in flat:
+      return ng
+  m = re.search(MESSAGE_NG_AMOUNT_RE, flat)
+  if m:
+    return m.group(0)
+  # 弱い語は2つ以上そろったときだけ NG にする（単独の誤検知を避ける）
+  hits = [w for w in MESSAGE_NG_WEAK_WORDS if w.lower() in flat]
+  if len(hits) >= 2:
+    return "+".join(hits)
+  return None
+
+
+def regist_ignore_user(driver, wait, user_name=""):
+  """表示中のメッセージ/プロフィール画面の相手を「無視」に登録する。
+
+  その他(btn-other) → メニュー4番目 → 無視登録ボタン、の順に進む。
+  戻り値: 登録できたら True
+  """
+  try:
+    icon_other_div = driver.find_elements(By.ID, value="btn-other")
+    if not icon_other_div:
+      print(f"無視登録: その他ボタンが見つかりません {user_name}")
+      return False
+    other_icon = icon_other_div[0].find_element(By.TAG_NAME, value="img")
+    human_click(driver, other_icon)
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(random.uniform(0.8, 1.5))
+    items = driver.find_elements(By.CLASS_NAME, value="footer_menu-list-item")
+    if len(items) < 4:
+      print(f"無視登録: メニューが開きません {user_name}")
+      return False
+    human_click(driver, items[3])
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(random.uniform(0.8, 1.5))
+    btns = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__pink")
+    if not btns:
+      print(f"無視登録: 確定ボタンが見つかりません {user_name}")
+      return False
+    human_click(driver, btns[0])
+    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(random.uniform(0.8, 1.5))
+    print(f"🚫無視登録しました {user_name}")
+    return True
+  except Exception as e:
+    print(f"無視登録に失敗 {user_name}: {type(e).__name__}: {e}")
+    return False
+
 # 元のメソッドを退避
 _original_find_element = WebDriver.find_element
 _original_find_elements = WebDriver.find_elements
@@ -563,6 +647,26 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               ((driver.execute_script("return arguments[0].textContent;", el) or el.text or "").strip())
               for el in received_elem
             )
+            # --- NGワード判定 -------------------------------------------
+            # 金銭交渉など規約違反を示唆するメッセージに返信すると即 BAN されるため、
+            # 返信せずに相手を無視登録して次のメールへ進む。
+            ng = contains_ng_word(all_received_text)
+            if ng:
+              print(f"🚫受信メッセージにNGワード『{ng}』を検出 → 返信せず無視登録します")
+              regist_ignore_user(driver, wait, user_name)
+              return_list.append(
+                f"{name}happymail,{login_id}:{password}\n{user_name}\n"
+                f"【NGワード「{ng}」のため返信せず無視登録】\n{received_message}")
+              driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
+              wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+              time.sleep(2)
+              new_mail = driver.find_elements(By.CLASS_NAME, value="ds_message_list_mini")
+              new_mail_cnt += 1
+              loop_cnt += 1
+              if loop_cnt >= return_check_cnt:
+                print("新着メール確認ループ回数上限に達しました")
+                break
+              continue
             email_pattern = r'[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+'
             email_list = re.findall(email_pattern, all_received_text)
             if email_list:
