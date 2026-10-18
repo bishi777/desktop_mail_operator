@@ -209,6 +209,52 @@ def catch_warning_screen(driver):
       return "ログインできませんでした"
   return False
 
+def close_open_modal(driver, wait=None):
+  """開いているモーダル(remodal)を閉じる。
+
+  タイプ送信の確認モーダルなどが開いたままだと、後続のクリックが
+  「element click intercepted ... remodal-wrapper」で失敗する。
+  catch_warning_screen は要素の存在だけを見ており、非表示のモーダルも
+  DOM に常駐するため判定できないので、表示中のものだけをここで閉じる。
+  戻り値: 閉じたら True
+  """
+  try:
+    opened = driver.find_elements(By.CSS_SELECTOR, ".remodal-wrapper.remodal-is-opened")
+    opened = [e for e in opened if e.is_displayed()]
+    if not opened:
+      return False
+    print("開いたままのモーダルを閉じます")
+    # 閉じるボタンがあれば実クリックで閉じる
+    for sel in (".remodal-close", ".modal-cancel", ".modal-confirm"):
+      btns = [b for b in driver.find_elements(By.CSS_SELECTOR, sel) if b.is_displayed()]
+      if btns:
+        human_click(driver, btns[0])
+        time.sleep(random.uniform(0.4, 0.9))
+        break
+    else:
+      # 閉じるボタンが見つからなければ Escape キー（これも実入力）
+      driver.execute_cdp_cmd("Input.dispatchKeyEvent", {
+        "type": "keyDown", "key": "Escape", "code": "Escape",
+        "windowsVirtualKeyCode": 27})
+      driver.execute_cdp_cmd("Input.dispatchKeyEvent", {
+        "type": "keyUp", "key": "Escape", "code": "Escape",
+        "windowsVirtualKeyCode": 27})
+      time.sleep(random.uniform(0.4, 0.9))
+    # まだ開いていればページを開き直して確実に消す
+    still = [e for e in driver.find_elements(
+      By.CSS_SELECTOR, ".remodal-wrapper.remodal-is-opened") if e.is_displayed()]
+    if still:
+      print("モーダルが閉じないためページを再読み込みします")
+      driver.refresh()
+      if wait:
+        wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.2)
+    return True
+  except Exception as e:
+    print(f"[close_open_modal] {type(e).__name__}: {e}")
+    return False
+
+
 def nav_item_click(nav_name, driver, wait):
   catch_warning_screen(driver)
   nav_list = driver.find_elements(By.ID, value='ds_nav')
@@ -1479,8 +1525,13 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
   #   return
   # 「マッチング」をクリック
   catch_warning_screen(driver)
-  from_myself = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")[2]
-  from_myself.click()
+  # 直前のタイプ送信の確認モーダルが残っているとタブクリックが遮られる
+  close_open_modal(driver, wait)
+  tabs = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")
+  if len(tabs) < 3:
+    print("マッチングタブが見つかりません")
+    return return_matching_counted, limit_flug, send_user_list
+  human_click(driver, tabs[2])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.4)
   while return_matching_counted < matching_cnt:
@@ -1508,7 +1559,7 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       if mail_icon_cnt == 18:
         ds_logo = driver.find_element(By.CLASS_NAME, value="ds_logo")
         top_link = ds_logo.find_element(By.TAG_NAME, value="a")
-        top_link.click()
+        human_click(driver, top_link)
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(0.5)
         # print("マッチングリストで送信履歴のあるユーザーが20回続きました")
@@ -1582,11 +1633,11 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
           send_status = False
           user_icon += 1
           plus_icon = driver.find_element(By.CLASS_NAME, value="icon-message_plus")
-          plus_icon.click()
+          human_click(driver, plus_icon)
           time.sleep(0.6)
           # 無視登録
           other_icon = driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_item")[4].find_element(By.TAG_NAME, value="a")
-          other_icon.click()
+          human_click(driver, other_icon)
           time.sleep(0.5)
           submit = driver.find_element(By.CLASS_NAME, value="input__form__action__button__pink")
           driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
@@ -1669,8 +1720,12 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
   # if not nav_flug:
   #   return
   # 「相手から」をクリック
-  from_other = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")[0]
-  from_other.click()
+  close_open_modal(driver, wait)
+  tabs = driver.find_elements(By.CLASS_NAME, value="ds_common_tab_item")
+  if not tabs:
+    print("タイプのタブが見つかりません")
+    return return_type_counted
+  human_click(driver, tabs[0])
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(0.5)
   under_scroll_count = 0
@@ -1761,11 +1816,11 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       user_name = name_field.text
       user_name_list.append(user_name) 
       type_button = type_users[user_icon_type+1].find_elements(By.CLASS_NAME, value="type_button")
-      type_button[0].click()
+      human_click(driver, type_button[0])
     else:
       print(f"タイプ返しユーザー: {user_name}")
       type_button = type_users[user_icon_type].find_elements(By.CLASS_NAME, value="type_button")
-      type_button[0].click()
+      human_click(driver, type_button[0])
     return_type_counted += 1
     print(f"タイプ返し　~{user_name}~ {return_type_counted}件")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
@@ -1778,9 +1833,14 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
       type_confirm = driver.find_elements(By.CLASS_NAME, value="modal-confirm")
       if type_confirm_wait_cnt == 2:
         break
-    if not len(type_confirm):   
-      return 
-    type_confirm[0].click()
+    if not len(type_confirm):
+      # 確認モーダルが出ない場合でも、ここまでに送信済みの件数は返す
+      # （None を返すと呼び出し側の合計上限計算が 0 件扱いになる）
+      print(f"タイプ確認モーダルが出ないため中断 送信済み{return_type_counted}件")
+      # 別のモーダルが開いたままだと後続処理のクリックを遮るので閉じておく
+      close_open_modal(driver, wait)
+      return return_type_counted
+    human_click(driver, type_confirm[0])
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(0.5)
     driver.get("https://happymail.co.jp/sp/app/html/type_list.php")
