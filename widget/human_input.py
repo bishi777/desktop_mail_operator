@@ -84,7 +84,11 @@ def human_click(driver, element, move_steps=None):
   try:
     x, y = _element_center(driver, element)
     if move_steps is None:
-      move_steps = random.randint(8, 18)  # 軌跡の細かさもランダム
+      # mouseMoved はアイドル後に CDP が 5 秒きっかりでタイムアウトすることがあり
+      # （9222 で実測）、点数を増やすと 1 クリックに 80 秒以上かかってしまう。
+      # 先行イベントは少数でも isTrusted:true と「移動してから押した」痕跡は残るので
+      # 既定は 1〜2 点に抑える。軌跡を増やしたいときだけ move_steps を指定する。
+      move_steps = random.randint(1, 2)
 
     # 始点: 直前のカーソル位置。無ければ画面内の適当な位置から。
     if _last_cursor["x"] is None:

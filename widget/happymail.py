@@ -363,9 +363,36 @@ def nav_item_click(nav_name, driver, wait):
         if not len(new_message):
           return "新着メールなし"   
       nav_link = nav.find_elements(By.TAG_NAME, value="a")
+      target_href = nav_link[0].get_attribute("href") or ""
+      before_url = driver.current_url
       human_click(driver, nav_link[0])
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-      time.sleep(2) 
+      time.sleep(2)
+      # クリックが空振りして同じページに留まることがあるため、
+      # 遷移を確認して最大2回まで押し直す（それでも駄目なら直接 URL へ）
+      for _retry in range(2):
+        if driver.current_url != before_url:
+          break
+        print(f"{nav_name}へ遷移できていないため再クリックします")
+        links = driver.find_elements(By.ID, value='ds_nav')
+        retry_link = None
+        if links:
+          for n2 in links[0].find_elements(By.CLASS_NAME, value="ds_nav_item"):
+            if nav_name in n2.text:
+              a2 = n2.find_elements(By.TAG_NAME, value="a")
+              if a2:
+                retry_link = a2[0]
+              break
+        if retry_link is None:
+          break
+        human_click(driver, retry_link)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2)
+      if driver.current_url == before_url and target_href:
+        print(f"{nav_name}へクリックで遷移できないため直接移動します")
+        driver.get(target_href)
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(1.5)
       if nav_name == "メッセージ":   
         if driver.current_url not in (
             "https://happymail.co.jp/app/html/message_list.php",
@@ -2403,8 +2430,16 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       sort_order = driver.find_elements(By.ID, value="kind_select")
       if len(sort_order):
         select = Select(sort_order[0])
-        select.select_by_visible_text("プロフ一覧")
-        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        if select.first_selected_option.text != "プロフ一覧":
+          print("表示形式を「プロフ一覧」に切り替えます")
+          select.select_by_visible_text("プロフ一覧")
+          wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+          # 表示切替は Ajax のことがあり readyState が変わらないため、
+          # 一覧が実際に描画されるまで待つ
+          for _ in range(15):
+            time.sleep(1)
+            if driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r"):
+              break
     login_users_wait_cnt = 0
     login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
     while len(login_users) == 0:
@@ -2412,6 +2447,7 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
       login_users_wait_cnt += 1
       if login_users_wait_cnt == 3:
+        print(f"{name}: プロフ一覧のユーザーを取得できませんでした（表示形式を確認してください）")
         return
     name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
     user_name = name_field.text
@@ -2489,10 +2525,17 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     # プロフを開いたら実際に読んでいるように滞在・スクロールする
     # （開いて即戻るのは閲覧行動として不自然なため）
     human_dwell(driver, random.choice(["low", "normal", "normal", "high"]))
-    back_link = driver.find_element(By.CLASS_NAME, value="ds_link_back")
-    human_click(driver, back_link)
-    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-    time.sleep(wait_time)
+    # 戻るリンクはページによって無いことがあるので、無ければ一覧へ直接戻る
+    back_links = driver.find_elements(By.CLASS_NAME, value="ds_link_back")
+    if back_links:
+      human_click(driver, back_links[0])
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
+    if "profile_list.php" not in driver.current_url and \
+       "profile_detail_list.php" not in driver.current_url:
+      driver.get("https://happymail.co.jp/sp/app/html/profile_list.php")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(wait_time)
 
     # if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
     #   driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
