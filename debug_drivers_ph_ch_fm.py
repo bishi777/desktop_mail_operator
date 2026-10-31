@@ -31,7 +31,7 @@ HAPPY_RETURN_FOOT_CNT = 2        # 足跡返しの上限（合計上限から差
 HAPPY_MATCHING_DAILY_LIMIT = 30  # マッチング返しの1日上限
 HAPPY_RETURNFOOT_DAILY_LIMIT = 30  # 足跡返しの1日上限
 # タイプ返し・足跡返しの実行間隔。1ループ=約10分なので 2 で約20分おき。
-HAPPY_REPLY_EVERY_N_ROLL = 1  # ★デバッグ中: 1周目から実行させる（本番は 2 に戻すこと）
+HAPPY_REPLY_EVERY_N_ROLL = 2
 
 def reset_metrics_keep_check_date(d: dict) -> dict:
     metric_keys = ["fst", "rf", "check_first", "check_second", "gmail_condition", "check_more"]
