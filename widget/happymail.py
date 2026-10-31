@@ -102,34 +102,53 @@ def contains_ng_word(text):
 
 
 def regist_ignore_user(driver, wait, user_name=""):
-  """表示中のメッセージ/プロフィール画面の相手を「無視」に登録する。
+  """メッセージのやりとり画面で、表示中の相手を「無視」に登録する。
 
-  その他(btn-other) → メニュー4番目 → 無視登録ボタン、の順に進む。
+  手順（9222 で実機確認）:
+    入力欄の左下にある ＋ ボタン(#ds_js_media_display_btn) を押す
+      → 開いたメニューの「無視登録」を押す
+      → 確認画面が出れば確定する
+  メッセージ詳細ページには btn-other が無いので、
+  プロフィール画面用の導線は使えない。
   戻り値: 登録できたら True
   """
   try:
-    icon_other_div = driver.find_elements(By.ID, value="btn-other")
-    if not icon_other_div:
-      print(f"無視登録: その他ボタンが見つかりません {user_name}")
+    plus = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+    if not plus:
+      print(f"無視登録: ＋ボタンが見つかりません {user_name}")
       return False
-    other_icon = icon_other_div[0].find_element(By.TAG_NAME, value="img")
-    human_click(driver, other_icon)
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(random.uniform(0.8, 1.5))
-    items = driver.find_elements(By.CLASS_NAME, value="footer_menu-list-item")
-    if len(items) < 4:
-      print(f"無視登録: メニューが開きません {user_name}")
+    human_click(driver, plus[0])
+    time.sleep(random.uniform(1.0, 1.8))
+    # 開いたメニューから「無視登録」を選ぶ
+    target = None
+    for el in driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_item"):
+      try:
+        if "無視登録" in (el.text or "") and el.is_displayed():
+          target = el
+          break
+      except Exception:
+        continue
+    if target is None:
+      print(f"無視登録: メニューに「無視登録」がありません {user_name}")
       return False
-    human_click(driver, items[3])
+    human_click(driver, target)
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(random.uniform(0.8, 1.5))
-    btns = driver.find_elements(By.CLASS_NAME, value="input__form__action__button__pink")
-    if not btns:
-      print(f"無視登録: 確定ボタンが見つかりません {user_name}")
-      return False
-    human_click(driver, btns[0])
-    wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-    time.sleep(random.uniform(0.8, 1.5))
+    time.sleep(random.uniform(1.0, 2.0))
+    # 確認画面やダイアログが出る場合は確定する
+    for _ in range(2):
+      confirm = driver.execute_script("""
+        const words = /無視|登録|はい|OK|実行/;
+        const els = [...document.querySelectorAll(
+          'button, a.ds_round_btn, .input__form__action__button__pink, .modal-confirm')];
+        return els.find(e => e.offsetParent !== null
+          && words.test((e.textContent || e.value || '').trim())
+          && !/キャンセル|やめる|戻る|解除/.test(e.textContent || '')) || null;
+      """)
+      if not confirm:
+        break
+      human_click(driver, confirm)
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+      time.sleep(random.uniform(1.0, 2.0))
     print(f"🚫無視登録しました {user_name}")
     return True
   except Exception as e:
