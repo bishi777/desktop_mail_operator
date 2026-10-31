@@ -55,17 +55,21 @@ MATCHING_WAIT_RANGE = (1.5, 3.5)
 # これらを含む受信メッセージには返信せず、相手を無視登録する。
 # 含まれていたら無条件で NG にする語（単体で十分に危険）
 MESSAGE_NG_WORDS = [
-  # 価格交渉
+  # 価格交渉・金銭の示唆
+  # ※ 活用形で取りこぼさないよう語幹で持つ（「お礼は」だけだと
+  #    「お礼します」を素通りさせて BAN につながった実績あり）
   "いくら", "イクラ", "おいく", "幾ら",
-  "有償", "謝礼", "お礼は", "予算",
+  "有償", "謝礼", "お礼", "おれい", "お小遣", "こづかい", "小遣",
+  "予算", "報酬", "手当", "日給", "時給",
   "サポ", "割り切", "わりきり", "ワリキリ",
-  "条件は", "条件を", "条件教", "ご条件", "交渉",
-  "援助", "援交", "えんこう",
+  "条件", "交渉", "相談にのって", "相談に乗って",
+  "援助", "援交", "えんこう", "パパ活", "ぱぱ活",
   # 直接的な誘い
-  "ラブホ", "今から会", "ホテル行", "ホテルで", "ホテル代",
-  "本番", "ゴム", "生で", "基本料",
+  "ラブホ", "今から会", "すぐ会", "今日会", "これから会",
+  "ホテル行", "ホテルで", "ホテル代", "部屋で",
+  "本番", "ゴム", "生で", "基本料", "大人の",
   # 業者・勧誘
-  "通報", "業者", "サクラ", "line交換", "ライン交換",
+  "通報", "業者", "サクラ", "line交換", "ライン交換", "副業", "稼げ",
 ]
 # 金額表現（数字＋単位）。これ単体で NG。
 MESSAGE_NG_AMOUNT_RE = r"[0-9０-９]\s*(?:万|千|円|k(?![a-z])|ｋ)"
@@ -1942,16 +1946,25 @@ def return_type(name, wait, wait_time, driver, user_name_list, duplication_user,
     # タイプユーザーをクリック
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", type_users[user_icon_type])
     if duplication_user:
-      print(1234)
+      if len(type_users) <= user_icon_type + 1:
+        print("重複スキップ先のユーザーが居ないためタイプ返しを終了します")
+        return return_type_counted
       name_field = type_users[user_icon_type+1].find_element(By.CLASS_NAME, value="ds_like_list_name")
       user_name = name_field.text
-      user_name_list.append(user_name) 
+      user_name_list.append(user_name)
       type_button = type_users[user_icon_type+1].find_elements(By.CLASS_NAME, value="type_button")
-      human_click(driver, type_button[0])
     else:
       print(f"タイプ返しユーザー: {user_name}")
       type_button = type_users[user_icon_type].find_elements(By.CLASS_NAME, value="type_button")
-      human_click(driver, type_button[0])
+    # 既にタイプ済みなどでボタンが無い行は飛ばす（[0] で IndexError になっていた）
+    if not type_button:
+      print(f"タイプボタンが無いためスキップ: {user_name}")
+      user_icon_type += 1
+      if user_icon_type > 50:
+        print("タイプ返し: 候補を50人見ても送信できないため終了します")
+        return return_type_counted
+      continue
+    human_click(driver, type_button[0])
     return_type_counted += 1
     print(f"タイプ返し　~{user_name}~ {return_type_counted}件")
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
