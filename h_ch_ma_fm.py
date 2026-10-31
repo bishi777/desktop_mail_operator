@@ -15,6 +15,7 @@ from selenium.common.exceptions import NoSuchWindowException, WebDriverException
 from urllib3.exceptions import ReadTimeoutError
 from datetime import datetime
 import settings
+from widget.human_input import make_driver
 
 
 _DEFAULT_REPOST_TIMES = [(6, 0), (10, 0), (19, 0)]
@@ -69,7 +70,7 @@ print(f"掲示板投稿時刻: {[_fmt_time(t) for t in repost_times]}")
 
 options = Options()
 options.add_experimental_option("debuggerAddress", f"127.0.0.1:{port}")
-driver = webdriver.Chrome(options=options)
+driver = make_driver(options, port=port)
 # [F] CDP経由でnavigator.webdriverを除去
 happymail.stealth_setup(driver)
 wait = WebDriverWait(driver, 10)

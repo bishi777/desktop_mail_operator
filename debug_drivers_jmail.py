@@ -11,6 +11,7 @@ import requests
 import traceback
 import argparse
 from datetime import datetime
+from widget.human_input import make_driver
 
 
 user_data = func.get_user_data()
@@ -86,7 +87,7 @@ def main_syori():
     options.add_experimental_option("debuggerAddress", f"127.0.0.1:{PORT}")
   else:
     print("[INFO] No remote-debugging port provided. Launching Chrome normally.")
-  driver = webdriver.Chrome(options=options)
+  driver = make_driver(options, port=PORT)
   wait = WebDriverWait(driver, 10)
 
   loop_cnt = 0

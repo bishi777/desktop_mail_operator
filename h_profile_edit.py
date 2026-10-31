@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from widget import func, happymail
+from widget.human_input import make_driver
 
 
 def find_matching_tab(driver, login_id, wait):
@@ -41,7 +42,7 @@ def main():
     # デバッグ用Chromeに接続
     options = Options()
     options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
-    driver = webdriver.Chrome(options=options)
+    driver = make_driver(options, port=port)
     wait = WebDriverWait(driver, 10)
 
     # ユーザーデータ取得

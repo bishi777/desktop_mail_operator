@@ -16,6 +16,7 @@ from datetime import datetime
 import sys
 import argparse
 import re
+from widget.human_input import make_driver
 
 POST_SLOTS = [(6, 30), (9, 0), (17, 0), (20, 0)]
 
@@ -267,7 +268,7 @@ def main_syori():
       print(f"[cdc_パッチ] {n}個の chromedriver をパッチしました")
   except Exception as e:
     print(f"[cdc_パッチ] スキップ（{type(e).__name__}: {e}）")
-  driver = webdriver.Chrome(options=options)
+  driver = make_driver(options, port=PORT)
   # --- 接続後 stealth: 自動化痕跡を JS で上書き（新規ドキュメント読込前に注入）---
   # UA に自動追従: iPhone UA のときだけ platform/touch/vendor を iPhone 相当にし、
   # それ以外(Windows等)では OS 由来の値をそのまま保つ（UAとの矛盾を作らない）。

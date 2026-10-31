@@ -11,10 +11,99 @@ isTrusted:true になり、実際の操作と区別がつかない。
 全プラットフォーム（happymail / pcmax / ikukuru / jmail）共通で使う。
 循環 import を避けるため widget.func からは独立させている。
 """
+import os
+import re
+import glob
+import json
 import time
 import random
+import urllib.request
 
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import ElementClickInterceptedException
+
+
+# --- chromedriver の選択 --------------------------------------------------
+# Chrome を更新しても起動中のプロセスは古いままなので、PATH の chromedriver と
+# 食い違うことがある。不一致だと CDP の入力イベントが届かなくなり、
+# クリックも打鍵も無反応になる（2026-10-29 に実際に発生）。
+# 接続先ポートの Chrome のメジャーバージョンを見て、合う driver を選ぶ。
+#
+# 探索先:
+#   1) 環境変数 CHROMEDRIVER_PATH（明示指定。最優先）
+#   2) ~/chromedriver<メジャー>/chromedriver   例: ~/chromedriver156/chromedriver
+#   3) PATH 上の chromedriver（従来どおり）
+CHROMEDRIVER_DIR_TEMPLATE = os.path.expanduser("~/chromedriver{major}/chromedriver")
+
+
+def get_browser_major(port, timeout=3):
+  """デバッグポートで動いている Chrome のメジャーバージョンを返す（取れなければ None）。"""
+  try:
+    with urllib.request.urlopen(f"http://127.0.0.1:{port}/json/version", timeout=timeout) as r:
+      info = json.loads(r.read().decode("utf-8"))
+    m = re.search(r"Chrome/(\d+)", info.get("Browser", "") or "")
+    return int(m.group(1)) if m else None
+  except Exception:
+    return None
+
+
+def find_chromedriver(port=None):
+  """接続先ポートに合う chromedriver のパスを返す（見つからなければ None=PATH を使う）。"""
+  env = os.environ.get("CHROMEDRIVER_PATH")
+  if env and os.path.exists(env):
+    return env
+  if port is None:
+    return None
+  major = get_browser_major(port)
+  if major is None:
+    return None
+  path = CHROMEDRIVER_DIR_TEMPLATE.format(major=major)
+  if os.path.exists(path):
+    return path
+  # ~/chromedriver<major>* のゆらぎも拾う
+  for cand in sorted(glob.glob(os.path.expanduser(f"~/chromedriver{major}*/chromedriver"))):
+    if os.path.exists(cand):
+      return cand
+  return None
+
+
+def make_driver(options, port=None, quiet=False):
+  """接続先に合う chromedriver で WebDriver を作る。
+
+  port を渡すとそのポートの Chrome のバージョンに合う driver を自動で選ぶ。
+  見つからなければ従来どおり PATH の chromedriver を使う。
+  """
+  path = find_chromedriver(port)
+  if path:
+    if not quiet:
+      major = get_browser_major(port) if port else "?"
+      print(f"[driver] Chrome {major} に合わせて {path} を使用します")
+    return webdriver.Chrome(service=Service(executable_path=path), options=options)
+  if not quiet and port is not None:
+    major = get_browser_major(port)
+    if major:
+      print(f"[driver] Chrome {major} 用の driver が見つからないため PATH の chromedriver を使用します"
+            f"（{CHROMEDRIVER_DIR_TEMPLATE.format(major=major)} を置くと自動で使われます）")
+  return webdriver.Chrome(options=options)
+
+
+def ensure_focused(driver):
+  """CDP のマウス/キー入力が届くようにタブを前面化する。
+
+  対象タブがアクティブでないと Input.dispatchMouseEvent が無視される。
+  他タブを触ったあとや、しばらく操作がなかったあとに起きる（9222 で実測）。
+  switch_to.window で同じハンドルに入り直すと復帰する。
+  """
+  try:
+    driver.switch_to.window(driver.current_window_handle)
+    try:
+      driver.execute_cdp_cmd("Page.bringToFront", {})
+    except Exception:
+      pass
+    return True
+  except Exception:
+    return False
 
 
 def _fire_mouse_move(driver, x, y, wait=None):
@@ -82,6 +171,8 @@ def human_click(driver, element, move_steps=None):
   CDP が使えない場合は通常クリック → JS クリックの順にフォールバックする。
   """
   try:
+    # タブが前面でないと CDP のマウスイベントが無視されるので先に前面化する
+    ensure_focused(driver)
     x, y = _element_center(driver, element)
     if move_steps is None:
       # mouseMoved はアイドル後に CDP が 5 秒きっかりでタイムアウトすることがあり
