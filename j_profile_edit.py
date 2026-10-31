@@ -49,6 +49,13 @@ def main():
 
   port = sys.argv[1]
   chara_name = sys.argv[2]
+  if not str(port).isdigit():
+    # 引数の順番を間違えると "port must be > 0" という分かりにくい例外になるため、
+    # ここで止めて正しい使い方を示す（ポートが先、キャラ名が後）
+    print(f"ポート番号が不正です: {port!r}")
+    print("引数の順番は <デバッグポート> <キャラ名> です")
+    print("例: python j_profile_edit.py 9222 いおり")
+    sys.exit(1)
 
   options = Options()
   options.add_experimental_option('debuggerAddress', f'127.0.0.1:{port}')
