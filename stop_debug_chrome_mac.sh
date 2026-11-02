@@ -11,11 +11,31 @@
 #       (普段使いChromeや別ポートのデバッグChromeには触らない)
 #    2) まず graceful に TERM を送りセッション/プロファイルを正しく保存させる
 #    3) 5秒待って残っていたら KILL で強制終了
+#    4) プロキシ付きで起動していた場合は proxy_auth_relay.py も終了する
+#       (中継は Chrome より長生きさせているため、放置するとプロセスが残る)
 # ============================================================
 
 PORT=${1:-9222}
+RELAY_PORT=$((10000 + PORT))
 
 echo "デバッグ用Chromeを終了します (port: $PORT)"
+
+# プロキシ認証中継を終了する(起動していれば)。Chrome の有無に関わらず実行する。
+stop_relay() {
+  local pids
+  pids="$(pgrep -f -- "proxy_auth_relay.py.*--listen ${RELAY_PORT}([^0-9]|$)" 2>/dev/null)"
+  [ -z "$pids" ] && return 0
+  for pid in $pids; do
+    echo "[proxy] 中継を終了します PID $pid (127.0.0.1:${RELAY_PORT})"
+    kill -TERM "$pid" 2>/dev/null
+  done
+  sleep 1
+  pids="$(pgrep -f -- "proxy_auth_relay.py.*--listen ${RELAY_PORT}([^0-9]|$)" 2>/dev/null)"
+  for pid in $pids; do
+    kill -KILL "$pid" 2>/dev/null
+  done
+}
+trap stop_relay EXIT
 
 # --remote-debugging-port=<PORT> を持つプロセスの PID を取得する関数。
 # 末尾に数字が続かない( =9222 が 92223 に部分マッチしない )ようパターンで縛る。
