@@ -849,7 +849,6 @@ def check_top_image(name,driver):
 
 # Anthropic クレジット切れ検出時の通知メールを 1 プロセス 1 回に抑制するフラグ
 _anthropic_credit_low_notified = False
-_ai_email_extract_error_notified = False
 
 _EMOJI_AND_NOISE = re.compile(
   "["
@@ -920,94 +919,89 @@ def _is_transient_api_error(err):
   return any(kw in err_text for kw in ["overloaded", "rate limit", "529", "connection error", "timed out", "timeout"])
 
 
-def _extract_email_with_ai(name, text):
-  """AI (Claude Haiku 4.5) で受信テキストからメールアドレスを抽出。
-  取れなければ空リストを返す。クレジット切れ等の失敗時は通知メール (プロセス内で 1 回のみ)。
-  529 overloaded 等の一時エラーは通知せず regex フォールバックのみ。"""
+# --- 日本語で難読化されたメールアドレスの復元 -----------------------------
+# 「じーめーる あっとまーく abc どっと こむ」のような表記を機械的に戻す。
+# AI(Claude) に投げていた変換ルールをそのまま実装したもの。
+# 置換は長い表記から順に当てる（「あっとまーく」より先に「あっと」が
+# 当たると壊れるため、辞書の順序に意味がある）。
+_EMAIL_OBFUSCATION_RULES = [
+  # @ 系
+  ("あっとまーく", "@"), ("アットマーク", "@"), ("あっとマーク", "@"),
+  ("アットまーく", "@"), ("＠", "@"), ("あっと", "@"), ("アット", "@"),
+  # . 系
+  # ※「。」は変換しない。句点がローカル部に混入して
+  #   「。test@example.com」→「.test@example.com」のように壊れるため。
+  ("どっと", "."), ("ドット", "."), ("．", "."),
+  # ドメイン名
+  ("じーめーる", "gmail"), ("ジーメール", "gmail"), ("ｇメール", "gmail"),
+  ("Gメール", "gmail"), ("gメール", "gmail"),
+  ("ヤフー", "yahoo"), ("やほー", "yahoo"), ("やふー", "yahoo"),
+  ("ドコモ", "docomo"), ("どこも", "docomo"),
+  ("あいくらうど", "icloud"), ("アイクラウド", "icloud"),
+  ("あうとるっく", "outlook"), ("アウトルック", "outlook"),
+  ("えーゆー", "au"), ("ソフトバンク", "softbank"),
+  ("ヤフージャパン", "yahoo.co.jp"),
+  # TLD
+  ("こむ", "com"), ("コム", "com"),
+  ("ねっと", "net"), ("ネット", "net"),
+  ("じぇーぴー", "jp"), ("ジェーピー", "jp"),
+  ("しーおー", "co"), ("シーオー", "co"),
+  ("おあるじー", "org"), ("オアルジー", "org"),
+]
+
+# 全角英数字 → 半角
+_ZEN2HAN = str.maketrans(
+  "ａｂｃｄｅｆｇｈｉｊｋｌｍｎｏｐｑｒｓｔｕｖｗｘｙｚ"
+  "ＡＢＣＤＥＦＧＨＩＪＫＬＭＮＯＰＱＲＳＴＵＶＷＸＹＺ"
+  "０１２３４５６７８９－＿",
+  "abcdefghijklmnopqrstuvwxyz"
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "0123456789-_",
+)
+
+_EMAIL_RE = re.compile(r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]{1,}')
+# 「@」の前後が改行・空白で分断されているケースを繋ぐ用
+_EMAIL_LOOSE_RE = re.compile(
+  r'([a-zA-Z0-9_.+\-]+)\s*@\s*([a-zA-Z0-9\-]+(?:\s*\.\s*[a-zA-Z0-9\-]+)+)')
+
+
+def extract_emails_rule_based(text):
+  """日本語難読化を含むテキストからメールアドレスを抽出する（API 不要）。
+
+  AI に投げていた変換ルールを機械的に実装したもの。
+  戻り値: 重複を除いたメールアドレスのリスト（見つからなければ空）
+  """
   if not text or not text.strip():
     return []
-  import anthropic
-  import settings as _settings
-  global _ai_email_extract_error_notified
-  api_key = getattr(_settings, 'anthropic_api_key', None) or os.environ.get('ANTHROPIC_API_KEY', '')
-  if not api_key:
-    return []
+  s = text.translate(_ZEN2HAN)
+  for jp, en in _EMAIL_OBFUSCATION_RULES:
+    s = s.replace(jp, en)
 
-  prompt = f"""以下のメッセージからメールアドレスを抽出してください。
-
-【メッセージ】
-{text}
-
-【抽出ルール】
-- 改行やスペースで区切られていても意図されたアドレスとして再構成すること
-- 日本語表記も変換すること:
-  ・「あっとまーく」「アットマーク」「at」「アット」「＠」→ @
-  ・「どっと」「ドット」「dot」→ .
-  ・「じーめーる」「Gメール」「ジーメール」→ gmail
-  ・「ヤフー」「やほー」→ yahoo
-  ・「どこも」「ドコモ」→ docomo
-  ・「あいくらうど」→ icloud
-  ・「あうと」「アウト」→ outlook
-  ・「こむ」「コム」→ com
-  ・「ねっと」「ネット」→ net
-  ・「じぇーぴー」「JP」→ jp
-- 曖昧な場合は無視すること（確信できるものだけ）
-- 出力：メールアドレスを 1 行につき 1 つずつ列挙、なければ何も出力しない
-- 前置き・解説・コロン・引用符・囲み文字などは一切禁止"""
-
-  try:
-    # max_retries=4: 529 overloaded / 429 / 5xx を SDK が指数バックオフで自動再試行
-    client = anthropic.Anthropic(api_key=api_key, max_retries=4)
-    r = client.messages.create(
-      model='claude-haiku-4-5-20251001',
-      max_tokens=256,
-      messages=[{'role': 'user', 'content': prompt}],
-    )
-    reply = r.content[0].text.strip()
-  except Exception as e:
-    err_text = str(e)
-    is_credit_low = any(kw in err_text.lower() for kw in [
-      "credit balance is too low", "credit balance", "purchase credits",
-      "billing", "insufficient_quota",
-    ])
-    print(f"⚠️ [{name}] AI email extract 失敗: {e}")
-    # 一時エラー (529 overloaded / 429 / 5xx / 接続断) はリトライ済みでも通知しない
-    if not is_credit_low and _is_transient_api_error(e):
-      print(f"⚠️ [{name}] 一時エラーのため通知メールなし → regex 結果にフォールバック")
-      return []
-    if not _ai_email_extract_error_notified:
-      try:
-        if is_credit_low:
-          body = (
-            "🚨 AI メールアドレス抽出 - Anthropic API クレジット切れ\n\n"
-            "受信テキストからのメールアドレス抽出に失敗しました。既存の regex 結果 (空) にフォールバックします。\n"
-            "https://console.anthropic.com/settings/billing で残高をチャージしてください。\n\n"
-            f"検出エラー: {err_text}\n"
-            f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-          )
-        else:
-          body = (
-            "⚠️ AI メールアドレス抽出 - Claude API 呼び出し失敗\n\n"
-            "既存の regex 結果 (空) にフォールバックします。\n\n"
-            f"エラー: {err_text}\n"
-            f"時刻: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
-          )
-        func.send_error(name, body)
-        _ai_email_extract_error_notified = True
-        print(f"⚠️ [{name}] AI email extract 失敗通知メール送信 (以降抑制)")
-      except Exception as e_mail:
-        print(f"⚠️ [{name}] AI email extract 失敗通知メール送信失敗: {e_mail}")
-    return []
-
-  # 応答から email 形式のものだけ拾う
-  pattern = r'[a-zA-Z0-9_.+\-]+@[a-zA-Z0-9\-]+\.[a-zA-Z0-9\-.]+'
   found = []
-  for line in reply.splitlines():
-    for m in re.findall(pattern, line.strip()):
-      if m not in found:
-        found.append(m)
-  return found
+  # 1) まず素直に拾う
+  found.extend(_EMAIL_RE.findall(s))
+  # 2) 空白・改行で分断されたものを繋いで拾う
+  for local, domain in _EMAIL_LOOSE_RE.findall(s):
+    domain_compact = re.sub(r'\s+', '', domain)
+    cand = local + "@" + domain_compact
+    if _EMAIL_RE.fullmatch(cand):
+      found.append(cand)
+  # 3) 「@」や「.」の周囲だけでなく、全空白を詰めた版でも拾う
+  #    （「abc @ gmail . com」のように全体が分断されている場合）
+  compact = re.sub(r'\s+', '', s)
+  found.extend(_EMAIL_RE.findall(compact))
 
+  out = []
+  for e in found:
+    e = e.strip('.-_+')         # 前後に残った区切り記号を落とす
+    if len(e) > 254 or "@" not in e:
+      continue
+    if e not in out:
+      out.append(e)
+  # 空白を詰めた版が「正しい候補 + 余計な続き」になることがあるので
+  # (例: hanako@docomo.net と hanako@docomo.netjp)、
+  # 他の候補を先頭に含むだけの長い候補は捨てる
+  return [e for e in out if not any(o != e and e.startswith(o) for o in out)]
 
 def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password,
                fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail,
@@ -1135,17 +1129,32 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
       # 重複除去（順序維持）
       if email_list:
         email_list = list(dict.fromkeys(email_list))
-      # regex で取れなかった場合は AI で 1 回だけフォールバック（結合済みの全文に対して）
+      # regex で取れなかった場合はルールベースで再挑戦（結合済みの全文に対して）
+      # 「じーめーる あっとまーく …」のような日本語難読化を機械的に戻す。
+      # 以前は Claude API に投げていたが、変換が全て機械的な置換で済むため
+      # API 不要にした（クレジット切れで抽出できなくなる問題も解消）。
       if not email_list and all_received_text.strip():
-        ai_emails = _extract_email_with_ai(name, all_received_text)
-        if ai_emails:
-          print(f"  [{name}] regex miss → AI がメアド抽出成功: {ai_emails}")
-          email_list = ai_emails
+        rule_emails = extract_emails_rule_based(all_received_text)
+        if rule_emails:
+          print(f"  [{name}] regex miss → ルールベースでメアド抽出成功: {rule_emails}")
+          email_list = rule_emails
       # 過去に icloud 返信フォールバック (「ブロックされちゃって」) を送信済みか（再送防止）
       already_sent_icloud_response = any(
         "ブロックされちゃって" in (m.text or "")
         for m in sent_by_me
       )
+      # 過去に confirmation_mail (メアド送信の確認メッセージ) を送信済みか。
+      # email_list は履歴全文から抽出するため、相手が返信するたびに同じメアドが
+      # 再検出される。相手メモのマーカーだけに頼ると、メモ登録が失敗したときに
+      # アドレス内1stメールを何度も送ってしまうので、サイト上の送信履歴でも判定する。
+      already_sent_confirmation = False
+      if confirmation_mail:
+        _conf_key = func.normalize_text(confirmation_mail)[:20]
+        if _conf_key:
+          already_sent_confirmation = any(
+            _conf_key in func.normalize_text(m.text or "")
+            for m in sent_by_me
+          )
       # print(f"~sent_by_me~ {len(sent_by_me)}")
       # DEBUG
       # if True:
@@ -1230,6 +1239,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
         elif MAIL_SENT_MEMO_MARKER in partner_memo:
           # 相手メモに「メアド送信あり」マーカー → 過去に condition_message 送信済みなので再送しない
           print(f"{name} {user_name} メモ「{MAIL_SENT_MEMO_MARKER}」検出 → condition_message 再送スキップ")
+        elif already_sent_confirmation:
+          # 確認メッセージを既に送っている＝アドレス内1stメールは送信済み。
+          # (メモ登録が失敗していてもここで止まる)
+          print(f"{name} {user_name} 確認メッセージ送信済み → condition_message 再送スキップ")
         else:
           sent_condition = False
           for user_address in email_list:
