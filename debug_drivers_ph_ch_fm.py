@@ -504,6 +504,10 @@ def main_syori():
           post_content = i.get("post_content", "")
           if two_messages_flug:
             print(f"******{name}は2通メール送信対象キャラです******")
+          # メールチェックが例外で落ちたり時間帯で実行されなかった場合でも
+          # 後段の rf メール送信に渡せるよう、必ず定義しておく
+          # （未定義だと UnboundLocalError で rf 送信ごと落ちる）
+          unread_user = []
           # if roll_cnt % 2 == 0:
           #   send_cnt = 3
           # else:
@@ -529,7 +533,7 @@ def main_syori():
               print(f"{name}❌ トップ画像のチェック  の操作でエラー: {e}")
               traceback.print_exc()
             try:
-              print("✅新着メールチェック開始")   
+              print("✅新着メールチェック開始")
               unread_user, check_first, check_second, gmail_condition, check_more, check_date = pcmax_2.check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password, fst_message, return_foot_message, mail_img, second_message, condition_message, confirmation_mail, mail_info, chara_prompt)
               print("新着メールチェック終了✅")
               report_dict[name]["check_first"] = report_dict[name]["check_first"] + check_first

@@ -1023,7 +1023,13 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
   check_more = 0
   gmail_condition = 0
   user_name = None
-  innner1_a_tags = driver.find_elements(By.CLASS_NAME, "inner")[0].find_elements(By.TAG_NAME, "a")
+  # ページ構成が想定と違う(警告画面・読み込み途中など)と inner が無く、
+  # [0] で IndexError になって呼び出し元まで落ちていたので存在を確認する
+  inner_els = driver.find_elements(By.CLASS_NAME, "inner")
+  if not inner_els:
+    print(f"{name} メールチェック: inner 要素が見つかりません（URL: {driver.current_url}）")
+    return [], check_first, check_second, check_more, gmail_condition, None
+  innner1_a_tags = inner_els[0].find_elements(By.TAG_NAME, "a")
   if "linkleweb" in driver.current_url:
     for a_tag in innner1_a_tags:
       if "未読" in a_tag.text:
@@ -2019,8 +2025,27 @@ def _register_partner_memo(driver, uid, memo_text):
     # メモは全角200文字まで。改行は全角スペースへ、shift_jis 非対応文字(絵文字等)は捨てる
     one_line = re.sub(r'[\r\n]+', '　', memo_text).strip()[:200]
     encoded = urllib.parse.quote(one_line, encoding='shift_jis', errors='ignore')
-    driver.execute_script(
-      f"$.get('{base}/mobile/memo_reg.php?memo_user_id={uid}&memo={encoded}&regist=1');")
+    url = f"{base}/mobile/memo_reg.php?memo_user_id={uid}&memo={encoded}&regist=1"
+    # $.get は非同期なので、投げっぱなしだと「送ったが保存されていない」状態でも
+    # 成功扱いになる（メモが再送防止マーカーなので、これを取りこぼすと二重送信になる）。
+    # fetch の完了を待ってステータスを確認する。jQuery が無いページでも動く。
+    try:
+      driver.set_script_timeout(15)
+    except Exception:
+      pass
+    result = driver.execute_async_script(
+      """
+      const url = arguments[0];
+      const done = arguments[arguments.length - 1];
+      fetch(url, {credentials: 'include'})
+        .then(r => done(r.ok ? 'ok' : 'status:' + r.status))
+        .catch(e => done('error:' + e));
+      """,
+      url,
+    )
+    if result != "ok":
+      print(f"メモ登録に失敗しました: {result}")
+      return False
     time.sleep(0.5)
     return True
   except Exception as e:
