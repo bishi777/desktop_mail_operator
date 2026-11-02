@@ -107,10 +107,11 @@ if not exist "%SCRIPT_DIR%proxy_auth_relay.py" (
   goto end
 )
 
-REM Reuse the relay if it is already listening on the same port
+REM Reuse the relay if it is already listening on the same port.
+REM Get-NetTCPConnection is not on every edition, so fall back to a TCP connect.
 set "RELAY_UP="
-for /f %%L in ('powershell -NoProfile -Command "(Get-NetTCPConnection -State Listen -LocalPort %RELAY_PORT% -ErrorAction SilentlyContinue ^| Measure-Object).Count"') do set "RELAY_UP=%%L"
-if not "%RELAY_UP%"=="0" if not "%RELAY_UP%"=="" (
+for /f %%L in ('powershell -NoProfile -Command "$p=%RELAY_PORT%; $up=$false; try { $up=[bool](Get-NetTCPConnection -State Listen -LocalPort $p -ErrorAction Stop) } catch { try { $c=New-Object Net.Sockets.TcpClient; $c.Connect('127.0.0.1',$p); $up=$c.Connected; $c.Close() } catch { $up=$false } }; if($up){'up'}else{'down'}"') do set "RELAY_UP=%%L"
+if /i "%RELAY_UP%"=="up" (
   echo [proxy] relay already running on 127.0.0.1:%RELAY_PORT%
   goto proxy_flags
 )
@@ -121,12 +122,14 @@ echo [proxy] starting auth relay for '%PROXY_KEY%' on 127.0.0.1:%RELAY_PORT%
 REM Start detached so the relay outlives this bat (and Chrome)
 start "proxy_relay_%PORT%" /b "%PYEXE%" "%SCRIPT_DIR%proxy_auth_relay.py" --key %PROXY_KEY% --listen %RELAY_PORT% >>"%RELAY_LOG%" 2>&1
 
-REM Wait up to ~5s for the relay to start listening
-for /l %%i in (1,1,25) do (
-  for /f %%L in ('powershell -NoProfile -Command "(Get-NetTCPConnection -State Listen -LocalPort %RELAY_PORT% -ErrorAction SilentlyContinue ^| Measure-Object).Count"') do set "RELAY_UP=%%L"
-  if not "!RELAY_UP!"=="0" if not "!RELAY_UP!"=="" goto proxy_flags
-  powershell -NoProfile -Command "Start-Sleep -Milliseconds 200" >nul
-)
+REM Wait up to ~8s for the relay to start listening.
+REM The retry loop lives inside PowerShell: a bat "for /l" cannot read a
+REM variable it set in the same iteration (delayed expansion still resolves
+REM once per block), and spawning PowerShell 25 times is slow anyway.
+REM Fall back to a TCP connect test when Get-NetTCPConnection is unavailable.
+set "RELAY_UP="
+for /f %%L in ('powershell -NoProfile -Command "$p=%RELAY_PORT%; for($i=0;$i -lt 40;$i++){ $up=$false; try { $up=[bool](Get-NetTCPConnection -State Listen -LocalPort $p -ErrorAction Stop) } catch { try { $c=New-Object Net.Sockets.TcpClient; $c.Connect('127.0.0.1',$p); $up=$c.Connected; $c.Close() } catch { $up=$false } }; if($up){ 'up'; exit }; Start-Sleep -Milliseconds 200 }; 'down'"') do set "RELAY_UP=%%L"
+if /i "%RELAY_UP%"=="up" goto proxy_flags
 
 echo ERROR: relay failed to start. See the log: %RELAY_LOG%
 powershell -NoProfile -Command "if (Test-Path '%RELAY_LOG%') { Get-Content '%RELAY_LOG%' -Tail 20 }"
