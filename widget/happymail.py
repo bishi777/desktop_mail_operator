@@ -113,21 +113,29 @@ def regist_ignore_user(driver, wait, user_name=""):
   戻り値: 登録できたら True
   """
   try:
-    plus = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-    if not plus:
-      print(f"無視登録: ＋ボタンが見つかりません {user_name}")
-      return False
-    human_click(driver, plus[0])
-    time.sleep(random.uniform(1.0, 1.8))
-    # 開いたメニューから「無視登録」を選ぶ
+    def _find_ignore_item():
+      for el in driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_item"):
+        try:
+          if "無視登録" in (el.text or "") and el.is_displayed():
+            return el
+        except Exception:
+          continue
+      return None
+
+    # ＋ボタンのクリックは空振りすることがあるので、メニューが開くまで押し直す
     target = None
-    for el in driver.find_elements(By.CLASS_NAME, value="ds_message_txt_media_item"):
-      try:
-        if "無視登録" in (el.text or "") and el.is_displayed():
-          target = el
-          break
-      except Exception:
-        continue
+    for attempt in range(1, 4):
+      plus = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+      if not plus:
+        print(f"無視登録: ＋ボタンが見つかりません {user_name}")
+        return False
+      human_click(driver, plus[0])
+      time.sleep(random.uniform(1.0, 1.8))
+      target = _find_ignore_item()
+      if target is not None:
+        break
+      print(f"無視登録: メニューが開かないため再試行します({attempt}/3) {user_name}")
+      time.sleep(random.uniform(0.6, 1.2))
     if target is None:
       print(f"無視登録: メニューに「無視登録」がありません {user_name}")
       return False
@@ -896,6 +904,21 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print(f"  [DEBUG {name}] submitButton.click() 実行後 url={driver.current_url}")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(1.5)
+              # クリックが空振りして入力欄に本文が残ることがある。
+              # 残っていれば未送信なので押し直す（最大2回）。
+              for _resend in range(2):
+                left = driver.execute_script(
+                  "const t=document.getElementById('text-message');"
+                  "return t ? (t.value || '') : '';") or ""
+                if not left.strip():
+                  break
+                print(f"  [DEBUG {name}] 入力欄に本文が残っています → 送信ボタンを押し直します({_resend+1}/2)")
+                btns = driver.find_elements(By.ID, value="submitButton")
+                if not btns:
+                  break
+                human_click(driver, btns[0])
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(2.0)
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt = 0
               send_message_clean = func.normalize_text(send_message)
@@ -2423,6 +2446,9 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
   # print(driver.current_url)
   mail_icon_cnt = 0
   user_icon = 0
+  # この周で足跡を付けた相手。一覧が再読込されてインデックスがずれても
+  # 同じ人を二度処理しないよう名前でも記録する。
+  footprinted_names = []
   # num = random.randint(8)
   nav_flug = nav_item_click("プロフ検索", driver, wait)
   # if not nav_flug:
@@ -2503,6 +2529,15 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
+    # user_icon を進めた結果リストを超えることがあるので、ここで一覧を取り直す
+    if len(login_users) <= user_icon:
+      driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(1.0)
+      login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+      if len(login_users) <= user_icon:
+        print(f"{name}: 候補を使い切りました（{user_icon}人目）")
+        return
     candidate_footprint = login_users[user_icon]
     while "ds_ribbon" in candidate_footprint.get_attribute("class"):
       # print(f"✅ {user_name} 確認済み")
@@ -2522,6 +2557,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       candidate_footprint = login_users[user_icon]
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
+    # この周で既に足跡を付けた相手なら飛ばす（一覧再読込でインデックスが
+    # 巻き戻っても二重に付けないため）
+    if user_name and user_name in footprinted_names:
+      print(f"{name}:足跡済みのためスキップ {user_name}")
+      user_icon += 1
+      continue
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", candidate_footprint)
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(wait_time)
@@ -2568,6 +2609,12 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       driver.get("https://happymail.co.jp/sp/app/html/profile_list.php")
       wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
       time.sleep(wait_time)
+    # 次の相手へ進める。これが無いと毎回 login_users[user_icon] が同じ人を指し、
+    # 同一ユーザーに何度も足跡を付けてしまう（実ログで「り」に5回連続）。
+    # 足跡済みの印(ds_ribbon)はページ再取得まで反映されないため、
+    # インデックス側で確実に進める。
+    footprinted_names.append(user_name)
+    user_icon += 1
 
     # if not "https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=" in driver.current_url:
     #   driver.get("https://happymail.co.jp/sp/app/html/profile_detail_list.php?a=a&from=prof&idx=1")
