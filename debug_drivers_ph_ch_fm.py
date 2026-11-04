@@ -171,7 +171,11 @@ def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cn
                 title = "メッセージ"
                 text = f"ハッピーメール {name}:{login_id}:{password}:  {text}"
           if mail_info:
-            func.send_mail(text, mail_info, title, img_path)
+            # 通知メールの失敗でメールチェック自体を失敗扱いにしない
+            try:
+              func.send_mail(text, mail_info, title, img_path)
+            except Exception as e_mail:
+              print(f"[happy] {name}⚠️ 新着通知メールの送信に失敗（処理は継続）: {type(e_mail).__name__}: {e_mail}")
       except Exception as e:
         print(f"[happy] {name}❌ メールチェックでエラー: {type(e).__name__}: {e}")
         traceback.print_exc()

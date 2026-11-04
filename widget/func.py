@@ -570,22 +570,43 @@ def send_mail(message, mail_info, title, image_paths=None):
               msg.attach(image)
           else:
               print(f"⚠️ 添付失敗: ファイルが存在しません → {path}")
-  # Gmail SMTP サーバへ接続
-  smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)  # 30秒でタイムアウト
-  smtpobj.set_debuglevel(0)  # デバッグログオフ
-  smtpobj.starttls()
-  smtpobj.login(mailaddress, password)
-  try:
-    smtpobj.send_message(msg)
-    print("通知メール送信完了")
-  except Exception as e:
-    print("❌ 通知メール送信エラー:", e)
-    if "Daily user sending limit exceeded" in str(e):
-      print("⚠️ Gmail送信上限に達しました。別アカウントを使うか翌日まで待機してください。")
-    else:
-      traceback.print_exc()
-  finally:
-    smtpobj.close()
+  # Gmail SMTP サーバへ接続して送信。
+  # 接続・ログインも含めて try で囲む。ここが裸だと
+  # SMTPServerDisconnected 等が呼び出し元まで伝播して、
+  # 通知メールが送れないだけで本処理（メールチェック等）ごと落ちる。
+  last_error = None
+  for attempt in range(1, 4):
+    smtpobj = None
+    try:
+      smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)  # 30秒でタイムアウト
+      smtpobj.set_debuglevel(0)  # デバッグログオフ
+      smtpobj.ehlo()
+      smtpobj.starttls()
+      smtpobj.ehlo()
+      smtpobj.login(mailaddress, password)
+      smtpobj.send_message(msg)
+      print("通知メール送信完了")
+      return True
+    except Exception as e:
+      last_error = e
+      err_text = str(e)
+      if "Daily user sending limit exceeded" in err_text:
+        print("⚠️ Gmail送信上限に達しました。別アカウントを使うか翌日まで待機してください。")
+        break  # 上限はリトライしても無駄
+      print(f"❌ 通知メール送信エラー({attempt}/3): {type(e).__name__}: {err_text}")
+      if attempt < 3:
+        time.sleep(attempt * 3)  # 3秒 → 6秒
+    finally:
+      if smtpobj is not None:
+        try:
+          smtpobj.quit()
+        except Exception:
+          try:
+            smtpobj.close()
+          except Exception:
+            pass
+  print(f"⚠️ 通知メールを送信できませんでした（本処理は継続します）: {last_error}")
+  return False
   
 
 
