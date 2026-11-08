@@ -336,24 +336,30 @@ def _get_detail_partner_name(driver):
       const NG = /^(戻る|メッセージ|ホーム|マイページ|プロフ検索|募集|タイプ|OFF|ON)$/;
       const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
 
-      // 1) 「○○さんのプロフィール」リンク（本文冒頭に出る。最も確実）
-      for (const a of document.querySelectorAll('a')) {
-        const m = clean(a.textContent).match(/^(.+?)さんのプロフィール$/);
+      // 1) 「○○さんのプロフィール」（本文冒頭に出る。最も確実）
+      //    実体は <p class="transit_profile_link">。タグに依存しないよう
+      //    末端要素を総当たりで見る。
+      for (const el of document.querySelectorAll('.transit_profile_link, a, p, span, div')) {
+        if (el.children.length) continue;          // 末端だけ見る
+        const m = clean(el.textContent).match(/^(.+?)さんのプロフィール$/);
         if (m && m[1] && m[1].length <= 30) return m[1];
       }
-      // 2) ヘッダ中央の見出し。構造が変わっても拾えるよう候補を順に試す
-      const sels = [
-        '#ds_header .ds_header_center',
-        '.ds_header_title',
-        'header .ds_header_center',
-        '#ds_header h1',
-        '.ds_header_ttl',
-      ];
-      for (const s of sels) {
-        const el = document.querySelector(s);
-        if (!el) continue;
-        const t = clean(el.textContent);
-        if (t && t.length <= 30 && !NG.test(t)) return t;
+      // 2) 入力欄の「○○さんへメッセージ入力」（value / placeholder に入る）。
+      //    プロフィールリンクが無いやりとりでも、入力欄は必ずある。
+      for (const el of document.querySelectorAll('input, textarea')) {
+        for (const v of [el.value, el.placeholder, el.title]) {
+          const m = clean(v).match(/^(.+?)さんへ/);
+          if (m && m[1] && m[1].length <= 30) return m[1];
+        }
+      }
+      // 3) ヘッダ。「戻る / 名前 / OFF」の並びなので、戻る以外の末端テキスト
+      const head = document.querySelector('#ds_header, header');
+      if (head) {
+        const texts = [...head.querySelectorAll('*')]
+          .filter(e => !e.children.length)
+          .map(e => clean(e.textContent))
+          .filter(t => t && t.length <= 30 && !NG.test(t));
+        if (texts.length) return texts[0];
       }
       return null;
     """)
