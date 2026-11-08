@@ -3799,7 +3799,7 @@ def profile_edit_without_login(chara_data, driver, wait):
     print(f"{chara_data['name']} {warning}")
     return
   # マイページへ直接移動
-  driver.get("https://happymail.co.jp/app/html/mypage.php")
+  driver.get("https://happymail.co.jp/sp/app/html/mypage.php")
   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
   # プロフィールをクリック
@@ -3892,7 +3892,7 @@ def profile_edit_without_login(chara_data, driver, wait):
   # 自己紹介
   self_promotion = chara_data.get("self_promotion")
   if self_promotion:
-    driver.get("https://happymail.co.jp/app/html/profileComment.php")
+    driver.get("https://happymail.co.jp/sp/app/html/profileComment.php")
     wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     time.sleep(2)
     textarea = driver.find_elements(By.ID, "self_introduction")
@@ -3947,7 +3947,7 @@ HAPPYMAIL_AREA_MAP = {
 
 def set_search_conditions(chara_data, driver, wait):
   """プロフ一覧検索の検索条件を設定して保存する"""
-  driver.get("https://happymail.co.jp/app/html/profile_list_search.php")
+  driver.get("https://happymail.co.jp/sp/app/html/profile_list_search.php")
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(2)
 
@@ -4059,7 +4059,7 @@ def set_search_conditions(chara_data, driver, wait):
       decide = [e for e in driver.find_elements(By.TAG_NAME, "button")
                 if e.is_displayed() and "地域を決定" in (e.text or "")]
       if decide:
-        human_click(driver, decide[0])
+        scroll_into_view_and_click(driver, decide[0], "「地域を決定する」")
         print("  地域を決定: ✅")
         time.sleep(2.0)
       else:
@@ -4073,11 +4073,83 @@ def set_search_conditions(chara_data, driver, wait):
     search_btn = [e for e in driver.find_elements(By.XPATH, "//*[contains(text(),'検索する')]")
                   if e.is_displayed()]
   if search_btn:
-    human_click(driver, search_btn[0])
+    # 本番のウィンドウは小さく、ボタンが画面外にあるとクリック座標が
+    # ビューポートから外れて押せない。表示範囲に入るまでスクロールする。
+    scroll_into_view_and_click(driver, search_btn[0], "「検索する」")
     time.sleep(4)
     print(f"  検索して条件を保存しました（{driver.current_url.split('/')[-1][:30]}）")
   else:
     print(f"  「検索する」ボタンが見つかりません")
+
+
+def scroll_into_view_and_click(driver, element, label=""):
+  """要素を画面内にスクロールしてから CDP でクリックする。
+
+  本番のウィンドウは小さく、ボタンが画面外にあるとクリック座標が
+  ビューポートから外れて押せない（is_displayed() は画面外でも True）。
+  表示範囲に入るまでスクロールしてから押す。
+  """
+  # 祖先に position:fixed があるとスクロールしても座標が動かない。
+  # そのときは要素の「画面内に見えている部分」を狙ってクリックする。
+  for _ in range(3):
+    try:
+      driver.execute_script("""
+        const el = arguments[0];
+        el.scrollIntoView({block:'center', inline:'center'});
+        const r = el.getBoundingClientRect();
+        const vw = window.innerWidth || document.documentElement.clientWidth;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        let dx = 0, dy = 0;
+        if (r.right > vw)  dx = r.right - vw + 20;
+        if (r.left < 0)    dx = r.left - 20;
+        if (r.bottom > vh) dy = r.bottom - vh + 20;
+        if (r.top < 0)     dy = r.top - 20;
+        if (dx || dy) window.scrollBy(dx, dy);
+      """, element)
+    except Exception:
+      break
+    time.sleep(0.5)
+    try:
+      state = driver.execute_script("""
+        const r = arguments[0].getBoundingClientRect();
+        const vw = window.innerWidth || document.documentElement.clientWidth;
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        // 画面と要素の重なり（見えている範囲）
+        const x1 = Math.max(0, r.left),  x2 = Math.min(vw, r.right);
+        const y1 = Math.max(0, r.top),   y2 = Math.min(vh, r.bottom);
+        return {
+          full: r.top >= 0 && r.left >= 0 && r.bottom <= vh && r.right <= vw,
+          visible: (x2 - x1) > 8 && (y2 - y1) > 8,
+          cx: (x1 + x2) / 2, cy: (y1 + y2) / 2,
+        };
+      """, element)
+    except Exception:
+      state = None
+    if state and state.get("full"):
+      return human_click(driver, element)
+    if state and state.get("visible"):
+      # 一部しか見えていない（祖先が fixed で画面より広い等）。
+      # 見えている範囲の中心を CDP で直接クリックする。
+      x, y = state["cx"], state["cy"]
+      if label:
+        print(f"  {label}: 一部のみ表示 → 見えている位置({int(x)},{int(y)})を押します")
+      try:
+        ensure_focused(driver)
+        driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
+          "type": "mouseMoved", "x": x, "y": y, "button": "none"})
+        time.sleep(random.uniform(0.1, 0.3))
+        for ev in ("mousePressed", "mouseReleased"):
+          driver.execute_cdp_cmd("Input.dispatchMouseEvent", {
+            "type": ev, "x": x, "y": y, "button": "left", "clickCount": 1})
+          if ev == "mousePressed":
+            time.sleep(random.uniform(0.05, 0.14))
+        time.sleep(random.uniform(0.2, 0.5))
+        return True
+      except Exception:
+        pass
+  if label:
+    print(f"  {label}: 画面内に収まりません（そのまま試行します）")
+  return human_click(driver, element)
 
 
 def _select_option_value(driver, select_el, value):
@@ -4142,7 +4214,7 @@ def set_footprint_settings(driver, wait):
     女性を表示する : OFF(男性のみ) (view=1)
   既に正しければ何も変更せず、保存も行わない。
   """
-  driver.get("https://happymail.co.jp/app/html/ashiato_setting.php")
+  driver.get("https://happymail.co.jp/sp/app/html/ashiato_setting.php")
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
   time.sleep(1.5)
 
@@ -4190,7 +4262,7 @@ def set_footprint_settings(driver, wait):
     submit_btn = [e for e in driver.find_elements(By.XPATH, "//*[contains(text(),'変更')]")
                   if e.is_displayed()]
   if submit_btn:
-    human_click(driver, submit_btn[0])
+    scroll_into_view_and_click(driver, submit_btn[0], "「変更」")
     time.sleep(2.5)
     print("  足あと設定を保存しました")
   else:

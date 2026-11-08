@@ -1,5 +1,6 @@
 import sys
 import os
+import time
 sys.path.insert(0, os.path.dirname(__file__))
 
 from selenium import webdriver
@@ -11,12 +12,23 @@ from widget.human_input import make_driver
 
 
 def find_matching_tab(driver, login_id, wait):
-    """login_idと一致するタブを探してswitchする（マイページの会員番号で照合）"""
+    """login_idと一致するタブを探してswitchする（マイページの会員番号で照合）
+
+    ハッピーメール以外のタブ（PCMAX 等）には遷移しない。
+    以前は全タブで無条件に driver.get() していたため、
+    PCMAX のタブでハッピーメールを開いてしまっていた。
+    """
     for handle in driver.window_handles:
         try:
             driver.switch_to.window(handle)
-            driver.get("https://happymail.co.jp/app/html/mypage.php")
-            wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+            # 他サイトのタブは触らない
+            if 'happymail.co.jp' not in driver.current_url:
+                continue
+            # マイページでなければ、このタブ内でだけマイページへ移動する
+            if 'mypage.php' not in driver.current_url:
+                driver.get("https://happymail.co.jp/sp/app/html/mypage.php")
+                wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+                time.sleep(1)
             elements = driver.find_elements(By.CLASS_NAME, 'ds_mypage_member_item')
             for e in elements:
                 text = e.text.strip()
