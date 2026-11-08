@@ -2272,10 +2272,17 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # driver.find_element(By.ID, 'memo_send').click()
     # wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     # time.sleep(1)
+    text_area = []
     if "pcmax" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="mail_com")
     elif "linkleweb" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="comme")
+    # プロフィール詳細に飛ばされる等、メッセージ入力欄が無いページに来ることがある。
+    # [0] で IndexError になって足跡返しごと落ちていたので、次の相手へ進める。
+    if not text_area:
+      print(f"{name} メッセージ入力欄が無いためスキップします（URL: {driver.current_url}）")
+      user_row_cnt += 1
+      continue
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
     # === 1通目: Claude で生成した 1〜3 行の短い AI 挨拶（use_ai_intro=True のときのみ）===
@@ -2321,10 +2328,17 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     if iikamo_text:
       print(f"  [{name}] {ditail_page_user_name} → {iikamo_text} 完了")
     catch_warning_pop(name, driver)
+    text_area = []
     if "pcmax" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="mail_com")
     elif "linkleweb" in driver.current_url:
       text_area = driver.find_elements(By.ID, value="comme")
+    # 1通目送信後にページが変わって入力欄が消えることがある。
+    # ここで落とさず次の相手へ進める。
+    if not text_area:
+      print(f"{name} 入力欄が消えたため本文送信をスキップします（URL: {driver.current_url}）")
+      user_row_cnt += 1
+      continue
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
     time.sleep(0.5)
 
