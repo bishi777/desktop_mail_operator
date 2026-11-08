@@ -1420,14 +1420,10 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
               formatted_history.append("-" * 20)
               formatted_history.append(text)    
           mail_text = "\n".join(formatted_history)
-          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{mail_text}」"
-          try:
-            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password],  f"pcmax新着{name}")
-            print("通知メールを送信しました")
-            check_more += 1
-          except Exception as e:
-            print(f"{name} 通知メールの送信に失敗しました")
-            traceback.print_exc()  
+          # 2通目以降のやり取りは通知メールを送らない（件数が多く不要なため）。
+          # レポート用の check_more だけ数える。
+          print(f"やり取り中（通知メールは送信しません）: {user_name}")
+          check_more += 1
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
             time.sleep(1)
@@ -1597,24 +1593,11 @@ def check_mail(name, driver, login_id, login_pass, gmail_address, gmail_password
             print(f"{name} second_message 送信失敗")
             traceback.print_exc()
         else:
-          # 既に 2 通以上 + 直近が fst/rf 以外 → 通知メールのみ
-          print("やり取り中")
-          try:
-            messages = driver.find_element(By.CLASS_NAME, "bggray").text
-          except Exception:
-            try:
-              messages = driver.find_elements(By.CSS_SELECTOR, ".left_balloon")[-1].text
-            except Exception:
-              messages = ""
-          return_message = f"{name}pcmax,{login_id}:{login_pass}\n{user_name}「{messages}」"
-          try:
-            func.send_mail(return_message, [receiving_address, mailserver_address, mailserver_password], f"pcmax新着{name}")
-            print("通知メールを送信しました")
-            check_more += 1
-          except Exception as e:
-            print(f"{name} 通知メールの送信に失敗しました")
-            traceback.print_exc()
-            print(mail_info)
+          # 既に 2 通以上 + 直近が fst/rf 以外。
+          # 2通目以降のやり取りは通知メールを送らない（件数が多く不要なため）。
+          # レポート用の check_more だけ数える。
+          print(f"やり取り中（通知メールは送信しません）: {user_name}")
+          check_more += 1
           try:
             driver.find_element(By.CSS_SELECTOR, ".icon.no_look").find_element(By.XPATH, "..").click()
             time.sleep(1)
