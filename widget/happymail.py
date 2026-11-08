@@ -3995,9 +3995,6 @@ def set_search_conditions(chara_data, driver, wait):
   search_areas = chara_data.get("prof_search_area")
   if search_areas:
     area_names = [a.strip() for a in search_areas.split(",") if a.strip()]
-    # エリアのチェックボックスは human_click（座標クリック）だと
-    # ラベルの親リンクに当たって TOP へ飛ばされる（実機で確認）。
-    # 同じ id が複数ある行もあるため、value で指定して JS で切り替える。
     want_vals = []
     for area_name in area_names:
       area_val = HAPPYMAIL_AREA_MAP.get(area_name)
@@ -4006,56 +4003,81 @@ def set_search_conditions(chara_data, driver, wait):
         continue
       want_vals.append(str(area_val))
 
-    result = driver.execute_script("""
-      const want = new Set(arguments[0]);
-      const cbs = [...document.querySelectorAll('input[name="area[]"]')];
-      const done = [];
-      for (const cb of cbs) {
-        const should = want.has(String(cb.value));
-        if (cb.checked !== should) {
-          cb.checked = should;
-          cb.dispatchEvent(new Event('change', {bubbles: true}));
-          cb.dispatchEvent(new Event('click', {bubbles: true}));
-        }
-        if (should && !done.includes(cb.value)) done.push(cb.value);
+    # 地域は「居住地」の “値” （例: 東京都）を押すと選択画面が開く。
+    # ラベル側(「居住地」の文字)ではなく値のリンクが入口（実機で確認）。
+    opened = driver.execute_script("""
+      // 居住地の行にある <a>（現在値が書かれたリンク）を押す
+      for (const e of document.querySelectorAll('*')) {
+        if (e.children.length) continue;
+        if ((e.textContent || '').trim() !== '居住地') continue;
+        const row = e.closest('li, dl, div');
+        const a = row && row.querySelector('a');
+        if (a) { a.click(); return true; }
       }
-      return {
-        set: done,
-        checked: cbs.filter(e => e.checked).map(e => e.value),
-      };
-    """, want_vals) or {}
-    checked = result.get("checked", [])
-    for area_name in area_names:
-      v = str(HAPPYMAIL_AREA_MAP.get(area_name, ""))
-      print(f"  エリア: {area_name} (val={v}) {'✅' if v in checked else '⚠️未チェック'}")
-    time.sleep(0.5)
-
-  # 「この条件を保存する」を押して検索条件を保存する。
-  # 「検索する」(btn-search) だと今回の検索に使われるだけで条件が残らない。
-  # 座標クリックはラベルの親リンクに当たって TOP へ飛ぶことがあるため JS で押す。
-  save_btn = driver.find_elements(By.ID, "btn-search-save")
-  if not save_btn:
-    save_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'この条件を保存')]")
-  if save_btn:
-    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", save_btn[0])
-    time.sleep(0.4)
-    driver.execute_script("arguments[0].click();", save_btn[0])
-    time.sleep(2.5)
-    # 確認ダイアログが出たら確定する
-    confirm = driver.execute_script("""
-      const b = [...document.querySelectorAll('button, .modal-button-blue, .ds_round_btn')]
-        .find(e => e.offsetParent !== null
-          && /保存|OK|はい/.test((e.textContent || '').trim())
-          && !/キャンセル|やめる/.test(e.textContent || ''));
-      if (b) { b.click(); return (b.textContent || '').trim().slice(0, 12); }
-      return null;
+      return false;
     """)
-    if confirm:
-      print(f"  確認ダイアログを確定: {confirm}")
-      time.sleep(1.5)
-    print(f"  検索条件を保存しました")
+    if not opened:
+      print("  エリア: 「居住地」の行が見つからないため設定をスキップします")
+    else:
+      time.sleep(2.0)
+      # 地域は2段階。都道府県の行を押すと市区町村が展開され、
+      # その先頭に「○○県」（県全体）のチェックがある。そこを押して選ぶ。
+      # 一覧の dt 側のチェックボックスは disabled なので直接は操作できない。
+      # 手動と同じ操作にするため、すべて CDP の実クリックで行う。
+      for area_name in area_names:
+        area_val = HAPPYMAIL_AREA_MAP.get(area_name)
+        if area_val is None:
+          continue
+        sel = f'dt.list-area-pref[data-area-no="{area_val}"]'
+        try:
+          # 既に選択済みなら触らない
+          cur = driver.find_elements(By.CSS_SELECTOR, f'{sel} input[name="area[]"]')
+          if cur and cur[0].is_selected():
+            print(f"  エリア: {area_name} (val={area_val}) ✅ (既に選択済み)")
+            continue
+          # 1) 都道府県の行を押して市区町村を展開する
+          pref_labels = driver.find_elements(By.CSS_SELECTOR, f'{sel} label')
+          if not pref_labels:
+            print(f"  エリア: {area_name} ⚠️ 行が見つかりません")
+            continue
+          human_click(driver, pref_labels[0])
+          time.sleep(random.uniform(1.2, 2.0))
+          # 2) 展開された先頭（県全体）を押す
+          city_labels = driver.find_elements(
+            By.CSS_SELECTOR, f'{sel} + dd label.check_label')
+          if not city_labels:
+            print(f"  エリア: {area_name} ⚠️ 展開されませんでした")
+            continue
+          human_click(driver, city_labels[0])
+          time.sleep(random.uniform(0.8, 1.5))
+          cur = driver.find_elements(By.CSS_SELECTOR, f'{sel} input[name="area[]"]')
+          ok = bool(cur) and cur[0].is_selected()
+          print(f"  エリア: {area_name} (val={area_val}) {'✅' if ok else '⚠️未チェック'}")
+        except Exception as e:
+          print(f"  エリア: {area_name} ⚠️ {type(e).__name__}: {str(e).splitlines()[0][:50]}")
+      # 「地域を決定する」で選択を確定する
+      decide = [e for e in driver.find_elements(By.TAG_NAME, "button")
+                if e.is_displayed() and "地域を決定" in (e.text or "")]
+      if decide:
+        human_click(driver, decide[0])
+        print("  地域を決定: ✅")
+        time.sleep(2.0)
+      else:
+        print("  地域を決定: ⚠️ ボタンが見つかりません")
+
+  # 「検索する」(btn-search) を押すと条件が保存される（実機で確認）。
+  # 「この条件を保存する」ではなくこちらが確定操作。手動と同じく
+  # 検索結果へ遷移し、次に検索条件を開いたとき設定が残っている。
+  search_btn = [e for e in driver.find_elements(By.ID, "btn-search") if e.is_displayed()]
+  if not search_btn:
+    search_btn = [e for e in driver.find_elements(By.XPATH, "//*[contains(text(),'検索する')]")
+                  if e.is_displayed()]
+  if search_btn:
+    human_click(driver, search_btn[0])
+    time.sleep(4)
+    print(f"  検索して条件を保存しました（{driver.current_url.split('/')[-1][:30]}）")
   else:
-    print(f"  「この条件を保存する」ボタンが見つかりません")
+    print(f"  「検索する」ボタンが見つかりません")
 
 
 def set_footprint_settings(driver, wait):
