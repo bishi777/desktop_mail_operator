@@ -2088,6 +2088,10 @@ def _click_iikamo(driver, wait):
   return ""
 
 
+# 足跡返しで「利用制限中」を検出したキャラ。通知メールを 1 プロセス 1 キャラ 1 回に抑える
+_rf_restricted_notified = set()
+
+
 def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_img, unread_user, two_messages_flug, mail_info=None, use_ai_intro=True):
   """足跡返し送信。
   use_ai_intro=True (デフォルト): 1通目に Claude で生成した短い AI 挨拶、2通目にベース定型を送信
@@ -2280,6 +2284,27 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # プロフィール詳細に飛ばされる等、メッセージ入力欄が無いページに来ることがある。
     # [0] で IndexError になって足跡返しごと落ちていたので、次の相手へ進める。
     if not text_area:
+      # アカウント自体が利用制限中だと、どの相手のプロフでも入力欄の代わりに
+      # 「ご利用を制限しております」と出る。全員開いても送れず足跡だけ増えるので、この周回は打ち切る。
+      try:
+        restricted = "ご利用を制限しております" in driver.find_element(By.TAG_NAME, "body").text
+      except Exception:
+        restricted = False
+      if restricted:
+        print(f"{name} アカウントが利用制限中のため足跡返しを中止します 相手:{ditail_page_user_name}（URL: {driver.current_url}）")
+        if name not in _rf_restricted_notified:
+          _rf_restricted_notified.add(name)
+          img_path = f"{name}_rf_restricted.png"
+          try:
+            driver.save_screenshot(img_path)
+            func.send_error(
+              chara=name,
+              error_message=f"{name} PCMAXアカウントが利用制限中のため足跡返しを送れません\n{driver.current_url}\n",
+              attachment_paths=img_path,
+            )
+          except Exception as e_notify:
+            print(f"  [{name}] 利用制限の通知に失敗: {e_notify}")
+        return rf_cnt
       print(f"{name} メッセージ入力欄が無いためスキップします 相手:{ditail_page_user_name}（URL: {driver.current_url}）")
       # 入力欄が無い理由（受信制限・利用制限など）を後で確認できるよう画面を残す。上書き保存なので溜まらない
       try:
