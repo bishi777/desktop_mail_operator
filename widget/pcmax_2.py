@@ -2280,7 +2280,17 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # プロフィール詳細に飛ばされる等、メッセージ入力欄が無いページに来ることがある。
     # [0] で IndexError になって足跡返しごと落ちていたので、次の相手へ進める。
     if not text_area:
-      print(f"{name} メッセージ入力欄が無いためスキップします（URL: {driver.current_url}）")
+      print(f"{name} メッセージ入力欄が無いためスキップします 相手:{ditail_page_user_name}（URL: {driver.current_url}）")
+      # 入力欄が無い理由（受信制限・利用制限など）を後で確認できるよう画面を残す。上書き保存なので溜まらない
+      try:
+        driver.save_screenshot(f"{name}_rf_no_mail_form.png")
+      except Exception:
+        pass
+      # 足跡一覧に戻らないと、次の周回でプロフ詳細ページ上の list_box を探してしまい
+      # 一覧の続きを処理できない。他のスキップと同じく一覧へ戻してから次の相手へ。
+      driver.back()
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
       user_row_cnt += 1
       continue
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])
@@ -2336,7 +2346,11 @@ def return_footmessage(name, driver, return_foot_message, send_limit_cnt, mail_i
     # 1通目送信後にページが変わって入力欄が消えることがある。
     # ここで落とさず次の相手へ進める。
     if not text_area:
-      print(f"{name} 入力欄が消えたため本文送信をスキップします（URL: {driver.current_url}）")
+      print(f"{name} 入力欄が消えたため本文送信をスキップします 相手:{ditail_page_user_name}（URL: {driver.current_url}）")
+      # 1通目送信やプロフ再読込で履歴が進んでいるので back() では一覧に戻れない。保存しておいた一覧 URL へ直接戻る
+      driver.get(user_list_url)
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2)
       user_row_cnt += 1
       continue
     driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", text_area[0])

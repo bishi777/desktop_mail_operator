@@ -3995,38 +3995,67 @@ def set_search_conditions(chara_data, driver, wait):
   search_areas = chara_data.get("prof_search_area")
   if search_areas:
     area_names = [a.strip() for a in search_areas.split(",") if a.strip()]
-    # 一旦全チェックを外す
-    all_area_cbs = driver.find_elements(By.NAME, "area[]")
-    for cb in all_area_cbs:
-      if cb.is_selected():
-        human_click(driver, cb)
-    time.sleep(0.3)
-    # 指定エリアをチェック
+    # エリアのチェックボックスは human_click（座標クリック）だと
+    # ラベルの親リンクに当たって TOP へ飛ばされる（実機で確認）。
+    # 同じ id が複数ある行もあるため、value で指定して JS で切り替える。
+    want_vals = []
     for area_name in area_names:
       area_val = HAPPYMAIL_AREA_MAP.get(area_name)
       if area_val is None:
         print(f"  エリア '{area_name}': マッピングなし")
         continue
-      cb = driver.find_elements(By.ID, f"area-{area_val}")
-      if cb:
-        if not cb[0].is_selected():
-          human_click(driver, cb[0])
-        print(f"  エリア: {area_name} (val={area_val})")
-      else:
-        print(f"  エリア '{area_name}': 要素が見つかりません")
+      want_vals.append(str(area_val))
+
+    result = driver.execute_script("""
+      const want = new Set(arguments[0]);
+      const cbs = [...document.querySelectorAll('input[name="area[]"]')];
+      const done = [];
+      for (const cb of cbs) {
+        const should = want.has(String(cb.value));
+        if (cb.checked !== should) {
+          cb.checked = should;
+          cb.dispatchEvent(new Event('change', {bubbles: true}));
+          cb.dispatchEvent(new Event('click', {bubbles: true}));
+        }
+        if (should && !done.includes(cb.value)) done.push(cb.value);
+      }
+      return {
+        set: done,
+        checked: cbs.filter(e => e.checked).map(e => e.value),
+      };
+    """, want_vals) or {}
+    checked = result.get("checked", [])
+    for area_name in area_names:
+      v = str(HAPPYMAIL_AREA_MAP.get(area_name, ""))
+      print(f"  エリア: {area_name} (val={v}) {'✅' if v in checked else '⚠️未チェック'}")
     time.sleep(0.5)
 
-  # 検索するボタンをクリック
-  search_btn = driver.find_elements(By.ID, "btn-search-start")
-  if not search_btn:
-    search_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'検索する')]")
-  if search_btn:
-    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", search_btn[0])
-    human_click(driver, search_btn[0])
-    time.sleep(2)
-    print(f"  検索しました")
+  # 「この条件を保存する」を押して検索条件を保存する。
+  # 「検索する」(btn-search) だと今回の検索に使われるだけで条件が残らない。
+  # 座標クリックはラベルの親リンクに当たって TOP へ飛ぶことがあるため JS で押す。
+  save_btn = driver.find_elements(By.ID, "btn-search-save")
+  if not save_btn:
+    save_btn = driver.find_elements(By.XPATH, "//*[contains(text(),'この条件を保存')]")
+  if save_btn:
+    driver.execute_script("arguments[0].scrollIntoView({block:'center'});", save_btn[0])
+    time.sleep(0.4)
+    driver.execute_script("arguments[0].click();", save_btn[0])
+    time.sleep(2.5)
+    # 確認ダイアログが出たら確定する
+    confirm = driver.execute_script("""
+      const b = [...document.querySelectorAll('button, .modal-button-blue, .ds_round_btn')]
+        .find(e => e.offsetParent !== null
+          && /保存|OK|はい/.test((e.textContent || '').trim())
+          && !/キャンセル|やめる/.test(e.textContent || ''));
+      if (b) { b.click(); return (b.textContent || '').trim().slice(0, 12); }
+      return null;
+    """)
+    if confirm:
+      print(f"  確認ダイアログを確定: {confirm}")
+      time.sleep(1.5)
+    print(f"  検索条件を保存しました")
   else:
-    print(f"  検索ボタンが見つかりません")
+    print(f"  「この条件を保存する」ボタンが見つかりません")
 
 
 def set_footprint_settings(driver, wait):
