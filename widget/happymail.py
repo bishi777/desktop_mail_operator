@@ -4080,31 +4080,118 @@ def set_search_conditions(chara_data, driver, wait):
     print(f"  「検索する」ボタンが見つかりません")
 
 
+def _select_option_value(driver, select_el, value):
+  """<select> の値を選ぶ。option が非表示でも動くようにする。
+
+  このサイトの select は option が display:none のことがあり、
+  Selenium の Select.select_by_value は ElementNotInteractableException
+  になる。CDP の実クリックで select を開き、キーボードで選択する。
+  失敗したら最後の手段として JS で値を設定する。
+  """
+  from selenium.webdriver.support.ui import Select
+  try:
+    Select(select_el).select_by_value(str(value))
+    return True
+  except Exception:
+    pass
+  # キーボードで選ぶ（select をフォーカスして上下キー）
+  try:
+    opts = driver.execute_script(
+      "return [...arguments[0].options].map(o => o.value);", select_el)
+    target = opts.index(str(value))
+    cur = driver.execute_script("return arguments[0].selectedIndex;", select_el)
+    human_click(driver, select_el)
+    time.sleep(0.4)
+    key = "ArrowDown" if target > cur else "ArrowUp"
+    code = 40 if target > cur else 38
+    for _ in range(abs(target - cur)):
+      for t in ("rawKeyDown", "keyUp"):
+        driver.execute_cdp_cmd("Input.dispatchKeyEvent", {
+          "type": t, "key": key, "code": key, "windowsVirtualKeyCode": code})
+      time.sleep(0.15)
+    for t in ("rawKeyDown", "keyUp"):
+      driver.execute_cdp_cmd("Input.dispatchKeyEvent", {
+        "type": t, "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13})
+    time.sleep(0.4)
+    now = driver.execute_script(
+      "return arguments[0].options[arguments[0].selectedIndex].value;", select_el)
+    if str(now) == str(value):
+      return True
+  except Exception:
+    pass
+  # 最後の手段
+  try:
+    driver.execute_script("""
+      const s = arguments[0], v = String(arguments[1]);
+      s.value = v;
+      s.dispatchEvent(new Event('change', {bubbles: true}));
+    """, select_el, str(value))
+    now = driver.execute_script(
+      "return arguments[0].options[arguments[0].selectedIndex].value;", select_el)
+    return str(now) == str(value)
+  except Exception:
+    return False
+
+
 def set_footprint_settings(driver, wait):
-  """足あと設定: 足あとを残す=ON、女性を表示する=OFF(男性のみ表示)"""
+  """足あと設定を確認し、違っていたら直す。
+
+  TOP → マイページ → 各種設定 → 足あと設定 と辿った先のページ。
+  望ましい状態:
+    足あとを残す   : ON          (enable=1)
+    女性を表示する : OFF(男性のみ) (view=1)
+  既に正しければ何も変更せず、保存も行わない。
+  """
   driver.get("https://happymail.co.jp/app/html/ashiato_setting.php")
   wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
-  time.sleep(1)
+  time.sleep(1.5)
 
   from selenium.webdriver.support.ui import Select
 
+  changed = False
+
   # 足あとを残す (enable: 0=残さない, 1=残す)
   enable_sel = driver.find_elements(By.CSS_SELECTOR, "select[name='enable']")
-  if enable_sel:
-    Select(enable_sel[0]).select_by_value("1")
-    print("  足あとを残す: ON")
+  if not enable_sel:
+    print("  足あと設定: enable が見つかりません")
+  else:
+    s = Select(enable_sel[0])
+    cur = s.first_selected_option.get_attribute("value")
+    if cur == "1":
+      print(f"  足あとを残す: ON（変更なし）")
+    elif _select_option_value(driver, enable_sel[0], "1"):
+      changed = True
+      print(f"  足あとを残す: OFF → ON に変更")
+    else:
+      print(f"  足あとを残す: ⚠️ 変更できませんでした")
 
-  # 女性を表示しない (view: 0=すべて, 1=男性のみ, 2=女性のみ)
+  # 女性を表示する (view: 0=すべて, 1=男性のみ, 2=女性のみ)
+  # 「女性を表示する」を OFF にする＝男性のみ表示
   view_sel = driver.find_elements(By.CSS_SELECTOR, "select[name='view']")
-  if view_sel:
-    Select(view_sel[0]).select_by_value("1")
-    print("  足あと表示: 男性のみ")
+  if not view_sel:
+    print("  足あと設定: view が見つかりません")
+  else:
+    s = Select(view_sel[0])
+    cur = s.first_selected_option.get_attribute("value")
+    if cur == "1":
+      print(f"  女性を表示する: OFF（男性のみ・変更なし）")
+    elif _select_option_value(driver, view_sel[0], "1"):
+      changed = True
+      print(f"  女性を表示する: ON → OFF（男性のみ）に変更")
+    else:
+      print(f"  女性を表示する: ⚠️ 変更できませんでした")
 
-  # 変更ボタンをクリック
-  submit_btn = driver.find_elements(By.ID, "submit")
+  # 変更があったときだけ保存する
+  if not changed:
+    print("  足あと設定: 既に正しいため保存は行いません")
+    return
+  submit_btn = [e for e in driver.find_elements(By.ID, "submit") if e.is_displayed()]
+  if not submit_btn:
+    submit_btn = [e for e in driver.find_elements(By.XPATH, "//*[contains(text(),'変更')]")
+                  if e.is_displayed()]
   if submit_btn:
     human_click(driver, submit_btn[0])
-    time.sleep(2)
+    time.sleep(2.5)
     print("  足あと設定を保存しました")
   else:
     print("  変更ボタンが見つかりません")
