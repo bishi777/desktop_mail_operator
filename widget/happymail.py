@@ -324,6 +324,49 @@ def catch_warning_screen(driver):
       return "ログインできませんでした"
   return False
 
+def _get_detail_partner_name(driver):
+  """メッセージ詳細ページのヘッダから、開いている相手の表示名を返す。
+
+  一覧から取った名前は遷移がずれると別人のものになるため、
+  送信直前にこちらで取り直す。取れなければ None（呼び出し元は
+  一覧の名前をそのまま使う）。
+  """
+  try:
+    name = driver.execute_script("""
+      const NG = /^(戻る|メッセージ|ホーム|マイページ|プロフ検索|募集|タイプ|OFF|ON)$/;
+      const clean = (s) => (s || '').replace(/\\s+/g, ' ').trim();
+
+      // 1) 「○○さんのプロフィール」リンク（本文冒頭に出る。最も確実）
+      for (const a of document.querySelectorAll('a')) {
+        const m = clean(a.textContent).match(/^(.+?)さんのプロフィール$/);
+        if (m && m[1] && m[1].length <= 30) return m[1];
+      }
+      // 2) ヘッダ中央の見出し。構造が変わっても拾えるよう候補を順に試す
+      const sels = [
+        '#ds_header .ds_header_center',
+        '.ds_header_title',
+        'header .ds_header_center',
+        '#ds_header h1',
+        '.ds_header_ttl',
+      ];
+      for (const s of sels) {
+        const el = document.querySelector(s);
+        if (!el) continue;
+        const t = clean(el.textContent);
+        if (t && t.length <= 30 && !NG.test(t)) return t;
+      }
+      return null;
+    """)
+    if not name:
+      return None
+    name = str(name).strip()
+    # 「OFF」等のトグル文字が混ざることがあるので末尾を削る
+    name = re.sub(r'\s*(OFF|ON)\s*$', '', name).strip()
+    return name or None
+  except Exception:
+    return None
+
+
 def close_open_modal(driver, wait=None):
   """開いているモーダル(remodal)を閉じる。
 
@@ -692,7 +735,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
           catch_warning_screen(driver)
-          send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")      
+          # 一覧から取った名前は、遷移先がずれると別人のものになる
+          # （実際に「秋葉」さんへ「むーちゃま」と呼びかける誤送信が発生）。
+          # 詳細ページのヘッダから取り直して、開いている相手の名前を使う。
+          detail_name = _get_detail_partner_name(driver)
+          if detail_name and detail_name != user_name:
+            print(f"  [{name}] 相手名を一覧({user_name})から詳細({detail_name})に補正します")
+            user_name = detail_name
+          send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")
           send_me_length = len(send_message)
           received_elem = driver.find_elements(By.CLASS_NAME, "message__block--receive")
           all_received_text = ""
