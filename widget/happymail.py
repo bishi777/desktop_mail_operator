@@ -764,7 +764,17 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             # --- NGワード判定 -------------------------------------------
             # 金銭交渉など規約違反を示唆するメッセージに返信すると即 BAN されるため、
             # 返信せずに相手を無視登録して次のメールへ進む。
-            ng = contains_ng_word(all_received_text)
+            #
+            # ただし2通目以降のやり取り（こちらから返信せず通知メールを送るだけの
+            # 段階）は判定しない。その先は人が中身を見て判断するので、
+            # 自動で無視登録してやり取りを打ち切ってしまう方が困る。
+            # AI返信(chat_ai_flug)はこちらが文章を送るため、通数に関わらず判定する。
+            skip_ng_check = (not chat_ai_flug) and send_me_length >= 2
+            if skip_ng_check:
+              ng = None
+              print(f"  [{name}] やり取り中（{send_me_length}通送信済み）のためNGワード判定はしません")
+            else:
+              ng = contains_ng_word(all_received_text)
             if ng:
               print(f"🚫受信メッセージにNGワード『{ng}』を検出 → 返信せず無視登録します")
               regist_ignore_user(driver, wait, user_name)
