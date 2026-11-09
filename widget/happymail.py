@@ -948,53 +948,27 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               print(f"  [DEBUG {name}] text-message 要素数={len(text_area_list)}")
               if not text_area_list:
                 print(f"  [DEBUG {name}] text-message 見つからず、ページ HTML 抜粋: {driver.execute_script('return document.body.innerText;')[:300]!r}")
-              text_area = driver.find_element(By.ID, value="text-message")
-              # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
-              human_type(driver, text_area, send_message)
-              # 送信
-              send_mail_list = driver.find_elements(By.ID, value="submitButton")
-              print(f"  [DEBUG {name}] submitButton 要素数={len(send_mail_list)}")
-              send_mail = driver.find_element(By.ID, value="submitButton")
-              human_sleep(0.6, 1.8)
-              human_click(driver, send_mail)
-              print(f"  [DEBUG {name}] submitButton.click() 実行後 url={driver.current_url}")
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1.5)
-              # クリックが空振りして入力欄に本文が残ることがある。
-              # 残っていれば未送信なので押し直す（最大2回）。
-              for _resend in range(2):
-                left = driver.execute_script(
-                  "const t=document.getElementById('text-message');"
-                  "return t ? (t.value || '') : '';") or ""
-                if not left.strip():
-                  break
-                print(f"  [DEBUG {name}] 入力欄に本文が残っています → 送信ボタンを押し直します({_resend+1}/2)")
-                btns = driver.find_elements(By.ID, value="submitButton")
-                if not btns:
-                  break
-                human_click(driver, btns[0])
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(2.0)
+              # 送信ボタンが画面外で空振りすることがあるため、
+              # 入力欄が空になるまで押し直す共通処理を使う。
+              # 失敗してもここで continue はしない（このループは末尾で
+              # 一覧に戻って new_mail を取り直すまでが1件分の処理なので、
+              # 飛ばすと同じメールを延々と処理してしまう）。
+              if not send_message_text(driver, wait, name, send_message):
+                print(f"  [{name}] 1通目の送信に失敗しました: {user_name}")
+              # 送信内容が画面に反映されるまでリロードして待つ。
+              # send_message_text が送信済みを確認しているので、
+              # ここで送信ボタンを押し直すと二重送信になる（以前の android 分岐）。
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt = 0
               send_message_clean = func.normalize_text(send_message)
               while not len(send_msg_elem):
-                if android:
-                  send_mail.click()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(7)
-                else:
-                  driver.refresh()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(3)
-                  # message__block__body__text--female 
+                if reload_cnt >= 3:
+                  break
+                driver.refresh()
+                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+                time.sleep(7 if android else 3)
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt += 1
-                if reload_cnt == 3:
-                  driver.refresh()
-                  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                  time.sleep(3)
-                  break
               if post_return_message_flug:
                 if mailaddress_img:
                   print(f"  [{name}] 募集経由  → post_return_message と 画像 を送信")
@@ -1073,33 +1047,26 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 return_message = f"{name}happymail,{login_id}:{password}\n{user_name}「{receive_text}」"
                 return_list.append(return_message)
               if send_message:
-                text_area = driver.find_element(By.ID, value="text-message")
-                # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
-                human_type(driver, text_area, send_message)
-                # 送信
-                send_mail = driver.find_element(By.ID, value="submitButton")
-                human_sleep(0.6, 1.8)
-                human_click(driver, send_mail)
-                wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                time.sleep(1.5) 
+                # 送信ボタンが画面外で空振りすることがあるため、
+                # 入力欄が空になるまで押し直す共通処理を使う。
+                # 失敗しても continue しない（同じメールの再処理になるため）。
+                if not send_message_text(driver, wait, name, send_message):
+                  print(f"  [{name}] 2通目の送信に失敗しました: {user_name}")
+                # 送信内容が画面に反映されるまでリロードして待つ
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt = 0
                 send_message_clean = func.normalize_text(send_message)
-                send_text_clean = func.normalize_text(send_msg_elem[-1].text)
+                send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
                 while send_text_clean != send_message_clean:
-                  # print(send_text_clean)
-                  # print("~~~~~~~~~~~~~~~~~~~~~")
-                  # print(send_message)
+                  if reload_cnt >= 3:
+                    break
                   driver.refresh()
                   wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                   time.sleep(5)
                   send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+                  # 比較対象も更新しないと条件が変わらず、必ず上限まで回ってしまう
+                  send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
                   reload_cnt += 1
-                  if reload_cnt == 3:
-                      driver.refresh()
-                      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                      time.sleep(1.5)
-                      break  
               # メルアド画像があれば送信 
               try:
                 if mailaddress_img:  
@@ -1195,33 +1162,28 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               if ai_response is None:
                 print("Gemini制限中のため返信しません")
                 return
-              text_area = driver.find_element(By.ID, value="text-message")
-              # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
-              human_type(driver, text_area, ai_response)
-              # 送信
-              send_mail = driver.find_element(By.ID, value="submitButton")
-              human_sleep(0.6, 1.8)
-              human_click(driver, send_mail)
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1.5) 
+              # 送信ボタンが画面外で空振りすることがあるため、
+              # 入力欄が空になるまで押し直す共通処理を使う。
+              # 失敗しても continue しない（同じメールの再処理になるため）。
+              # 送れていないのに履歴を通知しないよう、通知だけ後で飛ばす。
+              ai_sent = send_message_text(driver, wait, name, ai_response)
+              if not ai_sent:
+                print(f"  [{name}] AI返信の送信に失敗しました: {user_name}")
+              # 送信内容が画面に反映されるまでリロードして待つ
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt = 0
               send_message_clean = func.normalize_text(ai_response)
-              send_text_clean = func.normalize_text(send_msg_elem[-1].text)
+              send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
               while send_text_clean != send_message_clean:
-                # print(send_text_clean)
-                # print("~~~~~~~~~~~~~~~~~~~~~")
-                # print(send_message)
+                if reload_cnt >= 3:
+                  break
                 driver.refresh()
                 wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
                 time.sleep(5)
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
+                # 比較対象も更新しないと条件が変わらず、必ず上限まで回ってしまう
+                send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
                 reload_cnt += 1
-                if reload_cnt == 3:
-                    driver.refresh()
-                    wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-                    time.sleep(1.5)
-                    break  
               #やり取りを通知  
               # Improve formatting
               formatted_history = []
@@ -1252,7 +1214,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               
               mail_text = "\n".join(formatted_history)
               return_message = f"{name}happymail,{login_id}:{password}\n{user_name}\n{mail_text}"
-              return_list.append(return_message) 
+              # 送信できていないなら通知しない（送ったことになってしまうため）
+              if ai_sent:
+                return_list.append(return_message)
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)
@@ -2563,6 +2527,17 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
       if login_users_wait_cnt == 3:
         print(f"{name}: プロフ一覧のユーザーを取得できませんでした（表示形式を確認してください）")
         return
+    # user_icon は前の周から引き継がれるのに login_users は毎周取り直すため、
+    # 足跡を付けた分だけ user_icon が進むと一覧の件数を超えて IndexError になる。
+    # 足りなければ下までスクロールして読み込み、それでも足りなければ打ち切る。
+    if len(login_users) <= user_icon:
+      driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+      wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+      time.sleep(2.0)
+      login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+      if len(login_users) <= user_icon:
+        print(f"{name}: 候補を使い切りました（{user_icon}人目 / 一覧{len(login_users)}件）")
+        return
     name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
     user_name = name_field.text
     mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -2581,7 +2556,16 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(wait_time)
         print("送信履歴のあるユーザーが5回続きました")
-        return 
+        return
+      # user_icon を進めた直後なので、一覧の件数を超えていないか確認する
+      if len(login_users) <= user_icon:
+        driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
+        wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+        time.sleep(2.0)
+        login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
+        if len(login_users) <= user_icon:
+          print(f"{name}: 候補を使い切りました（{user_icon}人目 / 一覧{len(login_users)}件）")
+          return
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
       mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -2598,18 +2582,21 @@ def mutidriver_make_footprints(name,login_id, password, driver,wait, mf_cnt, typ
     while "ds_ribbon" in candidate_footprint.get_attribute("class"):
       # print(f"✅ {user_name} 確認済み")
       user_icon += 1
+      # 一覧が増えなくなっても抜けられるよう回数で打ち切る
+      # （以前は while の中だけで数えていたため、増えない一覧だと無限に回った）
       while len(login_users) <= user_icon:
-        # print("************************")
+        if bottom_scroll_cnt >= 5:
+          break
         driver.execute_script("window.scrollTo(0, document.documentElement.scrollHeight);")
         wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
         time.sleep(3)
         login_users = driver.find_elements(By.CLASS_NAME, value="ds_user_post_link_item_r")
         bottom_scroll_cnt += 1
-        
-      if bottom_scroll_cnt == 5:
-        print("ユーザーが見つかりません")
+
+      if len(login_users) <= user_icon:
+        print(f"{name}: ユーザーが見つかりません（{user_icon}人目 / 一覧{len(login_users)}件）")
         return
-      
+
       candidate_footprint = login_users[user_icon]
       name_field = login_users[user_icon].find_element(By.CLASS_NAME, value="ds_post_body_name_small")
       user_name = name_field.text
@@ -4150,6 +4137,50 @@ def scroll_into_view_and_click(driver, element, label=""):
   if label:
     print(f"  {label}: 画面内に収まりません（そのまま試行します）")
   return human_click(driver, element)
+
+
+def send_message_text(driver, wait, name, send_message, max_retry=3):
+  """メッセージ本文を入力して送信する。送信できたら True。
+
+  送信ボタン(#submitButton)は position:fixed の入力バーの中にあり、
+  本文が複数行に伸びるとバーごと画面下へはみ出して空振りすることがある。
+  （本番のウィンドウは小さいので特に起きやすい）
+  空振りすると入力欄に本文が残ったまま先へ進んでしまうため、
+  「入力欄が空になったか」を送信できた証拠として押し直す。
+
+  scroll_into_view_and_click を使うのは、祖先が fixed だと
+  scrollIntoView しても座標が動かず、見えている部分を狙う必要があるため。
+  """
+  text_area = driver.find_element(By.ID, value="text-message")
+  # CDP で実際の打鍵のように入力する（value 直接代入は Bot 判定されるため）
+  human_type(driver, text_area, send_message)
+
+  for attempt in range(1, max_retry + 1):
+    btns = driver.find_elements(By.ID, value="submitButton")
+    if not btns:
+      print(f"  [{name}] submitButton が見つかりません")
+      return False
+    human_sleep(0.6, 1.8)
+    scroll_into_view_and_click(driver, btns[0], label=f"[{name}] 送信ボタン")
+    try:
+      wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
+    except Exception:
+      pass
+    time.sleep(1.5)
+
+    # 入力欄が空になっていれば送信できている
+    left = driver.execute_script(
+      "const t=document.getElementById('text-message');"
+      "return t ? (t.value || '') : '';") or ""
+    if not left.strip():
+      return True
+
+    if attempt < max_retry:
+      print(f"  [{name}] 入力欄に本文が残っています → 送信ボタンを押し直します({attempt}/{max_retry - 1})")
+      time.sleep(1.0)
+
+  print(f"  [{name}] ❌ メッセージを送信できませんでした（入力欄に本文が残っています）")
+  return False
 
 
 def _select_option_value(driver, select_el, value):
