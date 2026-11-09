@@ -69,6 +69,16 @@ if [ -n "$PROXY_KEY" ]; then
     exit 1
   fi
 
+  # 中継を起こす前にキーの存在を確認する。
+  # 打ち間違い（ローマ字のキーではなくキャラ名の日本語表記など）だと
+  # 中継が起動直後に落ちるだけで、Chrome は死んだプロキシを向いて立ち上がり
+  # net::ERR_PROXY_CONNECTION_FAILED になって原因が分かりにくい。
+  if [ -f "$SCRIPT_DIR/check_proxy_key.py" ]; then
+    if ! "$PYEXE" "$SCRIPT_DIR/check_proxy_key.py" "$PROXY_KEY"; then
+      exit 1
+    fi
+  fi
+
   # 既に同じ中継ポートで動いていれば再利用、いなければ起動
   if lsof -nP -iTCP:${RELAY_PORT} -sTCP:LISTEN >/dev/null 2>&1; then
     echo "[proxy] 中継は既に起動しています (127.0.0.1:${RELAY_PORT})"

@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 REM ============================================================
 REM  Debug Chrome launcher (Windows)
@@ -7,6 +8,10 @@ REM  Ex:    start_debug_chrome_win.bat 9222
 REM         start_debug_chrome_win.bat 9222 iphone14
 REM         start_debug_chrome_win.bat 9222 none erika
 REM         start_debug_chrome_win.bat 9222 iphone14 erika
+REM
+REM  PROXY_KEY is the romanized key in settings.py (erika, ema, ...),
+REM  not the Japanese character name. A wrong key stops the script
+REM  before Chrome is launched and prints the available keys.
 REM
 REM  UA_PRESET (2nd arg):
 REM    none (default)     : no UA override (default Chrome/Windows UA)
@@ -106,6 +111,13 @@ if not exist "%SCRIPT_DIR%proxy_auth_relay.py" (
   echo ERROR: proxy_auth_relay.py not found in %SCRIPT_DIR%
   goto end
 )
+
+REM Validate the proxy key before touching the relay. A typo (or a Japanese
+REM character name instead of the romanized key) otherwise kills the relay
+REM silently and Chrome ends up pointed at a dead proxy
+REM (net::ERR_PROXY_CONNECTION_FAILED).
+"%PYEXE%" "%SCRIPT_DIR%check_proxy_key.py" "%PROXY_KEY%"
+if errorlevel 1 goto end
 
 REM Reuse the relay if it is already listening on the same port.
 REM Get-NetTCPConnection is not on every edition, so fall back to a TCP connect.
