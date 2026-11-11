@@ -69,6 +69,44 @@ def happy_daily_add(daily_counter, name, today, n):
   daily_counter[name]["count"] += n
 
 
+# --- 警告画面（「この登録は利用できません」等）の通知 ----------------------
+# 警告画面はキャラ名を読む前に検知されるため、その時点ではどのキャラか分からない。
+# 前回までの巡回で特定できた タブ(window handle) → キャラ名 を覚えておき、通知に使う。
+_happy_tab_last_name = {}
+# 通知済みのキー（キャラ名が分かればキャラ名、分からなければ handle）。
+# 同じ警告が毎ループ出ても通知は最初の 1 回だけ（プロセスを再起動するとリセット）。
+_happy_warning_notified = set()
+
+
+def notify_happy_warning_once(handle, tab_no, tab_total, warning_text, url, mail_info, now):
+  """ハッピーメールの警告画面を検知したタブについて、通知メールを 1 通だけ送る。
+
+  戻り値: 送信したら True、既に通知済みなら False。
+  """
+  name = _happy_tab_last_name.get(handle)
+  key = name or handle
+  if key in _happy_warning_notified:
+    return False
+  # 送信の成否にかかわらず 1 回で打ち切る（SMTP 不調で毎ループ試行し続けないため）
+  _happy_warning_notified.add(key)
+  who = name if name else f"不明（タブ {tab_no}/{tab_total}）"
+  body = (
+    "ハッピーメールで警告画面を検知しました。\n"
+    f"キャラ: {who}\n"
+    f"警告: {warning_text}\n"
+    f"URL: {url}\n"
+    f"日時: {now.strftime('%Y-%m-%d %H:%M:%S')}\n"
+    "このタブの巡回はスキップしています。同じ警告が続いても再通知はしません。"
+  )
+  try:
+    func.send_mail(body, mail_info, f"happymail 警告画面 {who}")
+    print(f"[happy] 警告画面の通知メールを送信しました: {who}")
+    return True
+  except Exception as e:
+    print(f"[happy] 警告画面の通知メール送信に失敗: {type(e).__name__}: {e}")
+    return False
+
+
 def count_reply_result(result):
   """return_footpoint() の戻り値から タイプ返し＋足跡返し の実績件数を取り出す。
 
@@ -114,12 +152,16 @@ def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cn
       ban_flug = happymail.catch_warning_screen(driver)
       if ban_flug:
         print(f"[happy] 警告画面を検知したためスキップ: {ban_flug}")
+        # 毎ループ同じ警告が出るので、通知メールは最初の 1 回だけ
+        notify_happy_warning_once(handle, idx + 1, len(handles), ban_flug, driver.current_url, mail_info, now)
         continue
       name_ele = driver.find_elements(By.CLASS_NAME, 'ds_user_display_name')
       if not name_ele:
         print("[happy] キャラ名の取得に失敗しました")
         continue
       name = name_ele[0].text
+      # 警告画面ではキャラ名が読めないので、分かった時点でタブと紐付けて覚えておく
+      _happy_tab_last_name[handle] = name
     except Exception as e:
       print(f"[happy] ❌ タブ判定でエラー: {type(e).__name__}: {e}")
       traceback.print_exc()

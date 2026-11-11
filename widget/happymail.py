@@ -47,6 +47,9 @@ AGE_PATTERN_UNDER_35 = r"20代|18.?19|30代前半|30前半"  # 34歳以下相当
 
 # マッチング返しの待機時間の範囲（秒）。1件ごとに引き直して機械的な等間隔を避ける。
 MATCHING_WAIT_RANGE = (1.5, 3.5)
+# 足あと一覧（Ajax で後から入る）が出るまで待つ上限秒数。1 秒おきに確認する。
+# ページの読み込みが遅いときはここを伸ばす。超えたらリロード（最大 3 回）。
+FOOTPRINT_LOAD_WAIT_SEC = 10
 
 # --- 受信メッセージのNGワード ---------------------------------------------
 # 金銭を伴う出会いを示唆するメッセージに返信すると、サイト側の監視に
@@ -2169,13 +2172,37 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
         # 1件ごとに待機時間を引き直す（同じ間隔が続くと機械的に見えるため）
         wait_time = random.uniform(wait_min, wait_max)
         send_status = True
-        f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")          
-        # ページが完全に読み込まれるまで待機
+        f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
+        # ページが完全に読み込まれるまで待機。
+        # 足あとが0件のときは何度リロードしても増えないので、
+        # 回数で打ち切る（以前は f_user を取り直しておらず無限ループしていた）。
+        refresh_cnt = 0
         while len(f_user) < 1:
-          print("足跡ユーザーが見つかりませんでした,# ページをリフレッシュして再度取得")
+          # まず今のページで読み込み完了を待つ。一覧は Ajax で後から入り、
+          # スピナーが回っている間は 0 件に見える。読み込みが遅いだけのことが
+          # 多いので、すぐリロードせず FOOTPRINT_LOAD_WAIT_SEC 秒まで 1 秒おきに見る。
+          for _ in range(FOOTPRINT_LOAD_WAIT_SEC):
+            f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
+            if len(f_user):
+              break
+            time.sleep(1)
+          if len(f_user):
+            break
+          # 待っても出なければリロード。3 回やってダメなら諦める
+          # （足あとが本当に 0 件のときは何度やっても増えない）
+          if refresh_cnt >= 3:
+            print(f"{name}: 足跡ユーザーが見つからないため足跡返しを終了します")
+            return [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
+          print(f"足跡ユーザーが見つかりませんでした（{FOOTPRINT_LOAD_WAIT_SEC}秒待機）。ページをリフレッシュして再度取得します")
           driver.refresh()
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-          time.sleep(2)        
+          time.sleep(2)
+          refresh_cnt += 1
+        # user_icon は前の周から引き継がれるため、取り直した一覧の件数を
+        # 超えていないか確認する
+        if len(f_user) <= user_icon:
+          print(f"{name}: 足跡の候補を使い切りました（{user_icon}人目 / 一覧{len(f_user)}件）")
+          return [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
         name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
         user_name = name_field.text
         mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
@@ -2193,11 +2220,14 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(0.7)
               f_user = driver.find_elements(By.CLASS_NAME, value="ds_post_head_main_info")
-              # print(len(f_user))
+              # スクロールしても増えなければ候補切れ（そのまま添字アクセスすると IndexError）
+              if len(f_user) <= user_icon:
+                print(f"{name}: 足跡の候補を使い切りました（{user_icon}人目 / 一覧{len(f_user)}件）")
+                return [matching_counted, type_counted, return_cnt, matching_limit_flug, returnfoot_limit_flug]
             name_field = f_user[user_icon].find_element(By.CLASS_NAME, value="ds_like_list_name")
             user_name = name_field.text
             mail_icon = name_field.find_elements(By.TAG_NAME, value="img")
-            
+
             if send_skip_cnt > 50:
               # print("送れないユーザーが50回続きました")
               return return_cnt
