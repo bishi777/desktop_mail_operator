@@ -50,6 +50,13 @@ MATCHING_WAIT_RANGE = (1.5, 3.5)
 # 足あと一覧（Ajax で後から入る）が出るまで待つ上限秒数。1 秒おきに確認する。
 # ページの読み込みが遅いときはここを伸ばす。超えたらリロード（最大 3 回）。
 FOOTPRINT_LOAD_WAIT_SEC = 10
+# 送信ボタンを押してから結果（入力欄が空になる / エラー表示）が出るまで待つ上限秒数。
+# 送信中はスピナー(#loading.in)が出るので、その間は押し直さずに待つ。
+SEND_RESULT_WAIT_SEC = 12
+# 画像の「送信する」を押してから確認画面が閉じるまで待つ上限秒数。
+# サイトの JS はアップロード失敗時（ポイント不足以外）に何も表示せず確認画面に留まるため、
+# 以前の while img_conform.is_displayed() は無限ループになっていた。
+MEDIA_SEND_WAIT_SEC = 40
 
 # --- 受信メッセージのNGワード ---------------------------------------------
 # 金銭を伴う出会いを示唆するメッセージに返信すると、サイト側の監視に
@@ -966,15 +973,17 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               # 失敗してもここで continue はしない（このループは末尾で
               # 一覧に戻って new_mail を取り直すまでが1件分の処理なので、
               # 飛ばすと同じメールを延々と処理してしまう）。
-              if not send_message_text(driver, wait, name, send_message):
+              fst_sent = send_message_text(driver, wait, name, send_message)
+              if not fst_sent:
                 print(f"  [{name}] 1通目の送信に失敗しました: {user_name}")
               # 送信内容が画面に反映されるまでリロードして待つ。
               # send_message_text が送信済みを確認しているので、
               # ここで送信ボタンを押し直すと二重送信になる（以前の android 分岐）。
+              # 送れていないなら反映待ちも画像送信もしない（本文なしで画像だけ送らない）。
               send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
               reload_cnt = 0
               send_message_clean = func.normalize_text(send_message)
-              while not len(send_msg_elem):
+              while fst_sent and not len(send_msg_elem):
                 if reload_cnt >= 3:
                   break
                 driver.refresh()
@@ -982,7 +991,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 time.sleep(7 if android else 3)
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt += 1
-              if post_return_message_flug:
+              if post_return_message_flug and fst_sent:
                 if mailaddress_img:
                   print(f"  [{name}] 募集経由  → post_return_message と 画像 を送信")
                   # メルアド画像があれば送信 
@@ -996,30 +1005,15 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                         f.write(base64.b64decode(image_base64))
                     # 画像の保存パスを取得
                     image_path = os.path.abspath(image_filename)
-                    img_conform = driver.find_element(By.ID, value="media-confirm")
-                    plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-                    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                    time.sleep(1)
-                    human_click(driver, plus_icon[0])
-                    time.sleep(1)
-                    upload_file = driver.find_element(By.ID, "upload_file")
-                    upload_file.send_keys(image_path)
-                    time.sleep(2)
-                    submit = driver.find_element(By.ID, value="submit_button")
-                    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                    human_click(driver, submit)
-                    while img_conform.is_displayed():
-                      time.sleep(2)
-                      modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-                      if len(modal_content):
-                        break # modal-content お相手が年齢確認されていない為
+                    # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+                    send_media_file(driver, wait, name, image_path)
                   except Exception as e:
                     print("画像の送信に失敗しました", e)
                     print(traceback.format_exc())    
               
-              # 画像があれば送信 
+              # 画像があれば送信（本文が送れたときだけ）
               try:
-                if mail_img:  
+                if mail_img and fst_sent:
                   # 画像データを取得してBase64にエンコード
                   image_response = requests.get(mail_img)
                   image_base64 = base64.b64encode(image_response.content).decode('utf-8')
@@ -1029,28 +1023,14 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                       f.write(base64.b64decode(image_base64))
                   # 画像の保存パスを取得
                   image_path = os.path.abspath(image_filename)
-                  img_conform = driver.find_element(By.ID, value="media-confirm")
-                  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                  time.sleep(1)
-                  human_click(driver, plus_icon[0])
-                  time.sleep(1)
-                  upload_file = driver.find_element(By.ID, "upload_file")
-                  upload_file.send_keys(image_path)
-                  time.sleep(2)
-                  submit = driver.find_element(By.ID, value="submit_button")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                  human_click(driver, submit)
-                  while img_conform.is_displayed():
-                    time.sleep(2)
-                    modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-                    if len(modal_content):
-                      break # modal-content お相手が年齢確認されていない為
+                  # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+                  send_media_file(driver, wait, name, image_path)
               except Exception as e:
                 print("画像の送信に失敗しました", e)
-                print(traceback.format_exc()) 
+                print(traceback.format_exc())
             elif send_me_length == 1:
               send_message = second_message.format(name=user_name)
+              second_sent = True  # 送るものが無い（募集経由）ときは画像送信を妨げない
               # 募集経由なら second_message を送らず「やり取りしてます」記録のみ
               if from_board and post_return_message:
                 send_message = ""
@@ -1063,14 +1043,15 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 # 送信ボタンが画面外で空振りすることがあるため、
                 # 入力欄が空になるまで押し直す共通処理を使う。
                 # 失敗しても continue しない（同じメールの再処理になるため）。
-                if not send_message_text(driver, wait, name, send_message):
+                second_sent = send_message_text(driver, wait, name, send_message)
+                if not second_sent:
                   print(f"  [{name}] 2通目の送信に失敗しました: {user_name}")
-                # 送信内容が画面に反映されるまでリロードして待つ
+                # 送信内容が画面に反映されるまでリロードして待つ（送れていなければ待たない）
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt = 0
                 send_message_clean = func.normalize_text(send_message)
                 send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
-                while send_text_clean != send_message_clean:
+                while second_sent and send_text_clean != send_message_clean:
                   if reload_cnt >= 3:
                     break
                   driver.refresh()
@@ -1080,9 +1061,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   # 比較対象も更新しないと条件が変わらず、必ず上限まで回ってしまう
                   send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
                   reload_cnt += 1
-              # メルアド画像があれば送信 
+              # メルアド画像があれば送信（2通目が送れなかったときは送らない）
               try:
-                if mailaddress_img:  
+                if mailaddress_img and second_sent:
                   # 画像データを取得してBase64にエンコード
                   image_response = requests.get(mailaddress_img)
                   image_base64 = base64.b64encode(image_response.content).decode('utf-8')
@@ -1092,26 +1073,11 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                       f.write(base64.b64decode(image_base64))
                   # 画像の保存パスを取得
                   image_path = os.path.abspath(image_filename)
-                  img_conform = driver.find_element(By.ID, value="media-confirm")
-                  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-                  time.sleep(1)
-                  human_click(driver, plus_icon[0])
-                  time.sleep(1)
-                  upload_file = driver.find_element(By.ID, "upload_file")
-                  upload_file.send_keys(image_path)
-                  time.sleep(2)
-                  submit = driver.find_element(By.ID, value="submit_button")
-                  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-                  human_click(driver, submit)
-                  while img_conform.is_displayed():
-                    time.sleep(2)
-                    modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-                    if len(modal_content):
-                      break # modal-content お相手が年齢確認されていない為
+                  # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+                  send_media_file(driver, wait, name, image_path)
               except Exception as e:
                 print("画像の送信に失敗しました", e)
-                print(traceback.format_exc())     
+                print(traceback.format_exc())
             else:
               print('やり取りしてます')
               receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]
@@ -1874,23 +1840,8 @@ def return_matching(name, wait, wait_time, driver, user_name_list, duplication_u
       # 画像があれば送信 
       try:
         if return_foot_img:
-          img_conform = driver.find_element(By.ID, value="media-confirm")
-          plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-          time.sleep(1)
-          human_click(driver, plus_icon[0])
-          time.sleep(1)
-          upload_file = driver.find_element(By.ID, "upload_file")
-          upload_file.send_keys(return_foot_img)
-          time.sleep(2)
-          submit = driver.find_element(By.ID, value="submit_button")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-          human_click(driver, submit)
-          while img_conform.is_displayed():
-            time.sleep(2)
-            modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-            if len(modal_content):
-              break # modal-content お相手が年齢確認されていない為
+          # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+          send_media_file(driver, wait, name, return_foot_img)
       except Exception as e:
             print("画像の送信に失敗しました", e)
             print(traceback.format_exc())
@@ -2383,29 +2334,8 @@ def return_footpoint(name, driver, wait, return_foot_message, matching_cnt, type
           # 画像があれば送信
           try:
             if image_path:
-              img_conform = driver.find_element(By.ID, value="media-confirm")
-              plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
-              time.sleep(1)
-              human_click(driver, plus_icon[0])
-              time.sleep(1)
-              upload_file = driver.find_element(By.ID, "upload_file")
-              # DEBUG
-              # upload_file.send_keys("/Users/yamamotokenta/Desktop/myprojects/mail_operator/widget/picture/kumi_mizugi.jpeg")
-              upload_file.send_keys(image_path)
-              time.sleep(1.5)
-              submit = driver.find_element(By.ID, value="submit_button")
-              driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-              human_click(driver, submit)
-              img_wait_cnt = 0
-              wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
-              time.sleep(1.5)
-              while img_conform.is_displayed():
-                time.sleep(2)
-                modal_content = driver.find_elements(By.CLASS_NAME, value="modal-content")
-                if len(modal_content) and img_wait_cnt > 1:
-                  break # modal-content お相手が年齢確認されていない為
-                img_wait_cnt += 1
+              # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+              send_media_file(driver, wait, name, image_path)
           except Exception as e:
             print("画像の送信に失敗しました", e)
             print(traceback.format_exc())
@@ -3051,18 +2981,8 @@ def send_fst_message(happy_user_list, driver, wait):
         # 画像があれば送信
         # mail_img = setting.debug_img
         if mail_img:
-          img_conform = driver.find_element(By.ID, value="media-confirm")
-          plus_icon = driver.find_element(By.CLASS_NAME, value="icon-message_plus")
-          plus_icon.click()
-          time.sleep(1)
-          upload_file = driver.find_element(By.ID, "upload_file")
-          upload_file.send_keys(mail_img)
-          time.sleep(2)
-          submit = driver.find_element(By.ID, value="submit_button")
-          driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
-          human_click(driver, submit)
-          while img_conform.is_displayed():
-            time.sleep(2)
+          # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
+          send_media_file(driver, wait, name, mail_img)
         send_cnt += 1
         user_colum += 1
         print(f"fst_message {name}~{send_cnt}~")
@@ -4179,6 +4099,96 @@ def scroll_into_view_and_click(driver, element, label=""):
   return human_click(driver, element)
 
 
+def _visible_modal_text(driver):
+  """開いているモーダル（remodal / 情報ダイアログ）の文言を返す。無ければ None。
+
+  サイトの送信 API が失敗すると happyMailSP.util.alert(error_msg) で
+  remodal のダイアログが出て、入力欄には本文が残ったままになる。
+  その状態で送信ボタンを押し直しても overlay に当たるだけなので、
+  文言を拾ってログに出し、押し直しはやめる。
+  """
+  try:
+    return driver.execute_script("""
+      const sels = ['.remodal-is-opened', '#_information_dialog', '#information__dialog',
+                    '.modal-content', '.remodal'];
+      for (const s of sels) {
+        for (const el of document.querySelectorAll(s)) {
+          const r = el.getBoundingClientRect();
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+          if (r.width < 1 || r.height < 1) continue;
+          const t = (el.innerText || '').replace(/\\s+/g, ' ').trim();
+          if (t) return t.slice(0, 160);
+        }
+      }
+      return null;
+    """)
+  except Exception:
+    return None
+
+
+def _send_state(driver):
+  """送信まわりの状態をまとめて返す（診断ログと待機判定に使う）。"""
+  try:
+    return driver.execute_script("""
+      const t = document.getElementById('text-message');
+      const b = document.getElementById('submitButton');
+      const svg = b ? b.querySelector('.svg-block') : null;
+      const l = document.getElementById('loading');
+      const r = b ? b.getBoundingClientRect() : null;
+      return {
+        left: t ? (t.value || '') : '',
+        icon_on: svg ? svg.classList.contains('icon-float_type_on') : null,
+        loading: l ? l.classList.contains('in') : false,
+        focused: t ? document.activeElement === t : false,
+        btn: r ? [Math.round(r.left), Math.round(r.top), Math.round(r.width), Math.round(r.height)] : null,
+        vp: [window.innerWidth, window.innerHeight],
+      };
+    """) or {}
+  except Exception:
+    return {}
+
+
+def _press_key_cdp(driver, key, code, vk, text=None):
+  """CDP で実際の打鍵（keyDown → keyUp）を送る。"""
+  down = {"type": "keyDown", "key": key, "code": code,
+          "windowsVirtualKeyCode": vk, "nativeVirtualKeyCode": vk}
+  if text is not None:
+    down["text"] = text
+    down["unmodifiedText"] = text
+  driver.execute_cdp_cmd("Input.dispatchKeyEvent", down)
+  time.sleep(random.uniform(0.04, 0.1))
+  driver.execute_cdp_cmd("Input.dispatchKeyEvent", {
+    "type": "keyUp", "key": key, "code": code,
+    "windowsVirtualKeyCode": vk, "nativeVirtualKeyCode": vk})
+
+
+def _nudge_textarea_input(driver, text_area):
+  """入力欄の末尾で「スペース → Backspace」を実打鍵し、input イベントを起こす。
+
+  サイトの送信処理(X)は、送信アイコンに icon-float_type_on が付いていないと
+  クリックを黙って無視する。このクラスは textarea の input イベントで付くので、
+  何らかの理由で付いていないときに本文を変えずに付け直す。
+  """
+  try:
+    st = _send_state(driver)
+    if not st.get("focused"):
+      human_click(driver, text_area)
+      time.sleep(random.uniform(0.2, 0.5))
+    # 末尾にカーソルを置く（選択状態だとスペースで本文が消える）
+    driver.execute_script(
+      "const t=arguments[0]; const n=(t.value||'').length;"
+      "if (t.setSelectionRange) t.setSelectionRange(n, n);", text_area)
+    _press_key_cdp(driver, " ", "Space", 32, text=" ")
+    time.sleep(random.uniform(0.08, 0.2))
+    _press_key_cdp(driver, "Backspace", "Backspace", 8)
+    time.sleep(random.uniform(0.2, 0.5))
+    return True
+  except Exception as e:
+    print(f"  入力欄の打ち直しに失敗: {type(e).__name__}: {e}")
+    return False
+
+
 def send_message_text(driver, wait, name, send_message, max_retry=3):
   """メッセージ本文を入力して送信する。送信できたら True。
 
@@ -4187,6 +4197,14 @@ def send_message_text(driver, wait, name, send_message, max_retry=3):
   （本番のウィンドウは小さいので特に起きやすい）
   空振りすると入力欄に本文が残ったまま先へ進んでしまうため、
   「入力欄が空になったか」を送信できた証拠として押し直す。
+
+  ただし押し直して意味があるのは「クリックが効いていない」ときだけ。
+  サイトの JS（messagedetail.js の X）を読むと、
+    - 送信中(#loading.in)は 2 回目以降のクリックを無視する（G フラグ）
+    - 送信アイコンに icon-float_type_on が無いとクリックを無視する
+    - API が失敗すると alert ダイアログを出し、本文は残る
+  ので、送信中なら待ち、アイコンが無効なら入力を打ち直し、
+  ダイアログが出たら文言を記録して打ち切る。
 
   scroll_into_view_and_click を使うのは、祖先が fixed だと
   scrollIntoView しても座標が動かず、見えている部分を狙う必要があるため。
@@ -4200,26 +4218,162 @@ def send_message_text(driver, wait, name, send_message, max_retry=3):
     if not btns:
       print(f"  [{name}] submitButton が見つかりません")
       return False
+
+    # サイトが入力を認識していない（送信アイコンが無効のまま）なら押しても無視される
+    st = _send_state(driver)
+    if st.get("icon_on") is False:
+      print(f"  [{name}] 送信アイコンが有効になっていないため入力を打ち直します")
+      _nudge_textarea_input(driver, text_area)
+      st = _send_state(driver)
+      if st.get("icon_on") is False:
+        print(f"  [{name}] 送信アイコンが有効になりません（本文{len(st.get('left') or '')}文字）")
+
     human_sleep(0.6, 1.8)
     scroll_into_view_and_click(driver, btns[0], label=f"[{name}] 送信ボタン")
     try:
       wait.until(lambda d: d.execute_script('return document.readyState') == 'complete')
     except Exception:
       pass
-    time.sleep(1.5)
 
-    # 入力欄が空になっていれば送信できている
-    left = driver.execute_script(
-      "const t=document.getElementById('text-message');"
-      "return t ? (t.value || '') : '';") or ""
-    if not left.strip():
-      return True
+    # 結果を待つ: 入力欄が空になれば送信できている。
+    # スピナーが出ている間は送信中なので押し直さない。
+    # ダイアログが出たらサイト側で弾かれているので押し直さない。
+    started = time.time()
+    quiet_since = None
+    while time.time() - started < SEND_RESULT_WAIT_SEC:
+      time.sleep(0.5)
+      st = _send_state(driver)
+      left = st.get("left") or ""
+      modal = _visible_modal_text(driver)
+      if not left.strip():
+        if modal:
+          # 送信後の案内ポップアップ（または error 204 のように本文だけ消える失敗）
+          print(f"  [{name}] 送信後にダイアログ: {modal}")
+        return True
+      if modal:
+        print(f"  [{name}] ❌ 送信がサイト側で弾かれました: {modal}")
+        return False
+      if st.get("loading"):
+        quiet_since = None  # 送信中
+        continue
+      # スピナーもダイアログも無く本文が残っている → クリックが効いていない
+      if quiet_since is None:
+        quiet_since = time.time()
+      elif time.time() - quiet_since >= 2.0:
+        break
 
     if attempt < max_retry:
       print(f"  [{name}] 入力欄に本文が残っています → 送信ボタンを押し直します({attempt}/{max_retry - 1})")
       time.sleep(1.0)
 
-  print(f"  [{name}] ❌ メッセージを送信できませんでした（入力欄に本文が残っています）")
+  st = _send_state(driver)
+  print(f"  [{name}] ❌ メッセージを送信できませんでした（入力欄に本文が残っています）"
+        f" 診断: icon_on={st.get('icon_on')} loading={st.get('loading')}"
+        f" focused={st.get('focused')} btn={st.get('btn')} viewport={st.get('vp')}"
+        f" 本文{len(st.get('left') or '')}文字")
+  return False
+
+
+def _leave_media_confirm(driver, name):
+  """画像の確認画面(#media-confirm)から「キャンセル」で元の画面へ戻る。戻れなければリロード。"""
+  try:
+    img_conform = driver.find_element(By.ID, value="media-confirm")
+    if not img_conform.is_displayed():
+      return True
+    cancels = [e for e in img_conform.find_elements(By.CLASS_NAME, value="switch_content")
+               if e.is_displayed()]
+    if cancels:
+      human_click(driver, cancels[0])
+      time.sleep(1.0)
+    if not img_conform.is_displayed():
+      return True
+  except Exception:
+    pass
+  print(f"  [{name}] 画像の確認画面を閉じられないためリロードします")
+  try:
+    driver.refresh()
+    WebDriverWait(driver, 15).until(
+      lambda d: d.execute_script('return document.readyState') == 'complete')
+    time.sleep(2)
+  except Exception:
+    pass
+  return False
+
+
+def send_media_file(driver, wait, name, image_path, max_wait=MEDIA_SEND_WAIT_SEC):
+  """メッセージ詳細ページで画像ファイルを送る。送れたら True。
+
+  流れ: ＋アイコン(#ds_js_media_display_btn) → ファイル選択(#upload_file)
+        → 確認画面(#media-confirm) → 「送信する」(#submit_button)
+
+  サイトの JS（messagedetail.js）を読むと、アップロード API が
+  ポイント不足(110)以外で失敗したときは何も表示せず、ボタンを無効化したまま
+  確認画面に留まる。以前は while img_conform.is_displayed() で無限に待っていて、
+  画像送信画面のまま止まっていたので、上限を設けて失敗時は「キャンセル」で戻る。
+  """
+  img_conform = driver.find_element(By.ID, value="media-confirm")
+  plus_icon = driver.find_elements(By.ID, value="ds_js_media_display_btn")
+  if not plus_icon:
+    print(f"  [{name}] 画像の＋アイコンが見つかりません")
+    return False
+  driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", plus_icon[0])
+  time.sleep(1)
+  human_click(driver, plus_icon[0])
+  time.sleep(1)
+  upload_file = driver.find_element(By.ID, "upload_file")
+  upload_file.send_keys(image_path)
+
+  # 確認画面はファイル読み込み後に出る（サイト側に 3 秒のタイムアウト保険あり）
+  for _ in range(16):
+    if img_conform.is_displayed():
+      break
+    time.sleep(0.5)
+  else:
+    print(f"  [{name}] 画像の確認画面が表示されませんでした")
+    return False
+  time.sleep(random.uniform(0.8, 1.6))
+
+  def _click_submit():
+    submit = driver.find_element(By.ID, value="submit_button")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", submit)
+    human_click(driver, submit)
+
+  _click_submit()
+  clicks = 1
+  started = time.time()
+  idle = 0
+  while time.time() - started < max_wait:
+    time.sleep(1.0)
+    if not img_conform.is_displayed():
+      return True
+    modal = _visible_modal_text(driver)
+    if modal:
+      # ポイント不足 / お相手が年齢確認されていない 等
+      print(f"  [{name}] ❌ 画像の送信がサイト側で弾かれました: {modal}")
+      break
+    st = driver.execute_script("""
+      const b = document.getElementById('submit_button');
+      const l = document.getElementById('loading');
+      return {disabled: b ? b.disabled : null, loading: l ? l.classList.contains('in') : false};
+    """) or {}
+    if st.get("loading"):
+      idle = 0  # アップロード中
+      continue
+    if st.get("disabled"):
+      # スピナーが消えたのにボタンが無効のまま = API が失敗して何も表示されない経路
+      print(f"  [{name}] ❌ 画像の送信がサイト側で失敗しました（確認画面のまま）")
+      break
+    idle += 1
+    if idle >= 4 and clicks < 3:
+      # 何も起きていない → クリックが効いていない
+      print(f"  [{name}] 画像の「送信する」を押し直します({clicks}/2)")
+      _click_submit()
+      clicks += 1
+      idle = 0
+  else:
+    print(f"  [{name}] ❌ 画像の送信を{max_wait}秒待ちましたが完了しませんでした")
+
+  _leave_media_confirm(driver, name)
   return False
 
 
@@ -5187,7 +5341,7 @@ def human_dwell(driver, interest_level="normal"):
 # CDP ベースの入力は widget/human_input.py に共通化した。
 # 既存コードが happymail.human_click(...) のまま呼べるよう再公開する。
 from widget.human_input import (  # noqa: E402,F401
-  _element_center, human_click, human_type, human_sleep,
+  _element_center, human_click, human_type, human_sleep, ensure_focused,
 )
 
 
