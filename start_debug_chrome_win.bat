@@ -167,6 +167,17 @@ set "PROFILE_DIR=%USERPROFILE%\AppData\Local\Google\Chrome\DebugProfile_%PORT%_%
 REM Note: --exclude-switches=enable-automation is a ChromeDriver-only option,
 REM   invalid as a raw bat flag.
 
+REM Keep the page running at full speed even when the window is minimized,
+REM hidden behind other windows, or the tab is in the background, so the
+REM automation behaves the same whether or not the user is looking at it.
+REM   --disable-backgrounding-occluded-windows : do not background occluded windows
+REM   --disable-renderer-backgrounding         : keep background tab renderers at normal priority
+REM   --disable-background-timer-throttling    : do not throttle timers in background tabs
+REM   --disable-features=CalculateNativeWinOcclusion : skip Windows' native occlusion check
+REM Chrome honors only the LAST --disable-features, so add any other feature
+REM to this same comma-separated list instead of a second flag.
+set "BG_OPTS=--disable-backgrounding-occluded-windows --disable-renderer-backgrounding --disable-background-timer-throttling --disable-features=CalculateNativeWinOcclusion"
+
 REM Label for the log line (goto instead of if() to dodge paren issues)
 set "PROXY_LABEL=%PROXY_KEY%"
 if "%PROXY_KEY%"=="" set "PROXY_LABEL=noproxy"
@@ -183,6 +194,7 @@ start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
   --user-data-dir="%PROFILE_DIR%" ^
   --user-agent="!USER_AGENT!" ^
   !PROXY_OPTS! ^
+  !BG_OPTS! ^
   --disable-popup-blocking ^
   --disk-cache-size=104857600 ^
   --media-cache-size=52428800
@@ -194,6 +206,7 @@ start "" "C:\Program Files\Google\Chrome\Application\chrome.exe" ^
   --remote-debugging-port=%PORT% ^
   --user-data-dir="%PROFILE_DIR%" ^
   !PROXY_OPTS! ^
+  !BG_OPTS! ^
   --disable-popup-blocking ^
   --disk-cache-size=104857600 ^
   --media-cache-size=52428800
