@@ -2,7 +2,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import time
-from widget import func, pcmax_2, happymail
+from widget import func, pcmax_2, happymail, progress_report
 import settings
 import random
 import os
@@ -411,6 +411,8 @@ def main_syori():
   last_post_slot = {}  # キャラごとの最終投稿スロット {name: (date, slot_idx)}
   # ハッピーメールのタイプ返し＋足跡返しの日次カウンタ {name: {"date": date, "count": int}}
   happy_daily_counter = {}
+  # 6時間進捗報告を全ポート分まとめて1通で送るための集計（widget/progress_report.py）
+  progress = progress_report.ProgressAggregator("pcmax", PORT, "PCMAX 6時間の進捗報告")
 
   while True:
     mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
@@ -531,6 +533,8 @@ def main_syori():
             report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
           if name_on_pcmax not in one_hour_report_dict:
             one_hour_report_dict[name_on_pcmax] = {"fst":0,"rf":0, "check_first":0, "check_second":0, "gmail_condition":0, "check_more":0, "check_date": None}
+          # このポートが稼働中で、次の締めで報告を出す予定かを他のポートに知らせる
+          progress.heartbeat(now, armed=send_flug)
           name = i["name"]
           login_id = i["login_id"]
           login_pass = i["password"]
@@ -700,12 +704,8 @@ def main_syori():
           if now.hour in (10, 14, 18, 22):
             if send_flug:
               try:
-                body = func.format_progress_mail(report_dict, now)
-                func.send_mail(
-                  body,
-                  mail_info,
-                  f"PCMAX 6時間の進捗報告  開始時間：{start_time.strftime('%Y-%m-%d %H:%M:%S')}",
-                )
+                # 自分の分を共有フォルダに出し、全ポート分が揃ったら1通にまとめて送る
+                progress.close_period(report_dict, start_time, now, mail_info)
                 send_flug = False
                 report_dict = reset_metrics_keep_check_date(report_dict)
                 start_time = datetime.now()
@@ -716,6 +716,9 @@ def main_syori():
                 print(mail_info)
           else:
             send_flug = True
+
+    # 他のポートの報告が揃っていれば、まとめた進捗報告を送る
+    progress.flush(mail_info)
 
     # --- ハッピーメール巡回（PCMAXのタブ巡回が終わってから）---
     try:
@@ -731,6 +734,8 @@ def main_syori():
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
       if wait_cnt % 6 == 0:
         print(f"待機中~~ {elapsed_time} ")
+        # 待機中も1分おきに、揃った進捗報告がないか確認する
+        progress.flush(mail_info)
       wait_cnt += 1
     print("🎉🎉🎉<<<<<<<<<<<<<ループ終了>>>>>>>>>>>>>>>>>>>>>🎉🎉🎉")
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する   
