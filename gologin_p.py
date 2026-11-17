@@ -99,16 +99,8 @@ def main():
         receiving_address, mailaddress, gmail_password,
     ] if mailaddress and gmail_password and receiving_address else None
 
-    spare_mail_info = [
-        "ryapya694@ruru.be",
-        "siliboco68@gmail.com",
-        "akkcxweqzdplcymh",
-    ]
-    spare_mail_info_2 = [
-        "ryapya694@ruru.be",
-        "misuzu414510@gmail.com",
-        "xdcwqbnhosxnvtbp",
-      ]
+    # 予備の通知アカウント（settings.py の spare_mail_infos。未設定なら本人アカウントだけで送る）
+    spare_mail_infos = func.spare_mail_infos()
     # matching_daily_limit = 77
     # returnfoot_daily_limit = 77
     # oneday_total_match = 77
@@ -151,7 +143,7 @@ def main():
     # pcmax メインループ
     # ==========================
     while True:
-      mail_info = random.choice([user_mail_info, spare_mail_info, spare_mail_info_2])
+      mail_info = func.pick_mail_info([user_mail_info, *spare_mail_infos])
       if 6 <= datetime.now().hour < 22: 
         for profile_name, port in targets.items():        
           start_loop_time = time.time()

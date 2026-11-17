@@ -16,11 +16,8 @@ user_mail_info = [
   user_data['user'][0]['gmail_account'],
   user_data['user'][0]['gmail_account_password'],
   ]
-spare_mail_info = [
-  "gifopeho@kmail.li",
-  "siliboco68@gmail.com",
-  "akkcxweqzdplcymh",
-]
+# 予備の通知アカウント（settings.py の spare_mail_infos。未設定なら本人アカウントだけで送る）
+spare_mail_infos = func.spare_mail_infos()
 post_areas = ["神奈川", "千葉", "埼玉", "栃木", "静岡"]
 base_path = "chrome_profiles/j_footprint"
 api_url = "https://meruopetyan.com/api/update-submitted-users/"
@@ -60,7 +57,7 @@ def jmail_debug(headless, send_on="even"):
     now = datetime.now()
     today_str = now.strftime("%Y-%m-%d")
     if (7 <= now.hour <= 23):
-      mail_info = random.choice([user_mail_info, spare_mail_info])
+      mail_info = func.pick_mail_info([user_mail_info, *spare_mail_infos])
       start_loop_time = time.time()
       if drivers == {}:
         break

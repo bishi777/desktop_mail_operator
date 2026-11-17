@@ -383,6 +383,62 @@ def _get_detail_partner_name(driver):
     return None
 
 
+def _received_texts(driver):
+  """詳細ページに表示されている受信メッセージの本文を、上から順に返す。
+
+  時刻などが混ざらないよう本文要素（--male）を優先し、無ければ吹き出し全体を使う。
+  SP では .text が空になることがあるので textContent で読む。
+  """
+  return driver.execute_script("""
+    return [...document.querySelectorAll('.message__block--receive')].map(b => {
+      const body = b.querySelector('.message__block__body__text--male');
+      return ((body || b).textContent || '').trim();
+    });
+  """) or []
+
+
+def _replies_arrived_while_open(driver, texts_at_open):
+  """詳細ページを開いてから届いた受信メッセージの本文を返す（無ければ空リスト）。
+
+  詳細ページを開いている間（送信後の反映待ちリロードや画像送信の最中）に
+  相手が返信すると、こちらのページに表示された時点で既読になる。
+  既読になったメッセージは未読一覧に二度と出てこないので、
+  ここで拾わないと通知も返信もされずに埋もれる。
+  （実例: 2通目を送った同じ分に届いた「おけです！」が通知されなかった）
+
+  古いメッセージがページから押し出される場合に備えて、件数の差ではなく
+  「開いた時点の末尾」と「今の先頭」が重なる位置を探して、その後ろを新着とみなす。
+  """
+  try:
+    now_texts = _received_texts(driver)
+  except Exception:
+    return []
+  norm = lambda xs: [func.normalize_text(x) for x in xs]
+  old, now = norm(texts_at_open or []), norm(now_texts)
+  if not old:
+    return now_texts
+  for k in range(min(len(old), len(now)), 0, -1):
+    if old[-k:] == now[:k]:
+      return now_texts[k:]
+  # 開いた時点の受信が1件も見当たらない（詳細ページから移動済みなど）ときは
+  # 判断できないので、誤通知しないよう何も返さない
+  return []
+
+
+def _notify_replies_arrived_while_open(driver, texts_at_open, name, login_id, password, user_name, return_list):
+  """詳細ページを開いている間に届いた返信があれば、通知リスト return_list に積む。"""
+  if texts_at_open is None:
+    return  # 開いた時点を記録できていないので比べられない
+  new_replies = _replies_arrived_while_open(driver, texts_at_open)
+  if not new_replies:
+    return
+  print(f"  [{name}] 処理中に {user_name} から返信が届きました（{len(new_replies)}件）→ 通知します")
+  quoted = "\n".join(f"{user_name}「{t}」" for t in new_replies)
+  return_list.append(
+    f"{name}happymail,{login_id}:{password}\n{quoted}\n"
+    "【こちらの送信中に届いたため既読になっています。自動返信はしていません】")
+
+
 def close_open_modal(driver, wait=None):
   """開いているモーダル(remodal)を閉じる。
 
@@ -761,6 +817,11 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
           send_message = driver.find_elements(By.CLASS_NAME, value="message__block--send")
           send_me_length = len(send_message)
           received_elem = driver.find_elements(By.CLASS_NAME, "message__block--receive")
+          # 開いた時点の受信メッセージ。処理中に届いた返信を後で見分けるのに使う
+          try:
+            received_texts_at_open = _received_texts(driver)
+          except Exception:
+            received_texts_at_open = None
           all_received_text = ""
           received_message = ""
           if len(received_elem):
@@ -915,10 +976,12 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               except Exception as e:
                 print(f"  [{name}] みちゃいやエラー: {e}")
                 print(traceback.format_exc())
+              _notify_replies_arrived_while_open(
+                driver, received_texts_at_open, name, login_id, password, user_name, return_list)
               driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
               wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
               time.sleep(2)
-              new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")  
+              new_mail = driver.find_elements(By.CLASS_NAME, value="happy_blue_10")
               continue
           if len(send_message):
             # print(send_message[-1].get_attribute("outerHTML"))   
@@ -1196,6 +1259,10 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
               # 送信できていないなら通知しない（送ったことになってしまうため）
               if ai_sent:
                 return_list.append(return_message)
+          # 1通目・2通目の送信や画像送信の最中に届いた返信は、このページで既読になり
+          # 未読一覧に出てこなくなるので、一覧に戻る前にここで通知に回す
+          _notify_replies_arrived_while_open(
+            driver, received_texts_at_open, name, login_id, password, user_name, return_list)
           driver.get("https://happymail.co.jp/sp/app/html/message_list.php")
           wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
           time.sleep(2)

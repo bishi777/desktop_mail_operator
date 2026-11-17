@@ -41,12 +41,6 @@ user_mail_info = [
     receiving_address, mailaddress, gmail_password,
 ] if mailaddress and gmail_password and receiving_address else None
 
-spare_mail_info = [
-    "ryapya694@ruru.be",
-    "siliboco68@gmail.com",
-    "akkcxweqzdplcymh",
-]
-
 matching_daily_limit = 77
 returnfoot_daily_limit = 77
 oneday_total_match = 77

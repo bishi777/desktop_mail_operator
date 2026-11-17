@@ -20,11 +20,8 @@ user_mail_info = [
   user_data['user'][0]['gmail_account'],
   user_data['user'][0]['gmail_account_password'],
 ]
-spare_mail_info = [
-  "gifopeho@kmail.li",
-  "siliboco68@gmail.com",
-  "akkcxweqzdplcymh",
-]
+# 予備の通知アカウント（settings.py の spare_mail_infos。未設定なら本人アカウントだけで送る）
+spare_mail_infos = func.spare_mail_infos()
 api_url = "https://meruopetyan.com/api/update-submitted-users/"
 
 
@@ -102,7 +99,7 @@ def main_syori():
       time.sleep(60)
       continue
 
-    mail_info = random.choice([user_mail_info, spare_mail_info])
+    mail_info = func.pick_mail_info([user_mail_info, *spare_mail_infos])
     start_loop_time = time.time()
     handles = driver.window_handles
     print(f"タブ数:{len(handles)}")

@@ -536,23 +536,65 @@ def send_error(chara, error_message, attachment_paths=None):
     except Exception as e:
         print(f"⚠️ send_error (chara={chara!r}) SMTP 失敗: {e}")
    
-def send_mail(message, mail_info, title, image_paths=None):
-  mailaddress = mail_info[1]
-  password = mail_info[2]
-  text = message
-  subject = title
-  address_from = mail_info[1]
-  address_to = mail_info[0]
+# --- 通知メールの送信アカウント管理 ------------------------------------------
+# 各スクリプトは通知メールを複数の Gmail アカウント（[宛先, 送信元, アプリパスワード]）
+# から選んで送る。ログインできなくなったアカウントがあると、それが選ばれた回の通知が
+# 丸ごと消えていた（2026-11: 予備2アカウントがログイン不可になり、ハッピーメールの
+# 返信通知の約2/3と、予備だけを使うイククルの通知がすべて届かなくなった）。
+# そこでログインに失敗したアカウントはしばらく選ばず、残りのアカウントで送り直す。
+_MAIL_CANDIDATES = []           # pick_mail_info() に渡された候補（普段使う順 → 予備）
+_MAIL_SENDER_DOWN = {}          # 送信元アドレス → 使えないと判断した時刻 (time.time())
+_MAIL_SENDER_DOWN_SEC = 60 * 60  # この時間が過ぎたら、もう一度試す
 
+
+def _mail_sender_down(address):
+  t = _MAIL_SENDER_DOWN.get(address)
+  return t is not None and time.time() - t < _MAIL_SENDER_DOWN_SEC
+
+
+def spare_mail_infos():
+  """settings.py の spare_mail_infos（予備の通知アカウント）を返す。未設定なら空リスト。
+
+  形式: [[宛先, 送信元Gmail, アプリパスワード], ...]
+  アプリパスワードを git に残さないよう、.gitignore 済みの settings.py に置く。
+  """
+  infos = getattr(settings, "spare_mail_infos", None) or []
+  return [list(x) for x in infos if x and len(x) >= 3]
+
+
+def pick_mail_info(candidates, fallbacks=None):
+  """通知メールの送信アカウントを選ぶ（random.choice の代わりに使う）。
+
+  candidates: 普段使うアカウント。ここからランダムに選ぶ（送信上限を分散するため）
+  fallbacks : candidates が全部使えないときだけ使うアカウント
+  ログインに失敗したアカウントは選ばない。選んだアカウントで送れなかったときは、
+  send_mail() がここで渡された残りのアカウントで送り直す。
+  None（本人アカウント未設定など）は無視する。1つも無ければ None を返す。
+  """
+  global _MAIL_CANDIDATES
+  candidates = [list(c) for c in candidates if c]
+  fallbacks = [list(c) for c in (fallbacks or []) if c]
+  _MAIL_CANDIDATES = candidates + fallbacks
+  if not _MAIL_CANDIDATES:
+    return None
+  for pool in (candidates, fallbacks):
+    usable = [c for c in pool if not _mail_sender_down(c[1])]
+    if usable:
+      return random.choice(usable)
+  # 全部ダメと判断済みでも、送るときに改めて試す
+  return random.choice(candidates or fallbacks)
+
+
+def _build_mail(message, mail_info, title, image_paths):
   # マルチパートメッセージを作成
   msg = MIMEMultipart()
-  msg['Subject'] = subject
-  msg['From'] = address_from
-  msg['To'] = address_to
+  msg['Subject'] = title
+  msg['From'] = mail_info[1]
+  msg['To'] = mail_info[0]
   msg['Date'] = formatdate()
 
   # 本文を追加
-  msg.attach(MIMEText(text, 'plain', 'utf-8'))
+  msg.attach(MIMEText(message, 'plain', 'utf-8'))
 
   # 画像の添付処理（1枚でも複数枚でも対応）
   if image_paths:
@@ -570,30 +612,48 @@ def send_mail(message, mail_info, title, image_paths=None):
               msg.attach(image)
           else:
               print(f"⚠️ 添付失敗: ファイルが存在しません → {path}")
-  # Gmail SMTP サーバへ接続して送信。
+  return msg
+
+
+def _send_mail_once(msg, mail_info):
+  """1つのアカウントで送る。
+
+  戻り値: ("ok" | "login" | "limit" | "error", 最後の例外)
+    login: ログインできない（アプリパスワード無効など）
+    limit: Gmail の1日の送信上限
+    error: 通信エラーなど（3回試した）
+  """
   # 接続・ログインも含めて try で囲む。ここが裸だと
   # SMTPServerDisconnected 等が呼び出し元まで伝播して、
   # 通知メールが送れないだけで本処理（メールチェック等）ごと落ちる。
   last_error = None
   for attempt in range(1, 4):
     smtpobj = None
+    stage = "connect"
     try:
       smtpobj = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)  # 30秒でタイムアウト
       smtpobj.set_debuglevel(0)  # デバッグログオフ
       smtpobj.ehlo()
       smtpobj.starttls()
       smtpobj.ehlo()
-      smtpobj.login(mailaddress, password)
+      stage = "login"
+      smtpobj.login(mail_info[1], mail_info[2])
+      stage = "send"
       smtpobj.send_message(msg)
       print("通知メール送信完了")
-      return True
+      return "ok", None
     except Exception as e:
       last_error = e
       err_text = str(e)
       if "Daily user sending limit exceeded" in err_text:
-        print("⚠️ Gmail送信上限に達しました。別アカウントを使うか翌日まで待機してください。")
-        break  # 上限はリトライしても無駄
-      print(f"❌ 通知メール送信エラー({attempt}/3): {type(e).__name__}: {err_text}")
+        print(f"⚠️ {mail_info[1]} は Gmail の送信上限に達しました。")
+        return "limit", e  # 上限はリトライしても無駄
+      print(f"❌ 通知メール送信エラー({attempt}/3) {mail_info[1]} [{stage}]: {type(e).__name__}: {err_text}")
+      if stage == "login":
+        # Gmail は認証に失敗すると 535 を返さず、黙って接続を切ることがある
+        # （存在しないアカウントでも SMTPServerDisconnected になるのを確認済み）。
+        # 同じアカウントで何度試しても通らないので、すぐ次のアカウントに回す。
+        return "login", e
       if attempt < 3:
         time.sleep(attempt * 3)  # 3秒 → 6秒
     finally:
@@ -605,6 +665,39 @@ def send_mail(message, mail_info, title, image_paths=None):
             smtpobj.close()
           except Exception:
             pass
+  return "error", last_error
+
+
+def send_mail(message, mail_info, title, image_paths=None):
+  """通知メールを送る。送れたら True。
+
+  mail_info のアカウントがログインできない・送信上限のときは、pick_mail_info() に
+  渡された他のアカウントで送り直す（宛先もそのアカウントの宛先になる）。
+  そのアカウントは一定時間使わない。
+  """
+  order = [list(mail_info)] if mail_info else []
+  for c in _MAIL_CANDIDATES:
+    if all(c[1] != o[1] for o in order):
+      order.append(c)
+  if not order:
+    print("⚠️ 通知メールの送信アカウントがありません（本処理は継続します）")
+    return False
+  usable = [c for c in order if not _mail_sender_down(c[1])]
+  last_error = None
+  for i, mi in enumerate(usable or order[:1]):
+    if i > 0:
+      print(f"↪️ 通知メールを別のアカウント {mi[1]} で送り直します")
+    result, err = _send_mail_once(_build_mail(message, mi, title, image_paths), mi)
+    if result == "ok":
+      return True
+    last_error = err
+    if result in ("login", "limit"):
+      _MAIL_SENDER_DOWN[mi[1]] = time.time()
+      reason = "ログインできない" if result == "login" else "送信上限に達した"
+      print(f"⚠️ {mi[1]} は{reason}ため、{_MAIL_SENDER_DOWN_SEC // 60}分間は使いません")
+      continue
+    # 通信エラーは他のアカウントでも同じことが多いので、ここで諦める
+    break
   print(f"⚠️ 通知メールを送信できませんでした（本処理は継続します）: {last_error}")
   return False
   

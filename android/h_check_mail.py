@@ -141,11 +141,6 @@ if __name__ == "__main__":
     user_data['user'][0]['gmail_account'],
     user_data['user'][0]['gmail_account_password'],
     ]
-  spare_mail_info = [
-    "ryapya694@ruru.be",
-    "siliboco68@gmail.com",
-    "akkcxweqzdplcymh",
-  ]
   happy_datas = user_data["happymail"]
   
   for i in happy_datas:

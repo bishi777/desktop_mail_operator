@@ -56,12 +56,7 @@ ACTIVE_SKIP_PROB = 0.2              # 周回内で能動送信を完全スキッ
 FST_INTERVAL_MIN_SEC = 50 * 60      # FST 間隔 50-70分
 FST_INTERVAL_MAX_SEC = 70 * 60
 
-# 通報メールの予備宛先 (h_ch_ma_fm.py と同じ)
-SPARE_MAIL_INFO = [
-  "ryapya694@ruru.be",
-  "siliboco68@gmail.com",
-  "akkcxweqzdplcymh",
-]
+# 通報メールの予備送信アカウントは settings.py の spare_mail_infos（func.spare_mail_infos()）
 
 
 # ============================================================
@@ -218,10 +213,8 @@ def _build_user_mail_info(user_data):
 
 
 def _pick_mail_info(user_mail_info):
-  """user/spare からランダム選択。h_ch_ma_fm.py の挙動を踏襲。"""
-  if user_mail_info:
-    return random.choice([user_mail_info, SPARE_MAIL_INFO])
-  return SPARE_MAIL_INFO
+  """本人/予備アカウントからランダム選択（ログインできないものは避ける）。無ければ None。"""
+  return func.pick_mail_info([user_mail_info, *func.spare_mail_infos()])
 
 
 def _send_check_report(name, return_list, mail_info, driver, chara_data, device_cfg):

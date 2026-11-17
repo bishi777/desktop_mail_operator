@@ -85,11 +85,8 @@ if mailaddress and gmail_password and receiving_address:
   user_mail_info = [
     receiving_address, mailaddress, gmail_password,
   ]
-spare_mail_info = [
-  "ryapya694@ruru.be",
-  "siliboco68@gmail.com",
-  "akkcxweqzdplcymh",
-]
+# 予備の通知アカウント（settings.py の spare_mail_infos。未設定なら本人アカウントだけで送る）
+spare_mail_infos = func.spare_mail_infos()
 
 # キャラ名 → キャラデータ の高速ルックアップ用 dict
 chara_by_name = {i["name"]: i for i in first_half}
@@ -233,7 +230,7 @@ try:
     if now >= today_end:
       print(f"終了時刻({today_end.strftime('%H:%M')})を過ぎたため本日はスキップ")
     else:
-      mail_info = random.choice([user_mail_info, spare_mail_info])
+      mail_info = func.pick_mail_info([user_mail_info, *spare_mail_infos])
       now = datetime.now()
       print(f"\n{'='*50}")
       print(f"本日の処理開始: {now.strftime('%Y-%m-%d %H:%M:%S')}")
