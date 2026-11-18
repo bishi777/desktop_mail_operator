@@ -105,9 +105,18 @@ if [ -n "$PROXY_KEY" ]; then
 
   # localhost を除外すると remote-debugging が中継を経由せず安定する
   # ('<-loopback>' はシェルのリダイレクトと解釈されないよう配列で渡す)
+  #
+  # *.gvt1.com / dl.google.com は Chrome 自身の部品・AIモデルの配布元。
+  # プロキシを通さず自宅回線で直接落とす。
+  #   2026-11-18 に中継ログ ([stats]) で測ったところ、起動し直した直後の
+  #   30分でこれだけで約16MB プロキシを通っていた。JPROXY は短時間に
+  #   15〜20MB 流すと 0.3Mbps 程度に絞るので、これだけで絞られていた。
+  #   サイト側からは見えない通信なので、キャラごとの IP 分けには影響しない。
+  #   challenges.cloudflare.com やサイトのホストは絶対に足さないこと
+  #   (Cloudflare に自宅IPとプロキシIPが並んで見え、キャラ同士が紐付く)。
   PROXY_OPTS=(
     "--proxy-server=127.0.0.1:${RELAY_PORT}"
-    "--proxy-bypass-list=<-loopback>"
+    "--proxy-bypass-list=<-loopback>;*.gvt1.com;dl.google.com"
   )
 fi
 

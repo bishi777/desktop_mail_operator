@@ -166,7 +166,23 @@ goto end
 
 :proxy_flags
 REM Excluding loopback keeps remote-debugging off the relay (more stable)
-set "PROXY_OPTS=--proxy-server=127.0.0.1:%RELAY_PORT% --proxy-bypass-list=<-loopback>"
+REM
+REM *.gvt1.com / dl.google.com: where Chrome downloads its own components and
+REM on-device AI models. They go direct (home line), not through the proxy.
+REM   Measured 2026-11-18 (relay [stats] log): right after a restart these
+REM   pulled ~16MB through the proxy in 30 min. JPROXY drops a proxy to
+REM   ~0.3Mbps once ~15-20MB has gone through in a short time, so this alone
+REM   was enough to throttle the character. Sites never see these requests,
+REM   so the per-character IP split is unaffected.
+REM   Do NOT add challenges.cloudflare.com or any site host here: Cloudflare
+REM   would see the home IP next to the proxy IP and could link characters.
+REM Verified on Chrome: edgedl.me.gvt1.com / r1---sn-x.gvt1.com /
+REM   dl.google.com went direct; sites and Cloudflare still used the proxy.
+set "BYPASS_LIST=<-loopback>;*.gvt1.com;dl.google.com"
+REM The flag is wrapped in quotes so ';' and '<>' reach Chrome untouched.
+REM !BYPASS_LIST! sits outside the inner quotes on purpose: delayed expansion
+REM runs after cmd has handled '<>' redirection, so they stay literal.
+set "PROXY_OPTS=--proxy-server=127.0.0.1:%RELAY_PORT% "--proxy-bypass-list=!BYPASS_LIST!""
 
 :proxy_done
 
