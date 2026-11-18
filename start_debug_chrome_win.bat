@@ -13,11 +13,15 @@ REM  PROXY_KEY is the romanized key in settings.py (erika, ema, ...),
 REM  not the Japanese character name. A wrong key stops the script
 REM  before Chrome is launched and prints the available keys.
 REM
-REM  UA_PRESET (2nd arg):
+REM  UA_PRESET (2nd arg, case-insensitive):
 REM    none (default)     : no UA override (default Chrome/Windows UA)
-REM    iphone14           : iPhone14-like UA
+REM    iphone14 / iphone  : iPhone14-like UA
 REM    mac                : same as none (no UA override)
-REM    anything else      : used verbatim as the UA string
+REM    "Mozilla/5.0 (...)" : a full UA string in quotes, used verbatim
+REM    anything else      : stops with an error before Chrome is launched.
+REM      A bare word used to be passed through as the UA, so "iPhone" made
+REM      the UA literally "iPhone" and Google answered every search with
+REM      "update your browser" (unsupported browser page).
 REM
 REM  PROXY_KEY (3rd arg):
 REM    A key of JPROXY_PROXYS in settings.py (e.g. erika).
@@ -60,7 +64,8 @@ REM ============================================================
 
 set PORT=%1
 if "%PORT%"=="" set PORT=9222
-set UA_PRESET=%2
+REM %~2 strips the surrounding quotes of a full UA string passed as one arg
+set "UA_PRESET=%~2"
 if "%UA_PRESET%"=="" set UA_PRESET=none
 set PROXY_KEY=%3
 
@@ -80,10 +85,22 @@ REM Resolve UA preset (goto labels avoid the if() block breaking on UA parens)
 if /i "%UA_PRESET%"=="none" goto ua_none
 if /i "%UA_PRESET%"=="mac" goto ua_none
 if /i "%UA_PRESET%"=="iphone14" goto ua_iphone14
-REM custom: use the 2nd arg verbatim as UA
-set "USER_AGENT=%UA_PRESET%"
+if /i "%UA_PRESET%"=="iphone" goto ua_iphone14
+REM custom: only a real UA string (contains "Mozilla/") is accepted.
+REM Removing "Mozilla/" (case-insensitive) leaves the value unchanged when it
+REM is absent. Delayed expansion keeps the UA's parens from breaking the if.
+set "UA_CHECK=!UA_PRESET:Mozilla/=!"
+if "!UA_CHECK!"=="!UA_PRESET!" goto ua_invalid
+set "USER_AGENT=!UA_PRESET!"
 set "UA_TAG=custom"
 goto ua_done
+
+:ua_invalid
+echo ERROR: unknown UA preset "!UA_PRESET!"
+echo   Use one of: none / mac / iphone14 (alias: iphone)
+echo   or a full UA string in quotes, e.g. "Mozilla/5.0 (iPhone; ...) ..."
+echo   Chrome was not launched.
+goto end
 
 :ua_none
 REM no UA override (default Chrome/Windows UA)

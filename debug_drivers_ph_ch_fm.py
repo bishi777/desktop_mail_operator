@@ -719,10 +719,14 @@ def main_syori():
       print(f"❌ ハッピーメール巡回でエラー: {type(e).__name__}: {e}")
       traceback.print_exc()
 
+    # 1ループの長さを毎回 590〜610 秒でばらつかせる（ぴったり600秒周期だと機械的に見えるため）
+    loop_target_sec = random.uniform(590, 610)
     elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
+    print(f"今回のループ時間: {loop_target_sec:.1f}秒")
     wait_cnt = 0
-    while elapsed_time < 600:
-      time.sleep(10)
+    while elapsed_time < loop_target_sec:
+      # 最後の待ちは残り時間だけ眠る（10秒刻みだと目標を最大10秒超えてしまう）
+      time.sleep(min(10, loop_target_sec - elapsed_time))
       elapsed_time = time.time() - start_loop_time  # 経過時間を計算する
       if wait_cnt % 6 == 0:
         print(f"待機中~~ {elapsed_time} ")
