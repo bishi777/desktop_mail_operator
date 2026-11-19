@@ -3847,62 +3847,116 @@ def profile_edit_without_login(chara_data, driver, wait):
     wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
     time.sleep(1.5)
   def _save_field(field_name, elem):
-    """happyMailSP.api.update_profile_itemを直接呼んで保存"""
-    numeric_val = elem.get_attribute('value')
-    driver.execute_script("""
-      var token = jQuery('#uid').val();
-      happyMailSP.api.update_profile_item({token: token, type: arguments[0], value: arguments[1]});
-    """, field_name, numeric_val)
-    time.sleep(2)
+    """happyMailSP.api.update_profile_item を直接呼んで保存し、サーバーの返事を返す。
 
-  def _set_and_save(by, locator, field_name, text_value, label):
-    """selectの値を設定してAPIで保存"""
+    返り値: {"ok": bool, "res": 返事の要約文字列}
+    サーバーは error_no が 0 以外だと失敗。以前は投げっぱなしで返事を見て
+    いなかったため、途中から保存に失敗してもログには設定済みと出ていた
+    (2026-11-19: スタイルより後の項目がすべて未反映だった)。
+    HTTP エラー時は API のラッパーが完了しないので、JS 側で 15 秒で打ち切る。
+    """
+    numeric_val = elem.get_attribute('value')
+    return driver.execute_async_script("""
+      var field = arguments[0], value = arguments[1];
+      var done = arguments[arguments.length - 1];
+      var finished = false;
+      function finish(ok, r) {
+        if (finished) return;
+        finished = true;
+        var txt;
+        try { txt = JSON.stringify(r); } catch (e) { txt = String(r); }
+        done({ok: ok, res: String(txt).slice(0, 300)});
+      }
+      setTimeout(function () { finish(false, 'timeout(15s): 返事なし'); }, 15000);
+      try {
+        var token = jQuery('#uid').val();
+        happyMailSP.api.update_profile_item({token: token, type: field, value: value})
+          .done(function (r) { finish(!r || r.error_no == 0, r); })
+          .fail(function (r) { finish(false, r); });
+      } catch (e) {
+        finish(false, 'JSエラー: ' + e);
+      }
+    """, field_name, numeric_val)
+
+  # (By, locator, API の type 名, 設定したい表示テキスト, ログ用ラベル)
+  profile_items = [
+    (By.ID, "age", "age", chara_data.get("age"), "年齢"),
+    (By.ID, "area", "area", chara_data.get("activity_area"), "居住地"),
+    (By.ID, "city", "city", chara_data.get("detail_activity_area"), "詳細エリア"),
+    (By.NAME, "member_birth_area", "member_birth_area", chara_data.get("birth_place"), "出身地"),
+    (By.NAME, "blood_type", "blood_type", chara_data.get("blood_type"), "血液型"),
+    (By.NAME, "constellation", "constellation", chara_data.get("constellation"), "星座"),
+  ] + [
+    (By.NAME, name, name, value, name)
+    for name, value in [
+      ("height", chara_data.get("height")),
+      ("style", chara_data.get("style")),
+      ("type", chara_data.get("looks")),
+      ("bust_size", chara_data.get("cup")),
+      ("job", chara_data.get("job")),
+      ("educational_background", chara_data.get("education")),
+      ("holiday", chara_data.get("holiday")),
+      ("marriage", chara_data.get("relationship_status")),
+      ("child", chara_data.get("having_children")),
+      ("intention_to_marry", chara_data.get("intention_to_marry")),
+      ("tobacco", chara_data.get("smoking")),
+      ("liquor", chara_data.get("sake")),
+      ("car", chara_data.get("car_ownership")),
+      ("housemate", chara_data.get("roommate")),
+      ("brother", chara_data.get("brothers_and_sisters")),
+      ("hope_before_meet", chara_data.get("until_we_met")),
+      ("first_date_cost", chara_data.get("date_expenses")),
+    ]
+  ]
+
+  # 失敗したらこの秒数だけ待ってやり直す（短時間に保存しすぎて弾かれている場合に備える）
+  retry_waits = [5, 20]
+  for by, locator, field_name, text_value, label in profile_items:
     if not text_value:
-      return
+      continue
     elems = driver.find_elements(by, locator)
     if not elems:
       print(f"  {label}: 要素が見つかりません")
-      return
+      continue
     try:
       Select(elems[0]).select_by_visible_text(str(text_value))
-      _save_field(field_name, elems[0])
-      print(f"  {label}: {text_value}")
     except Exception as e:
-      print(f"  {label}: 設定失敗 ({e})")
+      print(f"  {label}: 選択肢に「{text_value}」がありません ({e.__class__.__name__})")
+      continue
+    result = _save_field(field_name, elems[0])
+    for wait_sec in retry_waits:
+      if result.get("ok"):
+        break
+      print(f"  {label}: 保存失敗 → {wait_sec}秒後に再試行  返事: {result.get('res')}")
+      time.sleep(wait_sec)
+      result = _save_field(field_name, elems[0])
+    if result.get("ok"):
+      print(f"  {label}: {text_value} ✅")
+    else:
+      print(f"  {label}: {text_value} ❌ 保存できませんでした  返事: {result.get('res')}")
+    time.sleep(2)
 
-  # 年齢
-  _set_and_save(By.ID, "age", "age", chara_data.get("age"), "年齢")
-  # 居住地
-  _set_and_save(By.ID, "area", "area", chara_data.get("activity_area"), "居住地")
-  # 詳細エリア
-  _set_and_save(By.ID, "city", "city", chara_data.get("detail_activity_area"), "詳細エリア")
-  # 出身地
-  _set_and_save(By.NAME, "member_birth_area", "member_birth_area", chara_data.get("birth_place"), "出身地")
-  # 血液型
-  _set_and_save(By.NAME, "blood_type", "blood_type", chara_data.get("blood_type"), "血液型")
-  # 星座
-  _set_and_save(By.NAME, "constellation", "constellation", chara_data.get("constellation"), "星座")
-
-  for field_name, value in [
-    ("height", chara_data.get("height")),
-    ("style", chara_data.get("style")),
-    ("type", chara_data.get("looks")),
-    ("bust_size", chara_data.get("cup")),
-    ("job", chara_data.get("job")),
-    ("educational_background", chara_data.get("education")),
-    ("holiday", chara_data.get("holiday")),
-    ("marriage", chara_data.get("relationship_status")),
-    ("child", chara_data.get("having_children")),
-    ("intention_to_marry", chara_data.get("intention_to_marry")),
-    ("tobacco", chara_data.get("smoking")),
-    ("liquor", chara_data.get("sake")),
-    ("car", chara_data.get("car_ownership")),
-    ("housemate", chara_data.get("roommate")),
-    ("brother", chara_data.get("brothers_and_sisters")),
-    ("hope_before_meet", chara_data.get("until_we_met")),
-    ("first_date_cost", chara_data.get("date_expenses")),
-  ]:
-    _set_and_save(By.NAME, field_name, field_name, value, field_name)
+  # 実際に反映されたかを、ページを読み込み直して確認する
+  driver.refresh()
+  wait.until(lambda driver: driver.execute_script('return document.readyState') == 'complete')
+  time.sleep(3)
+  not_saved = []
+  for by, locator, field_name, text_value, label in profile_items:
+    if not text_value:
+      continue
+    elems = driver.find_elements(by, locator)
+    try:
+      current = Select(elems[0]).first_selected_option.text.strip() if elems else "(要素なし)"
+    except Exception as e:
+      current = f"(読めない: {e.__class__.__name__})"
+    if current != str(text_value).strip():
+      not_saved.append(f"{label}: 期待「{text_value}」/ 実際「{current}」")
+  if not_saved:
+    print(f"  ⚠️ 反映されていない項目が {len(not_saved)} 件あります:")
+    for line in not_saved:
+      print(f"    - {line}")
+  else:
+    print("  ✅ 読み込み直して確認: 全項目が反映されています")
   # 自己紹介
   self_promotion = chara_data.get("self_promotion")
   if self_promotion:
