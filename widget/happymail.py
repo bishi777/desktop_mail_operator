@@ -3869,8 +3869,9 @@ def profile_edit_without_login(chara_data, driver, wait):
       }
       setTimeout(function () { finish(false, 'timeout(15s): 返事なし'); }, 15000);
       try {
-        var token = jQuery('#uid').val();
-        happyMailSP.api.update_profile_item({token: token, type: field, value: value})
+        // token は API のラッパーが自動で付ける（ページ自身もそう呼んでいる）。
+        // 以前は #uid の値を渡していたが、スマホ版のページに #uid は無い
+        happyMailSP.api.update_profile_item({type: field, value: value})
           .done(function (r) { finish(!r || r.error_no == 0, r); })
           .fail(function (r) { finish(false, r); });
       } catch (e) {
@@ -3909,10 +3910,113 @@ def profile_edit_without_login(chara_data, driver, wait):
     ]
   ]
 
+  # 身長〜初デート費用は、欄を押すと開くモーダル（ルックス / 仕事 / ライフスタイル）で
+  # 選ぶ作り。API を直接呼ぶと身長・スタイル以外は error_no=0 で「成功」と返るのに
+  # 保存されなかった (2026-11-19)。人と同じくモーダルで選び、保存はページ自身の
+  # 処理に任せる。年齢〜星座はモーダルの無い普通の select なので API のまま。
+  modal_fields = {
+    "height", "style", "type", "bust_size", "job", "educational_background",
+    "holiday", "marriage", "child", "intention_to_marry", "tobacco", "liquor",
+    "car", "housemate", "brother", "hope_before_meet", "first_date_cost",
+  }
+
+  # ページが実際に何を送ったかを記録する（次に保存されなかったとき原因が分かるように）。
+  # API のラッパーは毎回 $.ajax を呼ぶので、jQuery.ajax を包めば全部拾える。
+  # token / device_id はログに残さない。
+  # ページが再読み込みされると消えるので、項目ごとに入れ直す（二重には入らない）。
+  hook_js = """
+    if (window.__hmAjaxHooked || !window.jQuery) return;
+    window.__hmAjaxHooked = true;
+    window.__hmAjax = [];
+    var orig = jQuery.ajax;
+    jQuery.ajax = function (url, opts) {
+      try {
+        var u = (typeof url === 'string') ? url : ((url && url.url) || '');
+        var o = (typeof url === 'string') ? opts : url;
+        var d = o && o.data;
+        if (d && typeof FormData !== 'undefined' && d instanceof FormData) {
+          var obj = {}; d.forEach(function (v, k) { obj[k] = v; }); d = obj;
+        }
+        if (typeof d === 'string') {
+          d = d.replace(/(token|device_id)=[^&]*/g, '$1=***');
+        } else if (d && typeof d === 'object') {
+          d = jQuery.extend({}, d);
+          delete d.token; delete d.device_id; delete d.HTTP_X_HAPPY_USER_AGENT;
+        }
+        if (/update_|profile/.test(u)) {
+          window.__hmAjax.push(String(u).split('/').pop() + ' ' + JSON.stringify(d));
+        }
+      } catch (e) {}
+      return orig.apply(this, arguments);
+    };
+  """
+
+  def _close_modal():
+    for btn in driver.find_elements(By.CLASS_NAME, "menu_modal_cancel"):
+      if btn.is_displayed():
+        human_click(driver, btn)
+        time.sleep(1.5)
+        return
+
+  def _choose_in_modal(field_name, text_value):
+    """欄を押してモーダルを開き、選択肢を押して閉じる。
+
+    返り値: (問題があればその説明 / 無ければ None, ページが送った内容のリスト)
+    """
+    elems = driver.find_elements(By.NAME, field_name)
+    if not elems:
+      return "要素が見つかりません", []
+    # 記録を入れ直し、前の項目（年齢〜星座の API 呼び出し含む）の分は捨てておく
+    driver.execute_script(hook_js)
+    driver.execute_script("if (window.__hmAjax) window.__hmAjax.length = 0;")
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", elems[0])
+    time.sleep(0.5)
+    human_click(driver, elems[0])
+    box = None
+    for _ in range(10):
+      found = driver.find_elements(By.ID, f"{field_name}_choice")
+      if found and found[0].is_displayed():
+        box = found[0]
+        break
+      time.sleep(0.5)
+    if box is None:
+      # モーダルではなくネイティブのプルダウンが開いていたら閉じておく
+      try:
+        driver.switch_to.active_element.send_keys(Keys.ESCAPE)
+      except Exception:
+        pass
+      return "モーダルが開きませんでした", []
+    target = None
+    for span in box.find_elements(By.CSS_SELECTOR, "span.modal_choice_btn"):
+      if span.text.strip() == str(text_value).strip():
+        target = span
+        break
+    problem = None
+    if target is None:
+      problem = f"選択肢に「{text_value}」がありません"
+    elif "chose" in (target.get_attribute("class") or "").split():
+      problem = "既に選択済み"
+    else:
+      driver.execute_script("arguments[0].scrollIntoView({block: 'center', inline: 'center'});", target)
+      time.sleep(0.5)
+      human_click(driver, target)
+      time.sleep(2)
+    _close_modal()
+    sent = driver.execute_script("return (window.__hmAjax || []).splice(0);") or []
+    return problem, sent
+
   # 失敗したらこの秒数だけ待ってやり直す（短時間に保存しすぎて弾かれている場合に備える）
   retry_waits = [5, 20]
   for by, locator, field_name, text_value, label in profile_items:
     if not text_value:
+      continue
+    if field_name in modal_fields:
+      problem, sent = _choose_in_modal(field_name, text_value)
+      sent_txt = " / ".join(sent)[:300] if sent else "送信なし"
+      if problem:
+        print(f"  {label}: {text_value} … {problem}（ページの送信: {sent_txt}）")
+      else:
+        print(f"  {label}: {text_value} を選択（ページの送信: {sent_txt}）")
       continue
     elems = driver.find_elements(by, locator)
     if not elems:
