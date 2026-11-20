@@ -724,7 +724,7 @@ def start_the_drivers_login(mail_info, happymail_list, headless, base_path, tab)
     print("エラーが発生しました:", e)
     traceback.print_exc()
   
-def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt, post_title="",mailaddress_img=""):
+def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_message, fst_message, post_return_message, second_message, conditions_message, confirmation_mail, mail_img, gmail_address, gmail_password, return_check_cnt, android,  chara_prompt, post_title=""):
     return_list = []
     new_mail_cnt = 0
     loop_cnt = 0
@@ -1022,11 +1022,9 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
             if send_me_length == 0:
               print(f"  [DEBUG {name}] fst_message 送信ブロックに入りました")
               send_message = fst_message.format(name=user_name)
-              post_return_message_flug = False
               if from_board and post_return_message:
                 send_message = post_return_message.format(name=user_name)
                 print(f"  [{name}] 募集経由 → post_return_message を送信")
-                post_return_message_flug = True
               text_area_list = driver.find_elements(By.ID, value="text-message")
               print(f"  [DEBUG {name}] text-message 要素数={len(text_area_list)}")
               if not text_area_list:
@@ -1054,26 +1052,7 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 time.sleep(7 if android else 3)
                 send_msg_elem = driver.find_elements(By.CLASS_NAME, value="message__block__body__text--female")
                 reload_cnt += 1
-              if post_return_message_flug and fst_sent:
-                if mailaddress_img:
-                  print(f"  [{name}] 募集経由  → post_return_message と 画像 を送信")
-                  # メルアド画像があれば送信 
-                  try:
-                    # 画像データを取得してBase64にエンコード
-                    image_response = requests.get(mail_img)
-                    image_base64 = base64.b64encode(image_response.content).decode('utf-8')
-                    # ローカルに一時的に画像ファイルとして保存
-                    image_filename = f"{name}_image.png"
-                    with open(image_filename, 'wb') as f:
-                        f.write(base64.b64decode(image_base64))
-                    # 画像の保存パスを取得
-                    image_path = os.path.abspath(image_filename)
-                    # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
-                    send_media_file(driver, wait, name, image_path)
-                  except Exception as e:
-                    print("画像の送信に失敗しました", e)
-                    print(traceback.format_exc())    
-              
+
               # 画像があれば送信（本文が送れたときだけ）
               try:
                 if mail_img and fst_sent:
@@ -1093,7 +1072,6 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                 print(traceback.format_exc())
             elif send_me_length == 1:
               send_message = second_message.format(name=user_name)
-              second_sent = True  # 送るものが無い（募集経由）ときは画像送信を妨げない
               # 募集経由なら second_message を送らず「やり取りしてます」記録のみ
               if from_board and post_return_message:
                 send_message = ""
@@ -1124,23 +1102,8 @@ def multidrivers_checkmail(name, driver, wait, login_id, password, return_foot_m
                   # 比較対象も更新しないと条件が変わらず、必ず上限まで回ってしまう
                   send_text_clean = func.normalize_text(send_msg_elem[-1].text) if send_msg_elem else ""
                   reload_cnt += 1
-              # メルアド画像があれば送信（2通目が送れなかったときは送らない）
-              try:
-                if mailaddress_img and second_sent:
-                  # 画像データを取得してBase64にエンコード
-                  image_response = requests.get(mailaddress_img)
-                  image_base64 = base64.b64encode(image_response.content).decode('utf-8')
-                  # ローカルに一時的に画像ファイルとして保存
-                  image_filename = f"{name}_image.png"
-                  with open(image_filename, 'wb') as f:
-                      f.write(base64.b64decode(image_base64))
-                  # 画像の保存パスを取得
-                  image_path = os.path.abspath(image_filename)
-                  # 上限つきで待ち、失敗時は確認画面を閉じる（以前は無限ループ）
-                  send_media_file(driver, wait, name, image_path)
-              except Exception as e:
-                print("画像の送信に失敗しました", e)
-                print(traceback.format_exc())
+              # メルアド画像 (mail_address_image) はハッピーメールでは送らない。
+              # 2026-11-20 まで2通目の直後に送っていたが、本人の指示でやめた。
             else:
               print('やり取りしてます')
               receive_contents = driver.find_elements(By.CLASS_NAME, value="message__block--receive")[-1]

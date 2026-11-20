@@ -185,7 +185,6 @@ def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cn
     gmail_password = chara["gmail_password"]
     chara_prompt = chara["system_prompt"]
     post_title = chara.get("post_title", "")
-    mailaddress_img = chara.get("mail_address_image", "")
 
     # --- メールチェック ---
     if 6 <= now.hour < 24:
@@ -196,7 +195,7 @@ def process_happymail_tabs(driver, wait, happy_chara_by_name, mail_info, roll_cn
           fst_message, post_return_message, second_message, conditions_message,
           confirmation_mail, return_foot_img, gmail_address, gmail_password,
           HAPPY_RETURN_CHECK_CNT, False, chara_prompt,
-          post_title=post_title, mailaddress_img=mailaddress_img,
+          post_title=post_title,
         )
         print("新着メールチェック終了💌")
         if happymail_new:

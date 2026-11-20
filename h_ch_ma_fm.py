@@ -141,7 +141,6 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
   password = chara["password"]
   post_title = chara.get("post_title", "")
   post_contents = chara.get("post_contents", "")
-  mailaddress_img = chara.get("mail_address_image", "")
   return_check_cnt = 10
 
   # 当該キャラの未実行 re_post 時刻
@@ -162,7 +161,6 @@ def _process_chara(name, chara, driver, wait, mail_info, report_dict,
           fst_message, post_return_message, second_message, conditions_message,
           confirmation_mail, return_foot_img, gmail_address, gmail_password_c,
           return_check_cnt, android, chara_prompt, post_title=post_title,
-          mailaddress_img=mailaddress_img
         )
         if happymail_new:
           happymail_new_list.extend(happymail_new)
